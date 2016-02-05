@@ -6,12 +6,30 @@
 package main
 
 import (
+	"os"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/garyburd/neovim-go/vim/plugin"
+
 	_ "nvim-go/debug"
 	_ "nvim-go/def"
 	_ "nvim-go/fmt"
-
-	"github.com/garyburd/neovim-go/vim/plugin"
 )
+
+func init() {
+	// logrus instead of stdlib log
+	// neovim-go hijacked log format
+	if lf := os.Getenv("NEOVIM_GO_LOG_FILE"); lf != "" {
+		f, err := os.OpenFile(lf, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.SetOutput(f)
+		log.SetFormatter(&log.JSONFormatter{})
+		log.SetLevel(log.DebugLevel)
+	}
+}
 
 func main() {
 	plugin.Main()
