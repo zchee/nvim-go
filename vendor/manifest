@@ -1,0 +1,50 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/Sirupsen/logrus",
+			"repository": "https://github.com/Sirupsen/logrus",
+			"revision": "be52937128b38f1d99787bb476c789e2af1147f1",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/garyburd/neovim-go",
+			"repository": "https://github.com/garyburd/neovim-go",
+			"revision": "16e9b0e47e0ddb16455b6401dae7a10cd2a6a37d",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/rogpeppe/godef/go",
+			"repository": "https://github.com/rogpeppe/godef",
+			"revision": "f90a99664522cad305e072e594a262ae1fcdd256",
+			"branch": "master",
+			"path": "/go"
+		},
+		{
+			"importpath": "golang.org/x/tools/go/ast/astutil",
+			"repository": "https://go.googlesource.com/tools",
+			"revision": "9a6ae37d4e8489946c162432b091610a0fb664af",
+			"branch": "master",
+			"path": "/go/ast/astutil"
+		},
+		{
+			"importpath": "golang.org/x/tools/imports",
+			"repository": "https://go.googlesource.com/tools",
+			"revision": "9a6ae37d4e8489946c162432b091610a0fb664af",
+			"branch": "master",
+			"path": "/imports"
+		},
+		{
+			"importpath": "gopkg.in/airbrake/gobrake.v2",
+			"repository": "https://gopkg.in/airbrake/gobrake.v2",
+			"revision": "c9d51adc624b5cc4c1bf8de730a09af4878ffe2d",
+			"branch": "master"
+		},
+		{
+			"importpath": "gopkg.in/gemnasium/logrus-airbrake-hook.v2",
+			"repository": "https://gopkg.in/gemnasium/logrus-airbrake-hook.v2",
+			"revision": "31e6fd4bd5a98d8ee7673d24bc54ec73c31810dd",
+			"branch": "master"
+		}
+	]
+}
