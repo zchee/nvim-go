@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/build"
-	"os"
 	"runtime"
 	"strconv"
 
@@ -59,10 +58,10 @@ func Def(v *vim.Vim, r [2]int, file string) error {
 
 	switch e := o.(type) {
 	case *ast.ImportSpec:
-		path := importPath(e)
+		path := importPath(v, e)
 		pkg, err := build.Default.Import(path, "", build.FindOnly)
 		if err != nil {
-			fail("error finding import path for %s: %s", path, err)
+			nvim.Echomsg(v, "error finding import path for %s: %s", path, err)
 		}
 		fmt.Println(pkg.Dir)
 	case ast.Expr:
@@ -85,20 +84,15 @@ func Def(v *vim.Vim, r [2]int, file string) error {
 			// v.Command("sil ll 1")
 			// v.Feedkeys("zz", "normal", false)
 		}
-		// fail("no declaration found for %v", pretty{e})
+		nvim.Echomsg(v, "no declaration found for %v", pretty{e})
 	}
 	return nil
 }
 
-func fail(s string, a ...interface{}) {
-	fmt.Fprint(os.Stderr, "godef: "+fmt.Sprintf(s, a...)+"\n")
-	os.Exit(2)
-}
-
-func importPath(n *ast.ImportSpec) string {
+func importPath(v *vim.Vim, n *ast.ImportSpec) string {
 	p, err := strconv.Unquote(n.Path.Value)
 	if err != nil {
-		fail("invalid string literal %q in ast.ImportSpec", n.Path.Value)
+		nvim.Echomsg(v, "invalid string literal %q in ast.ImportSpec", n.Path.Value)
 	}
 	return p
 }
@@ -145,7 +139,7 @@ func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
 					}
 					if id, ok := t.(*ast.Ident); ok {
 						if found(id.NamePos, id.End()) {
-							ec <- parseExpr(f.Scope, id.Name)
+							ec <- parseExpr(v, f.Scope, id.Name)
 							runtime.Goexit()
 						}
 					}
@@ -163,9 +157,7 @@ func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
 	}()
 	ev := <-ec
 	if ev == nil {
-		log.Debugln("def: no identifier found")
 		nvim.Echomsg(v, "def: no identifier found")
-		// fail("no identifier found")
 	}
 	return ev
 }
@@ -190,16 +182,16 @@ func typeStr(obj *ast.Object, typ types.Type) string {
 	return fmt.Sprintf("unknown %s %v", obj.Name, typ.Kind)
 }
 
-func parseExpr(s *ast.Scope, expr string) ast.Expr {
+func parseExpr(v *vim.Vim, s *ast.Scope, expr string) ast.Expr {
 	n, err := parser.ParseExpr(types.FileSet, "<arg>", expr, s)
 	if err != nil {
-		fail("cannot parse expression: %v", err)
+		nvim.Echomsg(v, "cannot parse expression: %v", err)
 	}
 	switch n := n.(type) {
 	case *ast.Ident, *ast.SelectorExpr:
 		return n
 	}
-	fail("no identifier found in expression")
+	nvim.Echomsg(v, "no identifier found in expression")
 	return nil
 }
 
