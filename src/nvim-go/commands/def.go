@@ -55,16 +55,8 @@ func Def(v *vim.Vim, r [2]int, file string) error {
 		nvim.Echomsg(v, "cannot parse %s: %v", filename, err)
 	}
 
-	// var o ast.Node
-	// switch {
-	// case searchpos >= 0:
 	o := findIdentifier(v, f, searchpos)
 
-	// default:
-	// 	fmt.Fprintf(os.Stderr, "no expression or offset specified\n")
-	// 	flag.Usage()
-	// 	os.Exit(2)
-	// }
 	switch e := o.(type) {
 	case *ast.ImportSpec:
 		path := importPath(e)
@@ -74,20 +66,8 @@ func Def(v *vim.Vim, r [2]int, file string) error {
 		}
 		fmt.Println(pkg.Dir)
 	case ast.Expr:
-		// add declarations from other files in the local package and try again
-		// pkg, err := parseLocalPackage(filename, f, pkgScope)
-		// if pkg == nil {
-		// 	fmt.Printf("parseLocalPackage error: %v\n", err)
-		// }
-		// if flag.NArg() > 0 {
-		// 	// Reading declarations in other files might have
-		// 	// resolved the original expression.
-		// 	e = parseExpr(f.Scope, flag.Arg(0)).(ast.Expr)
-		// }
 		if obj, _ := types.ExprType(e, types.DefaultImporter); obj != nil {
 			out := types.FileSet.Position(types.DeclPos(obj))
-			// done(obj, typ)
-			// out.Column--
 			log.Debugln("def out.String():", out.String())
 			log.Debugln("def out.Filename:", out.Filename)
 			log.Debugln("def out.Line:", out.Line)
@@ -128,9 +108,7 @@ func importPath(n *ast.ImportSpec) string {
 // If it is part of a selector expression, it returns
 // that expression rather than the identifier itself.
 //
-// As a special case, if it finds an import
-// spec, it returns ImportSpec.
-//
+// As a special case, if it finds an import spec, it returns ImportSpec.
 func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
 	ec := make(chan ast.Node)
 	found := func(startPos, endPos token.Pos) bool {
@@ -192,23 +170,6 @@ func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
 	return ev
 }
 
-// type orderedObjects []*ast.Object
-//
-// func (o orderedObjects) Less(i, j int) bool { return o[i].Name < o[j].Name }
-// func (o orderedObjects) Len() int           { return len(o) }
-// func (o orderedObjects) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
-
-// func done(v *vim.Vim, obj *ast.Object, typ types.Type) token.Position {
-// defer os.Exit(0)
-// pos := types.FileSet.Position(types.DeclPos(obj))
-// fmt.Printf("%v\n", pos)
-// if typ.Kind == ast.Bad {
-// 	return []
-// }
-// fmt.Printf("%s\n", strings.Replace(typeStr(obj, typ), "\n", "\n\t", -1))
-// return pos
-// }
-
 func typeStr(obj *ast.Object, typ types.Type) string {
 	switch obj.Kind {
 	case ast.Fun, ast.Var:
@@ -250,48 +211,6 @@ func (f FVisitor) Visit(n ast.Node) ast.Visitor {
 	}
 	return nil
 }
-
-// var errNoPkgFiles = errors.New("no more package files found")
-
-// parseLocalPackage reads and parses all go files from the
-// current directory that implement the same package name
-// the principal source file, except the original source file
-// itself, which will already have been parsed.
-//
-// func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) (*ast.Package, error) {
-// 	pkg := &ast.Package{src.Name.Name, pkgScope, nil, map[string]*ast.File{filename: src}}
-// 	d, f := filepath.Split(filename)
-// 	if d == "" {
-// 		d = "./"
-// 	}
-// 	fd, err := os.Open(d)
-// 	if err != nil {
-// 		return nil, errNoPkgFiles
-// 	}
-// 	defer fd.Close()
-//
-// 	list, err := fd.Readdirnames(-1)
-// 	if err != nil {
-// 		return nil, errNoPkgFiles
-// 	}
-//
-// 	for _, pf := range list {
-// 		file := filepath.Join(d, pf)
-// 		if !strings.HasSuffix(pf, ".go") ||
-// 			pf == f ||
-// 			pkgName(file) != pkg.Name {
-// 			continue
-// 		}
-// 		src, err := parser.ParseFile(types.FileSet, file, nil, 0, pkg.Scope)
-// 		if err == nil {
-// 			pkg.Files[file] = src
-// 		}
-// 	}
-// 	if len(pkg.Files) == 1 {
-// 		return nil, errNoPkgFiles
-// 	}
-// 	return pkg, nil
-// }
 
 // pkgName returns the package name implemented by the go source filename
 func pkgName(filename string) string {
