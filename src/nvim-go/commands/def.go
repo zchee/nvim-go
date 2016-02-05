@@ -1,4 +1,4 @@
-package def
+package commands
 
 import (
 	"bytes"
@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strconv"
 
-	"nvim-go/buffer"
 	"nvim-go/gb"
+	"nvim-go/nvim"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim"
@@ -22,10 +22,10 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Godef", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p:h:h:h:h')"}, def)
+	plugin.HandleCommand("Godef", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p:h:h:h:h')"}, Def)
 }
 
-func def(v *vim.Vim, r [2]int, file string) error {
+func Def(v *vim.Vim, r [2]int, file string) error {
 	defer gb.WithGoBuildForPath(file)()
 
 	b, err := v.CurrentBuffer()
@@ -44,7 +44,7 @@ func def(v *vim.Vim, r [2]int, file string) error {
 		return v.WriteErr("cannot get current buffer name")
 	}
 
-	searchpos, err := buffer.ByteOffset(v)
+	searchpos, err := nvim.ByteOffset(v)
 	if err != nil {
 		return v.WriteErr("cannot get current buffer byte offset")
 	}
@@ -87,16 +87,22 @@ func def(v *vim.Vim, r [2]int, file string) error {
 		if obj, _ := types.ExprType(e, types.DefaultImporter); obj != nil {
 			out := types.FileSet.Position(types.DeclPos(obj))
 			// done(obj, typ)
-			out.Column--
-			log.Debugln(out)
+			// out.Column--
+			log.Debugln("def out.String():", out.String())
+			log.Debugln("def out.Filename:", out.Filename)
+			log.Debugln("def out.Line:", out.Line)
+			log.Debugln("def out.Column:", out.Column)
+			log.Debugln("def out.Offset:", out.Offset)
+			log.Debugln("def out.IsValid():", out.IsValid())
 
+			v.Command("silent lexpr '" + fmt.Sprintf("%v", out) + "'")
 			w, err := v.CurrentWindow()
 			if err != nil {
 				log.Debugln(err)
 			}
-			v.Command("lgetexpr '" + fmt.Sprintf("%v", out) + "'")
-			v.Command("sil ll 1")
-			v.SetWindowCursor(w, [2]int{out.Line, out.Column})
+			v.SetWindowCursor(w, [2]int{out.Line, out.Column - 1})
+			// v.Command("silent lgetexpr '" + fmt.Sprintf("%v", out) + "'")
+			// v.Command("sil ll 1")
 			// v.Feedkeys("zz", "normal", false)
 		}
 		// fail("no declaration found for %v", pretty{e})
@@ -179,17 +185,17 @@ func findIdentifier(f *ast.File, searchpos int) ast.Node {
 	}()
 	ev := <-ec
 	if ev == nil {
-		log.Debugln("godef: no identifier found")
+		log.Debugln("def: no identifier found")
 		// fail("no identifier found")
 	}
 	return ev
 }
 
-type orderedObjects []*ast.Object
-
-func (o orderedObjects) Less(i, j int) bool { return o[i].Name < o[j].Name }
-func (o orderedObjects) Len() int           { return len(o) }
-func (o orderedObjects) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
+// type orderedObjects []*ast.Object
+//
+// func (o orderedObjects) Less(i, j int) bool { return o[i].Name < o[j].Name }
+// func (o orderedObjects) Len() int           { return len(o) }
+// func (o orderedObjects) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
 
 // func done(v *vim.Vim, obj *ast.Object, typ types.Type) token.Position {
 // defer os.Exit(0)
@@ -286,9 +292,7 @@ func (f FVisitor) Visit(n ast.Node) ast.Visitor {
 // 	return pkg, nil
 // }
 
-// pkgName returns the package name implemented by the
-// go source filename.
-//
+// pkgName returns the package name implemented by the go source filename
 func pkgName(filename string) string {
 	prog, _ := parser.ParseFile(types.FileSet, filename, nil, parser.PackageClauseOnly, nil)
 	if prog != nil {

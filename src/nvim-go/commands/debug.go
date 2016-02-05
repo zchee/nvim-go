@@ -1,20 +1,20 @@
-package debug
+package commands
 
 import (
 	"encoding/binary"
 	"fmt"
 
-	"nvim-go/command"
+	"nvim-go/nvim"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 )
 
 func init() {
-	plugin.HandleCommand("Godebug", &plugin.CommandOptions{NArgs: "*", Eval: "getcwd()"}, debug)
+	plugin.HandleCommand("Godebug", &plugin.CommandOptions{NArgs: "*", Eval: "getcwd()"}, Debug)
 }
 
-func debug(v *vim.Vim, args []string, cwd string) error {
+func Debug(v *vim.Vim, args []string, cwd string) error {
 	b, err := v.CurrentBuffer()
 	if err != nil {
 		return err
@@ -46,5 +46,5 @@ func debug(v *vim.Vim, args []string, cwd string) error {
 	}
 
 	// return command.Echomsg(v, fmt.Sprintf("line: %d col: %d offset: %d", cursor[0], cursor[1], (offset+(cursor[1]-1))))
-	return command.Echomsg(v, fmt.Sprintf("win: %v height: %v width: %v pos %v", win, height, width, pos))
+	return nvim.Echomsg(v, fmt.Sprintf("win: %v height: %v width: %v pos %v", win, height, width, pos))
 }

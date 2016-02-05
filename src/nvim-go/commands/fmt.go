@@ -1,4 +1,4 @@
-package fmt
+package commands
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"}, fmt)
+	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"}, Fmt)
 }
 
 var options = imports.Options{
@@ -23,7 +23,7 @@ var options = imports.Options{
 	TabWidth:  8,
 }
 
-func fmt(v *vim.Vim, r [2]int, file string) error {
+func Fmt(v *vim.Vim, r [2]int, file string) error {
 	defer gb.WithGoBuildForPath(file)()
 
 	b, err := v.CurrentBuffer()

@@ -11,9 +11,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim/plugin"
 
-	_ "nvim-go/debug"
-	_ "nvim-go/def"
-	_ "nvim-go/fmt"
+	_ "nvim-go/commands"
 )
 
 func init() {

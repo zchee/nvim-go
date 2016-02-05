@@ -1,4 +1,4 @@
-package buffer
+package nvim
 
 import (
 	"encoding/binary"
