@@ -3,6 +3,7 @@ package debug
 import (
 	"encoding/binary"
 	"fmt"
+
 	"nvim-go/command"
 
 	"github.com/garyburd/neovim-go/vim"
@@ -25,6 +26,10 @@ func debug(v *vim.Vim, args []string, cwd string) error {
 
 	w, _ := v.CurrentWindow()
 	cursor, _ := v.WindowCursor(w)
+	height, _ := v.WindowHeight(w)
+	width, _ := v.WindowWidth(w)
+	pos, _ := v.WindowPosition(w)
+	win, _ := v.Windows()
 
 	offset := 0
 	cursorline := 1
@@ -40,5 +45,6 @@ func debug(v *vim.Vim, args []string, cwd string) error {
 		cursorline++
 	}
 
-	return command.Echomsg(v, fmt.Sprintf("line: %d col: %d offset: %d", cursor[0], cursor[1], (offset+(cursor[1]-1))))
+	// return command.Echomsg(v, fmt.Sprintf("line: %d col: %d offset: %d", cursor[0], cursor[1], (offset+(cursor[1]-1))))
+	return command.Echomsg(v, fmt.Sprintf("win: %v height: %v width: %v pos %v", win, height, width, pos))
 }
