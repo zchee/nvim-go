@@ -51,7 +51,7 @@ func Def(v *vim.Vim, r [2]int, file string) error {
 	pkgScope := ast.NewScope(parser.Universe)
 	f, err := parser.ParseFile(types.FileSet, filename, src, 0, pkgScope)
 	if f == nil {
-		nvim.Echomsg(v, "cannot parse %s: %v", filename, err)
+		nvim.Echoerror(v, "def: cannot parse %s: %v", filename, err)
 	}
 
 	o := findIdentifier(v, f, searchpos)
@@ -61,7 +61,7 @@ func Def(v *vim.Vim, r [2]int, file string) error {
 		path := importPath(v, e)
 		pkg, err := build.Default.Import(path, "", build.FindOnly)
 		if err != nil {
-			nvim.Echomsg(v, "error finding import path for %s: %s", path, err)
+			nvim.Echoerror(v, "def: error finding import path for %s: %s", path, err)
 		}
 		fmt.Println(pkg.Dir)
 	case ast.Expr:
@@ -84,7 +84,7 @@ func Def(v *vim.Vim, r [2]int, file string) error {
 			// v.Command("sil ll 1")
 			// v.Feedkeys("zz", "normal", false)
 		}
-		nvim.Echomsg(v, "no declaration found for %v", pretty{e})
+		nvim.Echoerror(v, "def: no declaration found for %v", pretty{e})
 	}
 	return nil
 }
@@ -92,7 +92,7 @@ func Def(v *vim.Vim, r [2]int, file string) error {
 func importPath(v *vim.Vim, n *ast.ImportSpec) string {
 	p, err := strconv.Unquote(n.Path.Value)
 	if err != nil {
-		nvim.Echomsg(v, "invalid string literal %q in ast.ImportSpec", n.Path.Value)
+		nvim.Echoerror(v, "def: invalid string literal %q in ast.ImportSpec", n.Path.Value)
 	}
 	return p
 }
@@ -157,7 +157,7 @@ func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
 	}()
 	ev := <-ec
 	if ev == nil {
-		nvim.Echomsg(v, "def: no identifier found")
+		nvim.Echoerror(v, "def: no identifier found")
 	}
 	return ev
 }
@@ -185,13 +185,13 @@ func typeStr(obj *ast.Object, typ types.Type) string {
 func parseExpr(v *vim.Vim, s *ast.Scope, expr string) ast.Expr {
 	n, err := parser.ParseExpr(types.FileSet, "<arg>", expr, s)
 	if err != nil {
-		nvim.Echomsg(v, "cannot parse expression: %v", err)
+		nvim.Echoerror(v, "def: cannot parse expression: %v", err)
 	}
 	switch n := n.(type) {
 	case *ast.Ident, *ast.SelectorExpr:
 		return n
 	}
-	nvim.Echomsg(v, "no identifier found in expression")
+	nvim.Echoerror(v, "def: no identifier found in expression")
 	return nil
 }
 
