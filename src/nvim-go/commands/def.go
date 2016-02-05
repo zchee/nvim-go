@@ -51,14 +51,14 @@ func Def(v *vim.Vim, r [2]int, file string) error {
 
 	pkgScope := ast.NewScope(parser.Universe)
 	f, err := parser.ParseFile(types.FileSet, filename, src, 0, pkgScope)
-	// if f == nil {
-	// 	fail("cannot parse %s: %v", filename, err)
-	// }
+	if f == nil {
+		nvim.Echomsg(v, "cannot parse %s: %v", filename, err)
+	}
 
 	// var o ast.Node
 	// switch {
 	// case searchpos >= 0:
-	o := findIdentifier(f, searchpos)
+	o := findIdentifier(v, f, searchpos)
 
 	// default:
 	// 	fmt.Fprintf(os.Stderr, "no expression or offset specified\n")
@@ -131,7 +131,7 @@ func importPath(n *ast.ImportSpec) string {
 // As a special case, if it finds an import
 // spec, it returns ImportSpec.
 //
-func findIdentifier(f *ast.File, searchpos int) ast.Node {
+func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
 	ec := make(chan ast.Node)
 	found := func(startPos, endPos token.Pos) bool {
 		start := types.FileSet.Position(startPos).Offset
@@ -186,6 +186,7 @@ func findIdentifier(f *ast.File, searchpos int) ast.Node {
 	ev := <-ec
 	if ev == nil {
 		log.Debugln("def: no identifier found")
+		nvim.Echomsg(v, "def: no identifier found")
 		// fail("no identifier found")
 	}
 	return ev
