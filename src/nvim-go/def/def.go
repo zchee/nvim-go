@@ -2,18 +2,16 @@ package def
 
 import (
 	"bytes"
-	"errors"
-	"flag"
 	"fmt"
 	"go/build"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
-	"strings"
 
 	"nvim-go/buffer"
+	"nvim-go/gb"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/rogpeppe/godef/go/ast"
@@ -24,29 +22,24 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Godef", &plugin.CommandOptions{}, def)
+	plugin.HandleCommand("Godef", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p:h:h:h:h')"}, def)
 }
 
-func def(v *vim.Vim) error {
-	// take GOPATH, set types.GoPath to it if it's not empty.
-	p := os.Getenv("GOPATH")
-	// gb := goPath(p)
-	gopath := strings.Split(p, ":")
-	for i, d := range gopath {
-		gopath[i] = filepath.Join(d, "src")
-	}
-	r := runtime.GOROOT()
-	if r != "" {
-		gopath = append(gopath, r+"/src")
-	}
-	types.GoPath = gopath
+func def(v *vim.Vim, r [2]int, file string) error {
+	defer gb.WithGoBuildForPath(file)()
 
-	buf, err := v.CurrentBuffer()
+	b, err := v.CurrentBuffer()
 	if err != nil {
 		return v.WriteErr("cannot get current buffer")
 	}
 
-	filename, err := v.BufferName(buf)
+	buf, err := v.BufferLineSlice(b, 0, -1, true, true)
+	if err != nil {
+		return err
+	}
+	src := bytes.Join(buf, []byte{'\n'})
+
+	filename, err := v.BufferName(b)
 	if err != nil {
 		return v.WriteErr("cannot get current buffer name")
 	}
@@ -56,26 +49,22 @@ func def(v *vim.Vim) error {
 		return v.WriteErr("cannot get current buffer byte offset")
 	}
 
-	// TODO(zchee): Convert to go code
-	var src interface{}
-	v.Eval("getbufline(bufnr('%'), 1, '$')", src)
-
 	pkgScope := ast.NewScope(parser.Universe)
 	f, err := parser.ParseFile(types.FileSet, filename, src, 0, pkgScope)
-	if f == nil {
-		fail("cannot parse %s: %v", filename, err)
-	}
+	// if f == nil {
+	// 	fail("cannot parse %s: %v", filename, err)
+	// }
 
-	var o ast.Node
-	switch {
-	case searchpos >= 0:
-		o = findIdentifier(f, searchpos)
+	// var o ast.Node
+	// switch {
+	// case searchpos >= 0:
+	o := findIdentifier(f, searchpos)
 
-	default:
-		fmt.Fprintf(os.Stderr, "no expression or offset specified\n")
-		flag.Usage()
-		os.Exit(2)
-	}
+	// default:
+	// 	fmt.Fprintf(os.Stderr, "no expression or offset specified\n")
+	// 	flag.Usage()
+	// 	os.Exit(2)
+	// }
 	switch e := o.(type) {
 	case *ast.ImportSpec:
 		path := importPath(e)
@@ -86,10 +75,10 @@ func def(v *vim.Vim) error {
 		fmt.Println(pkg.Dir)
 	case ast.Expr:
 		// add declarations from other files in the local package and try again
-		pkg, err := parseLocalPackage(filename, f, pkgScope)
-		if pkg == nil {
-			fmt.Printf("parseLocalPackage error: %v\n", err)
-		}
+		// pkg, err := parseLocalPackage(filename, f, pkgScope)
+		// if pkg == nil {
+		// 	fmt.Printf("parseLocalPackage error: %v\n", err)
+		// }
 		// if flag.NArg() > 0 {
 		// 	// Reading declarations in other files might have
 		// 	// resolved the original expression.
@@ -98,54 +87,21 @@ func def(v *vim.Vim) error {
 		if obj, _ := types.ExprType(e, types.DefaultImporter); obj != nil {
 			out := types.FileSet.Position(types.DeclPos(obj))
 			// done(obj, typ)
-			fmt.Println(out)
+			out.Column--
+			log.Debugln(out)
+
+			w, err := v.CurrentWindow()
+			if err != nil {
+				log.Debugln(err)
+			}
 			v.Command("lgetexpr '" + fmt.Sprintf("%v", out) + "'")
 			v.Command("sil ll 1")
-			v.Feedkeys("zz", "normal", false)
+			v.SetWindowCursor(w, [2]int{out.Line, out.Column})
+			// v.Feedkeys("zz", "normal", false)
 		}
 		// fail("no declaration found for %v", pretty{e})
 	}
-
 	return nil
-}
-
-func findGbProject(path string) (string, error) {
-	if path == "" {
-		return "", fmt.Errorf("project root is blank")
-	}
-	start := path
-	for path != filepath.Dir(path) {
-		root := filepath.Join(path, "src")
-		if _, err := os.Stat(root); err != nil {
-			if os.IsNotExist(err) {
-				path = filepath.Dir(path)
-				continue
-			}
-			return "", err
-		}
-		return path, nil
-	}
-	return "", fmt.Errorf(`could not find project root in "%s" or its parents`, start)
-}
-
-// goPath returns a GOPATH for path p.
-func goPath(p string) string {
-	goPath := os.Getenv("GOPATH")
-	p = filepath.Clean(p)
-	for _, root := range filepath.SplitList(goPath) {
-		if strings.HasPrefix(p, filepath.Join(root, "src")+string(filepath.Separator)) {
-			return goPath
-		}
-	}
-
-	project, err := findGbProject(p)
-	if err == nil {
-		return project + string(filepath.ListSeparator) +
-			filepath.Join(project, "vendor") + string(filepath.ListSeparator) +
-			goPath
-	}
-
-	return goPath
 }
 
 func fail(s string, a ...interface{}) {
@@ -223,7 +179,7 @@ func findIdentifier(f *ast.File, searchpos int) ast.Node {
 	}()
 	ev := <-ec
 	if ev == nil {
-		fmt.Fprint(os.Stderr, "godef: nil\n")
+		log.Debugln("godef: no identifier found")
 		// fail("no identifier found")
 	}
 	return ev
@@ -288,47 +244,47 @@ func (f FVisitor) Visit(n ast.Node) ast.Visitor {
 	return nil
 }
 
-var errNoPkgFiles = errors.New("no more package files found")
+// var errNoPkgFiles = errors.New("no more package files found")
 
 // parseLocalPackage reads and parses all go files from the
 // current directory that implement the same package name
 // the principal source file, except the original source file
 // itself, which will already have been parsed.
 //
-func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) (*ast.Package, error) {
-	pkg := &ast.Package{src.Name.Name, pkgScope, nil, map[string]*ast.File{filename: src}}
-	d, f := filepath.Split(filename)
-	if d == "" {
-		d = "./"
-	}
-	fd, err := os.Open(d)
-	if err != nil {
-		return nil, errNoPkgFiles
-	}
-	defer fd.Close()
-
-	list, err := fd.Readdirnames(-1)
-	if err != nil {
-		return nil, errNoPkgFiles
-	}
-
-	for _, pf := range list {
-		file := filepath.Join(d, pf)
-		if !strings.HasSuffix(pf, ".go") ||
-			pf == f ||
-			pkgName(file) != pkg.Name {
-			continue
-		}
-		src, err := parser.ParseFile(types.FileSet, file, nil, 0, pkg.Scope)
-		if err == nil {
-			pkg.Files[file] = src
-		}
-	}
-	if len(pkg.Files) == 1 {
-		return nil, errNoPkgFiles
-	}
-	return pkg, nil
-}
+// func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) (*ast.Package, error) {
+// 	pkg := &ast.Package{src.Name.Name, pkgScope, nil, map[string]*ast.File{filename: src}}
+// 	d, f := filepath.Split(filename)
+// 	if d == "" {
+// 		d = "./"
+// 	}
+// 	fd, err := os.Open(d)
+// 	if err != nil {
+// 		return nil, errNoPkgFiles
+// 	}
+// 	defer fd.Close()
+//
+// 	list, err := fd.Readdirnames(-1)
+// 	if err != nil {
+// 		return nil, errNoPkgFiles
+// 	}
+//
+// 	for _, pf := range list {
+// 		file := filepath.Join(d, pf)
+// 		if !strings.HasSuffix(pf, ".go") ||
+// 			pf == f ||
+// 			pkgName(file) != pkg.Name {
+// 			continue
+// 		}
+// 		src, err := parser.ParseFile(types.FileSet, file, nil, 0, pkg.Scope)
+// 		if err == nil {
+// 			pkg.Files[file] = src
+// 		}
+// 	}
+// 	if len(pkg.Files) == 1 {
+// 		return nil, errNoPkgFiles
+// 	}
+// 	return pkg, nil
+// }
 
 // pkgName returns the package name implemented by the
 // go source filename.
