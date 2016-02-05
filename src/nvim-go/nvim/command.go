@@ -1,11 +1,15 @@
 package nvim
 
-import "github.com/garyburd/neovim-go/vim"
+import (
+	"fmt"
 
-func Echomsg(v *vim.Vim, msg string) error {
-	return v.Command("echomsg '" + msg + "'")
+	"github.com/garyburd/neovim-go/vim"
+)
+
+func Echomsg(v *vim.Vim, format string, args ...interface{}) error {
+	return v.Command("echomsg '" + fmt.Sprintf(format, args...) + "'")
 }
 
-func Echoerror(v *vim.Vim, msg string) error {
-	return v.Command("echoerr '" + msg + "'")
+func Echoerror(v *vim.Vim, format string, args ...interface{}) error {
+	return v.Command("echoerr '" + fmt.Sprintf(format, args...) + "'")
 }
