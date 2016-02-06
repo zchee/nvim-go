@@ -10,6 +10,6 @@ func Echomsg(v *vim.Vim, format string, args ...interface{}) error {
 	return v.WriteOut(fmt.Sprintf(format, args...))
 }
 
-func Echoerror(v *vim.Vim, format string, args ...interface{}) error {
+func Echoerr(v *vim.Vim, format string, args ...interface{}) error {
 	return v.WriteErr(fmt.Sprintf(format, args...))
 }
