@@ -33,18 +33,6 @@
 			"revision": "fe74a4186116b8d7dd38a723993e0d84f8834b34",
 			"branch": "master",
 			"path": "/imports"
-		},
-		{
-			"importpath": "gopkg.in/airbrake/gobrake.v2",
-			"repository": "https://gopkg.in/airbrake/gobrake.v2",
-			"revision": "c9d51adc624b5cc4c1bf8de730a09af4878ffe2d",
-			"branch": "master"
-		},
-		{
-			"importpath": "gopkg.in/gemnasium/logrus-airbrake-hook.v2",
-			"repository": "https://gopkg.in/gemnasium/logrus-airbrake-hook.v2",
-			"revision": "31e6fd4bd5a98d8ee7673d24bc54ec73c31810dd",
-			"branch": "master"
 		}
 	]
 }
