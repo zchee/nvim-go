@@ -25,7 +25,7 @@ func init() {
 		}
 
 		log.SetOutput(f)
-		log.SetFormatter(&log.JSONFormatter{})
+		log.SetFormatter(&RpluginFormatter{})
 		log.SetLevel(log.DebugLevel)
 	}
 }
