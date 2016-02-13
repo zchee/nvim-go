@@ -22,6 +22,10 @@ func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
 	return v.Command("echoerr '" + fmt.Sprintf(format, a...) + "'")
 }
 
+func Echohl(v *vim.Vim, prefix string, highlight string, format string, a ...interface{}) error {
+	return v.Command("echo '" + prefix + "' | echohl " + highlight + " | echon '" + fmt.Sprintf(format, a...) + "' | echohl None")
+}
+
 func ReportError(v *vim.Vim, format string, a ...interface{}) error {
 	return v.ReportError(fmt.Sprintf(format, a...))
 }
