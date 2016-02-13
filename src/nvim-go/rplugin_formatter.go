@@ -20,9 +20,7 @@ func (f *RpluginFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 			data[k] = v
 		}
 	}
-	prefixFieldClashes(data)
 
-	// data["time"] = entry.Time.Format(timestampFormat)
 	data["cmd"] = entry.Data["cmd"]
 	data["msg"] = entry.Message
 	data["level"] = entry.Level.String()
