@@ -1,4 +1,4 @@
-package logger
+package main
 
 import (
 	"encoding/json"
@@ -7,23 +7,14 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
-type JSONFormatter struct {
-	// TimestampFormat sets the format used for marshaling timestamps.
-	TimestampFormat string
-}
-
 type RpluginFormatter struct {
-	// TimestampFormat sets the format used for marshaling timestamps.
-	TimestampFormat string
 }
 
-func (f *JSONFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+func (f *RpluginFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	data := make(logrus.Fields, len(entry.Data)+3)
 	for k, v := range entry.Data {
 		switch v := v.(type) {
 		case error:
-			// Otherwise errors are ignored by `encoding/json`
-			// https://github.com/Sirupsen/logrus/issues/137
 			data[k] = v.Error()
 		default:
 			data[k] = v
@@ -31,12 +22,8 @@ func (f *JSONFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 	prefixFieldClashes(data)
 
-	timestampFormat := f.TimestampFormat
-	if timestampFormat == "" {
-		timestampFormat = logrus.DefaultTimestampFormat
-	}
-
-	data["time"] = entry.Time.Format(timestampFormat)
+	// data["time"] = entry.Time.Format(timestampFormat)
+	data["cmd"] = entry.Data["cmd"]
 	data["msg"] = entry.Message
 	data["level"] = entry.Level.String()
 
@@ -48,9 +35,9 @@ func (f *JSONFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 }
 
 func prefixFieldClashes(data logrus.Fields) {
-	_, ok := data["time"]
+	_, ok := data["cmd"]
 	if ok {
-		data["fields.time"] = data["time"]
+		data["fields.cmd"] = data["cmd"]
 	}
 
 	_, ok = data["msg"]
