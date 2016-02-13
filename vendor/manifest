@@ -21,11 +21,11 @@
 			"path": "/go"
 		},
 		{
-			"importpath": "golang.org/x/tools/cmd/guru",
+			"importpath": "golang.org/x/tools/cmd/guru/serial",
 			"repository": "https://go.googlesource.com/tools",
 			"revision": "608d57b3ae930138a65e85b64edf2ba1b3450b06",
 			"branch": "master",
-			"path": "/cmd/guru"
+			"path": "/cmd/guru/serial"
 		},
 		{
 			"importpath": "golang.org/x/tools/container/intsets",
