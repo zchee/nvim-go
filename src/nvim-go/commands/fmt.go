@@ -9,6 +9,7 @@ import (
 	"go/scanner"
 
 	"nvim-go/gb"
+	"nvim-go/nvim"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -18,6 +19,7 @@ import (
 
 func init() {
 	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"}, Fmt)
+	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go"}, onBufWritePre)
 }
 
 var options = imports.Options{
@@ -42,12 +44,36 @@ func Fmt(v *vim.Vim, r [2]int, file string) error {
 
 	buf, err := imports.Process("", bytes.Join(in, []byte{'\n'}), &options)
 	if err != nil {
-		return reportErrors(v, b, err)
+		return nvim.LoclistErrors(v, b, err)
+	} else {
+		nvim.LoclistClose(v)
 	}
 
 	out := bytes.Split(bytes.TrimSuffix(buf, []byte{'\n'}), []byte{'\n'})
 
 	return minUpdate(v, b, in, out)
+}
+
+type BufWritePre struct {
+	Name string `msgpack:",array"`
+	Cwd  string
+}
+
+func onBufWritePre(v *vim.Vim, eval *BufWritePre) error {
+	var (
+		b vim.Buffer
+		w vim.Window
+	)
+	p := v.NewPipeline()
+	p.CurrentBuffer(&b)
+	p.CurrentWindow(&w)
+	if err := p.Wait(); err != nil {
+		return err
+	}
+
+	p.Command("Gofmt")
+
+	return p.Wait()
 }
 
 func reportErrors(v *vim.Vim, b vim.Buffer, formatErr error) error {
@@ -88,7 +114,6 @@ func reportErrors(v *vim.Vim, b vim.Buffer, formatErr error) error {
 }
 
 func minUpdate(v *vim.Vim, b vim.Buffer, in [][]byte, out [][]byte) error {
-
 	// Find matching head lines.
 	n := len(out)
 	if len(in) < len(out) {
