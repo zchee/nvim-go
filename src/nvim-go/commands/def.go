@@ -8,8 +8,11 @@ import (
 	"bytes"
 	"fmt"
 	"go/build"
+	"regexp"
 	"runtime"
 	"strconv"
+	"strings"
+	"time"
 
 	"nvim-go/gb"
 	"nvim-go/nvim"
@@ -25,10 +28,18 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Godef", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p:h:h:h:h')"}, Def)
+	plugin.HandleCommand("Godef", &plugin.CommandOptions{NArgs: "1", Eval: "expand('%:p:h:h:h:h')"}, Def)
+	// plugin.HandleAutocmd("CursorMoved", &plugin.AutocmdOptions{Pattern: "*.go"}, onCursorMoved)
 }
 
-func Def(v *vim.Vim, r [2]int, file string) error {
+func onCursorMoved(v *vim.Vim) error {
+	time.AfterFunc(4*time.Second, func() {
+		v.Command("Godef info")
+	})
+	return nil
+}
+
+func Def(v *vim.Vim, args []string, file string) error {
 	defer gb.WithGoBuildForPath(file)()
 
 	b, err := v.CurrentBuffer()
@@ -69,29 +80,117 @@ func Def(v *vim.Vim, r [2]int, file string) error {
 		}
 		fmt.Println(pkg.Dir)
 	case ast.Expr:
-		if obj, _ := types.ExprType(e, types.DefaultImporter); obj != nil {
-			out := types.FileSet.Position(types.DeclPos(obj))
-			log.Debugln("def out.String():", out.String())
-			log.Debugln("def out.Filename:", out.Filename)
-			log.Debugln("def out.Line:", out.Line)
-			log.Debugln("def out.Column:", out.Column)
-			log.Debugln("def out.Offset:", out.Offset)
-			log.Debugln("def out.IsValid():", out.IsValid())
+		obj, typ := types.ExprType(e, types.DefaultImporter)
+		if obj != nil {
+			typeMap := typeStrMap(obj, typ)
+			switch true {
+			case args[0] == "info":
+				log.WithFields(log.Fields{"cmd": "Godef info"}).Debugln(typeMap)
 
-			v.Command("silent lexpr '" + fmt.Sprintf("%v", out) + "'")
-			w, err := v.CurrentWindow()
-			if err != nil {
-				log.Debugln(err)
+				kind := typeMap["Type.Kind"] + " "
+				info := typeMap["Type.String()"]
+				re, err := regexp.Compile(` func|\n|\t`)
+				if err != nil {
+					log.Fatal(err)
+				}
+				switch typeMap["Type.Kind"] {
+				case "func":
+					pkg := strings.Split(typeMap["Type.Pkg"], "/")
+					nvim.Echohl(v, "Godef: ", "Function", fmt.Sprintf(kind+pkg[len(pkg)-1]+"."+re.ReplaceAllString(info, "")))
+				case "var":
+					nvim.Echohl(v, "Godef: ", "Identifier", fmt.Sprintf(kind+re.ReplaceAllString(info, "")))
+				default:
+					nvim.Echohl(v, "Godef: ", "Type", fmt.Sprintf(re.ReplaceAllString(info, "")))
+				}
+
+			case args[0] == "jump":
+				out := types.FileSet.Position(types.DeclPos(obj))
+				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.String():", out.String())
+				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.Filename:", out.Filename)
+				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.Line:", out.Line)
+				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.Column:", out.Column)
+				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.Offset:", out.Offset)
+				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.IsValid():", out.IsValid())
+
+				v.Command("silent lexpr '" + fmt.Sprintf("%v", out) + "'")
+				// v.Command("silent lgetexpr '" + fmt.Sprintf("%v", out) + "'")
+				// v.Command("sil ll 1")
+				w, err := v.CurrentWindow()
+				if err != nil {
+					log.Debugln(err)
+				}
+				v.SetWindowCursor(w, [2]int{out.Line, out.Column - 1})
+				v.Feedkeys("zz", "normal", false)
+			default:
+				nvim.Echomsg(v, "Godef: Invalid arguments")
 			}
-			v.SetWindowCursor(w, [2]int{out.Line, out.Column - 1})
-			// v.Command("silent lgetexpr '" + fmt.Sprintf("%v", out) + "'")
-			// v.Command("sil ll 1")
-			// v.Feedkeys("zz", "normal", false)
 		}
+	default:
 		nvim.Echomsg(v, "Godef: no declaration found for %v", pretty{e})
 	}
 	return nil
 }
+
+func typeStrMap(obj *ast.Object, typ types.Type) map[string]string {
+	switch obj.Kind {
+	case ast.Fun, ast.Var:
+		dict := map[string]string{
+			"Object.Kind":   obj.Kind.String(),
+			"Object.Name":   obj.Name,
+			"Type.Kind":     typ.Kind.String(),
+			"Type.Pkg":      typ.Pkg,
+			"Type.String()": typ.String(),
+			// "Object.Decl": obj.Decl,
+			// "Object.Data":   obj.Data,
+			// "Object.Type":   obj.Type,
+			// "Object.Pos()":  obj.Pos(),
+			// "Type.Node":     typ.Node,
+		}
+		return dict
+		// 	return fmt.Sprintf("%s %v", typ.obj.Name, prettyType{typ})
+		// case ast.Pkg:
+		// 	return fmt.Sprintf("import (%s %s)", obj.Name, typ.Node.(*ast.ImportSpec).Path.Value)
+		// case ast.Con:
+		// 	if decl, ok := obj.Decl.(*ast.ValueSpec); ok {
+		// 		return fmt.Sprintf("const %s %v = %s", obj.Name, prettyType{typ}, pretty{decl.Values[0]})
+		// 	}
+		// 	return fmt.Sprintf("const %s %v", obj.Name, prettyType{typ})
+		// case ast.Lbl:
+		// 	return fmt.Sprintf("label %s", obj.Name)
+		// case ast.Typ:
+		// 	typ = typ.Underlying(false, types.DefaultImporter)
+		// 	return fmt.Sprintf("type %s %v", obj.Name, prettyType{typ})
+		// }
+		// return fmt.Sprintf("unknown %s %v", obj.Name, typ.Kind)
+	}
+	return map[string]string{}
+}
+
+func typeStr(obj *ast.Object, typ types.Type) string {
+	switch obj.Kind {
+	case ast.Fun, ast.Var:
+		return fmt.Sprintf("%s %v", obj.Name, prettyType{typ})
+	case ast.Pkg:
+		return fmt.Sprintf("import (%s %s)", obj.Name, typ.Node.(*ast.ImportSpec).Path.Value)
+	case ast.Con:
+		if decl, ok := obj.Decl.(*ast.ValueSpec); ok {
+			return fmt.Sprintf("const %s %v = %s", obj.Name, prettyType{typ}, pretty{decl.Values[0]})
+		}
+		return fmt.Sprintf("const %s %v", obj.Name, prettyType{typ})
+	case ast.Lbl:
+		return fmt.Sprintf("label %s", obj.Name)
+	case ast.Typ:
+		typ = typ.Underlying(false, types.DefaultImporter)
+		return fmt.Sprintf("type %s %v", obj.Name, prettyType{typ})
+	}
+	return fmt.Sprintf("unknown %s %v", obj.Name, typ.Kind)
+}
+
+type orderedObjects []*ast.Object
+
+func (o orderedObjects) Less(i, j int) bool { return o[i].Name < o[j].Name }
+func (o orderedObjects) Len() int           { return len(o) }
+func (o orderedObjects) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
 
 func importPath(v *vim.Vim, n *ast.ImportSpec) string {
 	p, err := strconv.Unquote(n.Path.Value)
@@ -164,26 +263,6 @@ func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
 		nvim.Echomsg(v, "Godef: no identifier found")
 	}
 	return ev
-}
-
-func typeStr(obj *ast.Object, typ types.Type) string {
-	switch obj.Kind {
-	case ast.Fun, ast.Var:
-		return fmt.Sprintf("%s %v", obj.Name, prettyType{typ})
-	case ast.Pkg:
-		return fmt.Sprintf("import (%s %s)", obj.Name, typ.Node.(*ast.ImportSpec).Path.Value)
-	case ast.Con:
-		if decl, ok := obj.Decl.(*ast.ValueSpec); ok {
-			return fmt.Sprintf("const %s %v = %s", obj.Name, prettyType{typ}, pretty{decl.Values[0]})
-		}
-		return fmt.Sprintf("const %s %v", obj.Name, prettyType{typ})
-	case ast.Lbl:
-		return fmt.Sprintf("label %s", obj.Name)
-	case ast.Typ:
-		typ = typ.Underlying(false, types.DefaultImporter)
-		return fmt.Sprintf("type %s %v", obj.Name, prettyType{typ})
-	}
-	return fmt.Sprintf("unknown %s %v", obj.Name, typ.Kind)
 }
 
 func parseExpr(v *vim.Vim, s *ast.Scope, expr string) ast.Expr {
