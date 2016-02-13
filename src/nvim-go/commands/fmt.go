@@ -6,14 +6,12 @@ package commands
 
 import (
 	"bytes"
-	"go/scanner"
 
 	"nvim-go/gb"
 	"nvim-go/nvim"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
-	"github.com/garyburd/neovim-go/vim/vimutil"
 	"golang.org/x/tools/imports"
 )
 
@@ -74,43 +72,6 @@ func onBufWritePre(v *vim.Vim, eval *BufWritePre) error {
 	p.Command("Gofmt")
 
 	return p.Wait()
-}
-
-func reportErrors(v *vim.Vim, b vim.Buffer, formatErr error) error {
-	var qfl []*vimutil.QuickfixError
-	if e, ok := formatErr.(scanner.Error); ok {
-		qfl = append(qfl, &vimutil.QuickfixError{
-			LNum: e.Pos.Line,
-			Col:  e.Pos.Column,
-			Text: e.Msg,
-		})
-	} else if el, ok := formatErr.(scanner.ErrorList); ok {
-		for _, e := range el {
-			qfl = append(qfl, &vimutil.QuickfixError{
-				LNum: e.Pos.Line,
-				Col:  e.Pos.Column,
-				Text: e.Msg,
-			})
-		}
-	}
-
-	if len(qfl) == 0 {
-		return formatErr
-	}
-
-	bufnr, err := v.BufferNumber(b)
-	if err != nil {
-		return err
-	}
-	for i := range qfl {
-		qfl[i].Bufnr = bufnr
-	}
-
-	if err := v.Call("setqflist", nil, qfl); err != nil {
-		return err
-	}
-
-	return v.Command("cc")
 }
 
 func minUpdate(v *vim.Vim, b vim.Buffer, in [][]byte, out [][]byte) error {
