@@ -21,4 +21,4 @@ function! s:RequireGoHost(host) abort
   throw 'Failed to load ' . s:plugin_name . ' host'.
 endfunction
 
-call remote#host#Register('go', '*', function('s:RequireGoHost'))
+call remote#host#Register('go/' . s:plugin_name, '*', function('s:RequireGoHost'))
