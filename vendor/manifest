@@ -23,77 +23,77 @@
 		{
 			"importpath": "golang.org/x/tools/cmd/guru/serial",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/cmd/guru/serial"
 		},
 		{
 			"importpath": "golang.org/x/tools/container/intsets",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/container/intsets"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/ast/astutil",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/go/ast/astutil"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/buildutil",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/go/buildutil"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/callgraph",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/go/callgraph"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/loader",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/go/loader"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/pointer",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/go/pointer"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/ssa",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/go/ssa"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/types/typeutil",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/go/types/typeutil"
 		},
 		{
 			"importpath": "golang.org/x/tools/imports",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/imports"
 		},
 		{
 			"importpath": "golang.org/x/tools/refactor/importgraph",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "a917fb9d7b3e6c98ae167f9026d49d8e02f32d7c",
+			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
 			"branch": "master",
 			"path": "/refactor/importgraph"
 		}
