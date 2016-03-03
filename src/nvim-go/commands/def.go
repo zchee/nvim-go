@@ -88,8 +88,6 @@ func Def(v *vim.Vim, args []string, file string) error {
 			out := types.FileSet.Position(types.DeclPos(obj))
 
 			v.Command("silent lexpr '" + fmt.Sprintf("%v", out) + "'")
-			// v.Command("silent lgetexpr '" + fmt.Sprintf("%v", out) + "'")
-			// v.Command("sil ll 1")
 			w, err := v.CurrentWindow()
 			if err != nil {
 				log.Debugln(err)
