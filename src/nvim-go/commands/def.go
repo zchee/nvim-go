@@ -27,8 +27,12 @@ import (
 	"github.com/rogpeppe/godef/go/types"
 )
 
+var (
+	b vim.Buffer
+)
+
 func init() {
-	plugin.HandleCommand("Godef", &plugin.CommandOptions{NArgs: "1", Eval: "expand('%:p:h:h:h:h')"}, Def)
+	plugin.HandleCommand("Godef", &plugin.CommandOptions{NArgs: "1", Eval: "expand('%:p:h')"}, Def)
 	// plugin.HandleAutocmd("CursorMoved", &plugin.AutocmdOptions{Pattern: "*.go"}, onCursorMoved)
 }
 
@@ -42,9 +46,10 @@ func onCursorMoved(v *vim.Vim) error {
 func Def(v *vim.Vim, args []string, file string) error {
 	defer gb.WithGoBuildForPath(file)()
 
-	b, err := v.CurrentBuffer()
-	if err != nil {
-		return v.WriteErr("cannot get current buffer")
+	p := v.NewPipeline()
+	p.CurrentBuffer(&b)
+	if err := p.Wait(); err != nil {
+		return err
 	}
 
 	buf, err := v.BufferLineSlice(b, 0, -1, true, true)
@@ -91,6 +96,7 @@ func Def(v *vim.Vim, args []string, file string) error {
 				info := typeMap["Type.String()"]
 				re, err := regexp.Compile(` func|\n|\t`)
 				if err != nil {
+					nvim.Echomsg(v, "Godef: regexp error %s", err)
 					log.Fatal(err)
 				}
 				switch typeMap["Type.Kind"] {
@@ -124,6 +130,8 @@ func Def(v *vim.Vim, args []string, file string) error {
 			default:
 				nvim.Echomsg(v, "Godef: Invalid arguments")
 			}
+		} else {
+			nvim.Echomsg(v, "Godef: not found of obj")
 		}
 	default:
 		nvim.Echomsg(v, "Godef: no declaration found for %v", pretty{e})
