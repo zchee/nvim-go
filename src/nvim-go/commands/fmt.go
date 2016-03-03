@@ -17,7 +17,7 @@ import (
 
 func init() {
 	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"}, Fmt)
-	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go"}, onBufWritePre)
+	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "expand('%:p')"}, onBufWritePre)
 }
 
 var options = imports.Options{
@@ -52,26 +52,8 @@ func Fmt(v *vim.Vim, r [2]int, file string) error {
 	return minUpdate(v, b, in, out)
 }
 
-type BufWritePre struct {
-	Name string `msgpack:",array"`
-	Cwd  string
-}
-
-func onBufWritePre(v *vim.Vim, eval *BufWritePre) error {
-	var (
-		b vim.Buffer
-		w vim.Window
-	)
-	p := v.NewPipeline()
-	p.CurrentBuffer(&b)
-	p.CurrentWindow(&w)
-	if err := p.Wait(); err != nil {
-		return err
-	}
-
-	p.Command("Gofmt")
-
-	return p.Wait()
+func onBufWritePre(v *vim.Vim, file string) error {
+	return Fmt(v, [2]int{0, 0}, file)
 }
 
 func minUpdate(v *vim.Vim, b vim.Buffer, in [][]byte, out [][]byte) error {
