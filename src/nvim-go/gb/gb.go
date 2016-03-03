@@ -47,6 +47,7 @@ func FindGbProject(path string) (string, error) {
 func GoPath(p string) string {
 	goPath := os.Getenv("GOPATH")
 	p = filepath.Clean(p)
+
 	for _, root := range filepath.SplitList(goPath) {
 		if strings.HasPrefix(p, filepath.Join(root, "src")+string(filepath.Separator)) {
 			return goPath
@@ -55,9 +56,12 @@ func GoPath(p string) string {
 
 	project, err := FindGbProject(p)
 	if err == nil {
+		parent, child := filepath.Split(project)
+		if child == "vendor" {
+			return filepath.Join(parent, "vendor") + string(filepath.ListSeparator) + goPath
+		}
 		return project + string(filepath.ListSeparator) +
-			filepath.Join(project, "vendor") + string(filepath.ListSeparator) +
-			goPath
+			filepath.Join(project, "vendor") + string(filepath.ListSeparator) + goPath
 	}
 
 	return goPath
