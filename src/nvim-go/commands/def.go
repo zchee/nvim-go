@@ -19,7 +19,6 @@ import (
 	"nvim-go/gb"
 	"nvim-go/nvim"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/rogpeppe/godef/go/ast"
@@ -103,13 +102,18 @@ func Def(v *vim.Vim, args []string, file string) error {
 		obj, _ := types.ExprType(e, types.DefaultImporter)
 		if obj != nil {
 			pos := types.FileSet.Position(types.DeclPos(obj))
-
-			v.Command("silent lexpr '" + fmt.Sprintf("%v", pos) + "'")
-			w, err := v.CurrentWindow()
-			if err != nil {
-				log.Debugln(err)
+			var loclist []*nvim.LoclistData
+			loclist = append(loclist, &nvim.LoclistData{
+				FileName: pos.Filename,
+				LNum:     pos.Line,
+				Col:      pos.Column,
+				Text:     pos.Filename,
+			})
+			if err := nvim.Loclist(v, b, loclist, false); err != nil {
+				nvim.Echomsg(v, "Godef: %s", err)
 			}
-			v.SetWindowCursor(w, [2]int{pos.Line, pos.Column - 1})
+
+			v.Command("silent ll 1")
 			v.Feedkeys("zz", "normal", false)
 		} else {
 			nvim.Echomsg(v, "Godef: not found of obj")
