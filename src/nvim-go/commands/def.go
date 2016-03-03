@@ -100,14 +100,14 @@ func Def(v *vim.Vim, args []string, file string) error {
 		parseLocalPackage(file, f, pkgScope)
 		obj, _ := types.ExprType(e, types.DefaultImporter)
 		if obj != nil {
-			out := types.FileSet.Position(types.DeclPos(obj))
+			pos := types.FileSet.Position(types.DeclPos(obj))
 
-			v.Command("silent lexpr '" + fmt.Sprintf("%v", out) + "'")
+			v.Command("silent lexpr '" + fmt.Sprintf("%v", pos) + "'")
 			w, err := v.CurrentWindow()
 			if err != nil {
 				log.Debugln(err)
 			}
-			v.SetWindowCursor(w, [2]int{out.Line, out.Column - 1})
+			v.SetWindowCursor(w, [2]int{pos.Line, pos.Column - 1})
 			v.Feedkeys("zz", "normal", false)
 		} else {
 			nvim.Echomsg(v, "Godef: not found of obj")
