@@ -6,6 +6,7 @@ package commands
 
 import (
 	"bytes"
+	"go/scanner"
 
 	"nvim-go/gb"
 	"nvim-go/nvim"
@@ -42,7 +43,24 @@ func Fmt(v *vim.Vim, r [2]int, file string) error {
 
 	buf, err := imports.Process("", bytes.Join(in, []byte{'\n'}), &options)
 	if err != nil {
-		return nvim.LoclistErrors(v, b, err)
+		var loclist []*nvim.LoclistData
+
+		if e, ok := err.(scanner.Error); ok {
+			loclist = append(loclist, &nvim.LoclistData{
+				LNum: e.Pos.Line,
+				Col:  e.Pos.Column,
+				Text: e.Msg,
+			})
+		} else if el, ok := err.(scanner.ErrorList); ok {
+			for _, e := range el {
+				loclist = append(loclist, &nvim.LoclistData{
+					LNum: e.Pos.Line,
+					Col:  e.Pos.Column,
+					Text: e.Msg,
+				})
+			}
+		}
+		return nvim.Loclist(v, b, loclist, true)
 	} else {
 		nvim.LoclistClose(v)
 	}
