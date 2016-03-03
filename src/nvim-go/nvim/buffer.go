@@ -33,11 +33,11 @@ func ByteOffset(v *vim.Vim) (int, error) {
 		return 0, err
 	}
 
-	offset := 0
 	if cursor[0] == 1 {
 		return (1 + (cursor[1] - 1)), nil
 	}
 
+	offset := 0
 	line := 1
 	for _, buf := range byteBuf {
 		if line == cursor[0] {
