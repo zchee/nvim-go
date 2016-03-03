@@ -97,7 +97,9 @@ func Def(v *vim.Vim, args []string, file string) error {
 		}
 		fmt.Println(pkg.Dir)
 	case ast.Expr:
-		parseLocalPackage(file, f, pkgScope)
+		if err := parseLocalPackage(file, f, pkgScope); err != nil {
+			nvim.Echomsg(v, "Godef: error parseLocalPackage %v", err)
+		}
 		obj, _ := types.ExprType(e, types.DefaultImporter)
 		if obj != nil {
 			pos := types.FileSet.Position(types.DeclPos(obj))
@@ -281,7 +283,7 @@ var errNoPkgFiles = errors.New("no more package files found")
 // the principal source file, except the original source file
 // itself, which will already have been parsed.
 //
-func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) (*ast.Package, error) {
+func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) error {
 	pkg := &ast.Package{src.Name.Name, pkgScope, nil, map[string]*ast.File{filename: src}}
 	d, f := filepath.Split(filename)
 	if d == "" {
@@ -289,13 +291,13 @@ func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) (*as
 	}
 	fd, err := os.Open(d)
 	if err != nil {
-		return nil, errNoPkgFiles
+		return errNoPkgFiles
 	}
 	defer fd.Close()
 
 	list, err := fd.Readdirnames(-1)
 	if err != nil {
-		return nil, errNoPkgFiles
+		return errNoPkgFiles
 	}
 
 	for _, pf := range list {
@@ -311,9 +313,9 @@ func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) (*as
 		}
 	}
 	if len(pkg.Files) == 1 {
-		return nil, errNoPkgFiles
+		return errNoPkgFiles
 	}
-	return pkg, nil
+	return nil
 }
 
 // pkgName returns the package name implemented by the go source filename
