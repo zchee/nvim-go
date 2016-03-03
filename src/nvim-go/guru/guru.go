@@ -22,6 +22,7 @@ import (
 
 	"golang.org/x/tools/cmd/guru/serial"
 	"golang.org/x/tools/go/ast/astutil"
+	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/go/pointer"
 	"golang.org/x/tools/go/ssa"
@@ -129,18 +130,13 @@ func Run(q *Query) error {
 }
 
 func setPTAScope(lconf *loader.Config, scope []string) error {
-	if len(scope) == 0 {
+	pkgs := buildutil.ExpandPatterns(lconf.Build, scope)
+	if len(pkgs) == 0 {
 		return fmt.Errorf("no packages specified for pointer analysis scope")
 	}
-
-	// Determine initial packages for PTA.
-	args, err := lconf.FromArgs(scope, true)
-	if err != nil {
-		return err
-	}
-	if len(args) > 0 {
-		return fmt.Errorf("surplus arguments: %q", args)
-	}
+	// The value of each entry in pkgs is true,
+	// giving ImportWithTests (not Import) semantics.
+	lconf.ImportPkgs = pkgs
 	return nil
 }
 
@@ -189,15 +185,9 @@ func importQueryPackage(pos string, conf *loader.Config) (string, error) {
 	}
 	filename := fqpos.fset.File(fqpos.start).Name()
 
-	// This will not work for ad-hoc packages
-	// such as $GOROOT/src/net/http/triv.go.
-	// TODO(adonovan): ensure we report a clear error.
 	_, importPath, err := guessImportPath(filename, conf.Build)
 	if err != nil {
 		return "", err // can't find GOPATH dir
-	}
-	if importPath == "" {
-		return "", fmt.Errorf("can't guess import path from %s", filename)
 	}
 
 	// Check that it's possible to load the queried package.
@@ -219,6 +209,8 @@ func importQueryPackage(pos string, conf *loader.Config) (string, error) {
 	case 'G':
 		conf.Import(importPath)
 	default:
+		// This happens for ad-hoc packages like
+		// $GOROOT/src/net/http/triv.go.
 		return "", fmt.Errorf("package %q doesn't contain file %s",
 			importPath, filename)
 	}
@@ -252,7 +244,21 @@ func parseQueryPos(lprog *loader.Program, pos string, needExact bool) (*queryPos
 	if err != nil {
 		return nil, err
 	}
-	start, end, err := findQueryPos(lprog.Fset, filename, startOffset, endOffset)
+
+	// Find the named file among those in the loaded program.
+	var file *token.File
+	lprog.Fset.Iterate(func(f *token.File) bool {
+		if sameFile(filename, f.Name()) {
+			file = f
+			return false // done
+		}
+		return true // continue
+	})
+	if file == nil {
+		return nil, fmt.Errorf("file %s not found in loaded program", filename)
+	}
+
+	start, end, err := fileOffsetToPos(file, startOffset, endOffset)
 	if err != nil {
 		return nil, err
 	}
