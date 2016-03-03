@@ -10,13 +10,17 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 )
 
+var (
+	b vim.Buffer
+	w vim.Window
+)
+
 func ByteOffset(v *vim.Vim) (int, error) {
-	b, err := v.CurrentBuffer()
-	if err != nil {
-		return 0, err
-	}
-	w, err := v.CurrentWindow()
-	if err != nil {
+	p := v.NewPipeline()
+
+	p.CurrentBuffer(&b)
+	p.CurrentWindow(&w)
+	if err := p.Wait(); err != nil {
 		return 0, err
 	}
 
@@ -30,17 +34,18 @@ func ByteOffset(v *vim.Vim) (int, error) {
 	}
 
 	offset := 0
-	cursorline := 1
-	for _, bytes := range byteBuf {
-		if cursor[0] == 1 {
-			offset = 1
-			break
-		} else if cursorline == cursor[0] {
+	if cursor[0] == 1 {
+		return (1 + (cursor[1] - 1)), nil
+	}
+
+	line := 1
+	for _, buf := range byteBuf {
+		if line == cursor[0] {
 			offset++
 			break
 		}
-		offset += (binary.Size(bytes) + 1)
-		cursorline++
+		offset += (binary.Size(buf) + 1)
+		line++
 	}
 
 	return (offset + (cursor[1] - 1)), nil
