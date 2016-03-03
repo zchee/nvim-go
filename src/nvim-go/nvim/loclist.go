@@ -5,13 +5,14 @@
 package nvim
 
 import (
-	"go/scanner"
+	"strconv"
+	"strings"
 
 	"github.com/garyburd/neovim-go/vim"
 )
 
-// QuickfixError represents an item in a quickfix list.
-type LoclistError struct {
+// Loclist represents an item in a quickfix list.
+type LoclistData struct {
 	// Buffer number
 	Bufnr int `msgpack:"bufnr,omitempty"`
 	// Name of a file; only used when bufnr is not present or it is invalid.
@@ -34,46 +35,28 @@ type LoclistError struct {
 	Valid int `msgpack:"valid,omitempty"`
 }
 
-func LoclistErrors(v *vim.Vim, b vim.Buffer, errors error) error {
-	var loclist []*LoclistError
-
-	if e, ok := errors.(scanner.Error); ok {
-		loclist = append(loclist, &LoclistError{
-			LNum: e.Pos.Line,
-			Col:  e.Pos.Column,
-			Text: e.Msg,
-		})
-	} else if el, ok := errors.(scanner.ErrorList); ok {
-		for _, e := range el {
-			loclist = append(loclist, &LoclistError{
-				LNum: e.Pos.Line,
-				Col:  e.Pos.Column,
-				Text: e.Msg,
-			})
-		}
-	}
-
-	if len(loclist) == 0 {
-		return errors
-	}
-
-	bufnr, err := v.BufferNumber(b)
-	if err != nil {
-		return err
-	}
-	for i := range loclist {
-		loclist[i].Bufnr = bufnr
-	}
-
+func Loclist(v *vim.Vim, b vim.Buffer, loclist []*LoclistData, open bool) error {
 	// setloclist({nr}, {list} [, {action}])
 	// Call(fname string, result interface{}, args ...interface{}) error
 	if err := v.Call("setloclist", nil, 0, loclist); err != nil {
 		return err
 	}
 
-	return v.Command("lopen")
+	if open {
+		return v.Command("lopen")
+	} else {
+		return nil
+	}
 }
 
 func LoclistClose(v *vim.Vim) error {
 	return v.Command("lclose")
+}
+
+func SplitPos(pos string) (string, int, int) {
+	file := strings.Split(pos, ":")
+	line, _ := strconv.ParseInt(file[1], 10, 64)
+	col, _ := strconv.ParseInt(file[2], 10, 64)
+
+	return file[0], int(line), int(col)
 }
