@@ -16,11 +16,10 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
-
-	"github.com/rogpeppe/godef/go/types"
 )
 
 func FindGbProject(path string) (string, error) {
@@ -46,6 +45,11 @@ func FindGbProject(path string) (string, error) {
 // GoPath returns a GOPATH for path p.
 func GoPath(p string) string {
 	goPath := os.Getenv("GOPATH")
+	r := runtime.GOROOT()
+	if r != "" {
+		goPath = goPath + string(filepath.ListSeparator) + r
+	}
+
 	p = filepath.Clean(p)
 
 	for _, root := range filepath.SplitList(goPath) {
@@ -58,7 +62,7 @@ func GoPath(p string) string {
 	if err == nil {
 		parent, child := filepath.Split(project)
 		if child == "vendor" {
-			return filepath.Join(parent, "vendor") + string(filepath.ListSeparator) + goPath
+			project = parent[:len(parent)-1]
 		}
 		return project + string(filepath.ListSeparator) +
 			filepath.Join(project, "vendor") + string(filepath.ListSeparator) + goPath
@@ -76,13 +80,12 @@ var goBuildDefaultMu sync.Mutex
 // This function intended to be used to the golang.org/x/tools/imports and
 // other packages that use go/build Default.
 func WithGoBuildForPath(p string) func() {
+	dir, _ := filepath.Split(p)
 	goBuildDefaultMu.Lock()
 	original := build.Default.GOPATH
-	build.Default.GOPATH = GoPath(p)
-	types.GoPath = []string{build.Default.GOPATH}
+	build.Default.GOPATH = GoPath(dir)
 	return func() {
 		build.Default.GOPATH = original
-		types.GoPath = []string{original}
 		goBuildDefaultMu.Unlock()
 	}
 }
