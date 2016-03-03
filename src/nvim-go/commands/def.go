@@ -86,12 +86,6 @@ func Def(v *vim.Vim, args []string, file string) error {
 		obj, _ := types.ExprType(e, types.DefaultImporter)
 		if obj != nil {
 			out := types.FileSet.Position(types.DeclPos(obj))
-			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.String():", out.String())
-			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.Filename:", out.Filename)
-			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.Line:", out.Line)
-			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.Column:", out.Column)
-			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.Offset:", out.Offset)
-			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.IsValid():", out.IsValid())
 
 			v.Command("silent lexpr '" + fmt.Sprintf("%v", out) + "'")
 			// v.Command("silent lgetexpr '" + fmt.Sprintf("%v", out) + "'")
