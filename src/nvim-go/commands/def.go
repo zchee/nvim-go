@@ -8,10 +8,8 @@ import (
 	"bytes"
 	"fmt"
 	"go/build"
-	"regexp"
 	"runtime"
 	"strconv"
-	"strings"
 	"time"
 
 	"nvim-go/gb"
@@ -32,7 +30,7 @@ var (
 )
 
 func init() {
-	plugin.HandleCommand("Godef", &plugin.CommandOptions{NArgs: "1", Eval: "expand('%:p:h')"}, Def)
+	plugin.HandleCommand("Godef", &plugin.CommandOptions{NArgs: "?", Eval: "expand('%:p:h')"}, Def)
 	// plugin.HandleAutocmd("CursorMoved", &plugin.AutocmdOptions{Pattern: "*.go"}, onCursorMoved)
 }
 
@@ -85,51 +83,25 @@ func Def(v *vim.Vim, args []string, file string) error {
 		}
 		fmt.Println(pkg.Dir)
 	case ast.Expr:
-		obj, typ := types.ExprType(e, types.DefaultImporter)
+		obj, _ := types.ExprType(e, types.DefaultImporter)
 		if obj != nil {
-			typeMap := typeStrMap(obj, typ)
-			switch true {
-			case args[0] == "info":
-				log.WithFields(log.Fields{"cmd": "Godef info"}).Debugln(typeMap)
+			out := types.FileSet.Position(types.DeclPos(obj))
+			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.String():", out.String())
+			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.Filename:", out.Filename)
+			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.Line:", out.Line)
+			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.Column:", out.Column)
+			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.Offset:", out.Offset)
+			log.WithFields(log.Fields{"cmd": "Godef"}).Debugln("out.IsValid():", out.IsValid())
 
-				kind := typeMap["Type.Kind"] + " "
-				info := typeMap["Type.String()"]
-				re, err := regexp.Compile(` func|\n|\t`)
-				if err != nil {
-					nvim.Echomsg(v, "Godef: regexp error %s", err)
-					log.Fatal(err)
-				}
-				switch typeMap["Type.Kind"] {
-				case "func":
-					pkg := strings.Split(typeMap["Type.Pkg"], "/")
-					nvim.Echohl(v, "Godef: ", "Function", fmt.Sprintf(kind+pkg[len(pkg)-1]+"."+re.ReplaceAllString(info, "")))
-				case "var":
-					nvim.Echohl(v, "Godef: ", "Identifier", fmt.Sprintf(kind+re.ReplaceAllString(info, "")))
-				default:
-					nvim.Echohl(v, "Godef: ", "Type", fmt.Sprintf(re.ReplaceAllString(info, "")))
-				}
-
-			case args[0] == "jump":
-				out := types.FileSet.Position(types.DeclPos(obj))
-				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.String():", out.String())
-				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.Filename:", out.Filename)
-				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.Line:", out.Line)
-				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.Column:", out.Column)
-				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.Offset:", out.Offset)
-				log.WithFields(log.Fields{"cmd": "Godef jump"}).Debugln("out.IsValid():", out.IsValid())
-
-				v.Command("silent lexpr '" + fmt.Sprintf("%v", out) + "'")
-				// v.Command("silent lgetexpr '" + fmt.Sprintf("%v", out) + "'")
-				// v.Command("sil ll 1")
-				w, err := v.CurrentWindow()
-				if err != nil {
-					log.Debugln(err)
-				}
-				v.SetWindowCursor(w, [2]int{out.Line, out.Column - 1})
-				v.Feedkeys("zz", "normal", false)
-			default:
-				nvim.Echomsg(v, "Godef: Invalid arguments")
+			v.Command("silent lexpr '" + fmt.Sprintf("%v", out) + "'")
+			// v.Command("silent lgetexpr '" + fmt.Sprintf("%v", out) + "'")
+			// v.Command("sil ll 1")
+			w, err := v.CurrentWindow()
+			if err != nil {
+				log.Debugln(err)
 			}
+			v.SetWindowCursor(w, [2]int{out.Line, out.Column - 1})
+			v.Feedkeys("zz", "normal", false)
 		} else {
 			nvim.Echomsg(v, "Godef: not found of obj")
 		}
