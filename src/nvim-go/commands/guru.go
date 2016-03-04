@@ -81,6 +81,8 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 		Reflection: useReflection,
 	}
 
+	nvim.Echohl(v, "GoGuru: ", "Identifier", "analysing %s ...", mode)
+
 	if err := guru.Run(&query); err != nil {
 		return nvim.Echomsg(v, "%s", err)
 	}
@@ -90,6 +92,7 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 		return nvim.Echomsg(v, "GoGuru: %v", err)
 	}
 
+	v.Command("redraw!")
 	return nvim.Loclist(p, d, true)
 }
 
