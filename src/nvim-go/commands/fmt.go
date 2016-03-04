@@ -31,8 +31,10 @@ var options = imports.Options{
 func Fmt(v *vim.Vim, r [2]int, file string) error {
 	defer gb.WithGoBuildForPath(file)()
 
-	b, err := v.CurrentBuffer()
-	if err != nil {
+	var b vim.Buffer
+	p := v.NewPipeline()
+	p.CurrentBuffer(&b)
+	if err := p.Wait(); err != nil {
 		return err
 	}
 
@@ -60,7 +62,7 @@ func Fmt(v *vim.Vim, r [2]int, file string) error {
 				})
 			}
 		}
-		return nvim.Loclist(v, loclist, true)
+		return nvim.Loclist(p, loclist, true)
 	} else {
 		nvim.LoclistClose(v)
 	}
@@ -70,8 +72,8 @@ func Fmt(v *vim.Vim, r [2]int, file string) error {
 	return minUpdate(v, b, in, out)
 }
 
-func onBufWritePre(v *vim.Vim, file string) error {
-	return Fmt(v, [2]int{0, 0}, file)
+func onBufWritePre(v *vim.Vim, file string) {
+	go Fmt(v, [2]int{0, 0}, file)
 }
 
 func minUpdate(v *vim.Vim, b vim.Buffer, in [][]byte, out [][]byte) error {

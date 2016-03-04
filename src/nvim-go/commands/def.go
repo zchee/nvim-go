@@ -14,7 +14,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
 	"nvim-go/gb"
 	"nvim-go/nvim"
@@ -29,24 +28,20 @@ import (
 )
 
 var (
-	b vim.Buffer
-)
-
-var (
-	debug  = "go#debug#godef"
-	vDebug interface{}
+	filer      = "go#def#filer"
+	vFiler     interface{}
+	filerMode  = "go#def#filer_mode"
+	vFilerMode interface{}
+	debug      = "go#def#debug"
+	vDebug     interface{}
 )
 
 func init() {
-	plugin.HandleCommand("Godef", &plugin.CommandOptions{NArgs: "?", Eval: "expand('%:p')"}, Def)
-	// plugin.HandleAutocmd("CursorMoved", &plugin.AutocmdOptions{Pattern: "*.go"}, onCursorMoved)
+	plugin.HandleCommand("Godef", &plugin.CommandOptions{NArgs: "?", Eval: "expand('%:p')"}, cmdDef)
 }
 
-func onCursorMoved(v *vim.Vim) error {
-	time.AfterFunc(4*time.Second, func() {
-		v.Command("Godef info")
-	})
-	return nil
+func cmdDef(v *vim.Vim, args []string, file string) {
+	go Def(v, args, file)
 }
 
 func Def(v *vim.Vim, args []string, file string) error {
@@ -62,6 +57,7 @@ func Def(v *vim.Vim, args []string, file string) error {
 		types.Debug = true
 	}
 
+	var b vim.Buffer
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
 	if err := p.Wait(); err != nil {
@@ -88,13 +84,21 @@ func Def(v *vim.Vim, args []string, file string) error {
 	o := findIdentifier(v, f, searchpos)
 
 	switch e := o.(type) {
+
 	case *ast.ImportSpec:
 		path := importPath(v, e)
 		pkg, err := build.Default.Import(path, "", build.FindOnly)
 		if err != nil {
 			nvim.Echomsg(v, "Godef: error finding import path for %s: %s", path, err)
 		}
-		fmt.Println(pkg.Dir)
+
+		v.Var(filerMode, &vFilerMode)
+		if vFilerMode.(string) != "" {
+			v.Command(vFilerMode.(string))
+		}
+		v.Var(filer, &vFiler)
+		return v.Command(vFiler.(string) + " " + pkg.Dir)
+
 	case ast.Expr:
 		if err := parseLocalPackage(file, f, pkgScope); err != nil {
 			nvim.Echomsg(v, "Godef: error parseLocalPackage %v", err)
@@ -109,7 +113,7 @@ func Def(v *vim.Vim, args []string, file string) error {
 				Col:      pos.Column,
 				Text:     pos.Filename,
 			})
-			if err := nvim.Loclist(v, loclist, false); err != nil {
+			if err := nvim.Loclist(p, loclist, false); err != nil {
 				nvim.Echomsg(v, "Godef: %s", err)
 			}
 

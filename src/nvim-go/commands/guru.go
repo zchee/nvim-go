@@ -29,7 +29,7 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("GoGuru", &plugin.CommandOptions{NArgs: "1", Complete: "customlist,GuruCompletelist", Eval: "[expand('%:p:h'), expand('%:p')]"}, Guru)
+	plugin.HandleCommand("GoGuru", &plugin.CommandOptions{NArgs: "1", Complete: "customlist,GuruCompletelist", Eval: "[expand('%:p:h'), expand('%:p')]"}, cmdGuru)
 	plugin.HandleFunction("GuruCompletelist", &plugin.FunctionOptions{}, onComplete)
 }
 
@@ -44,6 +44,13 @@ type onGuruEval struct {
 
 func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	defer gb.WithGoBuildForPath(eval.File)()
+
+	var b vim.Buffer
+	p := v.NewPipeline()
+	p.CurrentBuffer(&b)
+	if err := p.Wait(); err != nil {
+		return err
+	}
 
 	dir := strings.Split(eval.Cwd, "src/")
 	scopeFlag := dir[len(dir)-1]
@@ -72,7 +79,7 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 		return nvim.Echomsg(v, "GoGuru: %v", err)
 	}
 
-	return nvim.Loclist(v, d, true)
+	return nvim.Loclist(p, d, true)
 }
 
 func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
@@ -278,4 +285,8 @@ func onComplete(v *vim.Vim) ([]string, error) {
 		"what",
 		"whicherrs",
 	}, nil
+}
+
+func cmdGuru(v *vim.Vim, args []string, eval *onGuruEval) {
+	go Guru(v, args, eval)
 }
