@@ -110,8 +110,8 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	return nvim.OpeLoclist(p, w, useKeepCursor)
 }
 
-func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
-	var loclist []*nvim.LoclistData
+func parseSerial(mode string, s *serial.Result) ([]*nvim.ErrorlistData, error) {
+	var loclist []*nvim.ErrorlistData
 
 	switch mode {
 	case "callees":
@@ -120,7 +120,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 			calleers += calleers + n.Name
 		}
 		file, line, col := nvim.SplitPos(s.Callees.Pos)
-		loclist = append(loclist, &nvim.LoclistData{
+		loclist = append(loclist, &nvim.ErrorlistData{
 			FileName: file,
 			LNum:     line,
 			Col:      col,
@@ -129,7 +129,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 	case "callers":
 		for _, e := range s.Callers {
 			file, line, col := nvim.SplitPos(e.Pos)
-			loclist = append(loclist, &nvim.LoclistData{
+			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: file,
 				LNum:     line,
 				Col:      col,
@@ -140,7 +140,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		if len(s.Callstack.Callers) != 0 {
 			for _, n := range s.Callstack.Callers {
 				file, line, col := nvim.SplitPos(n.Pos)
-				loclist = append(loclist, &nvim.LoclistData{
+				loclist = append(loclist, &nvim.ErrorlistData{
 					FileName: file,
 					LNum:     line,
 					Col:      col,
@@ -150,7 +150,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		}
 	case "definition":
 		file, line, col := nvim.SplitPos(s.Definition.ObjPos)
-		loclist = append(loclist, &nvim.LoclistData{
+		loclist = append(loclist, &nvim.ErrorlistData{
 			FileName: file,
 			LNum:     line,
 			Col:      col,
@@ -158,7 +158,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		})
 	case "describe":
 		file, line, col := nvim.SplitPos(s.Describe.Value.ObjPos)
-		loclist = append(loclist, &nvim.LoclistData{
+		loclist = append(loclist, &nvim.ErrorlistData{
 			FileName: file,
 			LNum:     line,
 			Col:      col,
@@ -168,7 +168,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		for _, e := range s.Freevars {
 			file, line, col := nvim.SplitPos(e.Pos)
 			log.Debugln(e)
-			loclist = append(loclist, &nvim.LoclistData{
+			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: file,
 				LNum:     line,
 				Col:      col,
@@ -177,7 +177,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		}
 	case "implements":
 		file, line, col := nvim.SplitPos(s.Implements.T.Pos)
-		loclist = append(loclist, &nvim.LoclistData{
+		loclist = append(loclist, &nvim.ErrorlistData{
 			FileName: file,
 			LNum:     line,
 			Col:      col,
@@ -186,7 +186,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 	case "peers":
 		for _, e := range s.Peers.Allocs {
 			file, line, col := nvim.SplitPos(e)
-			loclist = append(loclist, &nvim.LoclistData{
+			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: file,
 				LNum:     line,
 				Col:      col,
@@ -195,7 +195,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		}
 		for _, e := range s.Peers.Sends {
 			file, line, col := nvim.SplitPos(e)
-			loclist = append(loclist, &nvim.LoclistData{
+			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: file,
 				LNum:     line,
 				Col:      col,
@@ -204,7 +204,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		}
 		for _, e := range s.Peers.Receives {
 			file, line, col := nvim.SplitPos(e)
-			loclist = append(loclist, &nvim.LoclistData{
+			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: file,
 				LNum:     line,
 				Col:      col,
@@ -213,7 +213,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		}
 		for _, e := range s.Peers.Closes {
 			file, line, col := nvim.SplitPos(e)
-			loclist = append(loclist, &nvim.LoclistData{
+			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: file,
 				LNum:     line,
 				Col:      col,
@@ -224,14 +224,14 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		for _, e := range s.PointsTo {
 			if e.NamePos != "" {
 				file, line, col := nvim.SplitPos(e.NamePos)
-				loclist = append(loclist, &nvim.LoclistData{
+				loclist = append(loclist, &nvim.ErrorlistData{
 					FileName: file,
 					LNum:     line,
 					Col:      col,
 					Text:     e.Type,
 				})
 			} else {
-				loclist = append(loclist, &nvim.LoclistData{
+				loclist = append(loclist, &nvim.ErrorlistData{
 					Text: e.Type,
 				})
 			}
@@ -239,7 +239,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 	case "referrers":
 		for _, e := range s.Referrers.Refs {
 			file, line, col := nvim.SplitPos(e)
-			loclist = append(loclist, &nvim.LoclistData{
+			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: file,
 				LNum:     line,
 				Col:      col,
@@ -257,23 +257,23 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		for _, mode := range s.What.Modes {
 			modesText += mode + " "
 		}
-		loclist = append(loclist, &nvim.LoclistData{
+		loclist = append(loclist, &nvim.ErrorlistData{
 			Text: "Modes: " + modesText[:len(modesText)-2],
 		})
-		loclist = append(loclist, &nvim.LoclistData{
+		loclist = append(loclist, &nvim.ErrorlistData{
 			Text: "SrcDir: " + s.What.SrcDir,
 		})
-		loclist = append(loclist, &nvim.LoclistData{
+		loclist = append(loclist, &nvim.ErrorlistData{
 			Text: "ImportPath: " + s.What.ImportPath,
 		})
-		loclist = append(loclist, &nvim.LoclistData{
+		loclist = append(loclist, &nvim.ErrorlistData{
 			Text: "Object: " + s.What.Object,
 		})
 		sameIDsText := "SameIDs: "
 		for _, sameid := range s.What.SameIDs {
 			sameIDsText += sameid
 		}
-		loclist = append(loclist, &nvim.LoclistData{
+		loclist = append(loclist, &nvim.ErrorlistData{
 			Text: sameIDsText,
 		})
 	case "whicherrs":
@@ -283,7 +283,7 @@ func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
 		// log.Debugln("s.WhichErrs.Types:", s.WhichErrs.Types)
 		for _, e := range s.WhichErrs.Types {
 			file, line, col := nvim.SplitPos(e.Position)
-			loclist = append(loclist, &nvim.LoclistData{
+			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: file,
 				LNum:     line,
 				Col:      col,

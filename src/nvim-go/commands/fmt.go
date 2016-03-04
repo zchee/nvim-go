@@ -65,10 +65,10 @@ func Fmt(v *vim.Vim, r [2]int, dir string) error {
 
 	buf, err := imports.Process("", bytes.Join(in, []byte{'\n'}), &options)
 	if err != nil {
-		var loclist []*nvim.LoclistData
+		var loclist []*nvim.ErrorlistData
 
 		if e, ok := err.(scanner.Error); ok {
-			loclist = append(loclist, &nvim.LoclistData{
+			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: bufName,
 				LNum:     e.Pos.Line,
 				Col:      e.Pos.Column,
@@ -76,7 +76,7 @@ func Fmt(v *vim.Vim, r [2]int, dir string) error {
 			})
 		} else if el, ok := err.(scanner.ErrorList); ok {
 			for _, e := range el {
-				loclist = append(loclist, &nvim.LoclistData{
+				loclist = append(loclist, &nvim.ErrorlistData{
 					FileName: bufName,
 					LNum:     e.Pos.Line,
 					Col:      e.Pos.Column,

@@ -12,30 +12,39 @@ import (
 )
 
 // Loclist represents an item in a quickfix list.
-type LoclistData struct {
+type ErrorlistData struct {
 	// Buffer number
 	Bufnr int `msgpack:"bufnr,omitempty"`
+
 	// Name of a file; only used when bufnr is not present or it is invalid.
 	FileName string `msgpack:"filename,omitempty"`
+
 	// Line number in the file.
 	LNum int `msgpack:"lnum,omitempty"`
+
 	// Column number (first column is 1).
 	Col int `msgpack:"col,omitempty"`
+
 	// When Vcol is != 0,  Col is visual column.
 	VCol int `msgpack:"vcol,omitempty"`
+
 	// Error number.
 	Nr int `msgpack:"nr,omitempty"`
+
 	// Search pattern used to locate the error.
 	Pattern string `msgpack:"pattern,omitempty"`
+
 	// Description of the error.
 	Text string `msgpack:"text,omitempty"`
+
 	// Single-character error type, 'E', 'W', etc.
 	Type string `msgpack:"type,omitempty"`
+
 	// Valid is non-zero if this is a recognized error message.
 	Valid int `msgpack:"valid,omitempty"`
 }
 
-func SetLoclist(p *vim.Pipeline, loclist []*LoclistData) error {
+func SetLoclist(p *vim.Pipeline, loclist []*ErrorlistData) error {
 	// setloclist({nr}, {list} [, {action}])
 	// Call(fname string, result interface{}, args ...interface{})
 	p.Call("setloclist", nil, 0, loclist)
@@ -59,6 +68,27 @@ func CloseLoclist(v *vim.Vim) error {
 	return v.Command("lclose")
 }
 
+func SetQuickfix(p *vim.Pipeline, qflist []*ErrorlistData) error {
+	p.Call("setqflist", nil, 0, qflist)
+
+	return nil
+}
+
+func OpenOuickfix(p *vim.Pipeline, w vim.Window, keep bool) error {
+	p.Command("copen")
+	if keep {
+		p.SetCurrentWindow(w)
+	}
+	if err := p.Wait(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CloseQuickfix(v *vim.Vim) error {
+	return v.Command("cclose")
+}
 func SplitPos(pos string) (string, int, int) {
 	file := strings.Split(pos, ":")
 	line, _ := strconv.ParseInt(file[1], 10, 64)

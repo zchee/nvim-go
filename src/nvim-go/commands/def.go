@@ -111,8 +111,8 @@ func Def(v *vim.Vim, args []string, file string) error {
 		obj, _ := types.ExprType(e, types.DefaultImporter)
 		if obj != nil {
 			pos := types.FileSet.Position(types.DeclPos(obj))
-			var loclist []*nvim.LoclistData
-			loclist = append(loclist, &nvim.LoclistData{
+			var loclist []*nvim.ErrorlistData
+			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: pos.Filename,
 				LNum:     pos.Line,
 				Col:      pos.Column,
