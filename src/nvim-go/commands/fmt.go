@@ -24,16 +24,16 @@ var options = imports.Options{
 }
 
 func init() {
-	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"}, Fmt)
-	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "expand('%:p')"}, onBufWritePre)
+	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p:h')"}, Fmt)
+	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "expand('%:p:h')"}, onBufWritePre)
 }
 
-func onBufWritePre(v *vim.Vim, file string) {
-	go Fmt(v, [2]int{0, 0}, file)
+func onBufWritePre(v *vim.Vim, dir string) {
+	go Fmt(v, [2]int{0, 0}, dir)
 }
 
-func Fmt(v *vim.Vim, r [2]int, file string) error {
-	defer gb.WithGoBuildForPath(file)()
+func Fmt(v *vim.Vim, r [2]int, dir string) error {
+	defer gb.WithGoBuildForPath(dir)()
 
 	var b vim.Buffer
 	p := v.NewPipeline()

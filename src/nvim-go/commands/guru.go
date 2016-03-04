@@ -29,7 +29,7 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("GoGuru", &plugin.CommandOptions{NArgs: "1", Complete: "customlist,GuruCompletelist", Eval: "[expand('%:p:h'), expand('%:p')]"}, cmdGuru)
+	plugin.HandleCommand("GoGuru", &plugin.CommandOptions{NArgs: "+", Complete: "customlist,GuruCompletelist", Eval: "[expand('%:p:h'), expand('%:p')]"}, cmdGuru)
 	plugin.HandleFunction("GuruCompletelist", &plugin.FunctionOptions{}, onComplete)
 }
 
@@ -38,17 +38,17 @@ var (
 	vReflection interface{}
 )
 
-func cmdGuru(v *vim.Vim, args []string, eval *onGuruEval) {
-	go Guru(v, args, eval)
-}
-
 type onGuruEval struct {
 	Cwd  string `msgpack:",array"`
 	File string
 }
 
+func cmdGuru(v *vim.Vim, args []string, eval *onGuruEval) {
+	go Guru(v, args, eval)
+}
+
 func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
-	defer gb.WithGoBuildForPath(eval.File)()
+	defer gb.WithGoBuildForPath(eval.Cwd)()
 
 	var useReflection bool
 	v.Var(reflection, &vReflection)

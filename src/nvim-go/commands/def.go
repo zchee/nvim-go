@@ -45,7 +45,8 @@ func cmdDef(v *vim.Vim, args []string, file string) {
 }
 
 func Def(v *vim.Vim, args []string, file string) error {
-	defer gb.WithGoBuildForPath(file)()
+	dir, _ := filepath.Split(file)
+	defer gb.WithGoBuildForPath(dir)()
 	gopath := strings.Split(build.Default.GOPATH, ":")
 	for i, d := range gopath {
 		gopath[i] = filepath.Join(d, "src")
