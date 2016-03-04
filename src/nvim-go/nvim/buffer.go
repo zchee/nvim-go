@@ -10,12 +10,12 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 )
 
-var (
-	b vim.Buffer
-	w vim.Window
-)
-
 func ByteOffset(v *vim.Vim) (int, error) {
+	var (
+		b vim.Buffer
+		w vim.Window
+	)
+
 	p := v.NewPipeline()
 
 	p.CurrentBuffer(&b)
