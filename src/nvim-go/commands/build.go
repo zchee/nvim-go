@@ -55,7 +55,11 @@ func Build(v *vim.Vim, args []string, dir string) error {
 
 	s, _ := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	if s.ExitStatus() > 0 {
-		nvim.Echomsg(v, "%s", out)
+		loclist := nvim.ParseError(v, string(out))
+		if err := nvim.SetLoclist(p, loclist); err != nil {
+			nvim.Echomsg(v, "GoBuild: %s", err)
+		}
+		return nvim.OpenLoclist(p, w, loclist, true)
 	} else {
 		nvim.Echohl(v, "GoBuild: ", "Function", "SUCCESS")
 	}

@@ -47,18 +47,30 @@ type ErrorlistData struct {
 func SetLoclist(p *vim.Pipeline, loclist []*ErrorlistData) error {
 	// setloclist({nr}, {list} [, {action}])
 	// Call(fname string, result interface{}, args ...interface{})
-	p.Call("setloclist", nil, 0, loclist)
+	if len(loclist) > 0 {
+		p.Call("setloclist", nil, 0, loclist)
+	} else {
+		p.Command("lexpr ''")
+	}
 
 	return nil
 }
 
-func OpenLoclist(p *vim.Pipeline, w vim.Window, keep bool) error {
-	p.Command("lopen")
-	if keep {
-		p.SetCurrentWindow(w)
-	}
-	if err := p.Wait(); err != nil {
-		return err
+func OpenLoclist(p *vim.Pipeline, w vim.Window, loclist []*ErrorlistData, keep bool) error {
+	if len(loclist) > 0 {
+		p.Command("lopen")
+		if keep {
+			p.SetCurrentWindow(w)
+		}
+		if err := p.Wait(); err != nil {
+			return err
+		}
+	} else {
+		p.Command("redraw!")
+		p.Command("lclose")
+		if err := p.Wait(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -89,6 +101,7 @@ func OpenOuickfix(p *vim.Pipeline, w vim.Window, keep bool) error {
 func CloseQuickfix(v *vim.Vim) error {
 	return v.Command("cclose")
 }
+
 func SplitPos(pos string) (string, int, int) {
 	file := strings.Split(pos, ":")
 	line, _ := strconv.ParseInt(file[1], 10, 64)
