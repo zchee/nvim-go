@@ -8,12 +8,12 @@ import (
 	"bytes"
 	"go/scanner"
 
-	"nvim-go/gb"
-	"nvim-go/nvim"
-
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"golang.org/x/tools/imports"
+
+	"nvim-go/gb"
+	"nvim-go/nvim"
 )
 
 var (
