@@ -21,16 +21,9 @@
 			"path": "/go"
 		},
 		{
-			"importpath": "golang.org/x/tools/cmd/guru",
-			"repository": "https://go.googlesource.com/tools",
-			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
-			"branch": "master",
-			"path": "/cmd/guru"
-		},
-		{
 			"importpath": "golang.org/x/tools/cmd/guru/serial",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "2f1d035a8abfa2a0ecdc5ad63a17625468d900c2",
+			"revision": "ac02106e04bdb66a2db0413d931012bea165d7e0",
 			"branch": "master",
 			"path": "/cmd/guru/serial"
 		},

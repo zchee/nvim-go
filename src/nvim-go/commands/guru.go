@@ -21,10 +21,10 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
-	"golang.org/x/tools/cmd/guru"
 	"golang.org/x/tools/cmd/guru/serial"
 
 	"nvim-go/gb"
+	"nvim-go/guru"
 	"nvim-go/nvim"
 )
 
