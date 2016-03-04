@@ -34,8 +34,10 @@ func init() {
 }
 
 var (
-	reflection  = "go#guru#reflection"
-	vReflection interface{}
+	guruReflection  = "go#guru#reflection"
+	vGuruReflection interface{}
+	guruKeepCursor  = "go#guru#keep_cursor"
+	vGuruKeepCursor interface{}
 )
 
 type onGuruEval struct {
@@ -50,15 +52,24 @@ func cmdGuru(v *vim.Vim, args []string, eval *onGuruEval) {
 func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	defer gb.WithGoBuildForPath(eval.Cwd)()
 
-	var useReflection bool
-	v.Var(reflection, &vReflection)
-	if vReflection.(int64) == int64(1) {
+	useReflection := false
+	v.Var(guruReflection, &vGuruReflection)
+	if vGuruReflection.(int64) == int64(1) {
 		useReflection = true
 	}
+	useKeepCursor := false
+	v.Var(guruKeepCursor, &vGuruKeepCursor)
+	if vGuruKeepCursor.(int64) == int64(1) {
+		useKeepCursor = true
+	}
 
-	var b vim.Buffer
+	var (
+		b vim.Buffer
+		w vim.Window
+	)
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
+	p.CurrentWindow(&w)
 	if err := p.Wait(); err != nil {
 		return err
 	}
@@ -92,8 +103,11 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 		return nvim.Echomsg(v, "GoGuru: %v", err)
 	}
 
-	v.Command("redraw!")
-	return nvim.Loclist(p, d, true)
+	if err := nvim.SetLoclist(p, d); err != nil {
+		return nvim.Echomsg(v, "GoGuru: %v", err)
+	}
+	p.Command("redraw!")
+	return nvim.OpeLoclist(p, w, useKeepCursor)
 }
 
 func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
