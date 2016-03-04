@@ -56,6 +56,8 @@ func Fmt(v *vim.Vim, r [2]int, dir string) error {
 		return err
 	}
 
+	bufName, err := v.BufferName(b)
+
 	in, err := v.BufferLineSlice(b, 0, -1, true, true)
 	if err != nil {
 		return err
@@ -67,7 +69,7 @@ func Fmt(v *vim.Vim, r [2]int, dir string) error {
 
 		if e, ok := err.(scanner.Error); ok {
 			loclist = append(loclist, &nvim.LoclistData{
-				FileName: e.Pos.Filename,
+				FileName: bufName,
 				LNum:     e.Pos.Line,
 				Col:      e.Pos.Column,
 				Text:     e.Msg,
@@ -75,7 +77,7 @@ func Fmt(v *vim.Vim, r [2]int, dir string) error {
 		} else if el, ok := err.(scanner.ErrorList); ok {
 			for _, e := range el {
 				loclist = append(loclist, &nvim.LoclistData{
-					FileName: e.Pos.Filename,
+					FileName: bufName,
 					LNum:     e.Pos.Line,
 					Col:      e.Pos.Column,
 					Text:     e.Msg,
