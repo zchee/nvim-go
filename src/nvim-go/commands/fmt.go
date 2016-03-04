@@ -35,9 +35,13 @@ func onBufWritePre(v *vim.Vim, dir string) {
 func Fmt(v *vim.Vim, r [2]int, dir string) error {
 	defer gb.WithGoBuildForPath(dir)()
 
-	var b vim.Buffer
+	var (
+		b vim.Buffer
+		w vim.Window
+	)
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
+	p.CurrentWindow(&w)
 	if err := p.Wait(); err != nil {
 		return err
 	}
@@ -53,22 +57,27 @@ func Fmt(v *vim.Vim, r [2]int, dir string) error {
 
 		if e, ok := err.(scanner.Error); ok {
 			loclist = append(loclist, &nvim.LoclistData{
-				LNum: e.Pos.Line,
-				Col:  e.Pos.Column,
-				Text: e.Msg,
+				FileName: e.Pos.Filename,
+				LNum:     e.Pos.Line,
+				Col:      e.Pos.Column,
+				Text:     e.Msg,
 			})
 		} else if el, ok := err.(scanner.ErrorList); ok {
 			for _, e := range el {
 				loclist = append(loclist, &nvim.LoclistData{
-					LNum: e.Pos.Line,
-					Col:  e.Pos.Column,
-					Text: e.Msg,
+					FileName: e.Pos.Filename,
+					LNum:     e.Pos.Line,
+					Col:      e.Pos.Column,
+					Text:     e.Msg,
 				})
 			}
 		}
-		return nvim.Loclist(p, loclist, true)
+		if err := nvim.SetLoclist(p, loclist); err != nil {
+			return nvim.Echomsg(v, "Gofmt: %v", err)
+		}
+		return nvim.OpeLoclist(p, w, false)
 	} else {
-		nvim.LoclistClose(v)
+		nvim.CloseLoclist(v)
 	}
 
 	out := bytes.Split(bytes.TrimSuffix(buf, []byte{'\n'}), []byte{'\n'})

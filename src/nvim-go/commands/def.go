@@ -28,12 +28,12 @@ import (
 )
 
 var (
-	filer      = "go#def#filer"
-	vFiler     interface{}
-	filerMode  = "go#def#filer_mode"
-	vFilerMode interface{}
-	debug      = "go#def#debug"
-	vDebug     interface{}
+	defFiler      = "go#def#filer"
+	vDefFiler     interface{}
+	defFilerMode  = "go#def#filer_mode"
+	vDefFilerMode interface{}
+	defDebug      = "go#def#debug"
+	vDefDebug     interface{}
 )
 
 func init() {
@@ -53,14 +53,18 @@ func Def(v *vim.Vim, args []string, file string) error {
 	}
 	types.GoPath = gopath
 
-	v.Var(debug, &vDebug)
-	if vDebug == int64(1) {
+	v.Var(defDebug, &vDefDebug)
+	if vDefDebug == int64(1) {
 		types.Debug = true
 	}
 
-	var b vim.Buffer
+	var (
+		b vim.Buffer
+		w vim.Window
+	)
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
+	p.CurrentWindow(&w)
 	if err := p.Wait(); err != nil {
 		return err
 	}
@@ -93,12 +97,12 @@ func Def(v *vim.Vim, args []string, file string) error {
 			nvim.Echomsg(v, "Godef: error finding import path for %s: %s", path, err)
 		}
 
-		v.Var(filerMode, &vFilerMode)
-		if vFilerMode.(string) != "" {
-			v.Command(vFilerMode.(string))
+		v.Var(defFilerMode, &vDefFilerMode)
+		if vDefFilerMode.(string) != "" {
+			v.Command(vDefFilerMode.(string))
 		}
-		v.Var(filer, &vFiler)
-		return v.Command(vFiler.(string) + " " + pkg.Dir)
+		v.Var(defFiler, &vDefFiler)
+		return v.Command(vDefFiler.(string) + " " + pkg.Dir)
 
 	case ast.Expr:
 		if err := parseLocalPackage(file, f, pkgScope); err != nil {
@@ -114,7 +118,7 @@ func Def(v *vim.Vim, args []string, file string) error {
 				Col:      pos.Column,
 				Text:     pos.Filename,
 			})
-			if err := nvim.Loclist(p, loclist, false); err != nil {
+			if err := nvim.SetLoclist(p, loclist); err != nil {
 				nvim.Echomsg(v, "Godef: %s", err)
 			}
 
