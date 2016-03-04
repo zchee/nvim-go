@@ -96,6 +96,20 @@
 			"revision": "ac02106e04bdb66a2db0413d931012bea165d7e0",
 			"branch": "master",
 			"path": "/refactor/importgraph"
+		},
+		{
+			"importpath": "golang.org/x/tools/refactor/rename",
+			"repository": "https://go.googlesource.com/tools",
+			"revision": "ac02106e04bdb66a2db0413d931012bea165d7e0",
+			"branch": "master",
+			"path": "/refactor/rename"
+		},
+		{
+			"importpath": "golang.org/x/tools/refactor/satisfy",
+			"repository": "https://go.googlesource.com/tools",
+			"revision": "ac02106e04bdb66a2db0413d931012bea165d7e0",
+			"branch": "master",
+			"path": "/refactor/satisfy"
 		}
 	]
 }
