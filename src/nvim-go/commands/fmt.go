@@ -33,12 +33,13 @@ func init() {
 	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "expand('%:p:h')"}, onBufWritePre)
 }
 
-func onBufWritePre(v *vim.Vim, dir string) {
+func onBufWritePre(v *vim.Vim, dir string) error {
 	v.Var(fmtAsync, &vFmtAsync)
 	if vFmtAsync.(int64) == int64(1) {
 		go Fmt(v, [2]int{0, 0}, dir)
+		return nil
 	} else {
-		Fmt(v, [2]int{0, 0}, dir)
+		return Fmt(v, [2]int{0, 0}, dir)
 	}
 }
 
