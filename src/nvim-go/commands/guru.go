@@ -37,6 +37,10 @@ var (
 	reflectFlag bool
 )
 
+func cmdGuru(v *vim.Vim, args []string, eval *onGuruEval) {
+	go Guru(v, args, eval)
+}
+
 type onGuruEval struct {
 	Cwd  string `msgpack:",array"`
 	File string
@@ -285,8 +289,4 @@ func onComplete(v *vim.Vim) ([]string, error) {
 		"what",
 		"whicherrs",
 	}, nil
-}
-
-func cmdGuru(v *vim.Vim, args []string, eval *onGuruEval) {
-	go Guru(v, args, eval)
 }

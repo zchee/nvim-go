@@ -16,16 +16,20 @@ import (
 	"golang.org/x/tools/imports"
 )
 
-func init() {
-	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"}, Fmt)
-	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "expand('%:p')"}, onBufWritePre)
-}
-
 var options = imports.Options{
 	AllErrors: true,
 	Comments:  true,
 	TabIndent: true,
 	TabWidth:  8,
+}
+
+func init() {
+	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"}, Fmt)
+	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "expand('%:p')"}, onBufWritePre)
+}
+
+func onBufWritePre(v *vim.Vim, file string) {
+	go Fmt(v, [2]int{0, 0}, file)
 }
 
 func Fmt(v *vim.Vim, r [2]int, file string) error {
@@ -70,10 +74,6 @@ func Fmt(v *vim.Vim, r [2]int, file string) error {
 	out := bytes.Split(bytes.TrimSuffix(buf, []byte{'\n'}), []byte{'\n'})
 
 	return minUpdate(v, b, in, out)
-}
-
-func onBufWritePre(v *vim.Vim, file string) {
-	go Fmt(v, [2]int{0, 0}, file)
 }
 
 func minUpdate(v *vim.Vim, b vim.Buffer, in [][]byte, out [][]byte) error {
