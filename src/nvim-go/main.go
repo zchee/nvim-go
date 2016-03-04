@@ -34,7 +34,7 @@ func init() {
 
 func main() {
 	go func() {
-		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+		log.Println(http.ListenAndServe("0.0.0.0:6060", http.DefaultServeMux))
 	}()
 
 	plugin.Main()
