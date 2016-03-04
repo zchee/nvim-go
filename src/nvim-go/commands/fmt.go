@@ -16,6 +16,11 @@ import (
 	"golang.org/x/tools/imports"
 )
 
+var (
+	fmtAsync  = "go#fmt#async"
+	vFmtAsync interface{}
+)
+
 var options = imports.Options{
 	AllErrors: true,
 	Comments:  true,
@@ -29,7 +34,12 @@ func init() {
 }
 
 func onBufWritePre(v *vim.Vim, dir string) {
-	go Fmt(v, [2]int{0, 0}, dir)
+	v.Var(fmtAsync, &vFmtAsync)
+	if vFmtAsync.(int64) == int64(1) {
+		go Fmt(v, [2]int{0, 0}, dir)
+	} else {
+		Fmt(v, [2]int{0, 0}, dir)
+	}
 }
 
 func Fmt(v *vim.Vim, r [2]int, dir string) error {
