@@ -107,7 +107,7 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 		return nvim.Echomsg(v, "GoGuru: %v", err)
 	}
 	p.Command("redraw!")
-	return nvim.OpenLoclist(p, w, useKeepCursor)
+	return nvim.OpenLoclist(p, w, d, useKeepCursor)
 }
 
 func parseSerial(mode string, s *serial.Result) ([]*nvim.ErrorlistData, error) {

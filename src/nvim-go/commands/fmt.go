@@ -88,7 +88,7 @@ func Fmt(v *vim.Vim, r [2]int, dir string) error {
 		if err := nvim.SetLoclist(p, loclist); err != nil {
 			return nvim.Echomsg(v, "Gofmt: %v", err)
 		}
-		return nvim.OpenLoclist(p, w, false)
+		return nvim.OpenLoclist(p, w, loclist, false)
 	} else {
 		nvim.CloseLoclist(v)
 	}
