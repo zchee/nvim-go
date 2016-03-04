@@ -35,13 +35,18 @@ type LoclistData struct {
 	Valid int `msgpack:"valid,omitempty"`
 }
 
-func Loclist(p *vim.Pipeline, loclist []*LoclistData, open bool) error {
+func SetLoclist(p *vim.Pipeline, loclist []*LoclistData) error {
 	// setloclist({nr}, {list} [, {action}])
-	// Call(fname string, result interface{}, args ...interface{}) error
+	// Call(fname string, result interface{}, args ...interface{})
 	p.Call("setloclist", nil, 0, loclist)
 
-	if open {
-		p.Command("lopen")
+	return nil
+}
+
+func OpeLoclist(p *vim.Pipeline, w vim.Window, keep bool) error {
+	p.Command("lopen")
+	if keep {
+		p.SetCurrentWindow(w)
 	}
 	if err := p.Wait(); err != nil {
 		return err
@@ -50,7 +55,7 @@ func Loclist(p *vim.Pipeline, loclist []*LoclistData, open bool) error {
 	return nil
 }
 
-func LoclistClose(v *vim.Vim) error {
+func CloseLoclist(v *vim.Vim) error {
 	return v.Command("lclose")
 }
 
