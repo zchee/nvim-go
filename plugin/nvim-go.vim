@@ -3,6 +3,11 @@ if exists('g:loaded_nvim_go')
 endif
 let g:loaded_nvim_go = 1
 
+
+let g:go#godef#filer =
+      \ get(g:, 'go#godef#filer', 'Explore')
+
+
 let s:plugin_name = 'nvim-go'
 let s:goos = $GOOS
 let s:goarch = $GOARCH
