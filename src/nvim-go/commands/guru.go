@@ -34,7 +34,8 @@ func init() {
 }
 
 var (
-	reflectFlag bool
+	reflection  = "go#guru#reflection"
+	vReflection interface{}
 )
 
 func cmdGuru(v *vim.Vim, args []string, eval *onGuruEval) {
@@ -48,6 +49,12 @@ type onGuruEval struct {
 
 func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	defer gb.WithGoBuildForPath(eval.File)()
+
+	var useReflection bool
+	v.Var(reflection, &vReflection)
+	if vReflection.(int64) == int64(1) {
+		useReflection = true
+	}
 
 	var b vim.Buffer
 	p := v.NewPipeline()
@@ -71,7 +78,7 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 		Pos:        eval.File + ":#" + strconv.FormatInt(int64(pos), 10),
 		Build:      &build.Default,
 		Scope:      []string{scopeFlag},
-		Reflection: reflectFlag,
+		Reflection: useReflection,
 	}
 
 	if err := guru.Run(&query); err != nil {

@@ -7,6 +7,9 @@ let g:loaded_nvim_go = 1
 let g:go#godef#filer =
       \ get(g:, 'go#godef#filer', 'Explore')
 
+let g:go#guru#reflection =
+      \ get(g:, 'go#guru#reflection', 0)
+
 
 let s:plugin_name = 'nvim-go'
 let s:goos = $GOOS
