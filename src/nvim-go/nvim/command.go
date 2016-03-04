@@ -11,21 +11,26 @@ import (
 )
 
 func Echo(v *vim.Vim, format string, a ...interface{}) error {
+	v.Command("redraw!")
 	return v.Command("echo '" + fmt.Sprintf(format, a...) + "'")
 }
 
 func Echomsg(v *vim.Vim, format string, a ...interface{}) error {
+	v.Command("redraw!")
 	return v.Command("echomsg '" + fmt.Sprintf(format, a...) + "'")
 }
 
 func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
+	v.Command("redraw!")
 	return v.Command("echoerr '" + fmt.Sprintf(format, a...) + "'")
 }
 
 func Echohl(v *vim.Vim, prefix string, highlight string, format string, a ...interface{}) error {
+	v.Command("redraw!")
 	return v.Command("echo '" + prefix + "' | echohl " + highlight + " | echon '" + fmt.Sprintf(format, a...) + "' | echohl None")
 }
 
 func ReportError(v *vim.Vim, format string, a ...interface{}) error {
+	v.Command("redraw!")
 	return v.ReportError(fmt.Sprintf(format, a...))
 }
