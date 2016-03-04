@@ -80,10 +80,10 @@ var goBuildDefaultMu sync.Mutex
 // This function intended to be used to the golang.org/x/tools/imports and
 // other packages that use go/build Default.
 func WithGoBuildForPath(p string) func() {
-	dir, _ := filepath.Split(p)
 	goBuildDefaultMu.Lock()
 	original := build.Default.GOPATH
-	build.Default.GOPATH = GoPath(dir)
+	build.Default.GOPATH = GoPath(p)
+	build.Default.UseAllFiles = false
 	return func() {
 		build.Default.GOPATH = original
 		goBuildDefaultMu.Unlock()
