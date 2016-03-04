@@ -38,9 +38,6 @@ type LoclistData struct {
 func Loclist(p *vim.Pipeline, loclist []*LoclistData, open bool) error {
 	// setloclist({nr}, {list} [, {action}])
 	// Call(fname string, result interface{}, args ...interface{}) error
-	// if err := v.Call("setloclist", nil, 0, loclist); err != nil {
-	// 	return err
-	// }
 	p.Call("setloclist", nil, 0, loclist)
 
 	if open {
