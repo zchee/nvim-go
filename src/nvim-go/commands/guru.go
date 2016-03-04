@@ -12,24 +12,27 @@
 package commands
 
 import (
+	"errors"
+	"fmt"
 	"go/build"
-	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 
 	"nvim-go/gb"
-	"nvim-go/guru"
 	"nvim-go/nvim"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
+	"golang.org/x/tools/cmd/guru"
 	"golang.org/x/tools/cmd/guru/serial"
 )
 
 func init() {
-	plugin.HandleCommand("GoGuru", &plugin.CommandOptions{NArgs: "*", Complete: "customlist,GuruCompletelist", Eval: "[expand('%:p:h:h:h:h'), expand('%:p')]"}, Guru)
+	plugin.HandleCommand("GoGuru", &plugin.CommandOptions{NArgs: "*", Complete: "customlist,GuruCompletelist", Eval: "[expand('%:p:h'), expand('%:p')]"}, Guru)
 	plugin.HandleFunction("GuruCompletelist", &plugin.FunctionOptions{}, onComplete)
+
+	log.Debugln("Guru Start")
 }
 
 var (
@@ -42,29 +45,23 @@ type onGuruEval struct {
 }
 
 func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
-	defer gb.WithGoBuildForPath(eval.Cwd)()
-	scopeFlag := []byte(eval.File)
+	defer gb.WithGoBuildForPath(eval.File)()
+
+	dir := strings.Split(eval.Cwd, "src/")
+	scopeFlag := dir[len(dir)-1]
 
 	mode := args[0]
+
 	pos, err := nvim.ByteOffset(v)
 	if err != nil {
 		return nvim.Echomsg(v, "%v", err)
-	}
-
-	gopath := os.Getenv("GOPATH")
-	cmd := exec.Command("gb", "env", "GB_PROJECT_DIR")
-	output, err := cmd.Output()
-	if strings.Replace(string(output[:]), "\n", "", -1) != gopath {
-		scopeFlag = output
-	} else if err != nil {
-		nvim.Echomsg(v, "could not find project root directory")
 	}
 
 	query := guru.Query{
 		Mode:       mode,
 		Pos:        eval.File + ":#" + strconv.FormatInt(int64(pos), 10),
 		Build:      &build.Default,
-		Scope:      strings.Split(string(scopeFlag[:]), ","),
+		Scope:      []string{scopeFlag},
 		Reflection: reflectFlag,
 	}
 
@@ -72,103 +69,200 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 		return nvim.Echomsg(v, "%s", err)
 	}
 
-	d := parseSerial(mode, query.Serial())
-	if len(d) < 1 {
-		return nvim.Echomsg(v, "0")
+	d, err := parseSerial(mode, query.Serial())
+	if err != nil {
+		return nvim.Echomsg(v, "GoGuru: %v", err)
 	}
 
-	return nil
+	return nvim.Loclist(v, d, true)
 }
 
-func parseSerial(mode string, s *serial.Result) map[string]interface{} {
-	data := map[string]interface{}{
-		"Mode": s.Mode,
-	}
+func parseSerial(mode string, s *serial.Result) ([]*nvim.LoclistData, error) {
+	var loclist []*nvim.LoclistData
 
 	switch mode {
 	case "callees":
-		data = map[string]interface{}{
-			"Pos":             s.Callees.Pos,
-			"Desc":            s.Callees.Desc,
-			"Callees.Callees": s.Callees.Callees,
+		var calleers string
+		for _, n := range s.Callees.Callees {
+			calleers += calleers + n.Name
 		}
+		file, line, col := nvim.SplitPos(s.Callees.Pos)
+		loclist = append(loclist, &nvim.LoclistData{
+			FileName: file,
+			LNum:     line,
+			Col:      col,
+			Text:     s.Callees.Desc + " " + calleers,
+		})
 	case "callers":
-		data = map[string]interface{}{
-			"Callers": s.Callers,
+		for _, e := range s.Callers {
+			file, line, col := nvim.SplitPos(e.Pos)
+			loclist = append(loclist, &nvim.LoclistData{
+				FileName: file,
+				LNum:     line,
+				Col:      col,
+				Text:     e.Desc + " " + e.Caller,
+			})
 		}
 	case "callstack":
-		data = map[string]interface{}{
-			"Pos":     s.Callstack.Pos,
-			"Target":  s.Callstack.Target,
-			"Callers": s.Callstack.Callers,
+		if len(s.Callstack.Callers) != 0 {
+			for _, n := range s.Callstack.Callers {
+				file, line, col := nvim.SplitPos(n.Pos)
+				loclist = append(loclist, &nvim.LoclistData{
+					FileName: file,
+					LNum:     line,
+					Col:      col,
+					Text:     n.Desc,
+				})
+			}
 		}
 	case "definition":
-		data = map[string]interface{}{
-			"ObjPos": s.Definition.ObjPos,
-			"Desc":   s.Definition.Desc,
-		}
+		file, line, col := nvim.SplitPos(s.Definition.ObjPos)
+		loclist = append(loclist, &nvim.LoclistData{
+			FileName: file,
+			LNum:     line,
+			Col:      col,
+			Text:     s.Definition.Desc,
+		})
 	case "describe":
-		data = map[string]interface{}{
-			"Desc":         s.Describe.Desc,
-			"Pos":          s.Describe.Pos,
-			"Detail":       s.Describe.Detail,
-			"Package":      s.Describe.Package,
-			"Type":         s.Describe.Type,
-			"Value.Type":   s.Describe.Value.Type,
-			"Value.ObjPos": s.Describe.Value.ObjPos,
-		}
+		file, line, col := nvim.SplitPos(s.Describe.Value.ObjPos)
+		loclist = append(loclist, &nvim.LoclistData{
+			FileName: file,
+			LNum:     line,
+			Col:      col,
+			Text:     s.Describe.Value.Type,
+		})
 	case "freevars":
-		data = map[string]interface{}{
-			"Freevars": s.Freevars,
+		for _, e := range s.Freevars {
+			file, line, col := nvim.SplitPos(e.Pos)
+			log.Debugln(e)
+			loclist = append(loclist, &nvim.LoclistData{
+				FileName: file,
+				LNum:     line,
+				Col:      col,
+				Text:     e.Type + "\n" + e.Kind + "\n" + e.Ref,
+			})
 		}
 	case "implements":
-		data = map[string]interface{}{
-			"T":                       s.Implements.T,
-			"AssignableTo":            s.Implements.AssignableTo,
-			"AssignableFrom":          s.Implements.AssignableFrom,
-			"AssignableFromPtr":       s.Implements.AssignableFromPtr,
-			"Method":                  s.Implements.Method,
-			"AssignableToMethod":      s.Implements.AssignableToMethod,
-			"AssignableFromMethod":    s.Implements.AssignableFromMethod,
-			"AssignableFromPtrMethod": s.Implements.AssignableFromPtrMethod,
-		}
+		file, line, col := nvim.SplitPos(s.Implements.T.Pos)
+		loclist = append(loclist, &nvim.LoclistData{
+			FileName: file,
+			LNum:     line,
+			Col:      col,
+			Text:     s.Implements.T.Name,
+		})
 	case "peers":
-		data = map[string]interface{}{
-			"Pos":      s.Peers.Pos,
-			"Type":     s.Peers.Type,
-			"Allocs":   s.Peers.Allocs,
-			"Sends":    s.Peers.Sends,
-			"Receives": s.Peers.Receives,
-			"Closes":   s.Peers.Closes,
+		for _, e := range s.Peers.Allocs {
+			file, line, col := nvim.SplitPos(e)
+			loclist = append(loclist, &nvim.LoclistData{
+				FileName: file,
+				LNum:     line,
+				Col:      col,
+				Text:     s.Peers.Type + ": Allocs",
+			})
+		}
+		for _, e := range s.Peers.Sends {
+			file, line, col := nvim.SplitPos(e)
+			loclist = append(loclist, &nvim.LoclistData{
+				FileName: file,
+				LNum:     line,
+				Col:      col,
+				Text:     s.Peers.Type + ": Sends",
+			})
+		}
+		for _, e := range s.Peers.Receives {
+			file, line, col := nvim.SplitPos(e)
+			loclist = append(loclist, &nvim.LoclistData{
+				FileName: file,
+				LNum:     line,
+				Col:      col,
+				Text:     s.Peers.Type + ": Receives",
+			})
+		}
+		for _, e := range s.Peers.Closes {
+			file, line, col := nvim.SplitPos(e)
+			loclist = append(loclist, &nvim.LoclistData{
+				FileName: file,
+				LNum:     line,
+				Col:      col,
+				Text:     s.Peers.Type + ": Closes",
+			})
 		}
 	case "pointsto":
-		data = map[string]interface{}{
-			"PointsTo": s.PointsTo,
+		for _, e := range s.PointsTo {
+			if e.NamePos != "" {
+				file, line, col := nvim.SplitPos(e.NamePos)
+				loclist = append(loclist, &nvim.LoclistData{
+					FileName: file,
+					LNum:     line,
+					Col:      col,
+					Text:     e.Type,
+				})
+			} else {
+				loclist = append(loclist, &nvim.LoclistData{
+					Text: e.Type,
+				})
+			}
 		}
 	case "referrers":
-		data = map[string]interface{}{
-			"Pos":    s.Referrers.Pos,
-			"ObjPos": s.Referrers.ObjPos,
-			"Desc":   s.Referrers.Desc,
-			"Refs":   s.Referrers.Refs,
+		for _, e := range s.Referrers.Refs {
+			file, line, col := nvim.SplitPos(e)
+			loclist = append(loclist, &nvim.LoclistData{
+				FileName: file,
+				LNum:     line,
+				Col:      col,
+				Text:     s.Referrers.Desc,
+			})
 		}
 	case "what":
-		data = map[string]interface{}{
-			"Enclosing":  s.What.Enclosing,
-			"Modes":      s.What.Modes,
-			"SrcDir":     s.What.SrcDir,
-			"ImportPath": s.What.ImportPath,
+		log.Debugln("s.What.Enclosing:", s.What.Enclosing)
+		log.Debugln("s.What.Modes:", s.What.Modes)
+		log.Debugln("s.What.SrcDir:", s.What.SrcDir)
+		log.Debugln("s.What.ImportPath:", s.What.ImportPath)
+		log.Debugln("s.What.Object:", s.What.Object)
+		log.Debugln("s.What.SameIDs:", s.What.SameIDs)
+		var modesText string
+		for _, mode := range s.What.Modes {
+			modesText += mode + " "
 		}
+		loclist = append(loclist, &nvim.LoclistData{
+			Text: "Modes: " + modesText[:len(modesText)-2],
+		})
+		loclist = append(loclist, &nvim.LoclistData{
+			Text: "SrcDir: " + s.What.SrcDir,
+		})
+		loclist = append(loclist, &nvim.LoclistData{
+			Text: "ImportPath: " + s.What.ImportPath,
+		})
+		loclist = append(loclist, &nvim.LoclistData{
+			Text: "Object: " + s.What.Object,
+		})
+		sameIDsText := "SameIDs: "
+		for _, sameid := range s.What.SameIDs {
+			sameIDsText += sameid
+		}
+		loclist = append(loclist, &nvim.LoclistData{
+			Text: sameIDsText,
+		})
 	case "whicherrs":
-		data = map[string]interface{}{
-			"ErrPos":    s.WhichErrs.ErrPos,
-			"Globals":   s.WhichErrs.Globals,
-			"Constants": s.WhichErrs.Constants,
-			"Types":     s.WhichErrs.Types,
+		// log.Debugln("s.WhichErrs.ErrPos:", s.WhichErrs.ErrPos)
+		// log.Debugln("s.WhichErrs.Globals:", s.WhichErrs.Globals)
+		// log.Debugln("s.WhichErrs.Constants:", s.WhichErrs.Constants)
+		// log.Debugln("s.WhichErrs.Types:", s.WhichErrs.Types)
+		for _, e := range s.WhichErrs.Types {
+			file, line, col := nvim.SplitPos(e.Position)
+			loclist = append(loclist, &nvim.LoclistData{
+				FileName: file,
+				LNum:     line,
+				Col:      col,
+				Text:     e.Type,
+			})
 		}
 	}
 
-	return data
+	if len(loclist) == 0 {
+		return loclist, errors.New(fmt.Sprintf("%s not fount", mode))
+	}
+	return loclist, nil
 }
 
 func onComplete(v *vim.Vim) ([]string, error) {
