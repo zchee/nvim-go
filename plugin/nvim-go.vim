@@ -13,7 +13,11 @@ let s:goos = $GOOS
 let s:goarch = $GOARCH
 let s:plugin_path = fnamemodify(resolve(expand('<sfile>:p')), ':h:h') . '/bin/' . s:plugin_name . '-' . s:goos . '-' . s:goarch
 
-function! s:RequireGoHost(host) abort
+" function! s:RequireNvimGo(host) abort
+"     return rpcstart(s:plugin_path, ['plugin'])
+" endfunction
+
+function! s:RequireNvimGo(host) abort
   let args = []
   try
     for plugin in remote#host#PluginsForHost(a:host.name)
@@ -26,4 +30,4 @@ function! s:RequireGoHost(host) abort
   throw 'Failed to load ' . s:plugin_name . ' host'.
 endfunction
 
-call remote#host#Register('go/' . s:plugin_name, '*', function('s:RequireGoHost'))
+call remote#host#Register('go/' . s:plugin_name, '*', function('s:RequireNvimGo'))
