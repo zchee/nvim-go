@@ -52,7 +52,7 @@ func SetLoclist(p *vim.Pipeline, loclist []*ErrorlistData) error {
 	return nil
 }
 
-func OpeLoclist(p *vim.Pipeline, w vim.Window, keep bool) error {
+func OpenLoclist(p *vim.Pipeline, w vim.Window, keep bool) error {
 	p.Command("lopen")
 	if keep {
 		p.SetCurrentWindow(w)
