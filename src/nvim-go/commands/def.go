@@ -6,7 +6,6 @@ package commands
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"go/build"
 	"os"
@@ -289,7 +288,7 @@ func (f FVisitor) Visit(n ast.Node) ast.Visitor {
 	return nil
 }
 
-var errNoPkgFiles = errors.New("no more package files found")
+// var errNoPkgFiles = errors.New("no more package files found")
 
 // parseLocalPackage reads and parses all go files from the
 // current directory that implement the same package name
@@ -304,13 +303,13 @@ func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) erro
 	}
 	fd, err := os.Open(d)
 	if err != nil {
-		return errNoPkgFiles
+		return nil
 	}
 	defer fd.Close()
 
 	list, err := fd.Readdirnames(-1)
 	if err != nil {
-		return errNoPkgFiles
+		return nil
 	}
 
 	for _, pf := range list {
@@ -326,7 +325,7 @@ func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) erro
 		}
 	}
 	if len(pkg.Files) == 1 {
-		return errNoPkgFiles
+		return nil
 	}
 	return nil
 }
