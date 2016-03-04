@@ -60,7 +60,7 @@ func Fmt(v *vim.Vim, r [2]int, file string) error {
 				})
 			}
 		}
-		return nvim.Loclist(v, b, loclist, true)
+		return nvim.Loclist(v, loclist, true)
 	} else {
 		nvim.LoclistClose(v)
 	}

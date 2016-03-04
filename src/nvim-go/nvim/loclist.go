@@ -35,7 +35,7 @@ type LoclistData struct {
 	Valid int `msgpack:"valid,omitempty"`
 }
 
-func Loclist(v *vim.Vim, b vim.Buffer, loclist []*LoclistData, open bool) error {
+func Loclist(v *vim.Vim, loclist []*LoclistData, open bool) error {
 	// setloclist({nr}, {list} [, {action}])
 	// Call(fname string, result interface{}, args ...interface{}) error
 	if err := v.Call("setloclist", nil, 0, loclist); err != nil {
