@@ -10,13 +10,11 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 )
 
-func ByteOffset(v *vim.Vim) (int, error) {
+func ByteOffset(p *vim.Pipeline) (int, error) {
 	var (
 		b vim.Buffer
 		w vim.Window
 	)
-
-	p := v.NewPipeline()
 
 	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)
@@ -24,12 +22,13 @@ func ByteOffset(v *vim.Vim) (int, error) {
 		return 0, err
 	}
 
-	cursor, err := v.WindowCursor(w)
-	if err != nil {
-		return 0, err
-	}
-	byteBuf, err := v.BufferLineSlice(b, 0, -1, true, true)
-	if err != nil {
+	var cursor [2]int
+	p.WindowCursor(w, &cursor)
+
+	var byteBuf [][]byte
+	p.BufferLineSlice(b, 0, -1, true, true, &byteBuf)
+
+	if err := p.Wait(); err != nil {
 		return 0, err
 	}
 

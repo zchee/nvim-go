@@ -68,7 +68,7 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 
 	mode := args[0]
 
-	pos, err := nvim.ByteOffset(v)
+	pos, err := nvim.ByteOffset(p)
 	if err != nil {
 		return nvim.Echomsg(v, "%v", err)
 	}
