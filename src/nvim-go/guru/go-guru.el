@@ -45,6 +45,16 @@
   nil
   "History of values supplied to `go-guru-set-scope'.")
 
+(defcustom go-guru-build-tags ""
+  "Build tags passed to guru."
+  :type 'string
+  :group 'go-guru)
+
+(defcustom go-guru-debug nil
+  "Print debug messages when running guru."
+  :type 'boolean
+  :group 'go-guru)
+
 ;; Extend go-mode-map.
 (let ((m (define-prefix-command 'go-guru-map)))
   (define-key m "d" #'go-guru-describe)
@@ -55,33 +65,25 @@
   (define-key m "j" #'go-guru-definition) ; j for jump
   (define-key m "p" #'go-guru-pointsto)
   (define-key m "s" #'go-guru-callstack) ; s for stack
+  (define-key m "e" #'go-guru-whicherrs) ; e for error
   (define-key m "<" #'go-guru-callers)
   (define-key m ">" #'go-guru-callees))
 
 (define-key go-mode-map (kbd "C-c C-o") #'go-guru-map)
 
-;; TODO(dominikh): Rethink set-scope some. Setting it to a file is
-;; painful because it doesn't use find-file, and variables/~ aren't
-;; expanded. Setting it to an import path is somewhat painful because
-;; it doesn't make use of go-mode's import path completion. One option
-;; would be having two different functions, but then we can't
-;; automatically call it when no scope has been set. Also it wouldn't
-;; easily allow specifying more than one file/package.
 ;;;###autoload
 (defun go-guru-set-scope ()
-  "Set the scope for the Go guru, prompting the user to edit the
-previous scope.
+  "Set the scope for the Go guru, prompting the user to edit the previous scope.
 
-The scope specifies a set of arguments, separated by spaces.
-It may be:
-1) a set of packages whose main functions will be analyzed.
-2) a list of *.go filenames; they will treated like as a single
-   package (see #3).
-3) a single package whose main function and/or Test* functions
-   will be analyzed.
+The scope restricts analysis to the specified packages.
+Its value is a comma-separated list of patterns of these forms:
+	golang.org/x/tools/cmd/guru     # a single package
+	golang.org/x/tools/...          # all packages beneath dir
+	...                             # the entire workspace.
 
-In the common case, this is similar to the argument(s) you would
-specify to 'go build'."
+A pattern preceded by '-' is negative, so the scope
+	encoding/...,-encoding/xml
+matches all encoding packages except encoding/xml."
   (interactive)
   (let ((scope (read-from-minibuffer "Go guru scope: "
                                      go-guru-scope
@@ -95,7 +97,7 @@ specify to 'go build'."
 (defun go-guru--run (mode &optional need-scope)
   "Run the Go guru in the specified MODE, passing it the selected
 region of the current buffer.  If NEED-SCOPE, prompt for a scope
-if not already set.  Mark up the output using `compilation-node`,
+if not already set.  Mark up the output using `compilation-mode`,
 replacing each file name with a small hyperlink, and display the
 result."
   (with-current-buffer (go-guru--exec mode need-scope)
@@ -131,13 +133,15 @@ a scope if not already set.  Return the output buffer."
       (erase-buffer)
       (go-guru--insert-modified-files)
       (let* ((args (append (list "-modified"
-				 "-scope" go-guru-scope)
+                                 "-scope" go-guru-scope
+                                 "-tags" go-guru-build-tags)
 			   flags
 			   (list mode posn))))
 	;; Log the command to *Messages*, for debugging.
-	(message "Command: %s:" args)
-	(message nil) ; clears/shrinks minibuffer
-	(message "Running guru %s..." mode)
+ 	(when go-guru-debug
+	  (message "Command: %s:" args)
+	  (message nil) ; clears/shrinks minibuffer
+	  (message "Running guru %s..." mode))
 	;; Use dynamic binding to modify/restore the environment
 	(let* ((process-environment (list* goroot-env gopath-env process-environment))
 	       (c-p-args (append (list (point-min)
@@ -161,7 +165,7 @@ a scope if not already set.  Return the output buffer."
   (insert "\n")
   (compilation-mode)
   (setq compilation-error-screen-columns nil)
-  
+
   ;; Hide the file/line info to save space.
   ;; Replace each with a little widget.
   ;; compilation-mode + this loop = slooow.
@@ -190,7 +194,7 @@ a scope if not already set.  Return the output buffer."
 	      (incf np))) ; so we don't get stuck (e.g. on a panic stack dump)
 	(setq p np)))
     (message nil))
-  
+
   (let ((w (display-buffer (current-buffer))))
     (set-window-point w (point-min))))
 
@@ -239,12 +243,6 @@ set the point to it, switching the current buffer."
   (go-guru--run "callers" t))
 
 ;;;###autoload
-(defun go-guru-callgraph ()
-  "Show the callgraph of the current program."
-  (interactive)
-  (go-guru--run "callgraph" t))
-
-;;;###autoload
 (defun go-guru-callstack ()
   "Show an arbitrary path from a root of the call graph to the
 function containing the current point."
@@ -261,6 +259,8 @@ function containing the current point."
 		(goto-char (point-min))
 		(cdr (car (json-read)))))
 	 (desc (cdr (assoc 'desc res))))
+    (push-mark)
+    (ring-insert find-tag-marker-ring (point-marker))
     (go-guru--goto-pos (cdr (assoc 'objpos res)))
     (message "%s" desc)))
 
