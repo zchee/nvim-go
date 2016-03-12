@@ -13,21 +13,26 @@ let s:goos = $GOOS
 let s:goarch = $GOARCH
 let s:plugin_path = fnamemodify(resolve(expand('<sfile>:p')), ':h:h') . '/bin/' . s:plugin_name . '-' . s:goos . '-' . s:goarch
 
-" function! s:RequireNvimGo(host) abort
-"     return rpcstart(s:plugin_path, ['plugin'])
-" endfunction
 
 function! s:RequireNvimGo(host) abort
+  " Collect registered Go plugins into args
   let args = []
+  let go_plugins = remote#host#PluginsForHost(a:host.name)
+
+  for plugin in go_plugins
+    call add(args, plugin.path)
+  endfor
+
   try
-    for plugin in remote#host#PluginsForHost(a:host.name)
-        call add(args, plugin.path)
-    endfor
-    return rpcstart(s:plugin_path, args)
+    let channel_id = rpcstart(s:plugin_path, args)
+
+    return channel_id
   catch
+    echomsg v:throwpoint
     echomsg v:exception
   endtry
-  throw 'Failed to load ' . s:plugin_name . ' host'.
+
+  throw remote#host#LoadErrorForHost(a:host.orig_name, '$NVIM_GO_LOG_FILE')
 endfunction
 
 call remote#host#Register('go/' . s:plugin_name, '*', function('s:RequireNvimGo'))
