@@ -81,7 +81,7 @@ func CloseLoclist(v *vim.Vim) error {
 }
 
 func SetQuickfix(p *vim.Pipeline, qflist []*ErrorlistData) error {
-	p.Call("setqflist", nil, 0, qflist)
+	p.Call("setqflist", nil, qflist)
 
 	return nil
 }
