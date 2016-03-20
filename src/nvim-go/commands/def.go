@@ -27,23 +27,25 @@ import (
 )
 
 var (
-	defFiler      = "go#def#filer"
-	vDefFiler     interface{}
-	defFilerMode  = "go#def#filer_mode"
-	vDefFilerMode interface{}
-	defDebug      = "go#def#debug"
-	vDefDebug     interface{}
+	defFiler         = "go#def#filer"
+	vDefFiler        interface{}
+	defFilerMode     = "go#def#filer_mode"
+	vDefFilerMode    interface{}
+	defNomodifiable  = "go#def#nomodifiable"
+	vDefNomodifiable interface{}
+	defDebug         = "go#def#debug"
+	vDefDebug        interface{}
 )
 
 func init() {
-	plugin.HandleCommand("Godef", &plugin.CommandOptions{NArgs: "?", Eval: "expand('%:p')"}, cmdDef)
+	plugin.HandleCommand("Godef", &plugin.CommandOptions{Eval: "expand('%:p')"}, cmdDef)
 }
 
-func cmdDef(v *vim.Vim, args []string, file string) {
-	go Def(v, args, file)
+func cmdDef(v *vim.Vim, file string) {
+	go Def(v, file)
 }
 
-func Def(v *vim.Vim, args []string, file string) error {
+func Def(v *vim.Vim, file string) error {
 	dir, _ := filepath.Split(file)
 	defer gb.WithGoBuildForPath(dir)()
 	gopath := strings.Split(build.Default.GOPATH, ":")
@@ -56,6 +58,8 @@ func Def(v *vim.Vim, args []string, file string) error {
 	if vDefDebug == int64(1) {
 		types.Debug = true
 	}
+
+	v.Var(defNomodifiable, &vDefNomodifiable)
 
 	var (
 		b vim.Buffer
@@ -121,8 +125,12 @@ func Def(v *vim.Vim, args []string, file string) error {
 				nvim.Echomsg(v, "Godef: %s", err)
 			}
 
-			v.Command("silent ll 1")
-			v.Feedkeys("zz", "normal", false)
+			v.Command("silent! ll! 1")
+			if vDefNomodifiable == int64(1) {
+				var result interface{}
+				v.Option("nomodifiable", result)
+			}
+			// v.Feedkeys("zz", "normal", false)
 		} else {
 			nvim.Echomsg(v, "Godef: not found of obj")
 		}
