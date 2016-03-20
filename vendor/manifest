@@ -21,6 +21,13 @@
 			"path": "/go"
 		},
 		{
+			"importpath": "github.com/zchee/go-clang/clang",
+			"repository": "https://github.com/zchee/go-clang",
+			"revision": "e88cd69382495a23c365f7a7a67a4efbd6572b2f",
+			"branch": "3.9",
+			"path": "/clang"
+		},
+		{
 			"importpath": "golang.org/x/tools/cmd/guru/serial",
 			"repository": "https://go.googlesource.com/tools",
 			"revision": "093d7650abf0a26882924de03a6c840a00356572",
