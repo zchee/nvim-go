@@ -30,7 +30,7 @@
 		{
 			"importpath": "golang.org/x/tools/cmd/guru/serial",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "093d7650abf0a26882924de03a6c840a00356572",
+			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
 			"branch": "master",
 			"path": "/cmd/guru/serial"
 		},
