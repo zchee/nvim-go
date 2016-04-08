@@ -72,7 +72,7 @@ func Def(v *vim.Vim, file string) error {
 		return err
 	}
 
-	buf, err := v.BufferLineSlice(b, 0, -1, true, true)
+	buf, err := v.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return err
 	}

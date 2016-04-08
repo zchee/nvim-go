@@ -59,7 +59,7 @@ func Fmt(v *vim.Vim, r [2]int, dir string) error {
 
 	bufName, err := v.BufferName(b)
 
-	in, err := v.BufferLineSlice(b, 0, -1, true, true)
+	in, err := v.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return err
 	}
@@ -126,15 +126,9 @@ func minUpdate(v *vim.Vim, b vim.Buffer, in [][]byte, out [][]byte) error {
 	}
 
 	// Update the buffer.
-	includeStart := true
 	start := head
 	end := len(in) - tail
 	repl := out[head : len(out)-tail]
 
-	if start == len(in) {
-		start = -1
-		includeStart = false
-	}
-
-	return v.SetBufferLineSlice(b, start, end, includeStart, false, repl)
+	return v.SetBufferLines(b, start, end, true, repl)
 }

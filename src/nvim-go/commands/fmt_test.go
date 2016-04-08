@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/garyburd/neovim-go/vim/vimtest"
+	"github.com/garyburd/neovim-go/vim"
 )
 
 var minUpdateTests = []struct {
@@ -41,8 +41,15 @@ var minUpdateTests = []struct {
 }
 
 func TestMinUpdate(t *testing.T) {
-	v, cleanup := vimtest.New(t, true)
-	defer cleanup()
+	v, err := vim.StartEmbeddedVim(&vim.EmbedOptions{
+		Args: []string{"-u", "NONE", "-n"},
+		Env:  []string{},
+		Logf: t.Logf,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer v.Close()
 
 	b, err := v.CurrentBuffer()
 	if err != nil {
@@ -53,7 +60,7 @@ func TestMinUpdate(t *testing.T) {
 		in := bytes.Split([]byte(tt.in), []byte{'/'})
 		out := bytes.Split([]byte(tt.out), []byte{'/'})
 
-		if err := v.SetBufferLineSlice(b, 0, -1, true, true, in); err != nil {
+		if err := v.SetBufferLines(b, 0, -1, true, in); err != nil {
 			t.Fatal(err)
 		}
 
@@ -62,7 +69,7 @@ func TestMinUpdate(t *testing.T) {
 			continue
 		}
 
-		actual, err := v.BufferLineSlice(b, 0, -1, true, true)
+		actual, err := v.BufferLines(b, 0, -1, true)
 		if err != nil {
 			t.Fatal(err)
 		}

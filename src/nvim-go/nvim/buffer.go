@@ -26,7 +26,7 @@ func ByteOffset(p *vim.Pipeline) (int, error) {
 	p.WindowCursor(w, &cursor)
 
 	var byteBuf [][]byte
-	p.BufferLineSlice(b, 0, -1, true, true, &byteBuf)
+	p.BufferLines(b, 0, -1, false, &byteBuf)
 
 	if err := p.Wait(); err != nil {
 		return 0, err
