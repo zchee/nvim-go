@@ -15,14 +15,14 @@ func Echo(v *vim.Vim, format string, a ...interface{}) error {
 	return v.Command("echo '" + fmt.Sprintf(format, a...) + "'")
 }
 
-func Echomsg(v *vim.Vim, format string, a ...interface{}) error {
+func Echomsg(v *vim.Vim, a ...interface{}) error {
 	v.Command("redraw!")
-	return v.Command("echomsg '" + fmt.Sprintf(format, a...) + "'")
+	return v.Command("echomsg '" + fmt.Sprintln(a...) + "'")
 }
 
-func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
+func Echoerr(v *vim.Vim, a ...interface{}) error {
 	v.Command("redraw!")
-	return v.Command("echoerr '" + fmt.Sprintf(format, a...) + "'")
+	return v.Command("echoerr '" + fmt.Sprintln(a...) + "'")
 }
 
 func Echohl(v *vim.Vim, prefix string, highlight string, format string, a ...interface{}) error {
