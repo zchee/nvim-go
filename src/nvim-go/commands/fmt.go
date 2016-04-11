@@ -30,10 +30,10 @@ var options = imports.Options{
 
 func init() {
 	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p:h')"}, Fmt)
-	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "expand('%:p:h')"}, onBufWritePre)
+	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "expand('%:p:h')"}, fmtOnBufWritePre)
 }
 
-func onBufWritePre(v *vim.Vim, dir string) error {
+func fmtOnBufWritePre(v *vim.Vim, dir string) error {
 	v.Var(fmtAsync, &vFmtAsync)
 	if vFmtAsync.(int64) == int64(1) {
 		go Fmt(v, [2]int{0, 0}, dir)
@@ -88,7 +88,7 @@ func Fmt(v *vim.Vim, r [2]int, dir string) error {
 		if err := nvim.SetLoclist(p, loclist); err != nil {
 			return nvim.Echomsg(v, "Gofmt: %v", err)
 		}
-		return nvim.OpenLoclist(p, w, loclist, false)
+		return nvim.OpenLoclist(p, w, loclist, true)
 	} else {
 		nvim.CloseLoclist(v)
 	}
