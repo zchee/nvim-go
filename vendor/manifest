@@ -14,6 +14,18 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/motemen/go-astmanip",
+			"repository": "https://github.com/motemen/go-astmanip",
+			"revision": "d6ad31f02153082f74e488284fdae6730e055a44",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/motemen/go-iferr",
+			"repository": "https://github.com/motemen/go-iferr",
+			"revision": "59cf9dad68aea947626c49467f3d55a68fdbffd3",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/rogpeppe/godef/go",
 			"repository": "https://github.com/rogpeppe/godef",
 			"revision": "f90a99664522cad305e072e594a262ae1fcdd256",
@@ -82,6 +94,13 @@
 			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
 			"branch": "master",
 			"path": "/go/ssa"
+		},
+		{
+			"importpath": "golang.org/x/tools/go/types",
+			"repository": "https://go.googlesource.com/tools",
+			"revision": "13c24a6d6a329878e5ee2cdb76d84423604191d5",
+			"branch": "master",
+			"path": "/go/types"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/types/typeutil",
