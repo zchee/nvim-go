@@ -130,7 +130,7 @@ func Def(v *vim.Vim, file string) error {
 				var result interface{}
 				v.Option("nomodifiable", result)
 			}
-			// v.Feedkeys("zz", "normal", false)
+			v.FeedKeys("zz", "normal", false)
 		} else {
 			nvim.Echomsg(v, "Godef: not found of obj")
 		}
