@@ -2,10 +2,10 @@ GITHUB_USER := zchee
 
 VERBOSE := -v
 GIT_VERSION := ${GO_GCFLAGS} -X `go list ./version`.GitCommit=`git rev-parse --short HEAD 2>/dev/null`
-ifeq ($(DEBUG),true)
-	GO_GCFLAGS += -gcflags "-N -l"
-else
+ifeq ($(RELEASE),true)
 	GO_LDFLAGS += -ldflags "-w -s"
+else
+	GO_GCFLAGS += -gcflags "-N -l"
 endif
 
 TOP_PACKAGE_DIR := github.com/${GITHUB_USER}
@@ -13,6 +13,8 @@ PACKAGE_NAME := $(shell basename $(PWD))
 PACKAGE_DIR := ${HOME}/src/${TOP_PACKAGE_DIR}/${PACKAGE_NAME}
 BINARY_NAME := bin/nvim-go-darwin-amd64
 
+CC := clang
+CXX := clang++
 GO_CMD := go
 GB_CMD := gb
 VENDOR_CMD := ${GB_CMD} vendor
@@ -39,9 +41,7 @@ GO_CLEAN=${GO_CMD} clean
 
 default: build
 
-build: ${BINARY_NAME}
-
-${BINARY_NAME}:
+build:
 	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
 
 test:
@@ -72,4 +72,3 @@ clean:
 	@${RM} -r ./bin ./pkg
 
 .PHONY: clean build test test-run dep-save dep-restore docker-build docker-build-nocache
-
