@@ -5,9 +5,11 @@
 package commands
 
 import (
+	"go/build"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 
 	log "github.com/Sirupsen/logrus"
@@ -19,21 +21,34 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{NArgs: "?", Eval: "expand('%:p:h')"}, Build)
+	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, Build)
+	plugin.HandleAutocmd("BufWritePost", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "[expand('%:p:h'), g:go#build#autobuild]"}, autocmdBuild)
 
 	log.Debugln("GoBuild Start")
 }
 
-func cmdBuild(v *vim.Vim, args []string, dir string) {
-	go Build(v, args, dir)
+func cmdBuild(v *vim.Vim, dir string) {
+	go Build(v, dir)
 }
 
-func Build(v *vim.Vim, args []string, dir string) error {
+type onAutocmdBuild struct {
+	Dir  string `msgpack:",array"`
+	Flag int64
+}
+
+func autocmdBuild(v *vim.Vim, eval onAutocmdBuild) {
+	if eval.Flag != int64(0) {
+		go Build(v, eval.Dir)
+	}
+}
+
+func Build(v *vim.Vim, dir string) error {
 	defer gb.WithGoBuildForPath(dir)()
 	var (
 		b vim.Buffer
 		w vim.Window
 	)
+
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)
@@ -47,8 +62,15 @@ func Build(v *vim.Vim, args []string, dir string) error {
 	}
 	defer os.RemoveAll(tmpdir)
 
-	// cmd := exec.Command("gb", "build", "-gcflags", "'-h'", ".")
-	cmd := exec.Command("gb", "build", ".")
+	var compile_cmd string
+	currentGopath := strings.Split(build.Default.GOPATH, ":")[0]
+	if currentGopath == os.Getenv("GOPATH") {
+		compile_cmd = "go"
+	} else {
+		compile_cmd = "gb"
+	}
+
+	cmd := exec.Command(compile_cmd, "build", ".")
 	cmd.Dir = dir
 	out, _ := cmd.CombinedOutput()
 	cmd.Run()
