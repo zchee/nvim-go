@@ -6,9 +6,7 @@
 //
 //    http://golang.org/s/oracle-design
 //    http://golang.org/s/oracle-user-manual
-//
-// Run with -help flag or help subcommand for usage information.
-//
+
 package commands
 
 import (
@@ -38,6 +36,8 @@ var (
 	vGuruReflection interface{}
 	guruKeepCursor  = "go#guru#keep_cursor"
 	vGuruKeepCursor interface{}
+	guruDebug       = "go#debug"
+	vGuruDebug      interface{}
 )
 
 type onGuruEval struct {
@@ -62,6 +62,11 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	if vGuruKeepCursor.(int64) == int64(1) {
 		useKeepCursor = true
 	}
+	debug := false
+	v.Var(guruDebug, &vGuruDebug)
+	if vGuruDebug.(int64) == int64(1) {
+		debug = true
+	}
 
 	var (
 		b vim.Buffer
@@ -83,6 +88,7 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	if err != nil {
 		return nvim.Echomsg(v, "%v", err)
 	}
+	nvim.Debugln(v, debug, pos)
 
 	query := guru.Query{
 		Mode:       mode,
@@ -102,6 +108,7 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	if err != nil {
 		return nvim.Echomsg(v, "GoGuru: %v", err)
 	}
+	nvim.Debugln(v, debug, d)
 
 	if err := nvim.SetLoclist(p, d); err != nil {
 		return nvim.Echomsg(v, "GoGuru: %v", err)
