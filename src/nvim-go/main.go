@@ -6,13 +6,16 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 
+	_ "nvim-go/cgo"
 	_ "nvim-go/commands"
 	_ "nvim-go/nvim"
 )
@@ -30,12 +33,19 @@ func init() {
 		log.SetFormatter(&RpluginFormatter{})
 		log.SetLevel(log.DebugLevel)
 	}
+
+	plugin.HandleAutocmd("BufWinEnter", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "g:go#debug#pprof"}, pprofDebug)
 }
 
 func main() {
-	go func() {
-		log.Println(http.ListenAndServe("0.0.0.0:6060", http.DefaultServeMux))
-	}()
-
 	plugin.Main()
+}
+
+func pprofDebug(v *vim.Vim, flag int64) {
+	if flag != int64(0) {
+		fmt.Printf("Start pprof debug\n")
+		go func() {
+			log.Println(http.ListenAndServe("0.0.0.0:6060", http.DefaultServeMux))
+		}()
+	}
 }
