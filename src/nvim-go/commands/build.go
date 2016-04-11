@@ -31,12 +31,12 @@ func cmdBuild(v *vim.Vim, dir string) {
 	go Build(v, dir)
 }
 
-type onAutocmdBuild struct {
+type onBuildEval struct {
 	Dir  string `msgpack:",array"`
 	Flag int64
 }
 
-func autocmdBuild(v *vim.Vim, eval onAutocmdBuild) {
+func autocmdBuild(v *vim.Vim, eval onBuildEval) {
 	if eval.Flag != int64(0) {
 		go Build(v, eval.Dir)
 	}
