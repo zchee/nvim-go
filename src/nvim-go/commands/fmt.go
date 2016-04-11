@@ -16,11 +16,6 @@ import (
 	"nvim-go/nvim"
 )
 
-var (
-	fmtAsync  = "go#fmt#async"
-	vFmtAsync interface{}
-)
-
 var options = imports.Options{
 	AllErrors: true,
 	Comments:  true,
@@ -29,22 +24,27 @@ var options = imports.Options{
 }
 
 func init() {
-	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p:h')"}, Fmt)
-	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "expand('%:p:h')"}, fmtOnBufWritePre)
+	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, Fmt)
+	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "[expand('%:p:h'), expand('%:p'), g:go#fmt#async]"}, fmtAutocmdBuild)
 }
 
-func fmtOnBufWritePre(v *vim.Vim, dir string) error {
-	v.Var(fmtAsync, &vFmtAsync)
-	if vFmtAsync.(int64) == int64(1) {
-		go Fmt(v, [2]int{0, 0}, dir)
+type onFmtEval struct {
+	Cwd      string `msgpack:",array"`
+	File     string
+	EnvAsync int64
+}
+
+func fmtAutocmdBuild(v *vim.Vim, eval onFmtEval) error {
+	if eval.EnvAsync == int64(1) {
+		go Fmt(v, eval)
 		return nil
 	} else {
-		return Fmt(v, [2]int{0, 0}, dir)
+		return Fmt(v, eval)
 	}
 }
 
-func Fmt(v *vim.Vim, r [2]int, dir string) error {
-	defer gb.WithGoBuildForPath(dir)()
+func Fmt(v *vim.Vim, eval onFmtEval) error {
+	defer gb.WithGoBuildForPath(eval.Cwd)()
 
 	var (
 		b vim.Buffer
@@ -58,6 +58,9 @@ func Fmt(v *vim.Vim, r [2]int, dir string) error {
 	}
 
 	bufName, err := v.BufferName(b)
+	if err != nil {
+		return err
+	}
 
 	in, err := v.BufferLines(b, 0, -1, true)
 	if err != nil {
