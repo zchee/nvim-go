@@ -27,7 +27,10 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("GoGuru", &plugin.CommandOptions{NArgs: "+", Complete: "customlist,GuruCompletelist", Eval: "[expand('%:p:h'), expand('%:p')]"}, cmdGuru)
+	plugin.HandleCommand("GoGuru",
+		&plugin.CommandOptions{
+			NArgs: "+", Complete: "customlist,GuruCompletelist", Eval: "[expand('%:p:h'), expand('%:p')]"},
+		cmdGuru)
 	plugin.HandleFunction("GuruCompletelist", &plugin.FunctionOptions{}, onComplete)
 }
 

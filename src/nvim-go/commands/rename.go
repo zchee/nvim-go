@@ -17,7 +17,10 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Gorename", &plugin.CommandOptions{NArgs: "?", Eval: "[expand('%:p:h'), expand('%:p'), line2byte(line('.'))+(col('.')-2)]"}, cmdRename)
+	plugin.HandleCommand("Gorename",
+		&plugin.CommandOptions{
+			NArgs: "?", Eval: "[expand('%:p:h'), expand('%:p'), line2byte(line('.'))+(col('.')-2)]"},
+		cmdRename)
 }
 
 var (

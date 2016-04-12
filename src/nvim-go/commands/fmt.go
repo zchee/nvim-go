@@ -27,7 +27,7 @@ func init() {
 	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, Fmt)
 	plugin.HandleAutocmd("BufWritePre",
 		&plugin.AutocmdOptions{Pattern: "*.go",
-			Eval: "[expand('%:p:h'), expand('%:p'), g:go#fmt#async, g:go#fmt#iferr]"},
+			Eval: "[expand('%:p:h'), expand('%:p'), go#fmt#async, go#fmt#iferr]"},
 		fmtAutocmdBuild)
 }
 

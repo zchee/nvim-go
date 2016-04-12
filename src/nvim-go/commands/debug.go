@@ -12,7 +12,9 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("GoByteOffset", &plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"}, commandByteOffset)
+	plugin.HandleCommand("GoByteOffset",
+		&plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"},
+		commandByteOffset)
 }
 
 func commandByteOffset(v *vim.Vim) error {

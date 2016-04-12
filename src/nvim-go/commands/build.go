@@ -22,7 +22,9 @@ import (
 
 func init() {
 	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, Build)
-	plugin.HandleAutocmd("BufWritePost", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "[expand('%:p:h'), g:go#build#autobuild]"}, autocmdBuild)
+	plugin.HandleAutocmd("BufWritePost",
+		&plugin.AutocmdOptions{Pattern: "*.go", Eval: "[expand('%:p:h'), go#build#autobuild]"},
+		autocmdBuild)
 
 	log.Debugln("GoBuild Start")
 }

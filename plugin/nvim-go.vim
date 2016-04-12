@@ -32,8 +32,8 @@ endfunction
 
 let s:specs = [
 \ {'type': 'autocmd', 'name': 'BufWinEnter', 'sync': 0, 'opts': {'eval': 'g:go#debug#pprof', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), g:go#build#autobuild]', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p''), g:go#fmt#async, g:go#fmt#iferr]', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), go#build#autobuild]', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p''), go#fmt#async, go#fmt#iferr]', 'pattern': '*.go'}},
 \ {'type': 'command', 'name': 'GoByteOffset', 'sync': 1, 'opts': {'eval': 'expand(''%:p'')', 'range': '%'}},
 \ {'type': 'command', 'name': 'GoClang', 'sync': 1, 'opts': {'eval': 'expand(''%:p'')'}},
 \ {'type': 'command', 'name': 'GoGoto', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')'}},
