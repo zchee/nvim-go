@@ -25,16 +25,28 @@ var options = imports.Options{
 
 func init() {
 	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, Fmt)
-	plugin.HandleAutocmd("BufWritePre", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "[expand('%:p:h'), expand('%:p'), g:go#fmt#async]"}, fmtAutocmdBuild)
+	plugin.HandleAutocmd("BufWritePre",
+		&plugin.AutocmdOptions{Pattern: "*.go",
+			Eval: "[expand('%:p:h'), expand('%:p'), g:go#fmt#async, g:go#fmt#iferr]"},
+		fmtAutocmdBuild)
 }
 
 type onFmtEval struct {
 	Cwd      string `msgpack:",array"`
 	File     string
 	EnvAsync int64
+	EnvIferr int64
 }
 
 func fmtAutocmdBuild(v *vim.Vim, eval onFmtEval) error {
+	if eval.EnvIferr == int64(1) {
+		var env = onIferrEval{
+			Cwd:  eval.Cwd,
+			File: eval.File,
+		}
+		Iferr(v, env)
+	}
+
 	if eval.EnvAsync == int64(1) {
 		go Fmt(v, eval)
 		return nil
