@@ -1,8 +1,9 @@
 package commands
 
 import (
-	"go/format"
+	"bufio"
 	"go/parser"
+	"go/printer"
 	"os"
 
 	"github.com/garyburd/neovim-go/vim"
@@ -61,22 +62,28 @@ func Iferr(v *vim.Vim, eval onIferrEval) error {
 		return err
 	}
 
-	// if err != nil {
-	// 	nvim.Echoerr(v, err)
-	// }
-	// fmt.Println(prog.Fset)
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
 
 	for _, pkg := range prog.InitialPackages() {
 		for _, f := range pkg.Files {
-			filename := prog.Fset.File(f.Pos()).Name()
 			iferr.RewriteFile(prog.Fset, f, pkg.Info)
-			fh, err := os.Create(filename)
-			if err != nil {
-				return err
-			}
-
-			format.Node(fh, prog.Fset, f)
+			printer.Fprint(w, prog.Fset, f)
 		}
 	}
-	return v.Command("edit!")
+
+	w.Close()
+	os.Stdout = oldStdout
+
+	var out [][]byte
+	scan := bufio.NewScanner(r)
+	for scan.Scan() {
+		out = append(out, scan.Bytes())
+	}
+
+	p := v.NewPipeline()
+	p.SetBufferLines(b, 0, -1, false, out)
+
+	return p.Wait()
 }
