@@ -32,16 +32,32 @@ func Goto(v *vim.Vim, file string) error {
 	if vClangNomodifiable.(int64) == int64(1) {
 		useNomodifiable = true
 	}
-	// debug := false
-	// v.Var(clangDebug, &vClangDebug)
-	// if vClangDebug.(int64) == int64(1) {
-	// debug = true
-	// }
 
 	index := clang.NewIndex(0, 1)
 	defer index.Dispose()
 
-	// fake := `#inclued <stdlib:h>\n\nint main() {\n\n}`
+	b, err := v.CurrentBuffer()
+	if err != nil {
+		return nvim.Echoerr(v, err)
+	}
+
+	bl, err := v.BufferLines(b, 0, -1, true)
+	if err != nil {
+		return nvim.Echoerr(v, err)
+	}
+
+	headers, err := parseInclude(v, bl)
+	if err != nil {
+		return nvim.Echoerr(v, err)
+	}
+
+	fmt.Println(headers[0])
+
+	var header string
+	for _, h := range headers {
+		header += h + "\n"
+	}
+	// fake := header + `\n\nint main() {\n\n}`
 
 	tu := index.ParseTranslationUnit(file, []string{}, nil, 0)
 	defer tu.Dispose()
@@ -90,6 +106,17 @@ func Goto(v *vim.Vim, file string) error {
 	}
 
 	return nil
+}
+
+func parseInclude(v *vim.Vim, b [][]byte) ([]string, error) {
+	var headers []string
+
+	for _, buf := range b {
+		if strings.Index(string(buf), "#include") > -1 {
+			headers = append(headers, string(buf))
+		}
+	}
+	return headers, nil
 }
 
 /*

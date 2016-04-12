@@ -15,7 +15,6 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 
-	_ "nvim-go/cgo"
 	_ "nvim-go/commands"
 	_ "nvim-go/nvim"
 )
