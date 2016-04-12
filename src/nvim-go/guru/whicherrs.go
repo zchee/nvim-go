@@ -14,6 +14,7 @@ import (
 	"golang.org/x/tools/cmd/guru/serial"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/loader"
+	"golang.org/x/tools/go/pointer"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
 )
@@ -40,7 +41,6 @@ func whicherrs(q *Query) error {
 	if err != nil {
 		return err
 	}
-	q.Fset = lprog.Fset
 
 	qpos, err := parseQueryPos(lprog, q.Pos, true) // needs exact pos
 	if err != nil {
@@ -141,6 +141,9 @@ func whicherrs(q *Query) error {
 
 	ptares := ptrAnalysis(ptaConfig)
 	valueptr := ptares.Queries[value]
+	if valueptr == (pointer.Pointer{}) {
+		return fmt.Errorf("pointer analysis did not find expression (dead code?)")
+	}
 	for g, v := range globals {
 		ptr, ok := ptares.Queries[v]
 		if !ok {
@@ -205,7 +208,7 @@ func whicherrs(q *Query) error {
 	sort.Sort(membersByPosAndString(res.consts))
 	sort.Sort(sorterrorType(res.types))
 
-	q.result = res
+	q.Output(lprog.Fset, res)
 	return nil
 }
 
@@ -286,7 +289,7 @@ type whicherrsResult struct {
 	types   []*errorType
 }
 
-func (r *whicherrsResult) display(printf printfFunc) {
+func (r *whicherrsResult) PrintPlain(printf printfFunc) {
 	if len(r.globals) > 0 {
 		printf(r.qpos, "this error may point to these globals:")
 		for _, g := range r.globals {
@@ -307,7 +310,7 @@ func (r *whicherrsResult) display(printf printfFunc) {
 	}
 }
 
-func (r *whicherrsResult) toSerial(res *serial.Result, fset *token.FileSet) {
+func (r *whicherrsResult) JSON(fset *token.FileSet) []byte {
 	we := &serial.WhichErrs{}
 	we.ErrPos = fset.Position(r.errpos).String()
 	for _, g := range r.globals {
@@ -322,5 +325,5 @@ func (r *whicherrsResult) toSerial(res *serial.Result, fset *token.FileSet) {
 		et.Position = fset.Position(t.obj.Pos()).String()
 		we.Types = append(we.Types, et)
 	}
-	res.WhichErrs = we
+	return toJSON(we)
 }
