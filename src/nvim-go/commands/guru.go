@@ -10,13 +10,14 @@
 package commands
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"go/build"
+	"go/token"
 	"strconv"
 	"strings"
+	"sync"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"golang.org/x/tools/cmd/guru/serial"
@@ -27,11 +28,31 @@ import (
 )
 
 func init() {
+	evalArg := "[expand('%:p:h'), expand('%:p')]"
+
 	plugin.HandleCommand("GoGuru",
 		&plugin.CommandOptions{
-			NArgs: "+", Complete: "customlist,GuruCompletelist", Eval: "[expand('%:p:h'), expand('%:p')]"},
-		cmdGuru)
+			NArgs: "+", Complete: "customlist,GuruCompletelist", Eval: evalArg}, cmdGuru)
 	plugin.HandleFunction("GuruCompletelist", &plugin.FunctionOptions{}, onComplete)
+
+	// Show possible callees of the function call at the current point.
+	plugin.HandleCommand("GoGuruCallees", &plugin.CommandOptions{Eval: evalArg}, cmdGuruCallees)
+	// Show the set of callers of the function containing the current point.
+	plugin.HandleCommand("GoGuruCallers", &plugin.CommandOptions{Eval: evalArg}, cmdGuruCallers)
+	// Show the callgraph of the current program.
+	plugin.HandleCommand("GoGuruCallstack", &plugin.CommandOptions{Eval: evalArg}, cmdGuruCallstack)
+	plugin.HandleCommand("GoGuruDefinition", &plugin.CommandOptions{Eval: evalArg}, cmdGuruDefinition)
+	// Describe the expression at the current point.
+	plugin.HandleCommand("GoGuruDescribe", &plugin.CommandOptions{Eval: evalArg}, cmdGuruDescribe)
+	plugin.HandleCommand("GoGuruFreevars", &plugin.CommandOptions{Eval: evalArg}, cmdGuruFreevars)
+	/// Describe the 'implements' relation for types in the
+	// package containing the current point.
+	plugin.HandleCommand("GoGuruImplements", &plugin.CommandOptions{Eval: evalArg}, cmdGuruImplements)
+	// Enumerate the set of possible corresponding sends/receives for
+	// this channel receive/send operation.
+	plugin.HandleCommand("GoGuruChannelPeers", &plugin.CommandOptions{Eval: evalArg}, cmdGuruChannelPeers)
+	plugin.HandleCommand("GoGuruPointsto", &plugin.CommandOptions{Eval: evalArg}, cmdGuruPointsto)
+	plugin.HandleCommand("GoGuruWhicherrs", &plugin.CommandOptions{Eval: evalArg}, cmdGuruWhicherrs)
 }
 
 var (
@@ -52,6 +73,46 @@ func cmdGuru(v *vim.Vim, args []string, eval *onGuruEval) {
 	go Guru(v, args, eval)
 }
 
+func cmdGuruCallees(v *vim.Vim, eval *onGuruEval) {
+	go Guru(v, []string{"callees"}, eval)
+}
+
+func cmdGuruCallers(v *vim.Vim, eval *onGuruEval) {
+	go Guru(v, []string{"callers"}, eval)
+}
+
+func cmdGuruCallstack(v *vim.Vim, eval *onGuruEval) {
+	go Guru(v, []string{"callstack"}, eval)
+}
+
+func cmdGuruDefinition(v *vim.Vim, eval *onGuruEval) {
+	go Guru(v, []string{"definition"}, eval)
+}
+
+func cmdGuruDescribe(v *vim.Vim, eval *onGuruEval) {
+	go Guru(v, []string{"describe"}, eval)
+}
+
+func cmdGuruFreevars(v *vim.Vim, eval *onGuruEval) {
+	go Guru(v, []string{"freevars"}, eval)
+}
+
+func cmdGuruImplements(v *vim.Vim, eval *onGuruEval) {
+	go Guru(v, []string{"implements"}, eval)
+}
+
+func cmdGuruChannelPeers(v *vim.Vim, eval *onGuruEval) {
+	go Guru(v, []string{"peers"}, eval)
+}
+
+func cmdGuruPointsto(v *vim.Vim, eval *onGuruEval) {
+	go Guru(v, []string{"pointsto"}, eval)
+}
+
+func cmdGuruWhicherrs(v *vim.Vim, eval *onGuruEval) {
+	go Guru(v, []string{"whicherrs"}, eval)
+}
+
 func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	defer gb.WithGoBuildForPath(eval.Cwd)()
 
@@ -64,11 +125,6 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	v.Var(guruKeepCursor, &vGuruKeepCursor)
 	if vGuruKeepCursor.(int64) == int64(1) {
 		useKeepCursor = true
-	}
-	debug := false
-	v.Var(guruDebug, &vGuruDebug)
-	if vGuruDebug.(int64) == int64(1) {
-		debug = true
 	}
 
 	var (
@@ -91,10 +147,19 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	if err != nil {
 		return nvim.Echomsg(v, "%v", err)
 	}
-	nvim.Debugln(v, debug, pos)
+
+	var outputMu sync.Mutex
+	var d []*nvim.ErrorlistData
+	output := func(fset *token.FileSet, qr guru.QueryResult) {
+		outputMu.Lock()
+		defer outputMu.Unlock()
+		if d, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
+			nvim.Echoerr(v, err)
+		}
+	}
 
 	query := guru.Query{
-		Mode:       mode,
+		Output:     output,
 		Pos:        eval.File + ":#" + strconv.FormatInt(int64(pos), 10),
 		Build:      &build.Default,
 		Scope:      []string{scopeFlag},
@@ -103,215 +168,302 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 
 	nvim.Echohl(v, "GoGuru: ", "Identifier", "analysing %s ...", mode)
 
-	if err := guru.Run(&query); err != nil {
-		return nvim.Echomsg(v, "%s", err)
+	if err := guru.Run(mode, &query); err != nil {
+		return nvim.Echomsg(v, err)
 	}
-
-	d, err := parseSerial(mode, query.Serial())
-	if err != nil {
-		return nvim.Echomsg(v, "GoGuru: %v", err)
-	}
-	nvim.Debugln(v, debug, d)
+	v.Command("normal! :<ESC>")
 
 	if err := nvim.SetLoclist(p, d); err != nil {
 		return nvim.Echomsg(v, "GoGuru: %v", err)
 	}
-	p.Command("redraw!")
+	// p.Command("redraw!")
 	return nvim.OpenLoclist(p, w, d, useKeepCursor)
 }
 
-func parseSerial(mode string, s *serial.Result) ([]*nvim.ErrorlistData, error) {
-	var loclist []*nvim.ErrorlistData
+func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) ([]*nvim.ErrorlistData, error) {
+	var (
+		loclist []*nvim.ErrorlistData
+		fname   string
+		line    int
+		col     int
+		text    string
+	)
 
 	switch mode {
+
 	case "callees":
-		var calleers string
-		for _, n := range s.Callees.Callees {
-			calleers += calleers + n.Name
+		var value = serial.Callees{}
+		err := json.Unmarshal(data, &value)
+		if err != nil {
+			return loclist, err
 		}
-		file, line, col := nvim.SplitPos(s.Callees.Pos)
-		loclist = append(loclist, &nvim.ErrorlistData{
-			FileName: file,
-			LNum:     line,
-			Col:      col,
-			Text:     s.Callees.Desc + " " + calleers,
-		})
+		for _, v := range value.Callees {
+			fname, line, col = nvim.SplitPos(v.Pos, basedir)
+			text = value.Desc + ": " + v.Name
+			loclist = append(loclist, &nvim.ErrorlistData{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     text,
+			})
+		}
+
 	case "callers":
-		for _, e := range s.Callers {
-			file, line, col := nvim.SplitPos(e.Pos)
+		var value = []serial.Caller{}
+		err := json.Unmarshal(data, &value)
+		if err != nil {
+			return loclist, err
+		}
+		for _, v := range value {
+			fname, line, col = nvim.SplitPos(v.Pos, basedir)
+			text = v.Desc + ": " + v.Caller
 			loclist = append(loclist, &nvim.ErrorlistData{
-				FileName: file,
+				FileName: fname,
 				LNum:     line,
 				Col:      col,
-				Text:     e.Desc + " " + e.Caller,
+				Text:     text,
 			})
 		}
+
 	case "callstack":
-		if len(s.Callstack.Callers) != 0 {
-			for _, n := range s.Callstack.Callers {
-				file, line, col := nvim.SplitPos(n.Pos)
-				loclist = append(loclist, &nvim.ErrorlistData{
-					FileName: file,
-					LNum:     line,
-					Col:      col,
-					Text:     n.Desc,
-				})
-			}
+		var value = serial.CallStack{}
+		err := json.Unmarshal(data, &value)
+		if err != nil {
+			return loclist, err
 		}
+		for _, v := range value.Callers {
+			fname, line, col = nvim.SplitPos(v.Pos, basedir)
+			text = v.Desc + " " + value.Target
+			loclist = append(loclist, &nvim.ErrorlistData{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     text,
+			})
+		}
+
 	case "definition":
-		file, line, col := nvim.SplitPos(s.Definition.ObjPos)
+		var value = serial.Definition{}
+		err := json.Unmarshal(data, &value)
+		if err != nil {
+			return loclist, err
+		}
+		fname, line, col = nvim.SplitPos(value.ObjPos, basedir)
+		text = value.Desc
 		loclist = append(loclist, &nvim.ErrorlistData{
-			FileName: file,
+			FileName: fname,
 			LNum:     line,
 			Col:      col,
-			Text:     s.Definition.Desc,
+			Text:     text,
 		})
+
 	case "describe":
-		file, line, col := nvim.SplitPos(s.Describe.Value.ObjPos)
+		var value = serial.Describe{}
+		err := json.Unmarshal(data, &value)
+		if err != nil {
+			return loclist, err
+		}
+		fname, line, col = nvim.SplitPos(value.Value.ObjPos, basedir)
+		text = value.Desc + " " + value.Value.Type
 		loclist = append(loclist, &nvim.ErrorlistData{
-			FileName: file,
+			FileName: fname,
 			LNum:     line,
 			Col:      col,
-			Text:     s.Describe.Value.Type,
+			Text:     text,
 		})
+
 	case "freevars":
-		for _, e := range s.Freevars {
-			file, line, col := nvim.SplitPos(e.Pos)
-			log.Debugln(e)
-			loclist = append(loclist, &nvim.ErrorlistData{
-				FileName: file,
-				LNum:     line,
-				Col:      col,
-				Text:     e.Type + "\n" + e.Kind + "\n" + e.Ref,
-			})
+		var value = serial.FreeVar{}
+		err := json.Unmarshal(data, &value)
+		if err != nil {
+			return loclist, err
 		}
-	case "implements":
-		file, line, col := nvim.SplitPos(s.Implements.T.Pos)
+		fname, line, col = nvim.SplitPos(value.Pos, basedir)
+		text = value.Kind + " " + value.Type + " " + value.Ref
 		loclist = append(loclist, &nvim.ErrorlistData{
-			FileName: file,
+			FileName: fname,
 			LNum:     line,
 			Col:      col,
-			Text:     s.Implements.T.Name,
+			Text:     text,
 		})
+
+	case "implements":
+		var value = serial.Implements{}
+		err := json.Unmarshal(data, &value)
+		if err != nil {
+			return loclist, err
+		}
+		for _, v := range value.AssignableFrom {
+			fname, line, col := nvim.SplitPos(v.Pos, basedir)
+			text = v.Kind + " " + v.Name
+			loclist = append(loclist, &nvim.ErrorlistData{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     text,
+			})
+		}
+
 	case "peers":
-		for _, e := range s.Peers.Allocs {
-			file, line, col := nvim.SplitPos(e)
+		var value = serial.Peers{}
+		err := json.Unmarshal(data, &value)
+		if err != nil {
+			return loclist, err
+		}
+		fname, line, col := nvim.SplitPos(value.Pos, basedir)
+		loclist = append(loclist, &nvim.ErrorlistData{
+			FileName: fname,
+			LNum:     line,
+			Col:      col,
+			Text:     "Base: selected channel op (<-)",
+		})
+		for _, v := range value.Allocs {
+			fname, line, col := nvim.SplitPos(v, basedir)
 			loclist = append(loclist, &nvim.ErrorlistData{
-				FileName: file,
+				FileName: fname,
 				LNum:     line,
 				Col:      col,
-				Text:     s.Peers.Type + ": Allocs",
+				Text:     "Allocs: make(chan) ops",
 			})
 		}
-		for _, e := range s.Peers.Sends {
-			file, line, col := nvim.SplitPos(e)
+		for _, v := range value.Sends {
+			fname, line, col := nvim.SplitPos(v, basedir)
 			loclist = append(loclist, &nvim.ErrorlistData{
-				FileName: file,
+				FileName: fname,
 				LNum:     line,
 				Col:      col,
-				Text:     s.Peers.Type + ": Sends",
+				Text:     "Sends: ch<-x ops",
 			})
 		}
-		for _, e := range s.Peers.Receives {
-			file, line, col := nvim.SplitPos(e)
+		for _, v := range value.Receives {
+			fname, line, col := nvim.SplitPos(v, basedir)
 			loclist = append(loclist, &nvim.ErrorlistData{
-				FileName: file,
+				FileName: fname,
 				LNum:     line,
 				Col:      col,
-				Text:     s.Peers.Type + ": Receives",
+				Text:     "Receives: <-ch ops",
 			})
 		}
-		for _, e := range s.Peers.Closes {
-			file, line, col := nvim.SplitPos(e)
+		for _, v := range value.Closes {
+			fname, line, col := nvim.SplitPos(v, basedir)
 			loclist = append(loclist, &nvim.ErrorlistData{
-				FileName: file,
+				FileName: fname,
 				LNum:     line,
 				Col:      col,
-				Text:     s.Peers.Type + ": Closes",
+				Text:     "Closes: close(ch) ops",
 			})
 		}
+
 	case "pointsto":
-		for _, e := range s.PointsTo {
-			if e.NamePos != "" {
-				file, line, col := nvim.SplitPos(e.NamePos)
-				loclist = append(loclist, &nvim.ErrorlistData{
-					FileName: file,
-					LNum:     line,
-					Col:      col,
-					Text:     e.Type,
-				})
-			} else {
-				loclist = append(loclist, &nvim.ErrorlistData{
-					Text: e.Type,
-				})
+		var value = []serial.PointsTo{}
+		err := json.Unmarshal(data, &value)
+		if err != nil {
+			return loclist, err
+		}
+		for _, v := range value {
+			fname, line, col := nvim.SplitPos(v.NamePos, basedir)
+			loclist = append(loclist, &nvim.ErrorlistData{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     "type: " + v.Type,
+			})
+			if len(v.Labels) > -1 {
+				for _, vl := range v.Labels {
+					fname, line, col := nvim.SplitPos(vl.Pos, basedir)
+					loclist = append(loclist, &nvim.ErrorlistData{
+						FileName: fname,
+						LNum:     line,
+						Col:      col,
+						Text:     vl.Desc,
+					})
+				}
 			}
 		}
-	case "referrers":
-		for _, e := range s.Referrers.Refs {
-			file, line, col := nvim.SplitPos(e)
-			loclist = append(loclist, &nvim.ErrorlistData{
-				FileName: file,
-				LNum:     line,
-				Col:      col,
-				Text:     s.Referrers.Desc,
-			})
-		}
-	case "what":
-		log.Debugln("s.What.Enclosing:", s.What.Enclosing)
-		log.Debugln("s.What.Modes:", s.What.Modes)
-		log.Debugln("s.What.SrcDir:", s.What.SrcDir)
-		log.Debugln("s.What.ImportPath:", s.What.ImportPath)
-		log.Debugln("s.What.Object:", s.What.Object)
-		log.Debugln("s.What.SameIDs:", s.What.SameIDs)
-		var modesText string
-		for _, mode := range s.What.Modes {
-			modesText += mode + " "
-		}
-		loclist = append(loclist, &nvim.ErrorlistData{
-			Text: "Modes: " + modesText[:len(modesText)-2],
-		})
-		loclist = append(loclist, &nvim.ErrorlistData{
-			Text: "SrcDir: " + s.What.SrcDir,
-		})
-		loclist = append(loclist, &nvim.ErrorlistData{
-			Text: "ImportPath: " + s.What.ImportPath,
-		})
-		loclist = append(loclist, &nvim.ErrorlistData{
-			Text: "Object: " + s.What.Object,
-		})
-		sameIDsText := "SameIDs: "
-		for _, sameid := range s.What.SameIDs {
-			sameIDsText += sameid
-		}
-		loclist = append(loclist, &nvim.ErrorlistData{
-			Text: sameIDsText,
-		})
+
+	// case "referrers":
+	// 	var value = serial.ReferrersInitial{}
+	// 	err := json.Unmarshal(data, &value)
+	// 	if err != nil {
+	// 		return loclist, err
+	// 	}
+	// 	fname, line, col := nvim.SplitPos(value.ObjPos, basedir)
+	// 	loclist = append(loclist, &nvim.ErrorlistData{
+	// 		FileName: fname,
+	// 		LNum:     line,
+	// 		Col:      col,
+	// 		Text:     value.Desc,
+	// 	})
+	// 	var vPackage = serial.ReferrersPackage{}
+	// 	if err := json.Unmarshal(data, &vPackage); err != nil {
+	// 		return loclist, err
+	// 	}
+	// 	loclist = append(loclist, &nvim.ErrorlistData{
+	// 		Text: vPackage.Package,
+	// 	})
+	// 	for _, vp := range vPackage.Refs {
+	// 		fname, line, col := nvim.SplitPos(vp.Pos, basedir)
+	// 		loclist = append(loclist, &nvim.ErrorlistData{
+	// 			FileName: fname,
+	// 			LNum:     line,
+	// 			Col:      col,
+	// 			Text:     vp.Text,
+	// 		})
+	// 	}
+
 	case "whicherrs":
-		// log.Debugln("s.WhichErrs.ErrPos:", s.WhichErrs.ErrPos)
-		// log.Debugln("s.WhichErrs.Globals:", s.WhichErrs.Globals)
-		// log.Debugln("s.WhichErrs.Constants:", s.WhichErrs.Constants)
-		// log.Debugln("s.WhichErrs.Types:", s.WhichErrs.Types)
-		for _, e := range s.WhichErrs.Types {
-			file, line, col := nvim.SplitPos(e.Position)
+		var value = serial.WhichErrs{}
+		err := json.Unmarshal(data, &value)
+		if err != nil {
+			return loclist, err
+		}
+		fname, line, col := nvim.SplitPos(value.ErrPos, basedir)
+		loclist = append(loclist, &nvim.ErrorlistData{
+			FileName: fname,
+			LNum:     line,
+			Col:      col,
+			Text:     "Errror Position",
+		})
+		for _, vg := range value.Globals {
+			fname, line, col := nvim.SplitPos(vg, basedir)
 			loclist = append(loclist, &nvim.ErrorlistData{
-				FileName: file,
+				FileName: fname,
 				LNum:     line,
 				Col:      col,
-				Text:     e.Type,
+				Text:     "Globals",
 			})
 		}
+		for _, vc := range value.Constants {
+			fname, line, col := nvim.SplitPos(vc, basedir)
+			loclist = append(loclist, &nvim.ErrorlistData{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     "Constants",
+			})
+		}
+		for _, vt := range value.Types {
+			fname, line, col := nvim.SplitPos(vt.Position, basedir)
+			loclist = append(loclist, &nvim.ErrorlistData{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     "Types: " + vt.Type,
+			})
+		}
+
 	}
 
 	if len(loclist) == 0 {
-		return loclist, errors.New(fmt.Sprintf("%s not fount", mode))
+		return loclist, fmt.Errorf("%s not fount", mode)
 	}
 	return loclist, nil
 }
 
 func onComplete(v *vim.Vim) ([]string, error) {
 	return []string{
-		"callers",
 		"callees",
+		"callers",
 		"callstack",
 		"definition",
 		"describe",

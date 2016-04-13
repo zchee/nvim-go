@@ -5,6 +5,7 @@
 package nvim
 
 import (
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -102,10 +103,15 @@ func CloseQuickfix(v *vim.Vim) error {
 	return v.Command("cclose")
 }
 
-func SplitPos(pos string) (string, int, int) {
+func SplitPos(pos string, basedir string) (string, int, int) {
 	file := strings.Split(pos, ":")
 	line, _ := strconv.ParseInt(file[1], 10, 64)
 	col, _ := strconv.ParseInt(file[2], 10, 64)
 
-	return file[0], int(line), int(col)
+	fname, err := filepath.Rel(basedir, file[0])
+	if err != nil {
+		return fname, int(line), int(col)
+	} else {
+		return file[0], int(line), int(col)
+	}
 }
