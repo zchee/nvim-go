@@ -17,18 +17,15 @@ import (
 	"nvim-go/nvim"
 )
 
-var (
-	metalinterAutosaveTools  = "go#lint#metalinter#autosave#tools"
-	vMetalinterAutosaveTools interface{}
-	metalinterDeadline       = "go#lint#metalinter#deadline"
-	vMetalinterDeadline      interface{}
-)
-
 func init() {
 	plugin.HandleCommand("Gometalinter",
 		&plugin.CommandOptions{
-			Eval: "[expand('%:p:h'), g:go#lint#metalinter#tools, g:go#lint#metalinter#autosave]"},
+			Eval: "[expand('%:p:h'), g:go#lint#metalinter#tools, g:go#lint#metalinter#deadline]"},
 		cmdMetalinter)
+	plugin.HandleAutocmd("BufWritePre",
+		&plugin.AutocmdOptions{Pattern: "*.go",
+			Eval: "[expand('%:p:h'), g:go#lint#metalinter#autosave, go#lint#metalinter#autosave#tools, g:go#lint#metalinter#deadline]"},
+		autocmdMetalinter)
 
 	log.Debugln("Gometalinter: Start")
 }
@@ -36,15 +33,27 @@ func init() {
 type onMetalinterEval struct {
 	Dir      string `msgpack:",array"`
 	Tools    []string
-	Autosave int64
+	Deadline string
 }
 
 func cmdMetalinter(v *vim.Vim, eval onMetalinterEval) {
 	go Metalinter(v, eval)
 }
 
-func autocmdMetalinter(v *vim.Vim, eval onMetalinterEval) {
-	if eval.Autosave != int64(0) {
+type autocmdMetalinterEval struct {
+	Dir      string `msgpack:",array"`
+	Autosave int64
+	Tools    []string
+	Deadline string
+}
+
+func autocmdMetalinter(v *vim.Vim, autocmdeval autocmdMetalinterEval) {
+	if autocmdeval.Autosave != int64(0) {
+		var eval = onMetalinterEval{
+			Dir:      autocmdeval.Dir,
+			Tools:    autocmdeval.Tools,
+			Deadline: autocmdeval.Deadline,
+		}
 		go Metalinter(v, eval)
 	}
 }
@@ -61,9 +70,6 @@ type metalinterResult struct {
 func Metalinter(v *vim.Vim, eval onMetalinterEval) error {
 	defer gb.WithGoBuildForPath(eval.Dir)()
 
-	v.Var(metalinterAutosaveTools, &metalinterAutosaveTools)
-	v.Var(metalinterDeadline, &vMetalinterDeadline)
-
 	var (
 		loclist []*nvim.ErrorlistData
 		b       vim.Buffer
@@ -77,7 +83,7 @@ func Metalinter(v *vim.Vim, eval onMetalinterEval) error {
 		return err
 	}
 
-	args := []string{eval.Dir, "--json", "--disable-all", "--deadline", vMetalinterDeadline.(string)}
+	args := []string{eval.Dir, "--json", "--disable-all", "--deadline", eval.Deadline}
 	for _, t := range eval.Tools {
 		args = append(args, "--enable", t)
 	}
