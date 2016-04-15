@@ -176,7 +176,6 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	if err := nvim.SetLoclist(p, d); err != nil {
 		return nvim.Echomsg(v, "GoGuru: %v", err)
 	}
-	// p.Command("redraw!")
 	return nvim.OpenLoclist(p, w, d, useKeepCursor)
 }
 

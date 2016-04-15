@@ -62,7 +62,7 @@ func Rename(v *vim.Vim, args []string, eval *onRenameEval) error {
 	offset := fmt.Sprintf("%s:#%d", eval.File, eval.Offset)
 	fmt.Printf(offset)
 
-	askMessage := fmt.Sprintf("%s: Rename '%s' to: ", nvim.PackageName, from[1:])
+	askMessage := fmt.Sprintf("%s: Rename '%s' to: ", "nvim-go", from[1:])
 	var to interface{}
 	if vRenamePrefill.(int64) == int64(1) {
 		p.Call("input", &to, askMessage, from[1:])
