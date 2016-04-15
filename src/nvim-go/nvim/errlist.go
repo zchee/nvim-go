@@ -105,8 +105,14 @@ func CloseQuickfix(v *vim.Vim) error {
 
 func SplitPos(pos string) (string, int, int) {
 	file := strings.Split(pos, ":")
-	line, _ := strconv.ParseInt(file[1], 10, 64)
-	col, _ := strconv.ParseInt(file[2], 10, 64)
+	line, err := strconv.ParseInt(file[1], 10, 64)
+	if err != nil {
+		line = 0
+	}
+	col, err := strconv.ParseInt(file[2], 10, 64)
+	if err != nil {
+		col = 0
+	}
 
 	fname, err := filepath.Abs(file[0])
 	if err != nil {
