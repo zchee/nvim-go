@@ -21,24 +21,15 @@ import (
 
 func init() {
 	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, Build)
-	plugin.HandleAutocmd("BufWritePost",
-		&plugin.AutocmdOptions{Pattern: "*.go", Eval: "[expand('%:p:h'), g:go#build#autobuild]"},
-		autocmdBuild)
 }
 
 func cmdBuild(v *vim.Vim, dir string) {
 	go Build(v, dir)
 }
 
-type onBuildEval struct {
+type CmdBuildEval struct {
 	Dir  string `msgpack:",array"`
 	Flag int64
-}
-
-func autocmdBuild(v *vim.Vim, eval onBuildEval) {
-	if eval.Flag != int64(0) {
-		go Build(v, eval.Dir)
-	}
 }
 
 func Build(v *vim.Vim, dir string) error {

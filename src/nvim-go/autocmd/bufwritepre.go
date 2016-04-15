@@ -12,13 +12,12 @@ func init() {
 		&plugin.AutocmdOptions{Pattern: "*.go", Group: "fmt", Eval: "*"}, autocmdBufWritePre)
 }
 
-type fileInfo struct {
+type bufwritepreFileInfo struct {
 	Cwd  string `eval:"getcwd()"`
 	Path string `eval:"expand('%:p')"`
-	Name string `eval:"expand('%')"`
 }
 
-type env struct {
+type bufwritepreEnv struct {
 	FmtAsync           int64    `eval:"g:go#fmt#async"`
 	IferrAutosave      int64    `eval:"g:go#iferr#autosave"`
 	MetaLinterAutosave int64    `eval:"g:go#lint#metalinter#autosave"`
@@ -27,8 +26,8 @@ type env struct {
 }
 
 func autocmdBufWritePre(v *vim.Vim, eval *struct {
-	FileInfo fileInfo
-	Env      env
+	FileInfo bufwritepreFileInfo
+	Env      bufwritepreEnv
 }) error {
 	if eval.Env.IferrAutosave == int64(1) {
 		var env = commands.CmdIferrEval{

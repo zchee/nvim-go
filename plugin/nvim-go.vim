@@ -4,7 +4,7 @@ endif
 let g:loaded_nvim_go = 1
 
 
-let g:go#build#autobuild = get(g:, 'go#build#autobuild', 0)
+let g:go#build#autosave = get(g:, 'go#build#autosave', 0)
 
 let g:go#debug#pprof = get(g:, 'go#debug#pprof', 0)
 
@@ -41,8 +41,8 @@ function! s:RequireNvimGo(host) abort
 endfunction
 
 let s:specs = [
-\ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), g:go#build#autobuild]', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '{''FileInfo'': {''Cwd'': getcwd(), ''Path'': expand(''%:p''), ''Name'': expand(''%'')}, ''Env'': {''FmtAsync'': g:go#fmt#async, ''IferrAutosave'': g:go#iferr#autosave, ''MetaLinterAutosave'': g:go#lint#metalinter#autosave, ''MetaLinterTools'': g:go#lint#metalinter#autosave#tools, ''MetaLinterDeadline'': g:go#lint#metalinter#deadline}}', 'group': 'fmt', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 1, 'opts': {'eval': '{''FileInfo'': {''Cwd'': getcwd()}, ''Env'': {''BuildAutoSave'': g:go#build#autosave}}', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '{''FileInfo'': {''Cwd'': getcwd(), ''Path'': expand(''%:p'')}, ''Env'': {''FmtAsync'': g:go#fmt#async, ''IferrAutosave'': g:go#iferr#autosave, ''MetaLinterAutosave'': g:go#lint#metalinter#autosave, ''MetaLinterTools'': g:go#lint#metalinter#autosave#tools, ''MetaLinterDeadline'': g:go#lint#metalinter#deadline}}', 'group': 'fmt', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': 'g:go#debug#pprof', 'pattern': '*.go'}},
 \ {'type': 'command', 'name': 'GoByteOffset', 'sync': 1, 'opts': {'eval': 'expand(''%:p'')', 'range': '%'}},
 \ {'type': 'command', 'name': 'GoGuru', 'sync': 0, 'opts': {'complete': 'customlist,GuruCompletelist', 'eval': '[expand(''%:p:h''), expand(''%:p'')]', 'nargs': '+'}},
