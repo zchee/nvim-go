@@ -16,13 +16,13 @@
 		{
 			"importpath": "github.com/motemen/go-iferr",
 			"repository": "https://github.com/motemen/go-iferr",
-			"revision": "59cf9dad68aea947626c49467f3d55a68fdbffd3",
+			"revision": "a52028a70bbb348075c03a4c09c9597baa50253c",
 			"branch": "master"
 		},
 		{
 			"importpath": "github.com/rogpeppe/godef/go",
 			"repository": "https://github.com/rogpeppe/godef",
-			"revision": "f90a99664522cad305e072e594a262ae1fcdd256",
+			"revision": "d629cae4d0b474702f8535c656991b94c1cb38a1",
 			"branch": "master",
 			"path": "/go"
 		},
@@ -43,91 +43,91 @@
 		{
 			"importpath": "golang.org/x/tools/container/intsets",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/container/intsets"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/ast/astutil",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/go/ast/astutil"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/buildutil",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/go/buildutil"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/callgraph",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/go/callgraph"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/loader",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/go/loader"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/pointer",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/go/pointer"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/ssa",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/go/ssa"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/types",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "13c24a6d6a329878e5ee2cdb76d84423604191d5",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/go/types"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/types/typeutil",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/go/types/typeutil"
 		},
 		{
 			"importpath": "golang.org/x/tools/imports",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/imports"
 		},
 		{
 			"importpath": "golang.org/x/tools/refactor/importgraph",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/refactor/importgraph"
 		},
 		{
 			"importpath": "golang.org/x/tools/refactor/rename",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/refactor/rename"
 		},
 		{
 			"importpath": "golang.org/x/tools/refactor/satisfy",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "fcde77432eb91f1389e8b5be6a4d018536ceac02",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/refactor/satisfy"
 		}
