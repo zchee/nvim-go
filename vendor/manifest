@@ -4,7 +4,7 @@
 		{
 			"importpath": "github.com/garyburd/neovim-go",
 			"repository": "https://github.com/garyburd/neovim-go",
-			"revision": "224ddae5c320d99423193869bbcae8c74a7827c3",
+			"revision": "6d2309128163fe8e035fbc2cc8fa6ca5b8ae6a63",
 			"branch": "master"
 		},
 		{
@@ -36,7 +36,7 @@
 		{
 			"importpath": "golang.org/x/tools/cmd/guru/serial",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "d601baae9c8df74f2531dfdca1e13c2ba8fd5eec",
+			"revision": "4b9c8b56b805848dc5d50aca0cf02723d30482fc",
 			"branch": "master",
 			"path": "/cmd/guru/serial"
 		},
