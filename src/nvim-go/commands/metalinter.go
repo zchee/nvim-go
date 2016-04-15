@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
-	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim"
@@ -19,10 +18,6 @@ import (
 )
 
 var (
-	metalinterTools          = "go#lint#metalinter#tools"
-	vMetalinterTools         = make([]interface{}, 0)
-	metalinterAutosave       = "go#lint#metalinter#autosave"
-	vMetalinterAutosave      interface{}
 	metalinterAutosaveTools  = "go#lint#metalinter#autosave#tools"
 	vMetalinterAutosaveTools interface{}
 	metalinterDeadline       = "go#lint#metalinter#deadline"
@@ -32,7 +27,7 @@ var (
 func init() {
 	plugin.HandleCommand("Gometalinter",
 		&plugin.CommandOptions{
-			Eval: "[expand('%:p:h'), g:go#lint#metalinter#autosave]"},
+			Eval: "[expand('%:p:h'), g:go#lint#metalinter#tools, g:go#lint#metalinter#autosave]"},
 		cmdMetalinter)
 
 	log.Debugln("Gometalinter: Start")
@@ -40,6 +35,7 @@ func init() {
 
 type onMetalinterEval struct {
 	Dir      string `msgpack:",array"`
+	Tools    []string
 	Autosave int64
 }
 
@@ -65,8 +61,6 @@ type metalinterResult struct {
 func Metalinter(v *vim.Vim, eval onMetalinterEval) error {
 	defer gb.WithGoBuildForPath(eval.Dir)()
 
-	v.Var(metalinterTools, &vMetalinterTools)
-	v.Var(metalinterAutosave, &vMetalinterAutosave)
 	v.Var(metalinterAutosaveTools, &metalinterAutosaveTools)
 	v.Var(metalinterDeadline, &vMetalinterDeadline)
 
@@ -84,7 +78,7 @@ func Metalinter(v *vim.Vim, eval onMetalinterEval) error {
 	}
 
 	args := []string{eval.Dir, "--json", "--disable-all", "--deadline", vMetalinterDeadline.(string)}
-	for _, t := range strings.Split(vMetalinterTools[0].(string), " ") {
+	for _, t := range eval.Tools {
 		args = append(args, "--enable", t)
 	}
 
