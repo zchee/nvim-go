@@ -33,7 +33,7 @@ func init() {
 		log.SetLevel(log.DebugLevel)
 	}
 
-	plugin.HandleAutocmd("BufWinEnter", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "g:go#debug#pprof"}, pprofDebug)
+	plugin.HandleAutocmd("VimEnter", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "g:go#debug#pprof"}, pprofDebug)
 }
 
 func main() {
