@@ -5,11 +5,19 @@ let g:loaded_nvim_go = 1
 
 
 let g:go#build#autobuild = get(g:, 'go#build#autobuild', 0)
-let g:go#clang#nomodifiable = get(g:, 'go#clang#nomodifiable', 0)
+
 let g:go#debug#pprof = get(g:, 'go#debug#pprof', 0)
+
 let g:go#def#filer = get(g:, 'go#def#filer', 'Explore')
+
 let g:go#fmt#async = get(g:, 'go#fmt#async', 0)
+
 let g:go#guru#reflection = get(g:, 'go#guru#reflection', 0)
+
+let g:go#lint#metalinter#autosave = get(g:, 'go#lint#metalinter#autosave', 0)
+let g:go#lint#metalinter#autosave#tools = get(g:, 'go#lint#metalinter#tools', ['vet', 'golint'])
+let g:go#lint#metalinter#deadline = get(g:, 'go#lint#metalinter#deadline', '5s')
+let g:go#lint#metalinter#tools = get(g:, 'go#lint#metalinter#tools', ['vet golint errcheck'])
 
 
 let s:plugin_name = 'nvim-go'
@@ -32,8 +40,8 @@ endfunction
 
 let s:specs = [
 \ {'type': 'autocmd', 'name': 'BufWinEnter', 'sync': 0, 'opts': {'eval': 'g:go#debug#pprof', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), go#build#autobuild]', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p''), go#fmt#async, go#fmt#iferr]', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), g:go#build#autobuild]', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p''), g:go#fmt#async, g:go#fmt#iferr]', 'pattern': '*.go'}},
 \ {'type': 'command', 'name': 'GoByteOffset', 'sync': 1, 'opts': {'eval': 'expand(''%:p'')', 'range': '%'}},
 \ {'type': 'command', 'name': 'GoGoto', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')'}},
 \ {'type': 'command', 'name': 'GoGuru', 'sync': 0, 'opts': {'complete': 'customlist,GuruCompletelist', 'eval': '[expand(''%:p:h''), expand(''%:p'')]', 'nargs': '+'}},
@@ -50,6 +58,7 @@ let s:specs = [
 \ {'type': 'command', 'name': 'GoIferr', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
 \ {'type': 'command', 'name': 'Gobuild', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},
 \ {'type': 'command', 'name': 'Gofmt', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},
+\ {'type': 'command', 'name': 'Gometalinter', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), g:go#lint#metalinter#autosave]'}},
 \ {'type': 'command', 'name': 'Gorename', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p''), line2byte(line(''.''))+(col(''.'')-2)]', 'nargs': '?'}},
 \ {'type': 'function', 'name': 'GuruCompletelist', 'sync': 1, 'opts': {}},
 \ ]
