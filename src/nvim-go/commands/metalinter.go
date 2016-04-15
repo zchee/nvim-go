@@ -19,7 +19,7 @@ import (
 func init() {
 	plugin.HandleCommand("Gometalinter",
 		&plugin.CommandOptions{
-			Eval: "[expand('%:p:h'), g:go#lint#metalinter#tools, g:go#lint#metalinter#deadline]"},
+			Eval: "[getcwd(), g:go#lint#metalinter#tools, g:go#lint#metalinter#deadline]"},
 		cmdMetalinter)
 }
 
@@ -58,7 +58,7 @@ func Metalinter(v *vim.Vim, eval CmdMetalinterEval) error {
 		return err
 	}
 
-	args := []string{eval.Cwd, "--json", "--disable-all", "--deadline", eval.Deadline}
+	args := []string{eval.Cwd + "/...", "--json", "--disable-all", "--deadline", eval.Deadline}
 	for _, t := range eval.Tools {
 		args = append(args, "--enable", t)
 	}

@@ -60,7 +60,7 @@ let s:specs = [
 \ {'type': 'command', 'name': 'Gobuild', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},
 \ {'type': 'command', 'name': 'Godef', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')'}},
 \ {'type': 'command', 'name': 'Gofmt', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},
-\ {'type': 'command', 'name': 'Gometalinter', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), g:go#lint#metalinter#tools, g:go#lint#metalinter#deadline]'}},
+\ {'type': 'command', 'name': 'Gometalinter', 'sync': 0, 'opts': {'eval': '[getcwd(), g:go#lint#metalinter#tools, g:go#lint#metalinter#deadline]'}},
 \ {'type': 'command', 'name': 'Gorename', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p''), line2byte(line(''.''))+(col(''.'')-2)]', 'nargs': '?'}},
 \ {'type': 'function', 'name': 'GuruCompletelist', 'sync': 1, 'opts': {}},
 \ ]
