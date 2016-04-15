@@ -12,7 +12,6 @@ import (
 	"strings"
 	"syscall"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 
@@ -25,8 +24,6 @@ func init() {
 	plugin.HandleAutocmd("BufWritePost",
 		&plugin.AutocmdOptions{Pattern: "*.go", Eval: "[expand('%:p:h'), g:go#build#autobuild]"},
 		autocmdBuild)
-
-	log.Debugln("GoBuild Start")
 }
 
 func cmdBuild(v *vim.Vim, dir string) {

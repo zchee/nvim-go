@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os/exec"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 
@@ -22,8 +21,6 @@ func init() {
 		&plugin.CommandOptions{
 			Eval: "[expand('%:p:h'), g:go#lint#metalinter#tools, g:go#lint#metalinter#deadline]"},
 		cmdMetalinter)
-
-	log.Debugln("Gometalinter: Start")
 }
 
 type CmdMetalinterEval struct {

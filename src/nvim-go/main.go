@@ -7,11 +7,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 
@@ -21,8 +21,6 @@ import (
 )
 
 func init() {
-	// logrus instead of stdlib log
-	// neovim-go hijacked log format
 	if lf := os.Getenv("NEOVIM_GO_LOG_FILE"); lf != "" {
 		f, err := os.OpenFile(lf, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if err != nil {
@@ -30,8 +28,6 @@ func init() {
 		}
 
 		log.SetOutput(f)
-		log.SetFormatter(&RpluginFormatter{})
-		log.SetLevel(log.DebugLevel)
 	}
 
 	plugin.HandleAutocmd("VimEnter", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "g:go#debug#pprof"}, pprofDebug)

@@ -2,12 +2,6 @@
 	"version": 0,
 	"dependencies": [
 		{
-			"importpath": "github.com/Sirupsen/logrus",
-			"repository": "https://github.com/Sirupsen/logrus",
-			"revision": "4b6ea7319e214d98c938f12692336f7ca9348d6b",
-			"branch": "master"
-		},
-		{
 			"importpath": "github.com/garyburd/neovim-go",
 			"repository": "https://github.com/garyburd/neovim-go",
 			"revision": "224ddae5c320d99423193869bbcae8c74a7827c3",
