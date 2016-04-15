@@ -40,8 +40,7 @@ endfunction
 
 let s:specs = [
 \ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), g:go#build#autobuild]', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), g:go#lint#metalinter#autosave, go#lint#metalinter#autosave#tools, g:go#lint#metalinter#deadline]', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p''), g:go#fmt#async, g:go#fmt#iferr]', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '{''FileInfo'': {''Cwd'': getcwd(), ''Path'': expand(''%:p''), ''Name'': expand(''%'')}, ''Env'': {''FmtAsync'': g:go#fmt#async, ''IferrAutosave'': g:go#iferr#autosave, ''MetaLinterAutosave'': g:go#lint#metalinter#autosave, ''MetaLinterTools'': g:go#lint#metalinter#autosave#tools, ''MetaLinterDeadline'': g:go#lint#metalinter#deadline}}', 'group': 'fmt', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': 'g:go#debug#pprof', 'pattern': '*.go'}},
 \ {'type': 'command', 'name': 'GoByteOffset', 'sync': 1, 'opts': {'eval': 'expand(''%:p'')', 'range': '%'}},
 \ {'type': 'command', 'name': 'GoGoto', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')'}},

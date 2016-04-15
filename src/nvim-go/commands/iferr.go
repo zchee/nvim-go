@@ -24,12 +24,12 @@ func init() {
 	plugin.HandleCommand("GoIferr", &plugin.CommandOptions{Eval: "[expand('%:p:h'), expand('%:p')]"}, Iferr)
 }
 
-type onIferrEval struct {
+type CmdIferrEval struct {
 	Cwd  string `msgpack:",array"`
 	File string
 }
 
-func Iferr(v *vim.Vim, eval onIferrEval) error {
+func Iferr(v *vim.Vim, eval CmdIferrEval) error {
 	defer gb.WithGoBuildForPath(eval.Cwd)()
 
 	b, err := v.CurrentBuffer()
