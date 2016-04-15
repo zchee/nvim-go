@@ -19,7 +19,7 @@ let g:go#iferr#autosave = get(g:, 'go#iferr#autosave', 0)
 let g:go#lint#metalinter#autosave = get(g:, 'go#lint#metalinter#autosave', 0)
 let g:go#lint#metalinter#autosave#tools = get(g:, 'go#lint#metalinter#autosave#tools', ['vet', 'golint'])
 let g:go#lint#metalinter#deadline = get(g:, 'go#lint#metalinter#deadline', '5s')
-let g:go#lint#metalinter#tools = get(g:, 'go#lint#metalinter#tools', ['vet golint errcheck'])
+let g:go#lint#metalinter#tools = get(g:, 'go#lint#metalinter#tools', ['vet', 'golint', 'errcheck'])
 
 
 let s:plugin_name = 'nvim-go'
