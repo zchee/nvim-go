@@ -83,6 +83,7 @@ func WithGoBuildForPath(p string) func() {
 	goBuildDefaultMu.Lock()
 	original := build.Default.GOPATH
 	build.Default.GOPATH = GoPath(p)
+	os.Setenv("GOPATH", build.Default.GOPATH)
 	build.Default.UseAllFiles = false
 	return func() {
 		build.Default.GOPATH = original
