@@ -14,6 +14,8 @@ let g:go#fmt#async = get(g:, 'go#fmt#async', 0)
 
 let g:go#guru#reflection = get(g:, 'go#guru#reflection', 0)
 
+let g:go#iferr#autosave = get(g:, 'go#iferr#autosave', 0)
+
 let g:go#lint#metalinter#autosave = get(g:, 'go#lint#metalinter#autosave', 0)
 let g:go#lint#metalinter#autosave#tools = get(g:, 'go#lint#metalinter#autosave#tools', ['vet', 'golint'])
 let g:go#lint#metalinter#deadline = get(g:, 'go#lint#metalinter#deadline', '5s')
