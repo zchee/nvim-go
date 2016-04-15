@@ -38,7 +38,7 @@ var (
 )
 
 func init() {
-	plugin.HandleCommand("GoGoto", &plugin.CommandOptions{Eval: "expand('%:p')"}, cmdDef)
+	plugin.HandleCommand("Godef", &plugin.CommandOptions{Eval: "expand('%:p')"}, cmdDef)
 }
 
 func cmdDef(v *vim.Vim, file string) {
