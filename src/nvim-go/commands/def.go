@@ -125,12 +125,17 @@ func Def(v *vim.Vim, file string) error {
 				nvim.Echomsg(v, "Godef: %s", err)
 			}
 
-			v.Command("silent! ll! 1")
+			p.Command("silent! ll 1")
 			if vDefNomodifiable == int64(1) {
-				var result interface{}
-				v.Option("nomodifiable", result)
+				cb, err := v.CurrentBuffer()
+				if err != nil {
+					return nvim.Echoerr(v, err)
+				}
+				p.SetBufferOption(cb, "modifiable", false)
 			}
-			v.FeedKeys("zz", "normal", false)
+			p.FeedKeys("zz", "n", false)
+
+			return p.Wait()
 		} else {
 			nvim.Echomsg(v, "Godef: not found of obj")
 		}
