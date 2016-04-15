@@ -103,12 +103,12 @@ func CloseQuickfix(v *vim.Vim) error {
 	return v.Command("cclose")
 }
 
-func SplitPos(pos string, basedir string) (string, int, int) {
+func SplitPos(pos string) (string, int, int) {
 	file := strings.Split(pos, ":")
 	line, _ := strconv.ParseInt(file[1], 10, 64)
 	col, _ := strconv.ParseInt(file[2], 10, 64)
 
-	fname, err := filepath.Rel(basedir, file[0])
+	fname, err := filepath.Abs(file[0])
 	if err != nil {
 		return fname, int(line), int(col)
 	} else {

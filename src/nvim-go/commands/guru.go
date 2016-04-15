@@ -198,7 +198,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			return loclist, err
 		}
 		for _, v := range value.Callees {
-			fname, line, col = nvim.SplitPos(v.Pos, basedir)
+			fname, line, col = nvim.SplitPos(v.Pos)
 			text = value.Desc + ": " + v.Name
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
@@ -215,7 +215,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			return loclist, err
 		}
 		for _, v := range value {
-			fname, line, col = nvim.SplitPos(v.Pos, basedir)
+			fname, line, col = nvim.SplitPos(v.Pos)
 			text = v.Desc + ": " + v.Caller
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
@@ -232,7 +232,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			return loclist, err
 		}
 		for _, v := range value.Callers {
-			fname, line, col = nvim.SplitPos(v.Pos, basedir)
+			fname, line, col = nvim.SplitPos(v.Pos)
 			text = v.Desc + " " + value.Target
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
@@ -248,7 +248,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 		if err != nil {
 			return loclist, err
 		}
-		fname, line, col = nvim.SplitPos(value.ObjPos, basedir)
+		fname, line, col = nvim.SplitPos(value.ObjPos)
 		text = value.Desc
 		loclist = append(loclist, &nvim.ErrorlistData{
 			FileName: fname,
@@ -263,7 +263,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 		if err != nil {
 			return loclist, err
 		}
-		fname, line, col = nvim.SplitPos(value.Value.ObjPos, basedir)
+		fname, line, col = nvim.SplitPos(value.Value.ObjPos)
 		text = value.Desc + " " + value.Value.Type
 		loclist = append(loclist, &nvim.ErrorlistData{
 			FileName: fname,
@@ -278,7 +278,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 		if err != nil {
 			return loclist, err
 		}
-		fname, line, col = nvim.SplitPos(value.Pos, basedir)
+		fname, line, col = nvim.SplitPos(value.Pos)
 		text = value.Kind + " " + value.Type + " " + value.Ref
 		loclist = append(loclist, &nvim.ErrorlistData{
 			FileName: fname,
@@ -294,7 +294,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			return loclist, err
 		}
 		for _, v := range value.AssignableFrom {
-			fname, line, col := nvim.SplitPos(v.Pos, basedir)
+			fname, line, col := nvim.SplitPos(v.Pos)
 			text = v.Kind + " " + v.Name
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
@@ -310,7 +310,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 		if err != nil {
 			return loclist, err
 		}
-		fname, line, col := nvim.SplitPos(value.Pos, basedir)
+		fname, line, col := nvim.SplitPos(value.Pos)
 		loclist = append(loclist, &nvim.ErrorlistData{
 			FileName: fname,
 			LNum:     line,
@@ -318,7 +318,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			Text:     "Base: selected channel op (<-)",
 		})
 		for _, v := range value.Allocs {
-			fname, line, col := nvim.SplitPos(v, basedir)
+			fname, line, col := nvim.SplitPos(v)
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
 				LNum:     line,
@@ -327,7 +327,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			})
 		}
 		for _, v := range value.Sends {
-			fname, line, col := nvim.SplitPos(v, basedir)
+			fname, line, col := nvim.SplitPos(v)
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
 				LNum:     line,
@@ -336,7 +336,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			})
 		}
 		for _, v := range value.Receives {
-			fname, line, col := nvim.SplitPos(v, basedir)
+			fname, line, col := nvim.SplitPos(v)
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
 				LNum:     line,
@@ -345,7 +345,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			})
 		}
 		for _, v := range value.Closes {
-			fname, line, col := nvim.SplitPos(v, basedir)
+			fname, line, col := nvim.SplitPos(v)
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
 				LNum:     line,
@@ -361,7 +361,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			return loclist, err
 		}
 		for _, v := range value {
-			fname, line, col := nvim.SplitPos(v.NamePos, basedir)
+			fname, line, col := nvim.SplitPos(v.NamePos)
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
 				LNum:     line,
@@ -370,7 +370,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			})
 			if len(v.Labels) > -1 {
 				for _, vl := range v.Labels {
-					fname, line, col := nvim.SplitPos(vl.Pos, basedir)
+					fname, line, col := nvim.SplitPos(vl.Pos)
 					loclist = append(loclist, &nvim.ErrorlistData{
 						FileName: fname,
 						LNum:     line,
@@ -387,7 +387,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 	// 	if err != nil {
 	// 		return loclist, err
 	// 	}
-	// 	fname, line, col := nvim.SplitPos(value.ObjPos, basedir)
+	// 	fname, line, col := nvim.SplitPos(value.ObjPos)
 	// 	loclist = append(loclist, &nvim.ErrorlistData{
 	// 		FileName: fname,
 	// 		LNum:     line,
@@ -402,7 +402,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 	// 		Text: vPackage.Package,
 	// 	})
 	// 	for _, vp := range vPackage.Refs {
-	// 		fname, line, col := nvim.SplitPos(vp.Pos, basedir)
+	// 		fname, line, col := nvim.SplitPos(vp.Pos)
 	// 		loclist = append(loclist, &nvim.ErrorlistData{
 	// 			FileName: fname,
 	// 			LNum:     line,
@@ -417,7 +417,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 		if err != nil {
 			return loclist, err
 		}
-		fname, line, col := nvim.SplitPos(value.ErrPos, basedir)
+		fname, line, col := nvim.SplitPos(value.ErrPos)
 		loclist = append(loclist, &nvim.ErrorlistData{
 			FileName: fname,
 			LNum:     line,
@@ -425,7 +425,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			Text:     "Errror Position",
 		})
 		for _, vg := range value.Globals {
-			fname, line, col := nvim.SplitPos(vg, basedir)
+			fname, line, col := nvim.SplitPos(vg)
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
 				LNum:     line,
@@ -434,7 +434,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			})
 		}
 		for _, vc := range value.Constants {
-			fname, line, col := nvim.SplitPos(vc, basedir)
+			fname, line, col := nvim.SplitPos(vc)
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
 				LNum:     line,
@@ -443,7 +443,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) 
 			})
 		}
 		for _, vt := range value.Types {
-			fname, line, col := nvim.SplitPos(vt.Position, basedir)
+			fname, line, col := nvim.SplitPos(vt.Position)
 			loclist = append(loclist, &nvim.ErrorlistData{
 				FileName: fname,
 				LNum:     line,
