@@ -63,5 +63,5 @@ let s:specs = [
 \ {'type': 'function', 'name': 'GuruCompletelist', 'sync': 1, 'opts': {}},
 \ ]
 
-call remote#host#Register('Registered go/' . s:plugin_name, '', function('s:RequireNvimGo'))
-call remote#host#RegisterPlugin('Registered go/' . s:plugin_name, 'plugin', s:specs)
+call remote#host#Register(s:plugin_name, '*', function('s:RequireNvimGo'))
+call remote#host#RegisterPlugin(s:plugin_name, 'plugin', s:specs)
