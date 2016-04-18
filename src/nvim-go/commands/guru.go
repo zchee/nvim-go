@@ -153,7 +153,7 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	output := func(fset *token.FileSet, qr guru.QueryResult) {
 		outputMu.Lock()
 		defer outputMu.Unlock()
-		if d, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
+		if d, err = parseResult(mode, fset, qr.JSON(fset)); err != nil {
 			nvim.Echoerr(v, err)
 		}
 	}
@@ -171,7 +171,7 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	if err := guru.Run(mode, &query); err != nil {
 		return nvim.Echomsg(v, err)
 	}
-	v.Command("normal! :<ESC>")
+	v.Command("normal :<ESC>")
 
 	if err := nvim.SetLoclist(p, d); err != nil {
 		return nvim.Echomsg(v, "GoGuru: %v", err)
@@ -179,7 +179,7 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 	return nvim.OpenLoclist(p, w, d, useKeepCursor)
 }
 
-func parseResult(mode string, fset *token.FileSet, data []byte, basedir string) ([]*nvim.ErrorlistData, error) {
+func parseResult(mode string, fset *token.FileSet, data []byte) ([]*nvim.ErrorlistData, error) {
 	var (
 		loclist []*nvim.ErrorlistData
 		fname   string

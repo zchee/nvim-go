@@ -68,7 +68,6 @@ func OpenLoclist(p *vim.Pipeline, w vim.Window, loclist []*ErrorlistData, keep b
 			return err
 		}
 	} else {
-		p.Command("redraw!")
 		p.Command("lclose")
 		if err := p.Wait(); err != nil {
 			return err
