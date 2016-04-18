@@ -63,6 +63,7 @@ func OpenLoclist(p *vim.Pipeline, w vim.Window, loclist []*ErrorlistData, keep b
 		if keep {
 			p.SetCurrentWindow(w)
 		}
+
 		if err := p.Wait(); err != nil {
 			return err
 		}
@@ -122,7 +123,7 @@ func SplitPos(pos string) (string, int, int) {
 	}
 }
 
-func ParseError(v *vim.Vim, errors string) []*ErrorlistData {
+func ParseError(v *vim.Vim, errors string, basedir string) []*ErrorlistData {
 	var errlist []*ErrorlistData
 
 	el := strings.Split(errors, "\n")
@@ -133,7 +134,7 @@ func ParseError(v *vim.Vim, errors string) []*ErrorlistData {
 				continue
 			}
 			errlist = append(errlist, &ErrorlistData{
-				FileName: e[0],
+				FileName: filepath.Join(basedir, e[0]),
 				LNum:     int(line),
 				Text:     e[2],
 			})

@@ -38,11 +38,11 @@ var (
 )
 
 func init() {
-	plugin.HandleCommand("Godef", &plugin.CommandOptions{Eval: "expand('%:p')"}, cmdDef)
+	plugin.HandleFunction("GoGoto", &plugin.FunctionOptions{}, funcDef)
 }
 
-func cmdDef(v *vim.Vim, file string) {
-	go Def(v, file)
+func funcDef(v *vim.Vim, args []string) {
+	go Def(v, args[0])
 }
 
 func Def(v *vim.Vim, file string) error {

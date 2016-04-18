@@ -27,11 +27,6 @@ func cmdBuild(v *vim.Vim, dir string) {
 	go Build(v, dir)
 }
 
-type CmdBuildEval struct {
-	Dir  string `msgpack:",array"`
-	Flag int64
-}
-
 func Build(v *vim.Vim, dir string) error {
 	defer gb.WithGoBuildForPath(dir)()
 	var (
@@ -67,7 +62,7 @@ func Build(v *vim.Vim, dir string) error {
 
 	s, _ := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	if s.ExitStatus() > 0 {
-		loclist := nvim.ParseError(v, string(out))
+		loclist := nvim.ParseError(v, string(out), dir)
 		if err := nvim.SetLoclist(p, loclist); err != nil {
 			nvim.Echomsg(v, "GoBuild: %s", err)
 		}

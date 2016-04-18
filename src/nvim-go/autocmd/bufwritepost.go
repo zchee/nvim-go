@@ -12,7 +12,7 @@ func init() {
 }
 
 type bufwritepostFileInfo struct {
-	Cwd string `eval:"getcwd()"`
+	Cwd string `eval:"expand('%:p:h')"`
 }
 
 type bufwritepostEnv struct {
