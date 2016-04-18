@@ -67,8 +67,6 @@ func Build(v *vim.Vim, dir string) error {
 			nvim.Echomsg(v, "GoBuild: %s", err)
 		}
 		return nvim.OpenLoclist(p, w, loclist, true)
-	} else {
-		nvim.Echohl(v, "GoBuild: ", "Function", "SUCCESS")
 	}
 
 	return nil

@@ -166,12 +166,9 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 		Reflection: useReflection,
 	}
 
-	nvim.Echohl(v, "GoGuru: ", "Identifier", "analysing %s ...", mode)
-
 	if err := guru.Run(mode, &query); err != nil {
 		return nvim.Echomsg(v, err)
 	}
-	v.Command("normal :<ESC>")
 
 	if err := nvim.SetLoclist(p, d); err != nil {
 		return nvim.Echomsg(v, "GoGuru: %v", err)
