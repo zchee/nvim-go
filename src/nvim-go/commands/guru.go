@@ -392,20 +392,3 @@ func parseResult(mode string, fset *token.FileSet, data []byte) ([]*nvim.Errorli
 	}
 	return loclist, nil
 }
-
-func onComplete(v *vim.Vim) ([]string, error) {
-	return []string{
-		"callees",
-		"callers",
-		"callstack",
-		"definition",
-		"describe",
-		"freevars",
-		"implements",
-		"peers",
-		"pointsto",
-		"referrers",
-		"what",
-		"whicherrs",
-	}, nil
-}
