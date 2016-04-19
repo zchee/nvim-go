@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Command nvimgo is a Neovim remote plogin.
+// nvim-go is a msgpack remote plugin for Neovim
 package main
 
 import (
