@@ -59,7 +59,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		keepCursor = true
 	}
 
-	if vars.GuruJumpToError == int64(1) {
+	if vars.GuruJumpFirst == int64(1) {
 		jumpfirst = true
 	}
 
@@ -107,15 +107,20 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		return nvim.Echomsg(v, "GoGuru:", err)
 	}
 
+	// jumpfirst or definition mode
 	if jumpfirst || mode == "definition" {
 		p.Command("silent! ll 1")
 		p.FeedKeys("zz", "n", false)
-		return nil
-	} else {
+	}
+
+	// not definition mode
+	if mode != "definition" {
 		var w vim.Window
 		p.CurrentWindow(&w)
 		return nvim.OpenLoclist(p, w, loclist, keepCursor)
 	}
+
+	return nil
 }
 
 func parseResult(mode string, fset *token.FileSet, data []byte) ([]*nvim.ErrorlistData, error) {

@@ -13,7 +13,7 @@ let g:go#def#filer = get(g:, 'go#def#filer', 'Explore')
 let g:go#fmt#async = get(g:, 'go#fmt#async', 0)
 
 let g:go#guru#reflection = get(g:, 'go#guru#reflection', 0)
-let g:go#guru#jump_to_error = get(g:, 'go#guru#jump_to_error', 0)
+let g:go#guru#jump_first = get(g:, 'go#guru#jump_first', 0)
 
 let g:go#iferr#autosave = get(g:, 'go#iferr#autosave', 0)
 
@@ -45,7 +45,7 @@ let s:specs = [
 \ {'type': 'autocmd', 'name': 'BufEnter', 'sync': 1, 'opts': {'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '[getcwd(), expand(''%:p'')]', 'group': 'fmt', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': '{''Build'': {''Autosave'': g:go#build#autosave}, ''Fmt'': {''Async'': g:go#fmt#async}, ''Guru'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpToError'': g:go#guru#jump_to_error}, ''Iferr'': {''IferrAutosave'': g:go#iferr#autosave}, ''Metalinter'': {''Autosave'': g:go#lint#metalinter#autosave, ''AutosaveTools'': g:go#lint#metalinter#autosave#tools, ''Tools'': g:go#lint#metalinter#tools, ''Deadline'': g:go#lint#metalinter#deadline}, ''Debug'': {''Pprof'': g:go#debug#pprof}}', 'group': 'nvim-go', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': '{''Build'': {''Autosave'': g:go#build#autosave}, ''Fmt'': {''Async'': g:go#fmt#async}, ''Guru'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}, ''Iferr'': {''IferrAutosave'': g:go#iferr#autosave}, ''Metalinter'': {''Autosave'': g:go#lint#metalinter#autosave, ''AutosaveTools'': g:go#lint#metalinter#autosave#tools, ''Tools'': g:go#lint#metalinter#tools, ''Deadline'': g:go#lint#metalinter#deadline}, ''Debug'': {''Pprof'': g:go#debug#pprof}}', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'command', 'name': 'GoByteOffset', 'sync': 1, 'opts': {'eval': 'expand(''%:p'')', 'range': '%'}},
 \ {'type': 'command', 'name': 'GoIferr', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
 \ {'type': 'command', 'name': 'Gobuild', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},

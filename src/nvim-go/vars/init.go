@@ -23,9 +23,9 @@ type FmtVars struct {
 }
 
 type GuruVars struct {
-	Reflection  int64 `eval:"g:go#guru#reflection"`
-	KeepCursor  int64 `eval:"g:go#guru#keep_cursor"`
-	JumpToError int64 `eval:"g:go#guru#jump_to_error"`
+	Reflection int64 `eval:"g:go#guru#reflection"`
+	KeepCursor int64 `eval:"g:go#guru#keep_cursor"`
+	JumpFirst  int64 `eval:"g:go#guru#jump_first"`
 }
 
 type IferrVars struct {
@@ -53,7 +53,7 @@ var (
 	FmtAsync                int64
 	GuruReflection          int64
 	GuruKeepCursor          int64
-	GuruJumpToError         int64
+	GuruJumpFirst           int64
 	IferrAutosave           int64
 	MetalinterAutosave      int64
 	MetalinterAutosaveTools []string
@@ -72,7 +72,7 @@ func GetVars(v *vim.Vim, vars *Vars) {
 	// Guru
 	GuruReflection = vars.Guru.Reflection
 	GuruKeepCursor = vars.Guru.KeepCursor
-	GuruJumpToError = vars.Guru.JumpToError
+	GuruJumpFirst = vars.Guru.JumpFirst
 
 	// Iferr
 	IferrAutosave = vars.Iferr.IferrAutosave
