@@ -329,35 +329,20 @@ func parseResult(mode string, fset *token.FileSet, data []byte) ([]*nvim.Errorli
 			}
 		}
 
-	// case "referrers":
-	// 	var value = serial.ReferrersInitial{}
-	// 	err := json.Unmarshal(data, &value)
-	// 	if err != nil {
-	// 		return loclist, err
-	// 	}
-	// 	fname, line, col := nvim.SplitPos(value.ObjPos)
-	// 	loclist = append(loclist, &nvim.ErrorlistData{
-	// 		FileName: fname,
-	// 		LNum:     line,
-	// 		Col:      col,
-	// 		Text:     value.Desc,
-	// 	})
-	// 	var vPackage = serial.ReferrersPackage{}
-	// 	if err := json.Unmarshal(data, &vPackage); err != nil {
-	// 		return loclist, err
-	// 	}
-	// 	loclist = append(loclist, &nvim.ErrorlistData{
-	// 		Text: vPackage.Package,
-	// 	})
-	// 	for _, vp := range vPackage.Refs {
-	// 		fname, line, col := nvim.SplitPos(vp.Pos)
-	// 		loclist = append(loclist, &nvim.ErrorlistData{
-	// 			FileName: fname,
-	// 			LNum:     line,
-	// 			Col:      col,
-	// 			Text:     vp.Text,
-	// 		})
-	// 	}
+	case "referrers":
+		var packages = serial.ReferrersPackage{}
+		if err := json.Unmarshal(data, &packages); err != nil {
+			return loclist, err
+		}
+		for _, v := range packages.Refs {
+			fname, line, col := nvim.SplitPos(v.Pos)
+			loclist = append(loclist, &nvim.ErrorlistData{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     v.Text,
+			})
+		}
 
 	case "whicherrs":
 		var value = serial.WhichErrs{}
