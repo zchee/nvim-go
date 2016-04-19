@@ -116,9 +116,9 @@ func SplitPos(pos string) (string, int, int) {
 
 	fname, err := filepath.Abs(file[0])
 	if err != nil {
-		return fname, int(line), int(col)
-	} else {
 		return file[0], int(line), int(col)
+	} else {
+		return fname, int(line), int(col)
 	}
 }
 
