@@ -1,14 +1,10 @@
 package commands
 
 import (
-	"bytes"
 	"fmt"
 	"go/build"
-	"io"
 	"nvim-go/gb"
 	"nvim-go/nvim"
-	"os"
-	"strings"
 
 	"golang.org/x/tools/refactor/rename"
 
@@ -77,43 +73,12 @@ func Rename(v *vim.Vim, args []string, eval *onRenameEval) error {
 		}
 	}
 
-	// out, err := ParseStdout(fmt.Sprintln(eval.Offset))
-	// if err != nil {
-	// 	return nvim.Echomsg(v, "%s", err)
-	// }
-
 	if err := rename.Main(&build.Default, offset, "", fmt.Sprint(to)); err != nil {
 		if err != rename.ConflictError {
 			nvim.Echomsg(v, "%s", err)
 		}
 	}
 	p.Command("edit!")
-	// nvim.Echohl(v, nvim.PackageName, "Function", out)
 
 	return p.Wait()
-}
-
-func ParseStdout(trim string) (string, error) {
-	stdout := os.Stdout
-	r, w, err := os.Pipe()
-	if err != nil {
-		return "", err
-	}
-	os.Stdout = w
-	outC := make(chan string)
-
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, r)
-	r.Close()
-	if err != nil {
-		return "", err
-	}
-	outC <- buf.String()
-
-	w.Close()
-	os.Stdout = stdout
-	out := <-outC
-
-	ntext := strings.SplitN(out, "#", 2)
-	return strings.Trim(ntext[1], trim), nil
 }
