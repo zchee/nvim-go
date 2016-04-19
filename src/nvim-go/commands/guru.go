@@ -29,90 +29,30 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("GoGuru",
-		&plugin.CommandOptions{
-			NArgs: "+", Complete: "customlist,GuruCompletelist", Eval: "*"}, cmdGuru)
-	plugin.HandleFunction("GuruCompletelist", &plugin.FunctionOptions{}, onComplete)
-
-	// Show possible callees of the function call at the current point.
-	plugin.HandleCommand("GoGuruCallees", &plugin.CommandOptions{Eval: "*"}, cmdGuruCallees)
-	// Show the set of callers of the function containing the current point.
-	plugin.HandleCommand("GoGuruCallers", &plugin.CommandOptions{Eval: "*"}, cmdGuruCallers)
-	// Show the callgraph of the current program.
-	plugin.HandleCommand("GoGuruCallstack", &plugin.CommandOptions{Eval: "*"}, cmdGuruCallstack)
-	plugin.HandleCommand("GoGuruDefinition", &plugin.CommandOptions{Eval: "*"}, cmdGuruDefinition)
-	// Describe the expression at the current point.
-	plugin.HandleCommand("GoGuruDescribe", &plugin.CommandOptions{Eval: "*"}, cmdGuruDescribe)
-	plugin.HandleCommand("GoGuruFreevars", &plugin.CommandOptions{Eval: "*"}, cmdGuruFreevars)
-	/// Describe the 'implements' relation for types in the package containing the current point.
-	plugin.HandleCommand("GoGuruImplements", &plugin.CommandOptions{Eval: "*"}, cmdGuruImplements)
-	// Enumerate the set of possible corresponding sends/receives for this channel receive/send operation.
-	plugin.HandleCommand("GoGuruChannelPeers", &plugin.CommandOptions{Eval: "*"}, cmdGuruChannelPeers)
-	plugin.HandleCommand("GoGuruPointsto", &plugin.CommandOptions{Eval: "*"}, cmdGuruPointsto)
-	plugin.HandleCommand("GoGuruWhicherrs", &plugin.CommandOptions{Eval: "*"}, cmdGuruWhicherrs)
+	plugin.HandleFunction("GoGuru", &plugin.FunctionOptions{Eval: "*"}, funcGuru)
 }
 
-type cmdGuruEval struct {
-	FileInfo cmdGuruFileInfo
-	Env      cmdGuruEnv
+type funcGuruEval struct {
+	FileInfo funcGuruFileInfo
+	Env      funcGuruEnv
 }
 
-type cmdGuruFileInfo struct {
+type funcGuruFileInfo struct {
 	Cwd  string `eval:"expand('%:p:h')"`
 	File string `eval:"expand('%:p')"`
 }
 
-type cmdGuruEnv struct {
+type funcGuruEnv struct {
 	Reflection int64 `eval:"g:go#guru#reflection"`
 	KeepCursor int64 `eval:"g:go#guru#keep_cursor"`
 	JumpFirst  int64 `eval:"g:go#guru#jump_first"`
 }
 
-func cmdGuru(v *vim.Vim, args []string, eval *cmdGuruEval) {
+func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
 	go Guru(v, args, eval)
 }
 
-func cmdGuruCallees(v *vim.Vim, eval *cmdGuruEval) {
-	go Guru(v, []string{"callees"}, eval)
-}
-
-func cmdGuruCallers(v *vim.Vim, eval *cmdGuruEval) {
-	go Guru(v, []string{"callers"}, eval)
-}
-
-func cmdGuruCallstack(v *vim.Vim, eval *cmdGuruEval) {
-	go Guru(v, []string{"callstack"}, eval)
-}
-
-func cmdGuruDefinition(v *vim.Vim, eval *cmdGuruEval) {
-	go Guru(v, []string{"definition"}, eval)
-}
-
-func cmdGuruDescribe(v *vim.Vim, eval *cmdGuruEval) {
-	go Guru(v, []string{"describe"}, eval)
-}
-
-func cmdGuruFreevars(v *vim.Vim, eval *cmdGuruEval) {
-	go Guru(v, []string{"freevars"}, eval)
-}
-
-func cmdGuruImplements(v *vim.Vim, eval *cmdGuruEval) {
-	go Guru(v, []string{"implements"}, eval)
-}
-
-func cmdGuruChannelPeers(v *vim.Vim, eval *cmdGuruEval) {
-	go Guru(v, []string{"peers"}, eval)
-}
-
-func cmdGuruPointsto(v *vim.Vim, eval *cmdGuruEval) {
-	go Guru(v, []string{"pointsto"}, eval)
-}
-
-func cmdGuruWhicherrs(v *vim.Vim, eval *cmdGuruEval) {
-	go Guru(v, []string{"whicherrs"}, eval)
-}
-
-func Guru(v *vim.Vim, args []string, eval *cmdGuruEval) error {
+func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	defer nvim.Profile(time.Now(), "Guru")
 
 	defer gb.WithGoBuildForPath(eval.FileInfo.Cwd)()
