@@ -6,7 +6,6 @@ package commands
 
 import (
 	"go/build"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -17,6 +16,7 @@ import (
 
 	"nvim-go/gb"
 	"nvim-go/nvim"
+	"nvim-go/pkgs"
 )
 
 func init() {
@@ -38,25 +38,21 @@ func Build(v *vim.Vim, dir string) error {
 	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)
 	if err := p.Wait(); err != nil {
-		return err
+		return nvim.Echoerr(v, err)
 	}
-
-	tmpdir, err := ioutil.TempDir("", "nvim-go")
-	if err != nil {
-		nvim.Echomsg(v, "%v", err)
-	}
-	defer os.RemoveAll(tmpdir)
 
 	var compile_cmd string
-	currentGopath := strings.Split(build.Default.GOPATH, ":")[0]
-	if currentGopath == os.Getenv("GOPATH") {
+	currentGoPath := strings.Split(build.Default.GOPATH, ":")[0]
+	if currentGoPath == os.Getenv("GOPATH") {
 		compile_cmd = "go"
 	} else {
 		compile_cmd = "gb"
 	}
 
-	cmd := exec.Command(compile_cmd, "build", ".")
-	cmd.Dir = dir
+	rootDir := pkgs.FindvcsDir(dir)
+
+	cmd := exec.Command(compile_cmd, "build")
+	cmd.Dir = rootDir
 	out, _ := cmd.CombinedOutput()
 	cmd.Run()
 
@@ -64,10 +60,10 @@ func Build(v *vim.Vim, dir string) error {
 	if s.ExitStatus() > 0 {
 		loclist := nvim.ParseError(v, string(out), dir)
 		if err := nvim.SetLoclist(p, loclist); err != nil {
-			nvim.Echomsg(v, "GoBuild: %s", err)
+			return nvim.Echoerr(v, err)
 		}
 		return nvim.OpenLoclist(p, w, loclist, true)
 	}
 
-	return nil
+	return nvim.Echohl(v, "GoBuild: ", "Function", "SUCCESS")
 }
