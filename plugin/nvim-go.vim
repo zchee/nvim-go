@@ -13,6 +13,7 @@ let g:go#def#filer = get(g:, 'go#def#filer', 'Explore')
 let g:go#fmt#async = get(g:, 'go#fmt#async', 0)
 
 let g:go#guru#reflection = get(g:, 'go#guru#reflection', 0)
+let g:go#guru#jump_first = get(g:, 'go#guru#jump_first', 0)
 
 let g:go#iferr#autosave = get(g:, 'go#iferr#autosave', 0)
 
@@ -43,19 +44,18 @@ endfunction
 let s:specs = [
 \ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 1, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h'')}, ''Env'': {''BuildAutoSave'': g:go#build#autosave}}', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '{''FileInfo'': {''Cwd'': getcwd(), ''Path'': expand(''%:p'')}, ''Env'': {''FmtAsync'': g:go#fmt#async, ''IferrAutosave'': g:go#iferr#autosave, ''MetaLinterAutosave'': g:go#lint#metalinter#autosave, ''MetaLinterTools'': g:go#lint#metalinter#autosave#tools, ''MetaLinterDeadline'': g:go#lint#metalinter#deadline}}', 'group': 'fmt', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': 'g:go#debug#pprof', 'pattern': '*.go'}},
 \ {'type': 'command', 'name': 'GoByteOffset', 'sync': 1, 'opts': {'eval': 'expand(''%:p'')', 'range': '%'}},
-\ {'type': 'command', 'name': 'GoGuru', 'sync': 0, 'opts': {'complete': 'customlist,GuruCompletelist', 'eval': '[expand(''%:p:h''), expand(''%:p'')]', 'nargs': '+'}},
-\ {'type': 'command', 'name': 'GoGuruCallees', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
-\ {'type': 'command', 'name': 'GoGuruCallers', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
-\ {'type': 'command', 'name': 'GoGuruCallstack', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
-\ {'type': 'command', 'name': 'GoGuruChannelPeers', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
-\ {'type': 'command', 'name': 'GoGuruDefinition', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
-\ {'type': 'command', 'name': 'GoGuruDescribe', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
-\ {'type': 'command', 'name': 'GoGuruFreevars', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
-\ {'type': 'command', 'name': 'GoGuruImplements', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
-\ {'type': 'command', 'name': 'GoGuruPointsto', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
-\ {'type': 'command', 'name': 'GoGuruWhicherrs', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
+\ {'type': 'command', 'name': 'GoGuru', 'sync': 0, 'opts': {'complete': 'customlist,GuruCompletelist', 'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}', 'nargs': '+'}},
+\ {'type': 'command', 'name': 'GoGuruCallees', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
+\ {'type': 'command', 'name': 'GoGuruCallers', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
+\ {'type': 'command', 'name': 'GoGuruCallstack', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
+\ {'type': 'command', 'name': 'GoGuruChannelPeers', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
+\ {'type': 'command', 'name': 'GoGuruDefinition', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
+\ {'type': 'command', 'name': 'GoGuruDescribe', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
+\ {'type': 'command', 'name': 'GoGuruFreevars', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
+\ {'type': 'command', 'name': 'GoGuruImplements', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
+\ {'type': 'command', 'name': 'GoGuruPointsto', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
+\ {'type': 'command', 'name': 'GoGuruWhicherrs', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
 \ {'type': 'command', 'name': 'GoIferr', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
 \ {'type': 'command', 'name': 'Gobuild', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},
 \ {'type': 'command', 'name': 'Gofmt', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},

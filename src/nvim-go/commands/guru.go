@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -28,117 +29,119 @@ import (
 )
 
 func init() {
-	evalArg := "[expand('%:p:h'), expand('%:p')]"
-
 	plugin.HandleCommand("GoGuru",
 		&plugin.CommandOptions{
-			NArgs: "+", Complete: "customlist,GuruCompletelist", Eval: evalArg}, cmdGuru)
+			NArgs: "+", Complete: "customlist,GuruCompletelist", Eval: "*"}, cmdGuru)
 	plugin.HandleFunction("GuruCompletelist", &plugin.FunctionOptions{}, onComplete)
 
 	// Show possible callees of the function call at the current point.
-	plugin.HandleCommand("GoGuruCallees", &plugin.CommandOptions{Eval: evalArg}, cmdGuruCallees)
+	plugin.HandleCommand("GoGuruCallees", &plugin.CommandOptions{Eval: "*"}, cmdGuruCallees)
 	// Show the set of callers of the function containing the current point.
-	plugin.HandleCommand("GoGuruCallers", &plugin.CommandOptions{Eval: evalArg}, cmdGuruCallers)
+	plugin.HandleCommand("GoGuruCallers", &plugin.CommandOptions{Eval: "*"}, cmdGuruCallers)
 	// Show the callgraph of the current program.
-	plugin.HandleCommand("GoGuruCallstack", &plugin.CommandOptions{Eval: evalArg}, cmdGuruCallstack)
-	plugin.HandleCommand("GoGuruDefinition", &plugin.CommandOptions{Eval: evalArg}, cmdGuruDefinition)
+	plugin.HandleCommand("GoGuruCallstack", &plugin.CommandOptions{Eval: "*"}, cmdGuruCallstack)
+	plugin.HandleCommand("GoGuruDefinition", &plugin.CommandOptions{Eval: "*"}, cmdGuruDefinition)
 	// Describe the expression at the current point.
-	plugin.HandleCommand("GoGuruDescribe", &plugin.CommandOptions{Eval: evalArg}, cmdGuruDescribe)
-	plugin.HandleCommand("GoGuruFreevars", &plugin.CommandOptions{Eval: evalArg}, cmdGuruFreevars)
-	/// Describe the 'implements' relation for types in the
-	// package containing the current point.
-	plugin.HandleCommand("GoGuruImplements", &plugin.CommandOptions{Eval: evalArg}, cmdGuruImplements)
-	// Enumerate the set of possible corresponding sends/receives for
-	// this channel receive/send operation.
-	plugin.HandleCommand("GoGuruChannelPeers", &plugin.CommandOptions{Eval: evalArg}, cmdGuruChannelPeers)
-	plugin.HandleCommand("GoGuruPointsto", &plugin.CommandOptions{Eval: evalArg}, cmdGuruPointsto)
-	plugin.HandleCommand("GoGuruWhicherrs", &plugin.CommandOptions{Eval: evalArg}, cmdGuruWhicherrs)
+	plugin.HandleCommand("GoGuruDescribe", &plugin.CommandOptions{Eval: "*"}, cmdGuruDescribe)
+	plugin.HandleCommand("GoGuruFreevars", &plugin.CommandOptions{Eval: "*"}, cmdGuruFreevars)
+	/// Describe the 'implements' relation for types in the package containing the current point.
+	plugin.HandleCommand("GoGuruImplements", &plugin.CommandOptions{Eval: "*"}, cmdGuruImplements)
+	// Enumerate the set of possible corresponding sends/receives for this channel receive/send operation.
+	plugin.HandleCommand("GoGuruChannelPeers", &plugin.CommandOptions{Eval: "*"}, cmdGuruChannelPeers)
+	plugin.HandleCommand("GoGuruPointsto", &plugin.CommandOptions{Eval: "*"}, cmdGuruPointsto)
+	plugin.HandleCommand("GoGuruWhicherrs", &plugin.CommandOptions{Eval: "*"}, cmdGuruWhicherrs)
 }
 
-var (
-	guruReflection  = "go#guru#reflection"
-	vGuruReflection interface{}
-	guruKeepCursor  = "go#guru#keep_cursor"
-	vGuruKeepCursor interface{}
-	guruDebug       = "go#debug"
-	vGuruDebug      interface{}
-)
-
-type onGuruEval struct {
-	Cwd  string `msgpack:",array"`
-	File string
+type cmdGuruEval struct {
+	FileInfo cmdGuruFileInfo
+	Env      cmdGuruEnv
 }
 
-func cmdGuru(v *vim.Vim, args []string, eval *onGuruEval) {
+type cmdGuruFileInfo struct {
+	Cwd  string `eval:"expand('%:p:h')"`
+	File string `eval:"expand('%:p')"`
+}
+
+type cmdGuruEnv struct {
+	Reflection int64 `eval:"g:go#guru#reflection"`
+	KeepCursor int64 `eval:"g:go#guru#keep_cursor"`
+	JumpFirst  int64 `eval:"g:go#guru#jump_first"`
+}
+
+func cmdGuru(v *vim.Vim, args []string, eval *cmdGuruEval) {
 	go Guru(v, args, eval)
 }
 
-func cmdGuruCallees(v *vim.Vim, eval *onGuruEval) {
+func cmdGuruCallees(v *vim.Vim, eval *cmdGuruEval) {
 	go Guru(v, []string{"callees"}, eval)
 }
 
-func cmdGuruCallers(v *vim.Vim, eval *onGuruEval) {
+func cmdGuruCallers(v *vim.Vim, eval *cmdGuruEval) {
 	go Guru(v, []string{"callers"}, eval)
 }
 
-func cmdGuruCallstack(v *vim.Vim, eval *onGuruEval) {
+func cmdGuruCallstack(v *vim.Vim, eval *cmdGuruEval) {
 	go Guru(v, []string{"callstack"}, eval)
 }
 
-func cmdGuruDefinition(v *vim.Vim, eval *onGuruEval) {
+func cmdGuruDefinition(v *vim.Vim, eval *cmdGuruEval) {
 	go Guru(v, []string{"definition"}, eval)
 }
 
-func cmdGuruDescribe(v *vim.Vim, eval *onGuruEval) {
+func cmdGuruDescribe(v *vim.Vim, eval *cmdGuruEval) {
 	go Guru(v, []string{"describe"}, eval)
 }
 
-func cmdGuruFreevars(v *vim.Vim, eval *onGuruEval) {
+func cmdGuruFreevars(v *vim.Vim, eval *cmdGuruEval) {
 	go Guru(v, []string{"freevars"}, eval)
 }
 
-func cmdGuruImplements(v *vim.Vim, eval *onGuruEval) {
+func cmdGuruImplements(v *vim.Vim, eval *cmdGuruEval) {
 	go Guru(v, []string{"implements"}, eval)
 }
 
-func cmdGuruChannelPeers(v *vim.Vim, eval *onGuruEval) {
+func cmdGuruChannelPeers(v *vim.Vim, eval *cmdGuruEval) {
 	go Guru(v, []string{"peers"}, eval)
 }
 
-func cmdGuruPointsto(v *vim.Vim, eval *onGuruEval) {
+func cmdGuruPointsto(v *vim.Vim, eval *cmdGuruEval) {
 	go Guru(v, []string{"pointsto"}, eval)
 }
 
-func cmdGuruWhicherrs(v *vim.Vim, eval *onGuruEval) {
+func cmdGuruWhicherrs(v *vim.Vim, eval *cmdGuruEval) {
 	go Guru(v, []string{"whicherrs"}, eval)
 }
 
-func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
-	defer gb.WithGoBuildForPath(eval.Cwd)()
+func Guru(v *vim.Vim, args []string, eval *cmdGuruEval) error {
+	defer nvim.Profile(time.Now(), "Guru")
 
-	useReflection := false
-	v.Var(guruReflection, &vGuruReflection)
-	if vGuruReflection.(int64) == int64(1) {
-		useReflection = true
-	}
-	useKeepCursor := false
-	v.Var(guruKeepCursor, &vGuruKeepCursor)
-	if vGuruKeepCursor.(int64) == int64(1) {
-		useKeepCursor = true
+	defer gb.WithGoBuildForPath(eval.FileInfo.Cwd)()
+
+	reflection := false
+	keepCursor := false
+	jumpfirst := false
+
+	if eval.Env.Reflection == int64(1) {
+		reflection = true
 	}
 
-	var (
-		b vim.Buffer
-		w vim.Window
-	)
+	if eval.Env.KeepCursor == int64(1) {
+		keepCursor = true
+	}
+
+	if eval.Env.JumpFirst == int64(1) {
+		jumpfirst = true
+	}
+
+	var b vim.Buffer
+
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
-	p.CurrentWindow(&w)
 	if err := p.Wait(); err != nil {
 		return err
 	}
 
-	dir := strings.Split(eval.Cwd, "src/")
+	dir := strings.Split(eval.FileInfo.Cwd, "src/")
 	scopeFlag := dir[len(dir)-1]
 
 	mode := args[0]
@@ -160,20 +163,29 @@ func Guru(v *vim.Vim, args []string, eval *onGuruEval) error {
 
 	query := guru.Query{
 		Output:     output,
-		Pos:        eval.File + ":#" + strconv.FormatInt(int64(pos), 10),
+		Pos:        eval.FileInfo.File + ":#" + strconv.FormatInt(int64(pos), 10),
 		Build:      &build.Default,
 		Scope:      []string{scopeFlag},
-		Reflection: useReflection,
+		Reflection: reflection,
 	}
 
 	if err := guru.Run(mode, &query); err != nil {
-		return nvim.Echomsg(v, err)
+		return nvim.Echomsg(v, "GoGuru:", err)
 	}
 
 	if err := nvim.SetLoclist(p, d); err != nil {
-		return nvim.Echomsg(v, "GoGuru: %v", err)
+		return nvim.Echomsg(v, "GoGuru:", err)
 	}
-	return nvim.OpenLoclist(p, w, d, useKeepCursor)
+
+	if jumpfirst || mode == "definition" {
+		p.Command("silent! ll 1")
+		p.FeedKeys("zz", "n", false)
+		return nil
+	} else {
+		var w vim.Window
+		p.CurrentWindow(&w)
+		return nvim.OpenLoclist(p, w, d, keepCursor)
+	}
 }
 
 func parseResult(mode string, fset *token.FileSet, data []byte) ([]*nvim.ErrorlistData, error) {
