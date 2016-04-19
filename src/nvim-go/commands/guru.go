@@ -92,11 +92,11 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	}
 
 	var outputMu sync.Mutex
-	var d []*nvim.ErrorlistData
+	var loclist []*nvim.ErrorlistData
 	output := func(fset *token.FileSet, qr guru.QueryResult) {
 		outputMu.Lock()
 		defer outputMu.Unlock()
-		if d, err = parseResult(mode, fset, qr.JSON(fset)); err != nil {
+		if loclist, err = parseResult(mode, fset, qr.JSON(fset)); err != nil {
 			nvim.Echoerr(v, err)
 		}
 	}
@@ -113,7 +113,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		return nvim.Echomsg(v, "GoGuru:", err)
 	}
 
-	if err := nvim.SetLoclist(p, d); err != nil {
+	if err := nvim.SetLoclist(p, loclist); err != nil {
 		return nvim.Echomsg(v, "GoGuru:", err)
 	}
 
@@ -124,7 +124,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	} else {
 		var w vim.Window
 		p.CurrentWindow(&w)
-		return nvim.OpenLoclist(p, w, d, keepCursor)
+		return nvim.OpenLoclist(p, w, loclist, keepCursor)
 	}
 }
 
