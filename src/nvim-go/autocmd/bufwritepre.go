@@ -5,51 +5,41 @@ import (
 	"github.com/garyburd/neovim-go/vim/plugin"
 
 	"nvim-go/commands"
+	"nvim-go/vars"
 )
 
 func init() {
 	plugin.HandleAutocmd("BufWritePre",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "fmt", Eval: "*"}, autocmdBufWritePre)
+		&plugin.AutocmdOptions{Pattern: "*.go", Group: "fmt", Eval: "[getcwd(), expand('%:p')]"}, autocmdBufWritePre)
 }
 
-type bufwritepreFileInfo struct {
-	Cwd  string `eval:"getcwd()"`
-	Path string `eval:"expand('%:p')"`
+type bufwritepreEval struct {
+	Cwd  string `msgpack:",array"`
+	File string
 }
 
-type bufwritepreEnv struct {
-	FmtAsync           int64    `eval:"g:go#fmt#async"`
-	IferrAutosave      int64    `eval:"g:go#iferr#autosave"`
-	MetaLinterAutosave int64    `eval:"g:go#lint#metalinter#autosave"`
-	MetaLinterTools    []string `eval:"g:go#lint#metalinter#autosave#tools"`
-	MetaLinterDeadline string   `eval:"g:go#lint#metalinter#deadline"`
-}
-
-func autocmdBufWritePre(v *vim.Vim, eval *struct {
-	FileInfo bufwritepreFileInfo
-	Env      bufwritepreEnv
-}) error {
-	if eval.Env.IferrAutosave == int64(1) {
+func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
+	if vars.IferrAutosave == int64(1) {
 		var env = commands.CmdIferrEval{
-			Cwd:  eval.FileInfo.Cwd,
-			File: eval.FileInfo.Path,
+			Cwd:  eval.Cwd,
+			File: eval.File,
 		}
 		go commands.Iferr(v, env)
 	}
 
-	if eval.Env.MetaLinterAutosave == int64(1) {
+	if vars.MetalinterAutosave == int64(1) {
 		var env = commands.CmdMetalinterEval{
-			Cwd:      eval.FileInfo.Cwd,
-			Tools:    eval.Env.MetaLinterTools,
-			Deadline: eval.Env.MetaLinterDeadline,
+			Cwd:      eval.Cwd,
+			Tools:    vars.MetalinterTools,
+			Deadline: vars.MetalinterDeadline,
 		}
 		go commands.Metalinter(v, env)
 	}
 
-	if eval.Env.FmtAsync == int64(1) {
-		go commands.Fmt(v, eval.FileInfo.Cwd)
+	if vars.FmtAsync == int64(1) {
+		go commands.Fmt(v, eval.Cwd)
 	} else {
-		return commands.Fmt(v, eval.FileInfo.Cwd)
+		return commands.Fmt(v, eval.Cwd)
 	}
 	return nil
 }

@@ -5,26 +5,17 @@ import (
 	"github.com/garyburd/neovim-go/vim/plugin"
 
 	"nvim-go/commands"
+	"nvim-go/vars"
 )
 
 func init() {
-	plugin.HandleAutocmd("BufWritePost", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "*"}, autocmdBufWritePost)
+	plugin.HandleAutocmd("BufWritePost", &plugin.AutocmdOptions{Pattern: "*.go", Eval: "expand('%:p:h')"}, autocmdBufWritePost)
 }
 
-type bufwritepostFileInfo struct {
-	Cwd string `eval:"expand('%:p:h')"`
-}
-
-type bufwritepostEnv struct {
-	BuildAutoSave int64 `eval:"g:go#build#autosave"`
-}
-
-func autocmdBufWritePost(v *vim.Vim, eval *struct {
-	FileInfo bufwritepostFileInfo
-	Env      bufwritepostEnv
-}) error {
-	if eval.Env.BuildAutoSave != int64(0) {
-		go commands.Build(v, eval.FileInfo.Cwd)
+func autocmdBufWritePost(v *vim.Vim, cwd string) error {
+	if vars.BuildAutosave != int64(0) {
+		go commands.Build(v, cwd)
 	}
+
 	return nil
 }

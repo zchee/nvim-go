@@ -26,26 +26,16 @@ import (
 	"nvim-go/gb"
 	"nvim-go/guru"
 	"nvim-go/nvim"
+	"nvim-go/vars"
 )
 
 func init() {
-	plugin.HandleFunction("GoGuru", &plugin.FunctionOptions{Eval: "*"}, funcGuru)
+	plugin.HandleFunction("GoGuru", &plugin.FunctionOptions{Eval: "[expand('%:p:h'), expand('%:p')]"}, funcGuru)
 }
 
 type funcGuruEval struct {
-	FileInfo funcGuruFileInfo
-	Env      funcGuruEnv
-}
-
-type funcGuruFileInfo struct {
-	Cwd  string `eval:"expand('%:p:h')"`
-	File string `eval:"expand('%:p')"`
-}
-
-type funcGuruEnv struct {
-	Reflection int64 `eval:"g:go#guru#reflection"`
-	KeepCursor int64 `eval:"g:go#guru#keep_cursor"`
-	JumpFirst  int64 `eval:"g:go#guru#jump_first"`
+	Cwd  string `msgpack:",array"`
+	File string
 }
 
 func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
@@ -55,21 +45,21 @@ func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
 func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	defer nvim.Profile(time.Now(), "Guru")
 
-	defer gb.WithGoBuildForPath(eval.FileInfo.Cwd)()
+	defer gb.WithGoBuildForPath(eval.Cwd)()
 
 	reflection := false
 	keepCursor := false
 	jumpfirst := false
 
-	if eval.Env.Reflection == int64(1) {
+	if vars.GuruReflection == int64(1) {
 		reflection = true
 	}
 
-	if eval.Env.KeepCursor == int64(1) {
+	if vars.GuruKeepCursor == int64(1) {
 		keepCursor = true
 	}
 
-	if eval.Env.JumpFirst == int64(1) {
+	if vars.GuruJumpToError == int64(1) {
 		jumpfirst = true
 	}
 
@@ -81,7 +71,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		return err
 	}
 
-	dir := strings.Split(eval.FileInfo.Cwd, "src/")
+	dir := strings.Split(eval.Cwd, "src/")
 	scopeFlag := dir[len(dir)-1]
 
 	mode := args[0]
@@ -103,7 +93,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	query := guru.Query{
 		Output:     output,
-		Pos:        eval.FileInfo.File + ":#" + strconv.FormatInt(int64(pos), 10),
+		Pos:        eval.File + ":#" + strconv.FormatInt(int64(pos), 10),
 		Build:      &build.Default,
 		Scope:      []string{scopeFlag},
 		Reflection: reflection,

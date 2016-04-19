@@ -13,7 +13,7 @@ let g:go#def#filer = get(g:, 'go#def#filer', 'Explore')
 let g:go#fmt#async = get(g:, 'go#fmt#async', 0)
 
 let g:go#guru#reflection = get(g:, 'go#guru#reflection', 0)
-let g:go#guru#jump_first = get(g:, 'go#guru#jump_first', 0)
+let g:go#guru#jump_to_error = get(g:, 'go#guru#jump_to_error', 0)
 
 let g:go#iferr#autosave = get(g:, 'go#iferr#autosave', 0)
 
@@ -42,9 +42,10 @@ function! s:RequireNvimGo(host) abort
 endfunction
 
 let s:specs = [
-\ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 1, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h'')}, ''Env'': {''BuildAutoSave'': g:go#build#autosave}}', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '{''FileInfo'': {''Cwd'': getcwd(), ''Path'': expand(''%:p'')}, ''Env'': {''FmtAsync'': g:go#fmt#async, ''IferrAutosave'': g:go#iferr#autosave, ''MetaLinterAutosave'': g:go#lint#metalinter#autosave, ''MetaLinterTools'': g:go#lint#metalinter#autosave#tools, ''MetaLinterDeadline'': g:go#lint#metalinter#deadline}}', 'group': 'fmt', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': 'g:go#debug#pprof', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufEnter', 'sync': 1, 'opts': {'group': 'nvim-go', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '[getcwd(), expand(''%:p'')]', 'group': 'fmt', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': '{''Build'': {''Autosave'': g:go#build#autosave}, ''Fmt'': {''Async'': g:go#fmt#async}, ''Guru'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpToError'': g:go#guru#jump_to_error}, ''Iferr'': {''IferrAutosave'': g:go#iferr#autosave}, ''Metalinter'': {''Autosave'': g:go#lint#metalinter#autosave, ''AutosaveTools'': g:go#lint#metalinter#autosave#tools, ''Tools'': g:go#lint#metalinter#tools, ''Deadline'': g:go#lint#metalinter#deadline}, ''Debug'': {''Pprof'': g:go#debug#pprof}}', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'command', 'name': 'GoByteOffset', 'sync': 1, 'opts': {'eval': 'expand(''%:p'')', 'range': '%'}},
 \ {'type': 'command', 'name': 'GoIferr', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
 \ {'type': 'command', 'name': 'Gobuild', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},
@@ -52,7 +53,7 @@ let s:specs = [
 \ {'type': 'command', 'name': 'Gometalinter', 'sync': 0, 'opts': {'eval': '[getcwd(), g:go#lint#metalinter#tools, g:go#lint#metalinter#deadline]'}},
 \ {'type': 'command', 'name': 'Gorename', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p''), line2byte(line(''.''))+(col(''.'')-2)]', 'nargs': '?'}},
 \ {'type': 'function', 'name': 'GoGoto', 'sync': 0, 'opts': {}},
-\ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '{''FileInfo'': {''Cwd'': expand(''%:p:h''), ''File'': expand(''%:p'')}, ''Env'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}}'}},
+\ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
 \ ]
 
 call remote#host#Register(s:plugin_name, '*', function('s:RequireNvimGo'))
