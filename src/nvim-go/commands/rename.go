@@ -39,6 +39,7 @@ func cmdRename(v *vim.Vim, args []string, eval *onRenameEval) error {
 	return nil
 }
 
+// Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
 func Rename(v *vim.Vim, args []string, eval *onRenameEval) error {
 	defer gb.WithGoBuildForPath(eval.Dir)()
 

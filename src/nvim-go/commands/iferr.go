@@ -24,11 +24,13 @@ func init() {
 	plugin.HandleCommand("GoIferr", &plugin.CommandOptions{Eval: "[expand('%:p:h'), expand('%:p')]"}, Iferr)
 }
 
+// CmdIferrEval type struct for func Iferr().
 type CmdIferrEval struct {
 	Cwd  string `msgpack:",array"`
 	File string
 }
 
+// Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func Iferr(v *vim.Vim, eval CmdIferrEval) error {
 	defer gb.WithGoBuildForPath(eval.Cwd)()
 

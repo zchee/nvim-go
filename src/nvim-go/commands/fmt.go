@@ -27,13 +27,7 @@ func init() {
 	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, Fmt)
 }
 
-type CmdFmtEval struct {
-	Cwd      string `msgpack:",array"`
-	File     string
-	EnvAsync int64
-	EnvIferr int64
-}
-
+// Fmt format to the current buffer source uses gofmt behavior.
 func Fmt(v *vim.Vim, dir string) error {
 	defer gb.WithGoBuildForPath(dir)()
 
@@ -79,13 +73,15 @@ func Fmt(v *vim.Vim, dir string) error {
 				})
 			}
 		}
+
 		if err := nvim.SetLoclist(p, loclist); err != nil {
-			return nvim.Echomsg(v, "Gofmt: %v", err)
+			return nvim.Echomsg(v, "Gofmt:", err)
 		}
+
 		return nvim.OpenLoclist(p, w, loclist, true)
-	} else {
-		nvim.CloseLoclist(v)
 	}
+
+	nvim.CloseLoclist(v)
 
 	out := bytes.Split(bytes.TrimSuffix(buf, []byte{'\n'}), []byte{'\n'})
 

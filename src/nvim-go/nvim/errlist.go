@@ -12,7 +12,7 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 )
 
-// Loclist represents an item in a quickfix list.
+// ErrorlistData represents an item in a quickfix and locationlist.
 type ErrorlistData struct {
 	// Buffer number
 	Bufnr int `msgpack:"bufnr,omitempty"`
@@ -45,6 +45,7 @@ type ErrorlistData struct {
 	Valid int `msgpack:"valid,omitempty"`
 }
 
+// SetLoclist set the error results data to current buffer's locationlist.
 func SetLoclist(p *vim.Pipeline, loclist []*ErrorlistData) error {
 	// setloclist({nr}, {list} [, {action}])
 	// Call(fname string, result interface{}, args ...interface{})
@@ -57,6 +58,7 @@ func SetLoclist(p *vim.Pipeline, loclist []*ErrorlistData) error {
 	return nil
 }
 
+// OpenLoclist open or close the current buffer's locationlist window.
 func OpenLoclist(p *vim.Pipeline, w vim.Window, loclist []*ErrorlistData, keep bool) error {
 	if len(loclist) > 0 {
 		p.Command("lopen")
@@ -77,16 +79,19 @@ func OpenLoclist(p *vim.Pipeline, w vim.Window, loclist []*ErrorlistData, keep b
 	return nil
 }
 
+// CloseLoclist close the current buffer's locationlist window.
 func CloseLoclist(v *vim.Vim) error {
 	return v.Command("lclose")
 }
 
+// SetQuickfix set the error results data to quickfix list.
 func SetQuickfix(p *vim.Pipeline, qflist []*ErrorlistData) error {
 	p.Call("setqflist", nil, qflist)
 
 	return nil
 }
 
+// OpenOuickfix open the quickfix list window.
 func OpenOuickfix(p *vim.Pipeline, w vim.Window, keep bool) error {
 	p.Command("copen")
 	if keep {
@@ -99,10 +104,12 @@ func OpenOuickfix(p *vim.Pipeline, w vim.Window, keep bool) error {
 	return nil
 }
 
+// CloseQuickfix close the quickfix list window.
 func CloseQuickfix(v *vim.Vim) error {
 	return v.Command("cclose")
 }
 
+// SplitPos split the result text of the vim error list syntax.
 func SplitPos(pos string) (string, int, int) {
 	file := strings.Split(pos, ":")
 	line, err := strconv.ParseInt(file[1], 10, 64)
@@ -117,11 +124,12 @@ func SplitPos(pos string) (string, int, int) {
 	fname, err := filepath.Abs(file[0])
 	if err != nil {
 		return file[0], int(line), int(col)
-	} else {
-		return fname, int(line), int(col)
 	}
+
+	return fname, int(line), int(col)
 }
 
+// ParseError parse a typical output of command written in Go.
 func ParseError(v *vim.Vim, errors string, basedir string) []*ErrorlistData {
 	var errlist []*ErrorlistData
 

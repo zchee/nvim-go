@@ -14,23 +14,18 @@ import (
 
 	"nvim-go/gb"
 	"nvim-go/nvim"
+	"nvim-go/vars"
 )
 
 func init() {
 	plugin.HandleCommand("Gometalinter",
 		&plugin.CommandOptions{
-			Eval: "[getcwd(), g:go#lint#metalinter#tools, g:go#lint#metalinter#deadline]"},
+			Eval: "getcwd()"},
 		cmdMetalinter)
 }
 
-type CmdMetalinterEval struct {
-	Cwd      string `msgpack:",array"`
-	Tools    []string
-	Deadline string
-}
-
-func cmdMetalinter(v *vim.Vim, eval CmdMetalinterEval) {
-	go Metalinter(v, eval)
+func cmdMetalinter(v *vim.Vim, cwd string) {
+	go Metalinter(v, cwd)
 }
 
 type metalinterResult struct {
@@ -42,8 +37,9 @@ type metalinterResult struct {
 	Message  string `json:"message"`  // description of linter message
 }
 
-func Metalinter(v *vim.Vim, eval CmdMetalinterEval) error {
-	defer gb.WithGoBuildForPath(eval.Cwd)()
+// Metalinter lint the Go sources from current buffer's package use gometalinter tool.
+func Metalinter(v *vim.Vim, cwd string) error {
+	defer gb.WithGoBuildForPath(cwd)()
 
 	var (
 		loclist []*nvim.ErrorlistData
@@ -58,18 +54,14 @@ func Metalinter(v *vim.Vim, eval CmdMetalinterEval) error {
 		return err
 	}
 
-	args := []string{eval.Cwd + "/...", "--json", "--disable-all", "--deadline", eval.Deadline}
-	for _, t := range eval.Tools {
+	args := []string{cwd + "/...", "--json", "--disable-all", "--deadline", vars.MetalinterDeadline}
+	for _, t := range vars.MetalinterTools {
 		args = append(args, "--enable", t)
 	}
 
 	cmd := exec.Command("gometalinter", args...)
-	cmd.Dir = eval.Cwd
-
-	stdout, err := cmd.Output()
-	if err != nil {
-		fmt.Println(err)
-	}
+	cmd.Dir = cwd
+	stdout, _ := cmd.Output()
 	cmd.Run()
 
 	var result = []metalinterResult{}

@@ -10,6 +10,7 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 )
 
+// ByteOffset calculation of byte offset the current cursor position.
 func ByteOffset(p *vim.Pipeline) (int, error) {
 	var (
 		b vim.Buffer

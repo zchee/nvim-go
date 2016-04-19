@@ -28,12 +28,7 @@ func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
 	}
 
 	if vars.MetalinterAutosave == int64(1) {
-		var env = commands.CmdMetalinterEval{
-			Cwd:      eval.Cwd,
-			Tools:    vars.MetalinterTools,
-			Deadline: vars.MetalinterDeadline,
-		}
-		go commands.Metalinter(v, env)
+		go commands.Metalinter(v, eval.Cwd)
 	}
 
 	if vars.FmtAsync == int64(1) {

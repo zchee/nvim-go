@@ -45,6 +45,8 @@ func funcDef(v *vim.Vim, args []string) {
 	go Def(v, args[0])
 }
 
+// Def definition to current cursor word.
+// DEPRECATED: godef no longer mantained.
 func Def(v *vim.Vim, file string) error {
 	dir, _ := filepath.Split(file)
 	defer gb.WithGoBuildForPath(dir)()

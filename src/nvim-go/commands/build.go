@@ -16,7 +16,6 @@ import (
 
 	"nvim-go/gb"
 	"nvim-go/nvim"
-	"nvim-go/pkgs"
 )
 
 func init() {
@@ -27,6 +26,7 @@ func cmdBuild(v *vim.Vim, dir string) {
 	go Build(v, dir)
 }
 
+// Build building the current buffer's package use compile tool that determined from the directory structure.
 func Build(v *vim.Vim, dir string) error {
 	defer gb.WithGoBuildForPath(dir)()
 	var (
@@ -41,18 +41,16 @@ func Build(v *vim.Vim, dir string) error {
 		return nvim.Echoerr(v, err)
 	}
 
-	var compile_cmd string
-	currentGoPath := strings.Split(build.Default.GOPATH, ":")[0]
-	if currentGoPath == os.Getenv("GOPATH") {
-		compile_cmd = "go"
+	var compiler string
+	buildDir := strings.Split(build.Default.GOPATH, ":")[0]
+	if buildDir == os.Getenv("GOPATH") {
+		compiler = "go"
 	} else {
-		compile_cmd = "gb"
+		compiler = "gb"
 	}
 
-	rootDir := pkgs.FindvcsDir(dir)
-
-	cmd := exec.Command(compile_cmd, "build")
-	cmd.Dir = rootDir
+	cmd := exec.Command(compiler, "build")
+	cmd.Dir = buildDir
 	out, _ := cmd.CombinedOutput()
 	cmd.Run()
 
