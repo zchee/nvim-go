@@ -10,7 +10,7 @@ import (
 
 func init() {
 	plugin.HandleAutocmd("BufWritePre",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "fmt", Eval: "[getcwd(), expand('%:p')]"}, autocmdBufWritePre)
+		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p')]"}, autocmdBufWritePre)
 }
 
 type bufwritepreEval struct {
