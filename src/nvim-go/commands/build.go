@@ -16,6 +16,7 @@ import (
 
 	"nvim-go/gb"
 	"nvim-go/nvim"
+	"nvim-go/pkgs"
 )
 
 func init() {
@@ -49,9 +50,15 @@ func Build(v *vim.Vim, dir string) error {
 		compiler = "gb"
 	}
 
+	rootDir := pkgs.FindVcsDir(dir)
+
 	cmd := exec.Command(compiler, "build")
-	cmd.Dir = buildDir
-	out, _ := cmd.CombinedOutput()
+	cmd.Dir = rootDir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nvim.Echoerr(v, err)
+	}
+
 	cmd.Run()
 
 	s, _ := cmd.ProcessState.Sys().(syscall.WaitStatus)
