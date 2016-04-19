@@ -7,7 +7,6 @@ package main
 
 import (
 	"log"
-	_ "net/http/pprof"
 	"os"
 
 	"github.com/garyburd/neovim-go/vim/plugin"

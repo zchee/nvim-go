@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
