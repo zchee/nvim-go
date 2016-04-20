@@ -54,10 +54,7 @@ func Build(v *vim.Vim, dir string) error {
 
 	cmd := exec.Command(compiler, "build")
 	cmd.Dir = rootDir
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return nvim.Echoerr(v, err)
-	}
+	out, _ := cmd.CombinedOutput()
 
 	cmd.Run()
 
