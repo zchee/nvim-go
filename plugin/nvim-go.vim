@@ -8,36 +8,47 @@ endif
 let g:loaded_nvim_go = 1
 
 
+" Define default config variables
+
+" GoBuild
 let g:go#build#autosave = get(g:, 'go#build#autosave', 0)
 
-let g:go#debug#pprof = get(g:, 'go#debug#pprof', 0)
-
-let g:go#def#filer = get(g:, 'go#def#filer', 'Explore')
-
+" GoFmt
 let g:go#fmt#async = get(g:, 'go#fmt#async', 0)
 
+" GoGuru
 let g:go#guru#reflection = get(g:, 'go#guru#reflection', 0)
 let g:go#guru#jump_first = get(g:, 'go#guru#jump_first', 0)
 
+" GoIferr
 let g:go#iferr#autosave = get(g:, 'go#iferr#autosave', 0)
 
+" GoMetaLinter
 let g:go#lint#metalinter#autosave = get(g:, 'go#lint#metalinter#autosave', 0)
 let g:go#lint#metalinter#autosave#tools = get(g:, 'go#lint#metalinter#autosave#tools', ['vet', 'golint'])
 let g:go#lint#metalinter#deadline = get(g:, 'go#lint#metalinter#deadline', '5s')
 let g:go#lint#metalinter#tools = get(g:, 'go#lint#metalinter#tools', ['vet', 'golint', 'errcheck'])
 
+" Debugging
+let g:go#debug = get(g:, 'go#debug', 0)
+let g:go#debug#pprof = get(g:, 'go#debug#pprof', 0)
 
+
+" Register remote plugin
+
+" plugin informations
 let s:plugin_name = 'nvim-go'
 let s:goos = $GOOS
 let s:goarch = $GOARCH
-let s:plugin_path = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
-      \ . '/bin/'
-      \ . s:plugin_name . '-' . s:goos . '-' . s:goarch
 
+let s:plugin_root = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
+let s:plugin_dir = s:plugin_root . '/rplugin/go/' . s:plugin_name
+let s:plugin_binary = s:plugin_root . '/bin/' . s:plugin_name . '-' . s:goos . '-' . s:goarch
 
+" register function
 function! s:RequireNvimGo(host) abort
   try
-    return rpcstart(s:plugin_path, ['plugin'])
+    return rpcstart(s:plugin_binary, [s:plugin_dir])
   catch
     echomsg v:throwpoint
     echomsg v:exception
@@ -59,5 +70,5 @@ let s:specs = [
 \ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
 \ ]
 
-call remote#host#Register(s:plugin_name, '*', function('s:RequireNvimGo'))
-call remote#host#RegisterPlugin(s:plugin_name, 'plugin', s:specs)
+call remote#host#Register(s:plugin_binary, '*', function('s:RequireNvimGo'))
+call remote#host#RegisterPlugin(s:plugin_binary, s:plugin_dir, s:specs)
