@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	plugin.HandleAutocmd("BufWritePost", &plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "getcwd()"}, autocmdBufWritePost)
+	plugin.HandleAutocmd("BufWritePost", &plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "expand('%:p:h')"}, autocmdBufWritePost)
 }
 
 func autocmdBufWritePost(v *vim.Vim, cwd string) error {
