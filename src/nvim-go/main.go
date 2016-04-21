@@ -13,9 +13,9 @@ import (
 
 	_ "nvim-go/autocmd"
 	_ "nvim-go/commands"
+	_ "nvim-go/config"
+	_ "nvim-go/context"
 	_ "nvim-go/nvim"
-	_ "nvim-go/pkgs"
-	_ "nvim-go/vars"
 )
 
 func init() {

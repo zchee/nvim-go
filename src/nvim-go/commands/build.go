@@ -14,9 +14,9 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 
+	"nvim-go/context"
 	"nvim-go/gb"
 	"nvim-go/nvim"
-	"nvim-go/pkgs"
 )
 
 func init() {
@@ -50,7 +50,7 @@ func Build(v *vim.Vim, dir string) error {
 		compiler = "gb"
 	}
 
-	rootDir := pkgs.FindVcsDir(dir)
+	rootDir := context.FindVcsDir(dir)
 
 	cmd := exec.Command(compiler, "build")
 	cmd.Dir = rootDir
