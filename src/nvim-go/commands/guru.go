@@ -79,8 +79,10 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	pos, err := nvim.ByteOffset(p)
 	if err != nil {
-		return nvim.Echomsg(v, "%v", err)
+		return nvim.Echomsg(v, err)
 	}
+
+	ctxt := &build.Default
 
 	var outputMu sync.Mutex
 	var loclist []*nvim.ErrorlistData
@@ -95,7 +97,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	query := guru.Query{
 		Output:     output,
 		Pos:        eval.File + ":#" + strconv.FormatInt(int64(pos), 10),
-		Build:      &build.Default,
+		Build:      ctxt,
 		Scope:      []string{scopeFlag},
 		Reflection: reflection,
 	}
