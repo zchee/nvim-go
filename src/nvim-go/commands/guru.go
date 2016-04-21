@@ -26,7 +26,7 @@ import (
 	"nvim-go/gb"
 	"nvim-go/guru"
 	"nvim-go/nvim"
-	"nvim-go/vars"
+	"nvim-go/config"
 )
 
 func init() {
@@ -52,15 +52,15 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	keepCursor := false
 	jumpfirst := false
 
-	if vars.GuruReflection == int64(1) {
+	if config.GuruReflection == int64(1) {
 		reflection = true
 	}
 
-	if vars.GuruKeepCursor == int64(1) {
+	if config.GuruKeepCursor == int64(1) {
 		keepCursor = true
 	}
 
-	if vars.GuruJumpFirst == int64(1) {
+	if config.GuruJumpFirst == int64(1) {
 		jumpfirst = true
 	}
 
@@ -218,7 +218,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte) ([]*nvim.Errorli
 			Text:     text,
 		})
 
-	case "freevars":
+	case "freeconfig":
 		var value = serial.FreeVar{}
 		err := json.Unmarshal(data, &value)
 		if err != nil {

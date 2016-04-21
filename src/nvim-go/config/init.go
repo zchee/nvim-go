@@ -1,4 +1,4 @@
-package vars
+package config
 
 import (
 	"github.com/garyburd/neovim-go/vim"
@@ -6,7 +6,7 @@ import (
 )
 
 // Vars struct of config variable for nvim-go commands.
-type Vars struct {
+type Config struct {
 	Build      BuildVars
 	Fmt        FmtVars
 	Guru       GuruVars
@@ -52,7 +52,7 @@ type DebugVars struct {
 
 func init() {
 	plugin.HandleAutocmd("VimEnter",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "*"}, GetVars)
+		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "*"}, Getconfig)
 }
 
 var (
@@ -80,28 +80,28 @@ var (
 	DebugPprof int64
 )
 
-// GetVars define the user config variables to Go global varialble.
-func GetVars(v *vim.Vim, vars *Vars) {
+// Getconfig define the user config variables to Go global varialble.
+func Getconfig(v *vim.Vim, cfg *Config) {
 	// Build
-	BuildAutosave = vars.Build.Autosave
+	BuildAutosave = cfg.Build.Autosave
 
 	// Fmt
-	FmtAsync = vars.Fmt.Async
+	FmtAsync = cfg.Fmt.Async
 
 	// Guru
-	GuruReflection = vars.Guru.Reflection
-	GuruKeepCursor = vars.Guru.KeepCursor
-	GuruJumpFirst = vars.Guru.JumpFirst
+	GuruReflection = cfg.Guru.Reflection
+	GuruKeepCursor = cfg.Guru.KeepCursor
+	GuruJumpFirst = cfg.Guru.JumpFirst
 
 	// Iferr
-	IferrAutosave = vars.Iferr.IferrAutosave
+	IferrAutosave = cfg.Iferr.IferrAutosave
 
 	// Metalinter
-	MetalinterAutosave = vars.Metalinter.Autosave
-	MetalinterAutosaveTools = vars.Metalinter.AutosaveTools
-	MetalinterTools = vars.Metalinter.Tools
-	MetalinterDeadline = vars.Metalinter.Deadline
+	MetalinterAutosave = cfg.Metalinter.Autosave
+	MetalinterAutosaveTools = cfg.Metalinter.AutosaveTools
+	MetalinterTools = cfg.Metalinter.Tools
+	MetalinterDeadline = cfg.Metalinter.Deadline
 
 	// Debug
-	DebugPprof = vars.Debug.Pprof
+	DebugPprof = cfg.Debug.Pprof
 }

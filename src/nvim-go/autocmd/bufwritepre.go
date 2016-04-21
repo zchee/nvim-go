@@ -5,7 +5,7 @@ import (
 	"github.com/garyburd/neovim-go/vim/plugin"
 
 	"nvim-go/commands"
-	"nvim-go/vars"
+	"nvim-go/config"
 )
 
 func init() {
@@ -19,7 +19,7 @@ type bufwritepreEval struct {
 }
 
 func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
-	if vars.IferrAutosave == int64(1) {
+	if config.IferrAutosave == int64(1) {
 		var env = commands.CmdIferrEval{
 			Cwd:  eval.Cwd,
 			File: eval.File,
@@ -27,11 +27,11 @@ func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
 		go commands.Iferr(v, env)
 	}
 
-	if vars.MetalinterAutosave == int64(1) {
+	if config.MetalinterAutosave == int64(1) {
 		go commands.Metalinter(v, eval.Cwd)
 	}
 
-	if vars.FmtAsync == int64(1) {
+	if config.FmtAsync == int64(1) {
 		go commands.Fmt(v, eval.Cwd)
 	} else {
 		return commands.Fmt(v, eval.Cwd)

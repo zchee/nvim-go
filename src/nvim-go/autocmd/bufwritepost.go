@@ -5,7 +5,7 @@ import (
 	"github.com/garyburd/neovim-go/vim/plugin"
 
 	"nvim-go/commands"
-	"nvim-go/vars"
+	"nvim-go/config"
 )
 
 func init() {
@@ -13,7 +13,7 @@ func init() {
 }
 
 func autocmdBufWritePost(v *vim.Vim, cwd string) error {
-	if vars.BuildAutosave != int64(0) {
+	if config.BuildAutosave != int64(0) {
 		go commands.Build(v, cwd)
 	}
 

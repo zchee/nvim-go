@@ -14,7 +14,7 @@ import (
 
 	"nvim-go/gb"
 	"nvim-go/nvim"
-	"nvim-go/vars"
+	"nvim-go/config"
 )
 
 func init() {
@@ -54,8 +54,8 @@ func Metalinter(v *vim.Vim, cwd string) error {
 		return err
 	}
 
-	args := []string{cwd + "/...", "--json", "--disable-all", "--deadline", vars.MetalinterDeadline}
-	for _, t := range vars.MetalinterTools {
+	args := []string{cwd + "/...", "--json", "--disable-all", "--deadline", config.MetalinterDeadline}
+	for _, t := range config.MetalinterTools {
 		args = append(args, "--enable", t)
 	}
 
