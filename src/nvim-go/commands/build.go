@@ -15,7 +15,6 @@ import (
 	"github.com/garyburd/neovim-go/vim/plugin"
 
 	"nvim-go/context"
-	"nvim-go/gb"
 	"nvim-go/nvim"
 )
 
@@ -29,7 +28,7 @@ func cmdBuild(v *vim.Vim, dir string) {
 
 // Build building the current buffer's package use compile tool that determined from the directory structure.
 func Build(v *vim.Vim, dir string) error {
-	defer gb.WithGoBuildForPath(dir)()
+	defer context.WithGoBuildForPath(dir)()
 	var (
 		b vim.Buffer
 		w vim.Window

@@ -23,7 +23,7 @@ import (
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"golang.org/x/tools/cmd/guru/serial"
 
-	"nvim-go/gb"
+	"nvim-go/context"
 	"nvim-go/guru"
 	"nvim-go/nvim"
 	"nvim-go/config"
@@ -46,7 +46,7 @@ func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
 func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	defer nvim.Profile(time.Now(), "Guru")
 
-	defer gb.WithGoBuildForPath(eval.Cwd)()
+	defer context.WithGoBuildForPath(eval.Cwd)()
 
 	reflection := false
 	keepCursor := false

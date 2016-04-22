@@ -11,7 +11,7 @@ import (
 	"github.com/motemen/go-iferr"
 	"golang.org/x/tools/go/loader"
 
-	"nvim-go/gb"
+	"nvim-go/context"
 	"nvim-go/nvim"
 )
 
@@ -32,7 +32,7 @@ type CmdIferrEval struct {
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func Iferr(v *vim.Vim, eval CmdIferrEval) error {
-	defer gb.WithGoBuildForPath(eval.Cwd)()
+	defer context.WithGoBuildForPath(eval.Cwd)()
 
 	b, err := v.CurrentBuffer()
 	if err != nil {

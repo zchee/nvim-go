@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"go/build"
-	"nvim-go/gb"
+	"nvim-go/context"
 	"nvim-go/nvim"
 
 	"golang.org/x/tools/refactor/rename"
@@ -37,7 +37,7 @@ func cmdRename(v *vim.Vim, args []string, eval *onRenameEval) error {
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
 func Rename(v *vim.Vim, args []string, eval *onRenameEval) error {
-	defer gb.WithGoBuildForPath(eval.Dir)()
+	defer context.WithGoBuildForPath(eval.Dir)()
 
 	v.Var(renamePrefill, &vRenamePrefill)
 	from, err := v.CommandOutput(fmt.Sprintf("silent! echo expand('<cword>')"))

@@ -12,7 +12,7 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 
-	"nvim-go/gb"
+	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/config"
 )
@@ -39,7 +39,7 @@ type metalinterResult struct {
 
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
 func Metalinter(v *vim.Vim, cwd string) error {
-	defer gb.WithGoBuildForPath(cwd)()
+	defer context.WithGoBuildForPath(cwd)()
 
 	var (
 		loclist []*nvim.ErrorlistData
