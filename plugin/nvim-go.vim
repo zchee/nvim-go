@@ -38,12 +38,10 @@ let g:go#debug#pprof = get(g:, 'go#debug#pprof', 0)
 
 " plugin informations
 let s:plugin_name = 'nvim-go'
-let s:goos = $GOOS
-let s:goarch = $GOARCH
 
 let s:plugin_root = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
 let s:plugin_dir = s:plugin_root . '/rplugin/go/' . s:plugin_name
-let s:plugin_binary = s:plugin_root . '/bin/' . s:plugin_name . '-' . s:goos . '-' . s:goarch
+let s:plugin_binary = s:plugin_root . '/bin/' . s:plugin_name
 
 " register function
 function! s:RequireNvimGo(host) abort
