@@ -15,9 +15,8 @@ BINARY_NAME := bin/nvim-go-darwin-amd64
 
 CC := clang
 CXX := clang++
-GO_CMD := go
-GB_CMD := gb
-VENDOR_CMD := ${GB_CMD} vendor
+GO_CMD := gb
+VENDOR_CMD := ${GO_CMD} vendor
 DOCKER_CMD := docker
 
 GO_LDFLAGS ?=
@@ -27,9 +26,9 @@ CGO_CPPFLAGS ?=
 CGO_CXXFLAGS ?=
 CGO_LDFLAGS ?=
 
-GO_BUILD := ${GB_CMD} build
-GO_BUILD_RACE := ${GB_CMD} build ${VERBOSE} -race
-GO_TEST := ${GB_CMD} test ${VERBOSE}
+GO_BUILD := ${GO_CMD} build
+GO_BUILD_RACE := ${GO_CMD} build ${VERBOSE} -race
+GO_TEST := ${GO_CMD} test ${VERBOSE}
 GO_TEST_RUN := ${GO_TEST} -run ${RUN}
 GO_TEST_ALL := test -race -cover -bench=.
 GO_LINT := =golint
@@ -44,16 +43,19 @@ default: build
 build:
 	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
 
+rebuild:
+	${GO_BUILD} -f -F $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
+
 test:
 	${GO_TEST} || exit 1
 
-test-run:
+test/run:
 	${GO_TEST_RUN} || exit 1
 
-vendor-all:
+vendor/all:
 	${VENDOR_CMD} update -all
 
-vendor-guru:
+vendor/guru:
 	${RM} -r ${PACKAGE_DIR}/src/nvim-go/guru
 	${VENDOR_CMD} fetch golang.org/x/tools/cmd/guru
 	cp -r ${PACKAGE_DIR}/vendor/src/golang.org/x/tools/cmd/guru ${PACKAGE_DIR}/src/nvim-go/guru
@@ -62,10 +64,10 @@ vendor-guru:
 	${VENDOR_CMD} delete golang.org/x/tools/cmd/guru
 	${VENDOR_CMD} update golang.org/x/tools/cmd/guru/serial
 
-docker-build:
+docker/build:
 	${DOCKER_CMD} build --rm -t ${GITHUB_USER}/${PACKAGE_NAME} .
 
-docker-build-nocache:
+docker/build-nocache:
 	${DOCKER_CMD} build --rm --no-cache -t ${GITHUB_USER}/${PACKAGE_NAME} .
 
 clean:
