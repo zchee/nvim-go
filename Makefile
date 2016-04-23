@@ -11,12 +11,13 @@ endif
 TOP_PACKAGE_DIR := github.com/${GITHUB_USER}
 PACKAGE_NAME := $(shell basename $(PWD))
 PACKAGE_DIR := ${HOME}/src/${TOP_PACKAGE_DIR}/${PACKAGE_NAME}
-BINARY_NAME := bin/nvim-go-darwin-amd64
+BINARY_NAME := bin/nvim
 
 CC := clang
 CXX := clang++
-GO_CMD := gb
-VENDOR_CMD := ${GO_CMD} vendor
+GO_CMD := go
+GB_CMD := gb
+VENDOR_CMD := ${GB_CMD} vendor
 DOCKER_CMD := docker
 
 GO_LDFLAGS ?=
@@ -26,22 +27,20 @@ CGO_CPPFLAGS ?=
 CGO_CXXFLAGS ?=
 CGO_LDFLAGS ?=
 
-GO_BUILD := ${GO_CMD} build
-GO_BUILD_RACE := ${GO_CMD} build ${VERBOSE} -race
-GO_TEST := ${GO_CMD} test ${VERBOSE}
-GO_TEST_RUN := ${GO_TEST} -run ${RUN}
-GO_TEST_ALL := test -race -cover -bench=.
-GO_LINT := =golint
-GO_VET=${GO_CMD} vet
-GO_RUN=${GO_CMD} run
-GO_INSTALL=${GO_CMD} install
-GO_CLEAN=${GO_CMD} clean
+GO_BUILD := ${GB_CMD} build
+GO_BUILD_RACE := ${GB_CMD} build -race
+GO_TEST := ${GB_CMD} test ${VERBOSE}
+GO_LINT := golint
 
 
 default: build
 
-build:
+build: $(PACKAGE_DIR)/plugin/specs
 	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
+	$(PACKAGE_DIR)/plugin/specs -w $(PACKAGE_NAME)
+
+$(PACKAGE_DIR)/plugin/specs:
+	$(GO_CMD) build -o $(PACKAGE_DIR)/plugin/specs $(PACKAGE_DIR)/plugin/specs.go
 
 rebuild:
 	${GO_BUILD} -f -F $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
