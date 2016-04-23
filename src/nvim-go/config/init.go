@@ -5,7 +5,7 @@ import (
 	"github.com/garyburd/neovim-go/vim/plugin"
 )
 
-// Vars struct of config variable for nvim-go commands.
+// Config struct of config variable for nvim-go commands.
 type Config struct {
 	Build      BuildVars
 	Fmt        FmtVars
