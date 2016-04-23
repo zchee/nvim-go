@@ -26,3 +26,4 @@ _testmain.go
 # neovim go rplugin
 bin/
 pkg/
+plugin/specs
