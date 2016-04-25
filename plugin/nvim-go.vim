@@ -10,6 +10,9 @@ let g:loaded_nvim_go = 1
 
 " Define default config variables
 
+" GoAstView
+let g:go#ast#foldicon = get(g:, 'go#ast#foldicon', "▼")
+
 " GoBuild
 let g:go#build#autosave = get(g:, 'go#build#autosave', 0)
 
