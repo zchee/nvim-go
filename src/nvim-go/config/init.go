@@ -7,12 +7,19 @@ import (
 
 // Config struct of config variable for nvim-go commands.
 type Config struct {
+	AstView    AstViewVars
 	Build      BuildVars
 	Fmt        FmtVars
 	Guru       GuruVars
 	Iferr      IferrVars
 	Metalinter MetalinterVars
+	Terminal   TerminalVars
 	Debug      DebugVars
+}
+
+// AstVars GoAstView command config variable.
+type AstViewVars struct {
+	FoldIcon string `eval:"g:go#ast#foldicon"`
 }
 
 // BuildVars GoBuild command config variable.
@@ -45,6 +52,15 @@ type MetalinterVars struct {
 	Deadline      string   `eval:"g:go#lint#metalinter#deadline"`
 }
 
+// TerminalVars configure of open the terminal window
+type TerminalVars struct {
+	Mode         string `eval:"g:go#terminal#mode"`
+	Position     string `eval:"g:go#terminal#position"`
+	Height       int64  `eval:"g:go#terminal#height"`
+	Width        int64  `eval:"g:go#terminal#width"`
+	StartInsetrt int64  `eval:"g:go#terminal#start_insert"`
+}
+
 // DebugVars debug of nvim-go config variable.
 type DebugVars struct {
 	Pprof int64 `eval:"g:go#debug#pprof"`
@@ -56,6 +72,8 @@ func init() {
 }
 
 var (
+	// AstFoldIcon define default astview tree fold icon.
+	AstFoldIcon string
 	// BuildAutosave call the GoBuild command automatically at during the BufWritePost.
 	BuildAutosave int64
 	// FmtAsync asynchronous call the GoFmt command at during the BufWritePre.
@@ -76,12 +94,25 @@ var (
 	MetalinterTools []string
 	// MetalinterDeadline deadline of GoMetaLinter command timeout.
 	MetalinterDeadline string
+	// TerminalMode open the terminal window mode.
+	TerminalMode string
+	// TerminalPosition open the terminal window position.
+	TerminalPosition string
+	// TerminalHeight open the terminal window height.
+	TerminalHeight int64
+	// TerminalWidth open the terminal window width.
+	TerminalWidth int64
+	// TerminalStartInsert workaround if users set "autocmd BufEnter term://* startinsert"
+	TerminalStartInsert int64
 	// DebugPprof Enable net/http/pprof debugging.
 	DebugPprof int64
 )
 
 // Getconfig define the user config variables to Go global varialble.
 func Getconfig(v *vim.Vim, cfg *Config) {
+	// AstView
+	AstFoldIcon = cfg.AstView.FoldIcon
+
 	// Build
 	BuildAutosave = cfg.Build.Autosave
 
@@ -101,6 +132,13 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 	MetalinterAutosaveTools = cfg.Metalinter.AutosaveTools
 	MetalinterTools = cfg.Metalinter.Tools
 	MetalinterDeadline = cfg.Metalinter.Deadline
+
+	// Terminal
+	TerminalMode = cfg.Terminal.Mode
+	TerminalPosition = cfg.Terminal.Position
+	TerminalHeight = cfg.Terminal.Height
+	TerminalWidth = cfg.Terminal.Width
+	TerminalStartInsert = cfg.Terminal.StartInsetrt
 
 	// Debug
 	DebugPprof = cfg.Debug.Pprof
