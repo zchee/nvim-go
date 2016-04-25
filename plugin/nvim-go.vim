@@ -43,7 +43,7 @@ let s:plugin_root = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
 let s:plugin_dir = s:plugin_root . '/rplugin/go/' . s:plugin_name
 let s:plugin_binary = s:plugin_root . '/bin/' . s:plugin_name
 
-" register function
+" register function {{{
 function! s:RequireNvimGo(host) abort
   try
     return rpcstart(s:plugin_binary, [s:plugin_dir])
@@ -66,8 +66,11 @@ let s:specs = [
 \ {'type': 'command', 'name': 'Gofmt', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},
 \ {'type': 'command', 'name': 'Gometalinter', 'sync': 0, 'opts': {'eval': 'getcwd()'}},
 \ {'type': 'command', 'name': 'Gorename', 'sync': 1, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p''), line2byte(line(''.''))+(col(''.'')-2)]', 'nargs': '?'}},
+\ {'type': 'function', 'name': 'GoDef', 'sync': 0, 'opts': {}},
 \ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
 \ ]
 
 call remote#host#Register(s:plugin_binary, '*', function('s:RequireNvimGo'))
 call remote#host#RegisterPlugin(s:plugin_binary, s:plugin_dir, s:specs)
+
+" }}}}

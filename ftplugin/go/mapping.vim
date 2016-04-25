@@ -1,5 +1,6 @@
 " GoDef
 nnoremap <silent><Plug>(go-goto) :<C-u>call GoGuru('definition')<CR>
+nnoremap <silent><Plug>(go-def)  :<C-u>call GoDef('expand("%:p")')<CR>
 
 " GoGuru
 nnoremap <silent><Plug>(go-callees) :<C-u>call GoGuru('callees')<CR>
