@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	re    = regexp.MustCompile(`(?s)let s:specs =.+\]\n*`)
+	re    = regexp.MustCompile(`(?s)let s:specs =.+\][\n]*`)
 	old   = flag.Bool("old", false, "display old file data to stdout")
 	new   = flag.Bool("new", false, "display new file data to stdout")
 	spec  = flag.Bool("specs", false, "display latest specs to stdout")
