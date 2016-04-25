@@ -21,6 +21,7 @@ let g:go#fmt#async = get(g:, 'go#fmt#async', 0)
 
 " GoGuru
 let g:go#guru#reflection = get(g:, 'go#guru#reflection', 0)
+let g:go#guru#keep_cursor = get(g:, 'go#guru#keep_cursor', 0)
 let g:go#guru#jump_first = get(g:, 'go#guru#jump_first', 0)
 
 " GoIferr
