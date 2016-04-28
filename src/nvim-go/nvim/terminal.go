@@ -73,7 +73,7 @@ func (t *Terminal) Run() error {
 	// Set buffer name, filetype and options
 	p.SetBufferName(tb, "__GO_TERMINAL__")
 
-	p.SetBufferOption(tb, "filetype", "goterm")
+	p.SetBufferOption(tb, "filetype", "terminal")
 	p.SetBufferOption(tb, "bufhidden", "delete")
 	p.SetBufferOption(tb, "buflisted", false)
 	p.SetBufferOption(tb, "swapfile", false)
@@ -85,7 +85,7 @@ func (t *Terminal) Run() error {
 	// Refocus coding buffer
 	p.SetCurrentWindow(w)
 	// Workaround for "autocmd BufEnter term://* startinsert"
-	if config.TerminalStartInsert == int64(0) {
+	if config.TerminalStartInsert != int64(0) {
 		p.Command("stopinsert")
 	}
 
