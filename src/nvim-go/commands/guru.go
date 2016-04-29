@@ -226,7 +226,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte) ([]*nvim.Errorli
 			Text:     text,
 		})
 
-	case "freeconfig":
+	case "freevars":
 		var value = serial.FreeVar{}
 		err := json.Unmarshal(data, &value)
 		if err != nil {
