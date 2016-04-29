@@ -35,3 +35,8 @@ func Echohl(v *vim.Vim, prefix string, highlight string, format string, a ...int
 func ReportError(v *vim.Vim, format string, a ...interface{}) error {
 	return v.ReportError(fmt.Sprintf(format, a...))
 }
+
+// ClearMsg clear echo message.
+func ClearMsg(v *vim.Vim) error {
+	return v.Command("echon")
+}
