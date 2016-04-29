@@ -110,7 +110,7 @@ https://github.com/fatih/vim-go/blob/master/autoload/go/lint.vim
 
 ## GoTest
 https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L188
-  - [ ] Implements `GoTest` command output to neovim terminal feature
+  - [x] Implements `GoTest` command output to neovim terminal feature
   - [ ] Support `run=func` flag
   - [ ] Support GoTestCompile(?)
 

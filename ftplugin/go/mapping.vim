@@ -30,6 +30,9 @@ nnoremap <silent><Plug>(nvim-go-iferr)  :<C-u>GoIferr<CR>
 " GoMetaLinker
 nnoremap <silent><Plug>(nvim-go-metalinter)  :<C-u>Gometalinter<CR>
 
+" GoTest
+nnoremap <silent><Plug>(nvim-go-test)  :<C-u>Gotest<CR>
+
 " GoRename
 nnoremap <silent><Plug>(nvim-go-rename)  :<C-u>Gorename<CR>
 
