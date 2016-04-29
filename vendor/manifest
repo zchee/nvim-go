@@ -2,6 +2,19 @@
 	"version": 0,
 	"dependencies": [
 		{
+			"importpath": "github.com/cweill/gotests",
+			"repository": "https://github.com/cweill/gotests",
+			"revision": "ed6f702b0fc2fe5dfcb3a66687f571abfd6c3f68",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/cweill/gotests/gotests/process",
+			"repository": "https://github.com/cweill/gotests",
+			"revision": "ed6f702b0fc2fe5dfcb3a66687f571abfd6c3f68",
+			"branch": "master",
+			"path": "/gotests/process"
+		},
+		{
 			"importpath": "github.com/garyburd/neovim-go",
 			"repository": "https://github.com/garyburd/neovim-go",
 			"revision": "6d2309128163fe8e035fbc2cc8fa6ca5b8ae6a63",
