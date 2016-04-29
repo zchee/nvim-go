@@ -18,10 +18,7 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Gometalinter",
-		&plugin.CommandOptions{
-			Eval: "getcwd()"},
-		cmdMetalinter)
+	plugin.HandleCommand("Gometalinter", &plugin.CommandOptions{Eval: "getcwd()"}, cmdMetalinter)
 }
 
 func cmdMetalinter(v *vim.Vim, cwd string) {
