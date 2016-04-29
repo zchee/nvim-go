@@ -14,10 +14,10 @@ import (
 func init() {
 	plugin.HandleCommand("GoByteOffset",
 		&plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"},
-		commandByteOffset)
+		cmdByteOffset)
 }
 
-func commandByteOffset(v *vim.Vim) error {
+func cmdByteOffset(v *vim.Vim) error {
 	p := v.NewPipeline()
 
 	offset, _ := nvim.ByteOffset(p)
