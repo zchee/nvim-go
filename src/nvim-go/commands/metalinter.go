@@ -12,9 +12,9 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 
+	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
-	"nvim-go/config"
 )
 
 func init() {
