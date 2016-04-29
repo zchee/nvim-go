@@ -2,8 +2,8 @@ package commands
 
 import (
 	"bufio"
+	"go/format"
 	"go/parser"
-	"go/printer"
 	"os"
 
 	"nvim-go/context"
@@ -33,6 +33,7 @@ func Iferr(v *vim.Vim, eval CmdIferrEval) error {
 	if err != nil {
 		return err
 	}
+
 	bufline, err := v.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return err
@@ -66,7 +67,7 @@ func Iferr(v *vim.Vim, eval CmdIferrEval) error {
 	for _, pkg := range prog.InitialPackages() {
 		for _, f := range pkg.Files {
 			iferr.RewriteFile(prog.Fset, f, pkg.Info)
-			printer.Fprint(w, prog.Fset, f)
+			format.Node(w, prog.Fset, f)
 		}
 	}
 
