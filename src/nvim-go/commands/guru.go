@@ -46,7 +46,6 @@ func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
 // Guru go source analysis and output result to the quickfix or locationlist.
 func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	defer nvim.Profile(time.Now(), "Guru")
-
 	defer context.WithGoBuildForPath(eval.Cwd)()
 
 	var (
@@ -76,6 +75,9 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	// TODO(zchee): Use p.BufferOption("modified", modified)?
 	var modified string
 	p.CommandOutput("silent set modified?", &modified)
+	if err := p.Wait(); err != nil {
+		return err
+	}
 	// https://github.com/golang/tools/blob/master/cmd/guru/main.go
 	if modified == "modified" {
 		overlay := make(map[string][]byte)
