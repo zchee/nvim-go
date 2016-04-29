@@ -22,19 +22,19 @@ var (
 )
 
 func init() {
-	plugin.HandleCommand("GoAstView", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p')]"}, funcAstView)
+	plugin.HandleCommand("GoAstView", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p')]"}, cmdAstView)
 }
 
-type funcAstEval struct {
+type cmdAstEval struct {
 	Cwd  string `msgpack:",array"`
 	File string
 }
 
-func funcAstView(v *vim.Vim, eval *funcAstEval) {
+func cmdAstView(v *vim.Vim, eval *cmdAstEval) {
 	go AstView(v, eval)
 }
 
-func AstView(v *vim.Vim, eval *funcAstEval) error {
+func AstView(v *vim.Vim, eval *cmdAstEval) error {
 	defer nvim.Profile(time.Now(), "AstView")
 
 	var (

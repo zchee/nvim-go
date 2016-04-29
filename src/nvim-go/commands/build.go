@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -20,7 +21,7 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{Eval: "getcwd()"}, Build)
+	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{Eval: "getcwd()"}, cmdBuild)
 }
 
 func cmdBuild(v *vim.Vim, cwd string) {
@@ -30,6 +31,8 @@ func cmdBuild(v *vim.Vim, cwd string) {
 // Build building the current buffer's package use compile tool that determined from the directory structure.
 func Build(v *vim.Vim, cwd string) error {
 	defer context.WithGoBuildForPath(cwd)()
+	defer nvim.Profile(time.Now(), "GoBuild")
+
 	var (
 		b vim.Buffer
 		w vim.Window
