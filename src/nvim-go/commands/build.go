@@ -49,8 +49,9 @@ func Build(v *vim.Vim, cwd string) error {
 
 	var compiler string
 
-	buildDir := strings.Split(build.Default.GOPATH, ":")[0]
-	if buildDir == os.Getenv("GOPATH") {
+	buildDir := strings.Split(build.Default.GOPATH, string(filepath.ListSeparator))[0]
+	gopath := strings.Split(os.Getenv("GOPATH"), string(filepath.ListSeparator))[0]
+	if buildDir == gopath {
 		compiler = "go"
 	} else {
 		compiler = "gb"
