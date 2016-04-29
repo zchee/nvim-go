@@ -49,22 +49,6 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	defer context.WithGoBuildForPath(eval.Cwd)()
 
-	reflection := false
-	keepCursor := false
-	jumpfirst := false
-
-	if config.GuruReflection == int64(1) {
-		reflection = true
-	}
-
-	if config.GuruKeepCursor == int64(1) {
-		keepCursor = true
-	}
-
-	if config.GuruJumpFirst == int64(1) {
-		jumpfirst = true
-	}
-
 	var b vim.Buffer
 
 	p := v.NewPipeline()
@@ -123,7 +107,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		Pos:        eval.File + ":#" + strconv.FormatInt(int64(pos), 10),
 		Build:      ctxt,
 		Scope:      []string{scopeFlag},
-		Reflection: reflection,
+		Reflection: config.GuruReflection,
 	}
 
 	if err := guru.Run(mode, &query); err != nil {
@@ -135,7 +119,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	}
 
 	// jumpfirst or definition mode
-	if jumpfirst || mode == "definition" {
+	if config.GuruJumpFirst || mode == "definition" {
 		p.Command("silent! ll 1")
 		p.FeedKeys("zz", "n", false)
 	}
@@ -144,7 +128,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	if mode != "definition" {
 		var w vim.Window
 		p.CurrentWindow(&w)
-		return nvim.OpenLoclist(p, w, loclist, keepCursor)
+		return nvim.OpenLoclist(p, w, loclist, config.GuruKeepCursor)
 	}
 
 	return nil

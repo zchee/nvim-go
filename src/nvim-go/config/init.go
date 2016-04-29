@@ -75,19 +75,19 @@ var (
 	// AstFoldIcon define default astview tree fold icon.
 	AstFoldIcon string
 	// BuildAutosave call the GoBuild command automatically at during the BufWritePost.
-	BuildAutosave int64
+	BuildAutosave bool
 	// FmtAsync asynchronous call the GoFmt command at during the BufWritePre.
-	FmtAsync int64
+	FmtAsync bool
 	// GuruReflection use the type reflection on GoGuru commmands.
-	GuruReflection int64
+	GuruReflection bool
 	// GuruKeepCursor keep the cursor focus to source buffer instead of quickfix or locationlist.
-	GuruKeepCursor int64
+	GuruKeepCursor bool
 	// GuruJumpFirst jump the first error position on GoGuru commands.
-	GuruJumpFirst int64
+	GuruJumpFirst bool
 	// IferrAutosave call the GoIferr command automatically at during the BufWritePre.
-	IferrAutosave int64
+	IferrAutosave bool
 	// MetalinterAutosave call the GoMetaLinter command automatically at during the BufWritePre.
-	MetalinterAutosave int64
+	MetalinterAutosave bool
 	// MetalinterAutosaveTools lint tool list for MetalinterAutosave.
 	MetalinterAutosaveTools []string
 	// MetalinterTools lint tool list for GoMetaLinter command.
@@ -103,9 +103,9 @@ var (
 	// TerminalWidth open the terminal window width.
 	TerminalWidth int64
 	// TerminalStartInsert workaround if users set "autocmd BufEnter term://* startinsert"
-	TerminalStartInsert int64
+	TerminalStartInsert bool
 	// DebugPprof Enable net/http/pprof debugging.
-	DebugPprof int64
+	DebugPprof bool
 )
 
 // Getconfig define the user config variables to Go global varialble.
@@ -114,21 +114,21 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 	AstFoldIcon = cfg.AstView.FoldIcon
 
 	// Build
-	BuildAutosave = cfg.Build.Autosave
+	BuildAutosave = itob(cfg.Build.Autosave)
 
 	// Fmt
-	FmtAsync = cfg.Fmt.Async
+	FmtAsync = itob(cfg.Fmt.Async)
 
 	// Guru
-	GuruReflection = cfg.Guru.Reflection
-	GuruKeepCursor = cfg.Guru.KeepCursor
-	GuruJumpFirst = cfg.Guru.JumpFirst
+	GuruReflection = itob(cfg.Guru.Reflection)
+	GuruKeepCursor = itob(cfg.Guru.KeepCursor)
+	GuruJumpFirst = itob(cfg.Guru.JumpFirst)
 
 	// Iferr
-	IferrAutosave = cfg.Iferr.IferrAutosave
+	IferrAutosave = itob(cfg.Iferr.IferrAutosave)
 
 	// Metalinter
-	MetalinterAutosave = cfg.Metalinter.Autosave
+	MetalinterAutosave = itob(cfg.Metalinter.Autosave)
 	MetalinterAutosaveTools = cfg.Metalinter.AutosaveTools
 	MetalinterTools = cfg.Metalinter.Tools
 	MetalinterDeadline = cfg.Metalinter.Deadline
@@ -138,8 +138,15 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 	TerminalPosition = cfg.Terminal.Position
 	TerminalHeight = cfg.Terminal.Height
 	TerminalWidth = cfg.Terminal.Width
-	TerminalStartInsert = cfg.Terminal.StartInsetrt
+	TerminalStartInsert = itob(cfg.Terminal.StartInsetrt)
 
 	// Debug
-	DebugPprof = cfg.Debug.Pprof
+	DebugPprof = itob(cfg.Debug.Pprof)
+}
+
+func itob(i int64) bool {
+	if i == int64(0) {
+		return false
+	}
+	return true
 }

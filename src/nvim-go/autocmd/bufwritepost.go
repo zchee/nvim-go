@@ -13,7 +13,7 @@ func init() {
 }
 
 func autocmdBufWritePost(v *vim.Vim, cwd string) error {
-	if config.BuildAutosave != int64(0) {
+	if config.BuildAutosave {
 		go commands.Build(v, cwd)
 	}
 

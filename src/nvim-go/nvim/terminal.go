@@ -82,7 +82,7 @@ func (t *Terminal) Run() error {
 		}
 
 		// Workaround for "autocmd BufEnter term://* startinsert"
-		if config.TerminalStartInsert != int64(0) {
+		if config.TerminalStartInsert {
 			p.Command("stopinsert")
 		}
 

@@ -19,7 +19,7 @@ type bufwritepreEval struct {
 }
 
 func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
-	if config.IferrAutosave == int64(1) {
+	if config.IferrAutosave {
 		var env = commands.CmdIferrEval{
 			Cwd:  eval.Cwd,
 			File: eval.File,
@@ -27,11 +27,11 @@ func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
 		go commands.Iferr(v, env)
 	}
 
-	if config.MetalinterAutosave == int64(1) {
+	if config.MetalinterAutosave {
 		go commands.Metalinter(v, eval.Cwd)
 	}
 
-	if config.FmtAsync == int64(1) {
+	if config.FmtAsync {
 		go commands.Fmt(v, eval.Cwd)
 	} else {
 		return commands.Fmt(v, eval.Cwd)
