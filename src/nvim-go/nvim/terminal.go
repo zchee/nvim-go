@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"nvim-go/config"
 
@@ -17,10 +18,14 @@ var (
 )
 
 type Terminal struct {
-	v      *vim.Vim
-	cmd    []string
-	mode   string
-	Width  int64
+	v    *vim.Vim
+	cmd  []string
+	mode string
+	// Dir specifies the working directory of the command on terminal.
+	Dir string
+	// Width split window width for open the terminal window.
+	Width int64
+	// Height split window height for open the terminal window.
 	Height int64
 }
 
@@ -33,6 +38,10 @@ func NewTerminal(vim *vim.Vim, command []string, mode string) *Terminal {
 }
 
 func (t *Terminal) Run() error {
+	if t.Dir != "" {
+		defer chdir(t.v, t.Dir)()
+	}
+
 	var (
 		b      vim.Buffer
 		w      vim.Window
@@ -105,4 +114,23 @@ func (t *Terminal) Run() error {
 	p.SetCurrentWindow(w)
 
 	return p.Wait()
+}
+
+// chdir changes vim current working directory.
+// The returned function restores working directory to `getcwd()` result path
+// and unlocks the mutex.
+func chdir(v *vim.Vim, dir string) func() {
+	var (
+		m   sync.Mutex
+		cwd interface{}
+	)
+	m.Lock()
+	if err := v.Eval("getcwd()", &cwd); err != nil {
+		Echoerr(v, "GoTerminal: %v", err)
+	}
+	v.ChangeDirectory(dir)
+	return func() {
+		v.ChangeDirectory(cwd.(string))
+		m.Unlock()
+	}
 }
