@@ -130,18 +130,28 @@ func SplitPos(pos string) (string, int, int) {
 }
 
 // ParseError parse a typical output of command written in Go.
-func ParseError(v *vim.Vim, errors string, basedir string) []*ErrorlistData {
-	var errlist []*ErrorlistData
+func ParseError(v *vim.Vim, errors string, cwd string, basedir string) []*ErrorlistData {
+	var (
+		errlist []*ErrorlistData
+		pkgdir  string
+	)
 
 	el := strings.Split(errors, "\n")
 	for _, es := range el {
+		if e := strings.SplitN(es, "# ", 2); len(e) > 1 {
+			pkgdir = e[1]
+		}
 		if e := strings.SplitN(es, ":", 3); len(e) > 1 {
 			line, err := strconv.ParseInt(e[1], 10, 64)
 			if err != nil {
 				continue
 			}
+
+			file := filepath.Join(basedir, pkgdir, e[0])
+			fname := strings.TrimPrefix(file, cwd+string(filepath.Separator))
+
 			errlist = append(errlist, &ErrorlistData{
-				FileName: filepath.Join(basedir, e[0]),
+				FileName: fname,
 				LNum:     int(line),
 				Text:     e[2],
 			})

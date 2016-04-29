@@ -77,8 +77,7 @@ https://github.com/fatih/vim-go/blob/master/autoload/go/alternate.vim
 
 ## GoBuild
 https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L16
-  - [ ] Fix display the wrong file path to the `quickfix` or `location-list`
-    - `getcwd()`? `expand('%:p')`? or other?
+  - [x] Fix display the wrong file path to the `quickfix` or `location-list`
   - [ ] Inline build(no spawn `go build`) if possible
 
 ## GoCoverage

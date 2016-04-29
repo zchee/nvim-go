@@ -8,6 +8,7 @@ import (
 	"go/build"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -19,16 +20,16 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, Build)
+	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{Eval: "getcwd()"}, Build)
 }
 
-func cmdBuild(v *vim.Vim, dir string) {
-	go Build(v, dir)
+func cmdBuild(v *vim.Vim, cwd string) {
+	go Build(v, cwd)
 }
 
 // Build building the current buffer's package use compile tool that determined from the directory structure.
-func Build(v *vim.Vim, dir string) error {
-	defer context.WithGoBuildForPath(dir)()
+func Build(v *vim.Vim, cwd string) error {
+	defer context.WithGoBuildForPath(cwd)()
 	var (
 		b vim.Buffer
 		w vim.Window
@@ -41,25 +42,26 @@ func Build(v *vim.Vim, dir string) error {
 		return nvim.Echoerr(v, err)
 	}
 
+	baseDir := context.FindVcsDir(cwd)
+
 	var compiler string
+
 	buildDir := strings.Split(build.Default.GOPATH, ":")[0]
 	if buildDir == os.Getenv("GOPATH") {
 		compiler = "go"
 	} else {
 		compiler = "gb"
+		baseDir = filepath.Join(baseDir, "src")
 	}
 
-	rootDir := context.FindVcsDir(dir)
-
 	cmd := exec.Command(compiler, "build")
-	cmd.Dir = rootDir
 	out, _ := cmd.CombinedOutput()
 
 	cmd.Run()
 
 	s, _ := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	if s.ExitStatus() > 0 {
-		loclist := nvim.ParseError(v, string(out), dir)
+		loclist := nvim.ParseError(v, string(out), cwd, baseDir)
 		if err := nvim.SetLoclist(p, loclist); err != nil {
 			return nvim.Echoerr(v, err)
 		}
