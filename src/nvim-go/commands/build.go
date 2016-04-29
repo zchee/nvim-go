@@ -42,7 +42,7 @@ func Build(v *vim.Vim, cwd string) error {
 		return nvim.Echoerr(v, err)
 	}
 
-	baseDir := context.FindVcsDir(cwd)
+	baseDir := context.FindVcsRoot(cwd)
 
 	var compiler string
 
