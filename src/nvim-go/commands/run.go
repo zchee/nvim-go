@@ -5,11 +5,11 @@
 package commands
 
 import (
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
-
 	"nvim-go/config"
 	"nvim-go/nvim"
+
+	"github.com/garyburd/neovim-go/vim"
+	"github.com/garyburd/neovim-go/vim/plugin"
 )
 
 func init() {

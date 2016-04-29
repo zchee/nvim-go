@@ -6,10 +6,10 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
+	"nvim-go/config"
+
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
-
-	"nvim-go/config"
 )
 
 func init() {

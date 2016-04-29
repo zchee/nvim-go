@@ -1,11 +1,11 @@
 package autocmd
 
 import (
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
-
 	"nvim-go/commands"
 	"nvim-go/config"
+
+	"github.com/garyburd/neovim-go/vim"
+	"github.com/garyburd/neovim-go/vim/plugin"
 )
 
 func init() {

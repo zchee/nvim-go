@@ -5,10 +5,10 @@
 package commands
 
 import (
+	"nvim-go/nvim"
+
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
-
-	"nvim-go/nvim"
 )
 
 func init() {

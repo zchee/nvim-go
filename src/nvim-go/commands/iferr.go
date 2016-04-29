@@ -6,13 +6,13 @@ import (
 	"go/printer"
 	"os"
 
+	"nvim-go/context"
+	"nvim-go/nvim"
+
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/motemen/go-iferr"
 	"golang.org/x/tools/go/loader"
-
-	"nvim-go/context"
-	"nvim-go/nvim"
 )
 
 func init() {

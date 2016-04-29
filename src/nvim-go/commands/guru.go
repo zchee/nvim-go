@@ -19,15 +19,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
-	"golang.org/x/tools/cmd/guru/serial"
-	"golang.org/x/tools/go/buildutil"
-
 	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/guru"
 	"nvim-go/nvim"
+
+	"github.com/garyburd/neovim-go/vim"
+	"github.com/garyburd/neovim-go/vim/plugin"
+	"golang.org/x/tools/cmd/guru/serial"
+	"golang.org/x/tools/go/buildutil"
 )
 
 func init() {

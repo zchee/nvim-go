@@ -15,6 +15,9 @@ import (
 	"strings"
 	"time"
 
+	"nvim-go/context"
+	"nvim-go/nvim"
+
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/rogpeppe/godef/go/ast"
@@ -22,9 +25,6 @@ import (
 	"github.com/rogpeppe/godef/go/printer"
 	"github.com/rogpeppe/godef/go/token"
 	"github.com/rogpeppe/godef/go/types"
-
-	"nvim-go/context"
-	"nvim-go/nvim"
 )
 
 var (
