@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	ASTInfo []byte
+	astInfo []byte
 )
 
 func init() {
@@ -34,6 +34,7 @@ func cmdAstView(v *vim.Vim, eval *cmdAstEval) {
 	go AstView(v, eval)
 }
 
+// AstView gets the Go AST informations of current buffer.
 func AstView(v *vim.Vim, eval *cmdAstEval) error {
 	defer nvim.Profile(time.Now(), "AstView")
 
@@ -66,10 +67,10 @@ func AstView(v *vim.Vim, eval *cmdAstEval) error {
 	}
 
 	_, file := filepath.Split(eval.File)
-	ASTInfo = append(ASTInfo, stringtoslicebyte(fmt.Sprintf("%s Files: %v\n", config.AstFoldIcon, file))...)
+	astInfo = append(astInfo, stringtoslicebyte(fmt.Sprintf("%s Files: %v\n", config.AstFoldIcon, file))...)
 	ast.Walk(VisitorFunc(parseAST), f)
 
-	astinfo := bytes.Split(bytes.TrimSuffix(ASTInfo, []byte{'\n'}), []byte{'\n'})
+	astinfo := bytes.Split(bytes.TrimSuffix(astInfo, []byte{'\n'}), []byte{'\n'})
 	if err := p.Wait(); err != nil {
 		return err
 	}
@@ -99,8 +100,10 @@ func AstView(v *vim.Vim, eval *cmdAstEval) error {
 	return p.Wait()
 }
 
+// VisitorFunc for ast.Visit type.
 type VisitorFunc func(n ast.Node) ast.Visitor
 
+// Visit for ast.Visit function.
 func (f VisitorFunc) Visit(n ast.Node) ast.Visitor {
 	return f(n)
 }
@@ -115,22 +118,20 @@ func parseAST(node ast.Node) ast.Visitor {
 		if fmt.Sprint(node.Obj) != "<nil>" {
 			info += fmt.Sprintf("\t Obj: %v\n", node.Obj)
 		}
-		ASTInfo = append(ASTInfo, stringtoslicebyte(info)...)
+		astInfo = append(astInfo, stringtoslicebyte(info)...)
 		return VisitorFunc(parseAST)
 	case *ast.GenDecl:
-		ASTInfo = append(ASTInfo,
+		astInfo = append(astInfo,
 			stringtoslicebyte(fmt.Sprintf("%s Decls: []ast.Decl\n\t TokPos: %v\n\t Tok: %v\n\t Lparen: %v\n",
 				config.AstFoldIcon, node.TokPos, node.Tok, node.Lparen))...)
 		return VisitorFunc(parseAST)
 	case *ast.BasicLit:
-		ASTInfo = append(ASTInfo,
+		astInfo = append(astInfo,
 			stringtoslicebyte(fmt.Sprintf("\t- Path: *ast.BasicLit\n\t\t\t Value: %v\n\t\t\t Kind: %v\n\t\t\t ValuePos: %v\n",
 				node.Value, node.Kind, node.ValuePos))...)
 		return VisitorFunc(parseAST)
 
 	}
-
-	return nil
 }
 
 func stringtoslicebyte(s string) []byte {

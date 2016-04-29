@@ -10,7 +10,7 @@ var (
 	vcsDirFound bool
 )
 
-// FindVcsDir find package root path from arg path
+// FindVcsRoot find package root path from arg path
 func FindVcsRoot(basedir string) string {
 	vcsDirFound = false
 	filepath.Walk(basedir, findvcsDirWalkFunc)

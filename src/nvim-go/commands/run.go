@@ -18,6 +18,7 @@ func init() {
 		cmdRun)
 }
 
+// Run runs the go run command for current buffer's packages.
 func Run(v *vim.Vim, cmd []string) error {
 	term := nvim.NewTerminal(v, cmd, config.TerminalMode)
 

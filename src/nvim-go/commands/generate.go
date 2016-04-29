@@ -18,6 +18,8 @@ func cmdGenerateTest(v *vim.Vim, files []string) {
 	go GenerateTest(v, files)
 }
 
+// GenerateTest generates the test files based by current buffer or args files
+// functions.
 func GenerateTest(v *vim.Vim, files []string) error {
 	b, err := v.CurrentBuffer()
 	if err != nil {

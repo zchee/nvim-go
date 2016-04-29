@@ -22,6 +22,7 @@ import (
 	"sync"
 )
 
+// FindGbProject return the gb project directory.
 func FindGbProject(path string) (string, error) {
 	if path == "" {
 		return "", fmt.Errorf("project root is blank")

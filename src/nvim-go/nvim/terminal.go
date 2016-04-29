@@ -1,7 +1,6 @@
 package nvim
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -17,6 +16,7 @@ var (
 	twindow vim.Window
 )
 
+// Terminal configure of open the terminal.
 type Terminal struct {
 	v    *vim.Vim
 	cmd  []string
@@ -29,6 +29,7 @@ type Terminal struct {
 	Height int64
 }
 
+// NewTerminal return the initialize Neovim terminal config.
 func NewTerminal(vim *vim.Vim, command []string, mode string) *Terminal {
 	return &Terminal{
 		v:    vim,
@@ -37,6 +38,7 @@ func NewTerminal(vim *vim.Vim, command []string, mode string) *Terminal {
 	}
 }
 
+// Run runs the command in the terminal buffer.
 func (t *Terminal) Run() error {
 	if t.Dir != "" {
 		defer chdir(t.v, t.Dir)()
@@ -76,7 +78,7 @@ func (t *Terminal) Run() error {
 		case t.Width != int64(0) && t.mode == "vsplit":
 			vcmd += strconv.FormatInt(t.Width, 10)
 		case strings.Index(t.mode, "split") == -1:
-			return errors.New(fmt.Sprintf("%s mode is not supported", t.mode))
+			return fmt.Errorf("%s mode is not supported", t.mode)
 		}
 
 		// Create terminal buffer and spawn command.

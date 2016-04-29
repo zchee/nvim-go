@@ -18,7 +18,7 @@ type Config struct {
 	Debug      DebugVars
 }
 
-// AstVars GoAstView command config variable.
+// AstViewVars GoAstView command config variable.
 type AstViewVars struct {
 	FoldIcon string `eval:"g:go#ast#foldicon"`
 }
@@ -53,6 +53,7 @@ type MetalinterVars struct {
 	Deadline      string   `eval:"g:go#lint#metalinter#deadline"`
 }
 
+// RenameVars GoRename command config variable.
 type RenameVars struct {
 	Prefill int64 `eval:"g:go#rename#prefill"`
 }

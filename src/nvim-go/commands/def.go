@@ -141,9 +141,9 @@ func Def(v *vim.Vim, file string) error {
 			p.FeedKeys("zz", "n", false)
 
 			return p.Wait()
-		} else {
-			nvim.Echomsg(v, "Godef: not found of obj")
 		}
+		nvim.Echomsg(v, "Godef: not found of obj")
+
 	default:
 		nvim.Echomsg(v, "Godef: no declaration found for %v", pretty{e})
 	}
@@ -297,8 +297,10 @@ func parseExpr(v *vim.Vim, s *ast.Scope, expr string) ast.Expr {
 	return nil
 }
 
+// FVisitor for ast.Visit type.
 type FVisitor func(n ast.Node) bool
 
+// Visit for ast.Visit functions.
 func (f FVisitor) Visit(n ast.Node) ast.Visitor {
 	if f(n) {
 		return f
