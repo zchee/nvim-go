@@ -21,8 +21,8 @@ func Echomsg(v *vim.Vim, a ...interface{}) error {
 }
 
 // Echoerr provide the vim 'echoerr' command.
-func Echoerr(v *vim.Vim, a ...interface{}) error {
-	return v.Command("echoerr '" + fmt.Sprintln(a...) + "'")
+func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
+	return v.Command("echoerr '" + fmt.Sprintf(format, a...) + "'")
 }
 
 // Echohl provide the vim 'echohl' command with message prefix and message color highlighting.

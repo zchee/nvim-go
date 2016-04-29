@@ -98,7 +98,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		outputMu.Lock()
 		defer outputMu.Unlock()
 		if loclist, err = parseResult(mode, fset, qr.JSON(fset)); err != nil {
-			nvim.Echoerr(v, err)
+			nvim.Echoerr(v, "GoGuru: %v", err)
 		}
 	}
 

@@ -42,7 +42,7 @@ func Build(v *vim.Vim, cwd string) error {
 	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)
 	if err := p.Wait(); err != nil {
-		return nvim.Echoerr(v, err)
+		return nvim.Echoerr(v, "GoBuild: %v", err)
 	}
 
 	baseDir := context.FindVcsRoot(cwd)
@@ -66,7 +66,7 @@ func Build(v *vim.Vim, cwd string) error {
 	if s.ExitStatus() > 0 {
 		loclist := nvim.ParseError(v, string(out), cwd, baseDir)
 		if err := nvim.SetLoclist(p, loclist); err != nil {
-			return nvim.Echoerr(v, err)
+			return nvim.Echoerr(v, "GoBuild: %v", err)
 		}
 		return nvim.OpenLoclist(p, w, loclist, true)
 	}

@@ -134,7 +134,7 @@ func Def(v *vim.Vim, file string) error {
 			if vDefNomodifiable == int64(1) {
 				cb, err := v.CurrentBuffer()
 				if err != nil {
-					return nvim.Echoerr(v, err)
+					return nvim.Echoerr(v, "GoDef: %v", err)
 				}
 				p.SetBufferOption(cb, "modifiable", false)
 			}

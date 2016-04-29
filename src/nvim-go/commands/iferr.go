@@ -55,7 +55,7 @@ func Iferr(v *vim.Vim, eval CmdIferrEval) error {
 
 	f, err := conf.ParseFile(eval.File, buf)
 	if err != nil {
-		nvim.Echoerr(v, err)
+		return nvim.Echoerr(v, "GoIferr: %v", err)
 	}
 
 	conf.CreateFromFiles(eval.File, f)
