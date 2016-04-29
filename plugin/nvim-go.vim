@@ -81,7 +81,7 @@ let s:specs = [
 \ {'type': 'command', 'name': 'Gorun', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'Gotest', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')'}},
 \ {'type': 'function', 'name': 'GoDef', 'sync': 0, 'opts': {}},
-\ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h''), expand(''%:p'')]'}},
+\ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p:h''), expand(''%:p'')]'}},
 \ ]
 
 call remote#host#Register(s:plugin_binary, '*', function('s:RequireNvimGo'))

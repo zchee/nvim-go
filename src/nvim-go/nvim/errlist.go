@@ -110,7 +110,7 @@ func CloseQuickfix(v *vim.Vim) error {
 }
 
 // SplitPos split the result text of the vim error list syntax.
-func SplitPos(pos string) (string, int, int) {
+func SplitPos(pos string, cwd string) (string, int, int) {
 	file := strings.Split(pos, ":")
 	line, err := strconv.ParseInt(file[1], 10, 64)
 	if err != nil {
@@ -121,10 +121,11 @@ func SplitPos(pos string) (string, int, int) {
 		col = 0
 	}
 
-	fname, err := filepath.Abs(file[0])
+	fabs, err := filepath.Abs(file[0])
 	if err != nil {
 		return file[0], int(line), int(col)
 	}
+	fname := strings.TrimPrefix(fabs, cwd+string(filepath.Separator))
 
 	return fname, int(line), int(col)
 }
