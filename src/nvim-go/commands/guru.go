@@ -49,10 +49,14 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	defer context.WithGoBuildForPath(eval.Cwd)()
 
-	var b vim.Buffer
+	var (
+		b vim.Buffer
+		w vim.Window
+	)
 
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
+	p.CurrentWindow(&w)
 	if err := p.Wait(); err != nil {
 		return err
 	}
@@ -126,8 +130,6 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	// not definition mode
 	if mode != "definition" {
-		var w vim.Window
-		p.CurrentWindow(&w)
 		return nvim.OpenLoclist(p, w, loclist, config.GuruKeepCursor)
 	}
 
