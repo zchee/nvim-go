@@ -11,21 +11,24 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 )
 
+var (
+	tbuffer vim.Buffer
+	twindow vim.Window
+)
+
 type Terminal struct {
 	v      *vim.Vim
 	cmd    []string
 	mode   string
-	pos    string
 	Width  int64
 	Height int64
 }
 
-func NewTerminal(vim *vim.Vim, command []string) *Terminal {
+func NewTerminal(vim *vim.Vim, command []string, mode string) *Terminal {
 	return &Terminal{
 		v:    vim,
 		cmd:  command,
-		mode: config.TerminalMode,
-		pos:  config.TerminalPosition,
+		mode: mode,
 	}
 }
 
@@ -33,8 +36,7 @@ func (t *Terminal) Run() error {
 	var (
 		b      vim.Buffer
 		w      vim.Window
-		tb     vim.Buffer
-		tw     vim.Window
+		pos    = config.TerminalPosition
 		height = config.TerminalHeight
 		width  = config.TerminalWidth
 	)
@@ -47,51 +49,60 @@ func (t *Terminal) Run() error {
 		return err
 	}
 
-	// Set split window position. (defalut: botright)
-	vcmd := t.pos + " "
+	if twindow != 0 {
+		p.SetCurrentWindow(twindow)
+		p.SetBufferOption(tbuffer, "modified", false)
+		p.Call("termopen", nil, strings.Join(t.cmd, " "))
+		p.SetBufferOption(tbuffer, "modified", true)
+	} else {
+		// Set split window position. (defalut: botright)
+		vcmd := pos + " "
 
-	switch {
-	case height != int64(0) && t.mode == "split":
-		vcmd = strconv.FormatInt(height, 10)
-	case width != int64(0) && t.mode == "vsplit":
-		vcmd = strconv.FormatInt(width, 10)
-	case strings.Index(t.mode, "split") == -1:
-		return errors.New(fmt.Sprintf("%s mode is not supported", t.mode))
-	}
+		t.Height = height
+		t.Width = width
 
-	// Create terminal buffer and spawn command.
-	vcmd += t.mode + " | terminal " + strings.Join(t.cmd, " ")
-	p.Command(vcmd)
+		switch {
+		case t.Height != int64(0) && t.mode == "split":
+			vcmd += strconv.FormatInt(t.Height, 10)
+		case t.Width != int64(0) && t.mode == "vsplit":
+			vcmd += strconv.FormatInt(t.Width, 10)
+		case strings.Index(t.mode, "split") == -1:
+			return errors.New(fmt.Sprintf("%s mode is not supported", t.mode))
+		}
 
-	// Get terminal buffer and windows information.
-	p.CurrentBuffer(&tb)
-	p.CurrentWindow(&tw)
-	if err := p.Wait(); err != nil {
-		return err
+		// Create terminal buffer and spawn command.
+		vcmd += t.mode + " | terminal " + strings.Join(t.cmd, " ")
+		p.Command(vcmd)
+
+		// Get terminal buffer and windows information.
+		p.CurrentBuffer(&tbuffer)
+		p.CurrentWindow(&twindow)
+		if err := p.Wait(); err != nil {
+			return err
+		}
+
+		// Workaround for "autocmd BufEnter term://* startinsert"
+		if config.TerminalStartInsert != int64(0) {
+			p.Command("stopinsert")
+		}
+
+		p.SetBufferOption(tbuffer, "filetype", "terminal")
+		p.SetBufferOption(tbuffer, "buftype", "nofile")
+		p.SetBufferOption(tbuffer, "bufhidden", "delete")
+		p.SetBufferOption(tbuffer, "buflisted", false)
+		p.SetBufferOption(tbuffer, "swapfile", false)
+
+		p.SetWindowOption(twindow, "list", false)
+		p.SetWindowOption(twindow, "number", false)
+		p.SetWindowOption(twindow, "relativenumber", false)
+		p.SetWindowOption(twindow, "winfixheight", true)
 	}
 
 	// Set buffer name, filetype and options
-	p.SetBufferName(tb, "__GO_TERMINAL__")
-
-	p.SetBufferOption(tb, "filetype", "terminal")
-	p.SetBufferOption(tb, "bufhidden", "delete")
-	p.SetBufferOption(tb, "buflisted", false)
-	p.SetBufferOption(tb, "swapfile", false)
-
-	p.SetWindowOption(tw, "list", false)
-	p.SetWindowOption(tw, "number", false)
-	p.SetWindowOption(tw, "winfixheight", true)
+	p.SetBufferName(tbuffer, "__GO_TERMINAL__")
 
 	// Refocus coding buffer
 	p.SetCurrentWindow(w)
-	// Workaround for "autocmd BufEnter term://* startinsert"
-	if config.TerminalStartInsert != int64(0) {
-		p.Command("stopinsert")
-	}
 
 	return p.Wait()
-}
-
-func (t *Terminal) Open() error {
-	return nil
 }

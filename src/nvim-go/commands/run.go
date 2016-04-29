@@ -8,6 +8,7 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 
+	"nvim-go/config"
 	"nvim-go/nvim"
 )
 
@@ -18,7 +19,7 @@ func init() {
 }
 
 func Run(v *vim.Vim, cmd []string) error {
-	term := nvim.NewTerminal(v, cmd)
+	term := nvim.NewTerminal(v, cmd, config.TerminalMode)
 
 	if err := term.Run(); err != nil {
 		return err
