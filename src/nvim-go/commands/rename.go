@@ -20,19 +20,18 @@ func init() {
 		cmdRename)
 }
 
-type onRenameEval struct {
+type cmdRenameEval struct {
 	Dir    string `msgpack:",array"`
 	File   string
 	Offset int
 }
 
-func cmdRename(v *vim.Vim, args []string, eval *onRenameEval) error {
+func cmdRename(v *vim.Vim, args []string, eval *cmdRenameEval) {
 	go Rename(v, args, eval)
-	return nil
 }
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
-func Rename(v *vim.Vim, args []string, eval *onRenameEval) error {
+func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
 	defer context.WithGoBuildForPath(eval.Dir)()
 
 	from, err := v.CommandOutput(fmt.Sprintf("silent! echo expand('<cword>')"))
@@ -53,21 +52,29 @@ func Rename(v *vim.Vim, args []string, eval *onRenameEval) error {
 
 	offset := fmt.Sprintf("%s:#%d", eval.File, eval.Offset)
 
-	askMessage := fmt.Sprintf("%s: Rename '%s' to: ", "nvim-go", from[1:])
-	var to interface{}
-	if config.RenamePrefill {
-		p.Call("input", &to, askMessage, from[1:])
-		if err := p.Wait(); err != nil {
-			return nvim.Echomsg(v, "%s", err)
-		}
+	var to string
+	if len(args) > 0 {
+		to = args[0]
 	} else {
-		p.Call("input", &to, askMessage)
-		if err := p.Wait(); err != nil {
-			return nvim.Echomsg(v, "%s", err)
+		askMessage := fmt.Sprintf("%s: Rename '%s' to: ", "nvim-go", from[1:])
+		var toResult interface{}
+		if config.RenamePrefill {
+			p.Call("input", &toResult, askMessage, from[1:])
+			if err := p.Wait(); err != nil {
+				return nvim.Echomsg(v, "%s", err)
+			}
+		} else {
+			p.Call("input", &toResult, askMessage)
+			if err := p.Wait(); err != nil {
+				return nvim.Echomsg(v, "%s", err)
+			}
+		}
+		if toResult.(string) != "" {
+			to = toResult.(string)
 		}
 	}
 
-	if err := rename.Main(&build.Default, offset, "", fmt.Sprint(to)); err != nil {
+	if err := rename.Main(&build.Default, offset, "", to); err != nil {
 		if err != rename.ConflictError {
 			nvim.Echomsg(v, "%s", err)
 		}
