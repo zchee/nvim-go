@@ -22,11 +22,12 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"golang.org/x/tools/cmd/guru/serial"
+	"golang.org/x/tools/go/buildutil"
 
+	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/guru"
 	"nvim-go/nvim"
-	"nvim-go/config"
 )
 
 func init() {
@@ -83,6 +84,29 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	}
 
 	ctxt := &build.Default
+
+	// TODO(zchee): Use p.BufferOption("modified", modified)?
+	var modified string
+	p.CommandOutput("silent set modified?", &modified)
+	// https://github.com/golang/tools/blob/master/cmd/guru/main.go
+	if modified == "modified" {
+		overlay := make(map[string][]byte)
+
+		var (
+			buffer  [][]byte
+			bytebuf []byte
+			bname   string
+		)
+
+		p.BufferName(b, &bname)
+		p.BufferLines(b, -1, 0, false, &buffer)
+		for _, byt := range buffer {
+			bytebuf = append(bytebuf, byt...)
+		}
+
+		overlay[bname] = bytebuf
+		ctxt = buildutil.OverlayContext(ctxt, overlay)
+	}
 
 	var outputMu sync.Mutex
 	var loclist []*nvim.ErrorlistData

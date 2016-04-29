@@ -116,7 +116,7 @@ https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L188
   - [ ] Support GoTestCompile(?)
 
 ## GoGuru
-  - [ ] Support unsaved file (buffer)
+  - [x] Support unsaved file (buffer)
   - [ ] `definition` subcommand support use cgo file (need fix `guru` core)
   - [ ] Implements tags flag feature
   - [ ] Support stacking
