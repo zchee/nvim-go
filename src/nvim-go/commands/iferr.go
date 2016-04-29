@@ -15,11 +15,6 @@ import (
 	"nvim-go/nvim"
 )
 
-var (
-	iferrAsync  = "go#iferr#async"
-	vIferrAsync interface{}
-)
-
 func init() {
 	plugin.HandleCommand("GoIferr", &plugin.CommandOptions{Eval: "[expand('%:p:h'), expand('%:p')]"}, Iferr)
 }
