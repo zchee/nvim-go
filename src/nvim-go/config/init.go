@@ -13,6 +13,7 @@ type Config struct {
 	Guru       GuruVars
 	Iferr      IferrVars
 	Metalinter MetalinterVars
+	Rename     RenameVars
 	Terminal   TerminalVars
 	Debug      DebugVars
 }
@@ -50,6 +51,10 @@ type MetalinterVars struct {
 	AutosaveTools []string `eval:"g:go#lint#metalinter#autosave#tools"`
 	Tools         []string `eval:"g:go#lint#metalinter#tools"`
 	Deadline      string   `eval:"g:go#lint#metalinter#deadline"`
+}
+
+type RenameVars struct {
+	Prefill int64 `eval:"g:go#rename#prefill"`
 }
 
 // TerminalVars configure of open the terminal window
@@ -94,6 +99,8 @@ var (
 	MetalinterTools []string
 	// MetalinterDeadline deadline of GoMetaLinter command timeout.
 	MetalinterDeadline string
+	// RenamePrefill Enable naming prefill
+	RenamePrefill bool
 	// TerminalMode open the terminal window mode.
 	TerminalMode string
 	// TerminalPosition open the terminal window position.
@@ -132,6 +139,9 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 	MetalinterAutosaveTools = cfg.Metalinter.AutosaveTools
 	MetalinterTools = cfg.Metalinter.Tools
 	MetalinterDeadline = cfg.Metalinter.Deadline
+
+	// Rename
+	RenamePrefill = itob(cfg.Rename.Prefill)
 
 	// Terminal
 	TerminalMode = cfg.Terminal.Mode
