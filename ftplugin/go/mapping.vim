@@ -8,6 +8,9 @@ nnoremap <silent><Plug>(nvim-go-build)  :<C-u>Gobuild<CR>
 nnoremap <silent><Plug>(nvim-go-goto)  :<C-u>call GoGuru('definition')<CR>
 nnoremap <silent><Plug>(nvim-go-def)   :<C-u>call GoDef('expand("%:p")')<CR>
 
+" GoGenerate
+nnoremap <silent><Plug>(nvim-go-generatetest)   :<C-u>GoGenerateTest<CR>
+
 " GoGuru
 nnoremap <silent><Plug>(nvim-go-callees)       :<C-u>call GoGuru('callees')<CR>
 nnoremap <silent><Plug>(nvim-go-callers)       :<C-u>call GoGuru('callers')<CR>

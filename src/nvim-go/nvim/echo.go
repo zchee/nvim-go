@@ -15,6 +15,11 @@ func Echo(v *vim.Vim, format string, a ...interface{}) error {
 	return v.Command("echo '" + fmt.Sprintf(format, a...) + "'")
 }
 
+// EchoRaw provide the raw output vim 'echo' command.
+func EchoRaw(v *vim.Vim, a string) error {
+	return v.Command("echo \"" + a + "\"")
+}
+
 // Echomsg provide the vim 'echomsg' command.
 func Echomsg(v *vim.Vim, a ...interface{}) error {
 	return v.Command("echomsg '" + fmt.Sprintln(a...) + "'")

@@ -53,7 +53,7 @@ http://ribrdb.github.io/lldb/
   - [x] cgo completion was Implemented `deoplete-go` use libclang-python3
 
 ## Support useful gotools
-  - [ ] gotests (`GoGenerateTestFunc`)
+  - [x] gotests (`GoGenerateTest`)
     - https://github.com/cweill/gotests
 
 ## Unit Test
