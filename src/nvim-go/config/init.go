@@ -51,6 +51,7 @@ type MetalinterVars struct {
 	AutosaveTools []string `eval:"g:go#lint#metalinter#autosave#tools"`
 	Tools         []string `eval:"g:go#lint#metalinter#tools"`
 	Deadline      string   `eval:"g:go#lint#metalinter#deadline"`
+	SkipDir       []string `eval:"g:go#lint#metalinter#skip_dir"`
 }
 
 // RenameVars GoRename command config variable.
@@ -100,6 +101,8 @@ var (
 	MetalinterTools []string
 	// MetalinterDeadline deadline of GoMetaLinter command timeout.
 	MetalinterDeadline string
+	// MetalinterSkipDir skips of lint of the directory.
+	MetalinterSkipDir []string
 	// RenamePrefill Enable naming prefill
 	RenamePrefill bool
 	// TerminalMode open the terminal window mode.
@@ -140,6 +143,7 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 	MetalinterAutosaveTools = cfg.Metalinter.AutosaveTools
 	MetalinterTools = cfg.Metalinter.Tools
 	MetalinterDeadline = cfg.Metalinter.Deadline
+	MetalinterSkipDir = cfg.Metalinter.SkipDir
 
 	// Rename
 	RenamePrefill = itob(cfg.Rename.Prefill)

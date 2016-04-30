@@ -55,6 +55,11 @@ func Metalinter(v *vim.Vim, cwd string) error {
 	for _, t := range config.MetalinterTools {
 		args = append(args, "--enable", t)
 	}
+	if len(config.MetalinterSkipDir) != 0 {
+		for _, dir := range config.MetalinterSkipDir {
+			args = append(args, "--skip", dir)
+		}
+	}
 
 	cmd := exec.Command("gometalinter", args...)
 	cmd.Dir = cwd
