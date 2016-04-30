@@ -21,7 +21,7 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/context"
-	"nvim-go/guru"
+	"nvim-go/internal/guru"
 	"nvim-go/nvim"
 
 	"github.com/garyburd/neovim-go/vim"

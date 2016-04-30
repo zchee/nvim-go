@@ -55,11 +55,11 @@ vendor/all:
 	${VENDOR_CMD} update -all
 
 vendor/guru:
-	${RM} -r ${PACKAGE_DIR}/src/nvim-go/guru
+	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru
 	${VENDOR_CMD} fetch golang.org/x/tools/cmd/guru
-	cp -r ${PACKAGE_DIR}/vendor/src/golang.org/x/tools/cmd/guru ${PACKAGE_DIR}/src/nvim-go/guru
-	${RM} -r ${PACKAGE_DIR}/src/nvim-go/guru/{main.go,*_test.go,serial,testdata,*.bash,*.vim,*.el}
-	grep "package main" ${PACKAGE_DIR}/src/nvim-go/guru/*.go -l | xargs sed -i 's/package main/package guru/'
+	cp -r ${PACKAGE_DIR}/vendor/src/golang.org/x/tools/cmd/guru ${PACKAGE_DIR}/src/nvim-go/internal/guru
+	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/{main.go,*_test.go,serial,testdata,*.bash,*.vim,*.el}
+	grep "package main" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
 	${VENDOR_CMD} delete golang.org/x/tools/cmd/guru
 	${VENDOR_CMD} update golang.org/x/tools/cmd/guru/serial
 
