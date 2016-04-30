@@ -6,6 +6,7 @@ package commands
 
 import (
 	"go/build"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -58,7 +59,12 @@ func Build(v *vim.Vim, cwd string) error {
 		baseDir = filepath.Join(baseDir, "src")
 	}
 
-	cmd := exec.Command(compiler, "build")
+	tmpfile, err := ioutil.TempFile(os.TempDir(), "nvim-go")
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command(compiler, "build", "-o", tmpfile.Name())
 	out, _ := cmd.CombinedOutput()
 
 	cmd.Run()
