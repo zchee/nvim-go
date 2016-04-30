@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	re    = regexp.MustCompile(`(?s)let s:specs =.+\][\n]*`)
 	old   = flag.Bool("old", false, "display old file data to stdout")
 	new   = flag.Bool("new", false, "display new file data to stdout")
 	spec  = flag.Bool("specs", false, "display latest specs to stdout")
@@ -66,6 +65,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	re := regexp.MustCompile(`(?s)let s:specs =.+]\n+`)
 	// Replace the old specs to the latest specs
 	newData := re.ReplaceAll(oldData, newSpecs)
 
@@ -82,7 +82,9 @@ func main() {
 		fmt.Printf("%v", string(newSpecs[:len(newSpecs)-1]))
 		return
 	case *write:
-		if _, err := plugFile.WriteAt(bytes.TrimSpace(newData), 0); err != nil {
+		data := bytes.TrimSpace(newData)
+		data = append(data, byte('\n'))
+		if _, err := plugFile.WriteAt(data, 0); err != nil {
 			log.Fatal(err)
 		}
 		return
