@@ -10,6 +10,7 @@
 package commands
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"go/build"
@@ -31,13 +32,14 @@ import (
 )
 
 func init() {
-	plugin.HandleFunction("GoGuru", &plugin.FunctionOptions{Eval: "[getcwd(), expand('%:p:h'), expand('%:p')]"}, funcGuru)
+	plugin.HandleFunction("GoGuru", &plugin.FunctionOptions{Eval: "[getcwd(), expand('%:p:h'), expand('%:p'), &modified]"}, funcGuru)
 }
 
 type funcGuruEval struct {
-	Cwd  string `msgpack:",array"`
-	Dir  string
-	File string
+	Cwd      string `msgpack:",array"`
+	Dir      string
+	File     string
+	Modified int
 }
 
 func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
@@ -73,29 +75,22 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	ctxt := &build.Default
 
-	// TODO(zchee): Use p.BufferOption("modified", modified)?
-	var modified string
-	p.CommandOutput("silent set modified?", &modified)
-	if err := p.Wait(); err != nil {
-		return err
-	}
 	// https://github.com/golang/tools/blob/master/cmd/guru/main.go
-	if modified == "modified" {
+	if eval.Modified != 0 {
 		overlay := make(map[string][]byte)
 
 		var (
-			buffer  [][]byte
-			bytebuf []byte
-			bname   string
+			buffer [][]byte
+			bname  string
 		)
 
+		p.BufferLines(b, 0, -1, true, &buffer)
 		p.BufferName(b, &bname)
-		p.BufferLines(b, -1, 0, false, &buffer)
-		for _, byt := range buffer {
-			bytebuf = append(bytebuf, byt...)
+		if err := p.Wait(); err != nil {
+			return err
 		}
 
-		overlay[bname] = bytebuf
+		overlay[bname] = bytes.Join(buffer, []byte{'\n'})
 		ctxt = buildutil.OverlayContext(ctxt, overlay)
 	}
 
