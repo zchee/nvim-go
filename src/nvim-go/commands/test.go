@@ -24,7 +24,7 @@ func cmdTest(v *vim.Vim, dir string) {
 // Test run the package test command use compile tool that determined from
 // the directory structure.
 func Test(v *vim.Vim, dir string) error {
-	defer context.WithGoBuildForPath(dir)()
+	defer context.SetContext(dir)()
 
 	buildDir := strings.Split(build.Default.GOPATH, ":")[0]
 	var cmd []string

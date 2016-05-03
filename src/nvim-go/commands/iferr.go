@@ -27,7 +27,7 @@ type CmdIferrEval struct {
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func Iferr(v *vim.Vim, eval CmdIferrEval) error {
-	defer context.WithGoBuildForPath(eval.Cwd)()
+	defer context.SetContext(eval.Cwd)()
 
 	b, err := v.CurrentBuffer()
 	if err != nil {

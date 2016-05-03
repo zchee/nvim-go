@@ -36,7 +36,7 @@ type metalinterResult struct {
 
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
 func Metalinter(v *vim.Vim, cwd string) error {
-	defer context.WithGoBuildForPath(cwd)()
+	defer context.SetContext(cwd)()
 
 	var (
 		loclist []*nvim.ErrorlistData

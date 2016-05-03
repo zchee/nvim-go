@@ -50,9 +50,9 @@ func funcDef(v *vim.Vim, args []string) {
 // DEPRECATED: godef no longer mantained.
 func Def(v *vim.Vim, file string) error {
 	defer nvim.Profile(time.Now(), "GoDef")
-
 	dir, _ := filepath.Split(file)
-	defer context.WithGoBuildForPath(dir)()
+	defer context.SetContext(dir)()
+
 	gopath := strings.Split(build.Default.GOPATH, ":")
 	for i, d := range gopath {
 		gopath[i] = filepath.Join(d, "src")

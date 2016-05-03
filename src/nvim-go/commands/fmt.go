@@ -29,7 +29,7 @@ func init() {
 
 // Fmt format to the current buffer source uses gofmt behavior.
 func Fmt(v *vim.Vim, dir string) error {
-	defer context.WithGoBuildForPath(dir)()
+	defer context.SetContext(dir)()
 
 	var (
 		b vim.Buffer
