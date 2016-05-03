@@ -70,9 +70,10 @@ func (ctxt *Build) isGb(p string) (string, bool) {
 	// gb project directory is `../../pkgRoot`
 	projRoot, src := filepath.Split(filepath.Dir(pkgRoot))
 
-	_, err := os.Stat(filepath.Join(filepath.Clean(projRoot), "vendor/manifest"))
+	manifest := filepath.Join(filepath.Clean(projRoot), "vendor/manifest")
+	_, err := os.Stat(manifest)
 
-	return filepath.Clean(projRoot), (err != nil || src == "src")
+	return filepath.Clean(projRoot), (err == nil && src == "src")
 }
 
 // contextMu Mutex lock for SetContext.
