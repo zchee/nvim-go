@@ -5,6 +5,7 @@ import (
 	"go/format"
 	"go/parser"
 	"os"
+	"path/filepath"
 	"time"
 
 	"nvim-go/context"
@@ -17,24 +18,19 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("GoIferr", &plugin.CommandOptions{Eval: "[expand('%:p:h'), expand('%:p')]"}, cmdIferr)
+	plugin.HandleCommand("GoIferr", &plugin.CommandOptions{Eval: "expand('%:p')"}, cmdIferr)
 }
 
-// CmdIferrEval type struct for func Iferr().
-type CmdIferrEval struct {
-	Cwd  string `msgpack:",array"`
-	File string
-}
-
-func cmdIferr(v *vim.Vim, eval CmdIferrEval) {
-	go Iferr(v, eval)
+func cmdIferr(v *vim.Vim, file string) {
+	go Iferr(v, file)
 }
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
-func Iferr(v *vim.Vim, eval CmdIferrEval) error {
+func Iferr(v *vim.Vim, file string) error {
 	defer nvim.Profile(time.Now(), "GoIferr")
 	var ctxt = context.Build{}
-	defer ctxt.SetContext(eval.Cwd)()
+	dir, _ := filepath.Split(file)
+	defer ctxt.SetContext(dir)()
 
 	b, err := v.CurrentBuffer()
 	if err != nil {
@@ -56,12 +52,12 @@ func Iferr(v *vim.Vim, eval CmdIferrEval) error {
 		ParserMode:  parser.ParseComments,
 	}
 
-	f, err := conf.ParseFile(eval.File, buf)
+	f, err := conf.ParseFile(file, buf)
 	if err != nil {
 		return nvim.Echoerr(v, "GoIferr: %v", err)
 	}
 
-	conf.CreateFromFiles(eval.File, f)
+	conf.CreateFromFiles(file, f)
 	prog, err := conf.Load()
 	if err != nil {
 		return err

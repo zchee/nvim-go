@@ -3,6 +3,7 @@ package autocmd
 import (
 	"nvim-go/commands"
 	"nvim-go/config"
+	"path/filepath"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -10,22 +11,19 @@ import (
 
 func init() {
 	plugin.HandleAutocmd("BufWritePre",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h'), expand('%:p')]"}, autocmdBufWritePre)
+		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p')]"}, autocmdBufWritePre)
 }
 
 type bufwritepreEval struct {
 	Cwd  string `msgpack:",array"`
-	Dir  string
 	File string
 }
 
 func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
+	dir, _ := filepath.Split(eval.File)
+
 	if config.IferrAutosave {
-		var env = commands.CmdIferrEval{
-			Cwd:  eval.Cwd,
-			File: eval.File,
-		}
-		go commands.Iferr(v, env)
+		go commands.Iferr(v, eval.File)
 	}
 
 	if config.MetalinterAutosave {
@@ -33,9 +31,9 @@ func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
 	}
 
 	if config.FmtAsync {
-		go commands.Fmt(v, eval.Dir)
+		go commands.Fmt(v, dir)
 	} else {
-		return commands.Fmt(v, eval.Dir)
+		return commands.Fmt(v, dir)
 	}
 
 	return nil
