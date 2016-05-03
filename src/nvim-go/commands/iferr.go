@@ -17,13 +17,17 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("GoIferr", &plugin.CommandOptions{Eval: "[expand('%:p:h'), expand('%:p')]"}, Iferr)
+	plugin.HandleCommand("GoIferr", &plugin.CommandOptions{Eval: "[expand('%:p:h'), expand('%:p')]"}, cmdIferr)
 }
 
 // CmdIferrEval type struct for func Iferr().
 type CmdIferrEval struct {
 	Cwd  string `msgpack:",array"`
 	File string
+}
+
+func cmdIferr(v *vim.Vim, eval CmdIferrEval) {
+	go Iferr(v, eval)
 }
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
