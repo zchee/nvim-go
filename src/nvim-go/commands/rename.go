@@ -42,10 +42,6 @@ func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
 		nvim.Echomsg(v, "%s", err)
 	}
 
-	var (
-		b vim.Buffer
-		w vim.Window
-	)
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)

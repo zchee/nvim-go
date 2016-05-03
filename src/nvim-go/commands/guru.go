@@ -52,11 +52,6 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	var c = context.Build{}
 	defer c.SetContext(eval.Dir)()
 
-	var (
-		b vim.Buffer
-		w vim.Window
-	)
-
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)

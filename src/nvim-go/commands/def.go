@@ -67,10 +67,6 @@ func Def(v *vim.Vim, file string) error {
 
 	v.Var(defNomodifiable, &vDefNomodifiable)
 
-	var (
-		b vim.Buffer
-		w vim.Window
-	)
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)
