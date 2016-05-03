@@ -10,11 +10,12 @@ import (
 
 func init() {
 	plugin.HandleAutocmd("BufWritePre",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p')]"}, autocmdBufWritePre)
+		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h'), expand('%:p')]"}, autocmdBufWritePre)
 }
 
 type bufwritepreEval struct {
 	Cwd  string `msgpack:",array"`
+	Dir  string
 	File string
 }
 
@@ -32,9 +33,10 @@ func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
 	}
 
 	if config.FmtAsync {
-		go commands.Fmt(v, eval.Cwd)
+		go commands.Fmt(v, eval.Dir)
 	} else {
-		return commands.Fmt(v, eval.Cwd)
+		return commands.Fmt(v, eval.Dir)
 	}
+
 	return nil
 }
