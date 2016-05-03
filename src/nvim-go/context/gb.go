@@ -74,24 +74,6 @@ func GoPath(p string) string {
 
 var goBuildDefaultMu sync.Mutex
 
-// WithGoBuildForPath sets the go/build Default.GOPATH to GoPath(p) under a
-// mutex. The returned function restores Default.GOPATH to its original value
-// and unlocks the mutex.
-//
-// This function intended to be used to the golang.org/x/tools/imports and
-// other packages that use go/build Default.
-func WithGoBuildForPath(p string) func() {
-	goBuildDefaultMu.Lock()
-	original := build.Default.GOPATH
-	build.Default.GOPATH = GoPath(p)
-	os.Setenv("GOPATH", build.Default.GOPATH)
-	build.Default.UseAllFiles = false
-	return func() {
-		build.Default.GOPATH = original
-		goBuildDefaultMu.Unlock()
-	}
-}
-
 // Package represents a Go package.
 type Package struct {
 	FSet     *token.FileSet
