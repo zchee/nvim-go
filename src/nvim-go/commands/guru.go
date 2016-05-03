@@ -49,7 +49,8 @@ func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
 // Guru go source analysis and output result to the quickfix or locationlist.
 func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	defer nvim.Profile(time.Now(), "Guru")
-	defer context.SetContext(eval.Dir)()
+	var c = context.Build{}
+	defer c.SetContext(eval.Dir)()
 
 	var (
 		b vim.Buffer

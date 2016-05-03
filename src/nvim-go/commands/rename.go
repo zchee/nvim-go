@@ -34,7 +34,8 @@ func cmdRename(v *vim.Vim, args []string, eval *cmdRenameEval) {
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
 func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
 	defer nvim.Profile(time.Now(), "GoRename")
-	defer context.SetContext(eval.Dir)()
+	var ctxt = context.Build{}
+	defer ctxt.SetContext(eval.Dir)()
 
 	from, err := v.CommandOutput(fmt.Sprintf("silent! echo expand('<cword>')"))
 	if err != nil {

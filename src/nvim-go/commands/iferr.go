@@ -33,7 +33,8 @@ func cmdIferr(v *vim.Vim, eval CmdIferrEval) {
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func Iferr(v *vim.Vim, eval CmdIferrEval) error {
 	defer nvim.Profile(time.Now(), "GoIferr")
-	defer context.SetContext(eval.Cwd)()
+	var ctxt = context.Build{}
+	defer ctxt.SetContext(eval.Cwd)()
 
 	b, err := v.CurrentBuffer()
 	if err != nil {

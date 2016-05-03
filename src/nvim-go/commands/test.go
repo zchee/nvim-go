@@ -26,7 +26,8 @@ func cmdTest(v *vim.Vim, dir string) {
 // the directory structure.
 func Test(v *vim.Vim, dir string) error {
 	defer nvim.Profile(time.Now(), "GoTest")
-	defer context.SetContext(dir)()
+	var ctxt = context.Build{}
+	defer ctxt.SetContext(dir)()
 
 	buildDir := strings.Split(build.Default.GOPATH, ":")[0]
 	var cmd []string

@@ -51,7 +51,8 @@ func funcDef(v *vim.Vim, args []string) {
 func Def(v *vim.Vim, file string) error {
 	defer nvim.Profile(time.Now(), "GoDef")
 	dir, _ := filepath.Split(file)
-	defer context.SetContext(dir)()
+	var ctxt = context.Build{}
+	defer ctxt.SetContext(dir)()
 
 	gopath := strings.Split(build.Default.GOPATH, ":")
 	for i, d := range gopath {

@@ -20,8 +20,8 @@ type Build struct {
 }
 
 // GoPath return the new GOPATH estimated from the path p directory structure.
-func (ctxt *Build) GoPath(p string) string {
-	ctxt.Tool = "go"
+func (ctxt *Build) buildContext(p string) (string, string) {
+	tool := "go"
 
 	// Get original $GOPATH path.
 	goPath := os.Getenv("GOPATH")
@@ -41,10 +41,10 @@ func (ctxt *Build) GoPath(p string) string {
 		goPath = gbpath + string(filepath.ListSeparator) +
 			filepath.Join(gbpath, "vendor") + string(filepath.ListSeparator) +
 			goPath
-		ctxt.Tool = "gb"
+		tool = "gb"
 	}
 
-	return goPath
+	return goPath, tool
 }
 
 // isGb return the gb package root path if p is gb project directory structure.
@@ -78,17 +78,17 @@ func (ctxt *Build) isGb(p string) (string, bool) {
 // contextMu Mutex lock for SetContext.
 var contextMu sync.Mutex
 
-// SetContext sets the go/build Default.GOPATH to GoPath(p) under a mutex.
+// SetContext sets the go/build Default.GOPATH and $GOPATH to GoPath(p)
+// under a mutex.
 // The returned function restores Default.GOPATH to its original value and
 // unlocks the mutex.
 //
 // This function intended to be used to the go/build Default.
-func SetContext(p string) func() {
+func (c *Build) SetContext(p string) func() {
 	contextMu.Lock()
 	original := build.Default.GOPATH
 
-	var c Build
-	build.Default.GOPATH = c.GoPath(p)
+	build.Default.GOPATH, c.Tool = c.buildContext(p)
 	os.Setenv("GOPATH", build.Default.GOPATH)
 
 	return func() {
