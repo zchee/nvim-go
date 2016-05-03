@@ -53,13 +53,10 @@ func (ctxt *Build) isGb(p string) (string, bool) {
 
 	var pkgRoot string
 	for {
-		pkg, err := ctxt.ImportDir(p, build.IgnoreVendor)
-		if err != nil {
-			return "", err != nil
-			break
-		}
+		pkg, _ := ctxt.ImportDir(p, build.IgnoreVendor)
+		rootDir := FindVcsRoot(p)
 
-		if pkg.Name == "main" {
+		if pkg.Name == "main" || rootDir == pkg.Dir {
 			pkgRoot = pkg.Dir
 			break
 		}
