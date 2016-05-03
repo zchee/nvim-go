@@ -7,6 +7,7 @@ package commands
 import (
 	"nvim-go/config"
 	"nvim-go/nvim"
+	"time"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -20,6 +21,7 @@ func init() {
 
 // Run runs the go run command for current buffer's packages.
 func Run(v *vim.Vim, cmd []string) error {
+	defer nvim.Profile(time.Now(), "GoRun")
 	term := nvim.NewTerminal(v, cmd, config.TerminalMode)
 
 	if err := term.Run(); err != nil {

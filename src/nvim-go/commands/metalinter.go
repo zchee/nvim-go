@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"time"
 
 	"nvim-go/config"
 	"nvim-go/context"
@@ -36,6 +37,7 @@ type metalinterResult struct {
 
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
 func Metalinter(v *vim.Vim, cwd string) error {
+	defer nvim.Profile(time.Now(), "GoMetaLinter")
 	defer context.SetContext(cwd)()
 
 	var (

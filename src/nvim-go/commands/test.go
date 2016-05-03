@@ -4,6 +4,7 @@ import (
 	"go/build"
 	"os"
 	"strings"
+	"time"
 
 	"nvim-go/config"
 	"nvim-go/context"
@@ -24,6 +25,7 @@ func cmdTest(v *vim.Vim, dir string) {
 // Test run the package test command use compile tool that determined from
 // the directory structure.
 func Test(v *vim.Vim, dir string) error {
+	defer nvim.Profile(time.Now(), "GoTest")
 	defer context.SetContext(dir)()
 
 	buildDir := strings.Split(build.Default.GOPATH, ":")[0]
