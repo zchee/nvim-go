@@ -1,9 +1,6 @@
 package config
 
-import (
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
-)
+import "github.com/garyburd/neovim-go/vim"
 
 // Config struct of config variable for nvim-go commands.
 type Config struct {
@@ -71,11 +68,6 @@ type TerminalVars struct {
 // DebugVars debug of nvim-go config variable.
 type DebugVars struct {
 	Pprof int64 `eval:"g:go#debug#pprof"`
-}
-
-func init() {
-	plugin.HandleAutocmd("VimEnter",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "*"}, Getconfig)
 }
 
 var (
