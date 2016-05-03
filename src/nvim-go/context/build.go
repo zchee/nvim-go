@@ -12,8 +12,8 @@ import (
 	"sync"
 )
 
-// A Context specifies the supporting context for a build and
-// embedded build.Context type struct.
+// A Context specifies the supporting context for a build and embedded
+// build.Context type struct.
 type Build struct {
 	Tool string
 	build.Context
@@ -35,10 +35,12 @@ func (ctxt *Build) GoPath(p string) string {
 	// Cleanup directory path.
 	p = filepath.Clean(p)
 
-	// path p is Gb directory structure? if yes, append gb root and vendor path
-	// to the goPath lists.
+	// Check the path p are Gb directory structure.
+	// If yes, append gb root and vendor path to the goPath lists.
 	if gbpath, yes := ctxt.isGb(p); yes {
-		goPath = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor") + string(filepath.ListSeparator) + goPath
+		goPath = gbpath + string(filepath.ListSeparator) +
+			filepath.Join(gbpath, "vendor") + string(filepath.ListSeparator) +
+			goPath
 		ctxt.Tool = "gb"
 	}
 
@@ -65,16 +67,22 @@ func (ctxt *Build) isGb(p string) (string, bool) {
 		continue
 	}
 
+	// gb project directory is `../../pkgRoot`
 	projRoot, src := filepath.Split(filepath.Dir(pkgRoot))
 
 	_, err := os.Stat(filepath.Join(filepath.Clean(projRoot), "vendor/manifest"))
 
-	return projRoot, (err != nil || src == "src")
+	return filepath.Clean(projRoot), (err != nil || src == "src")
 }
 
-// contextMu Mutex lock for SetContext
+// contextMu Mutex lock for SetContext.
 var contextMu sync.Mutex
 
+// SetContext sets the go/build Default.GOPATH to GoPath(p) under a mutex.
+// The returned function restores Default.GOPATH to its original value and
+// unlocks the mutex.
+//
+// This function intended to be used to the go/build Default.
 func SetContext(p string) func() {
 	contextMu.Lock()
 	original := build.Default.GOPATH
