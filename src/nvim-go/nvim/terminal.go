@@ -107,13 +107,17 @@ func (t *Terminal) Run() error {
 		p.SetWindowOption(twindow, "number", false)
 		p.SetWindowOption(twindow, "relativenumber", false)
 		p.SetWindowOption(twindow, "winfixheight", true)
+
+		p.Command("autocmd! * <buffer>")
+		p.Command("autocmd BufEnter <buffer> startinsert")
 	}
 
 	// Set buffer name, filetype and options
 	p.SetBufferName(tbuffer, "__GO_TERMINAL__")
 
-	// Refocus coding buffer
+	// Refocus coding buffer and stop insert mode
 	p.SetCurrentWindow(w)
+	p.Command("stopinsert")
 
 	return p.Wait()
 }
