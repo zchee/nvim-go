@@ -9,12 +9,12 @@ import (
 )
 
 func init() {
-	plugin.HandleAutocmd("BufWritePost", &plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "getcwd()"}, autocmdBufWritePost)
+	plugin.HandleAutocmd("BufWritePost", &plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h')]"}, autocmdBufWritePost)
 }
 
-func autocmdBufWritePost(v *vim.Vim, cwd string) error {
+func autocmdBufWritePost(v *vim.Vim, eval commands.CmdBuildEval) error {
 	if config.BuildAutosave {
-		go commands.Build(v, cwd)
+		go commands.Build(v, eval)
 	}
 
 	return nil

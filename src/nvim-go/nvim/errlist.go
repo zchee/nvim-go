@@ -5,7 +5,10 @@
 package nvim
 
 import (
+	"bytes"
+	"nvim-go/context"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -131,32 +134,36 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 }
 
 // ParseError parse a typical output of command written in Go.
-func ParseError(v *vim.Vim, errors string, cwd string, basedir string) []*ErrorlistData {
+func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistData, error) {
 	var (
 		errlist []*ErrorlistData
-		pkgdir  string
+		errPat  = regexp.MustCompile(`^# ([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
+		fname   string
 	)
 
-	el := strings.Split(errors, "\n")
-	for _, es := range el {
-		if e := strings.SplitN(es, "# ", 2); len(e) > 1 {
-			pkgdir = e[1]
-		}
-		if e := strings.SplitN(es, ":", 3); len(e) > 1 {
-			line, err := strconv.ParseInt(e[1], 10, 64)
-			if err != nil {
-				continue
-			}
+	for _, m := range errPat.FindAllSubmatch(errors, -1) {
+		fb := bytes.Split(m[1], []byte("\n"))
+		fs := string(bytes.Join(fb, []byte(string(filepath.Separator))))
+		if ctxt.Tool == "go" {
+			sep := ctxt.GOPATH + string(filepath.Separator) + "src" + string(filepath.Separator)
+			c := strings.TrimPrefix(cwd, sep)
 
-			file := filepath.Join(basedir, pkgdir, e[0])
-			fname := strings.TrimPrefix(file, cwd+string(filepath.Separator))
-
-			errlist = append(errlist, &ErrorlistData{
-				FileName: fname,
-				LNum:     int(line),
-				Text:     e[2],
-			})
+			fname = strings.TrimPrefix(filepath.Clean(fs), c+string(filepath.Separator))
+		} else if ctxt.Tool == "gb" {
+			sep := filepath.Base(cwd) + string(filepath.Separator)
+			fname = strings.TrimPrefix(filepath.Clean(fs), sep)
 		}
+
+		line, _ := strconv.Atoi(string(m[2]))
+		col, _ := strconv.Atoi(string(m[3]))
+
+		errlist = append(errlist, &ErrorlistData{
+			FileName: fname,
+			LNum:     line,
+			Col:      col,
+			Text:     string(bytes.TrimSpace(m[4])),
+		})
 	}
-	return errlist
+
+	return errlist, nil
 }
