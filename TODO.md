@@ -119,3 +119,57 @@ https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L188
   - [ ] `definition` subcommand support use cgo file (need fix `guru` core)
   - [ ] Implements tags flag feature
   - [ ] Support stacking
+
+
+# Command diff list
+
+| Done                   | vim-go commands     | vim-go functions                                         | nvim-go                     | async     |
+|:----------------------:|---------------------|----------------------------------------------------------|-----------------------------|:---------:|
+| <ul><li>[ ] </li></ul> | `GoInstallBinaries` | `s:GoInstallBinaries(-1)`                           | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoUpdateBinaries`  | `s:GoInstallBinaries(1)`                            | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoPath`            | `go#path#GoPath(<f-args>)`                          | -                           | -         |
+| <ul><li>[x] </li></ul> | `GoRename`          | `go#rename#Rename(<bang>0,<f-args>)`                | `Gorename`                  | **Yes**   |
+| <ul><li>[ ] </li></ul> | `GoGuruScope`       | `go#guru#Scope(<f-args>)`                           | -                           | -         |
+| <ul><li>[x] </li></ul> | `GoImplements`      | `go#guru#Implements(<count>)`                       | `GoGuruImplements`          | **Yes**   |
+| <ul><li>[x] </li></ul> | `GoCallees`         | `go#guru#Callees(<count>)`                          | `GoGuruCallees`             | **Yes**   |
+| <ul><li>[x] </li></ul> | `GoDescribe`        | `go#guru#Describe(<count>)`                         | `GoGuruDescribe`            | **Yes**   |
+| <ul><li>[x] </li></ul> | `GoCallers`         | `go#guru#Callers(<count>)`                          | `GoGuruCallers`             | **Yes**   |
+| <ul><li>[x] </li></ul> | `GoCallstack`       | `go#guru#Callstack(<count>)`                        | `GoGuruCallstack`           | **Yes**   |
+| <ul><li>[x] </li></ul> | `GoFreevars`        | `go#guru#Freevars(<count>)`                         | `GoGuruFreevars`            | **Yes**   |
+| <ul><li>[x] </li></ul> | `GoChannelPeers`    | `go#guru#ChannelPeers(<count>)`                     | `GoGuruChannelPeers`        | **Yes**   |
+| <ul><li>[x] </li></ul> | `GoReferrers`       | `go#guru#Referrers(<count>)`                        | `GoGuruReferrers`           | **Yes**   |
+| <ul><li>[ ] </li></ul> | `GoGuruTags`        | `go#guru#Tags(<f-args>)`                            | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoSameIds`         | `go#guru#SameIds(<count>)`                          | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoFiles`           | `go#tool#Files()`                                   | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoDeps`            | `go#tool#Deps()`                                    | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoInfo`            | `go#complete#Info(0)`                               | -                           | -         |
+| <ul><li>[x] </li></ul> | `GoBuild`           | `go#cmd#Build(<bang>0,<f-args>)`                    | `Gobuild`                   | **Yes**   |
+| <ul><li>[ ] </li></ul> | `GoGenerate`        | `go#cmd#Generate(<bang>0,<f-args>)`                 | -                           | -         |
+| <ul><li>[x] </li></ul> | `GoRun`             | `go#cmd#Run(<bang>0,<f-args>)`                      | `Gorun`                     | **Yes**   |
+| <ul><li>[ ] </li></ul> | `GoInstall`         | `go#cmd#Install(<bang>0, <f-args>)`                 | -                           | -         |
+| <ul><li>[x] </li></ul> | `GoTest`            | `go#cmd#Test(<bang>0, 0, <f-args>)`                 | `Gotest`                    | **Yes**   |
+| <ul><li>[ ] </li></ul> | `GoTestFunc`        | `go#cmd#TestFunc(<bang>0, <f-args>)`                | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoTestCompile`     | `go#cmd#Test(<bang>0, 1, <f-args>)`                 | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoCoverage`        | `go#coverage#Buffer(<bang>0, <f-args>)`             | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoCoverageClear`   | `go#coverage#Clear()`                               | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoCoverageToggle`  | `go#coverage#BufferToggle(<bang>0, <f-args>)`       | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoCoverageBrowser` | `go#coverage#Browser(<bang>0, <f-args>)`            | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoPlay`            | `go#play#Share(<count>, <line1>, <line2>)`          | -                           | -         |
+| <ul><li>[x] </li></ul> | `GoDef`             | `go#def#Jump('')`                                   | `call GoGuru('definition')` | **Yes**   |
+| <ul><li>[ ] </li></ul> | `GoDefPop`          | `go#def#StackPop(<f-args>)`                         | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoDefStack`        | `go#def#Stack(<f-args>)`                            | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoDefStackClear`   | `go#def#StackClear(<f-args>)`                       | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoDoc`             | `go#doc#Open('new', 'split', <f-args>)`             | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoDocBrowser`      | `go#doc#OpenBrowser(<f-args>)`                      | -                           | -         |
+| <ul><li>[x] </li></ul> | `GoFmt`             | `go#fmt#Format(-1)`                                 | `Gofmt`                     | ***Any*** |
+| <ul><li>[x] </li></ul> | `GoImports`         | `go#fmt#Format(1)`                                  | `Gofmt`                     | ***Any*** |
+| <ul><li>[ ] </li></ul> | `GoDrop`            | `go#import#SwitchImport(0, '', <f-args>, '')`       | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoImport`          | `go#import#SwitchImport(1, '', <f-args>, '<bang>')` | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoImportAs`        | `go#import#SwitchImport(1, <f-args>, '<bang>')`     | -                           | -         |
+| <ul><li>[x] </li></ul> | `GoMetaLinter`      | `go#lint#Gometa(0, <f-args>)`                       | `Gometalinter`              | **Yes**   |
+| <ul><li>[ ] </li></ul> | `GoLint`            | `go#lint#Golint(<f-args>)`                          | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoVet`             | `go#lint#Vet(<bang>0, <f-args>)`                    | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoErrCheck`        | `go#lint#Errcheck(<f-args>)`                        | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoAlternate`       | `go#alternate#Switch(<bang>0, '')`                  | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoDecls`           | `ctrlp#init(ctrlp#decls#cmd(0, <q-args>))`          | -                           | -         |
+| <ul><li>[ ] </li></ul> | `GoDeclsDir`        | `ctrlp#init(ctrlp#decls#cmd(1, <q-args>))`          | -                           | -         |
