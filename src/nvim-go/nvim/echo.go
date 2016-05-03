@@ -33,7 +33,7 @@ func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
 // Echohl provide the vim 'echohl' command with message prefix and message color highlighting.
 // Nomally, used to output the any command results.
 func Echohl(v *vim.Vim, prefix string, highlight string, format string, a ...interface{}) error {
-	return v.Command("echo '" + prefix + "' | echohl " + highlight + " | echon '" + fmt.Sprintf(format, a...) + "' | echohl None")
+	return v.Command("echo '" + prefix + ": ' | echohl " + highlight + " | echon '" + fmt.Sprintf(format, a...) + "' | echohl None")
 }
 
 // ReportError output of the accumulated errors report.

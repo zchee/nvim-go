@@ -77,7 +77,7 @@ func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
 		}
 	}
 
-	nvim.Echohl(v, "nvim-go: ", "Identifier", "renaming ...")
+	nvim.Echohl(v, "GoRename", "Identifier", "Renaming ...")
 	if err := rename.Main(&build.Default, offset, "", to); err != nil {
 		if err != rename.ConflictError {
 			nvim.Echomsg(v, "%s", err)
