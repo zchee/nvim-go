@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -38,7 +37,7 @@ func main() {
 	gbCmd := exec.Command("gb", "env", "GB_PROJECT_DIR")
 	gbResult, err := gbCmd.Output()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	gbCmd.Run()
 	projectDir := strings.TrimSpace(string(gbResult))
@@ -47,7 +46,7 @@ func main() {
 	specsCmd := exec.Command(projectDir+"/bin/"+pluginName, "-specs")
 	newSpecs, err := specsCmd.Output()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	specsCmd.Run()
 	newSpecs = append(newSpecs, byte('\n'))
@@ -55,14 +54,14 @@ func main() {
 	// Get vim file information from the `plugin` directory
 	plugFile, err := os.OpenFile(projectDir+"/plugin/"+pluginName+".vim", os.O_RDWR, os.ModeAppend)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer plugFile.Close()
 
 	// Read plugin vim file
 	oldData, err := ioutil.ReadAll(plugFile)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	re := regexp.MustCompile(`(?s)let s:specs =.+]\n+`)
@@ -85,7 +84,7 @@ func main() {
 		data := bytes.TrimSpace(newData)
 		data = append(data, byte('\n'))
 		if _, err := plugFile.WriteAt(data, 0); err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 		return
 	}
