@@ -118,8 +118,9 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	// jumpfirst or definition mode
 	if config.GuruJumpFirst || mode == "definition" {
-		p.Command("silent! ll 1")
-		p.FeedKeys("zz", "n", false)
+		p.Command("ll 1 | normal zz")
+		// Define the mapping to add 'zz' to <C-o> in the buffer local.
+		p.Command("nnoremap <silent><buffer> <C-o> <C-o>zz")
 	}
 
 	// not definition mode
