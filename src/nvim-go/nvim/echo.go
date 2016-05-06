@@ -30,10 +30,23 @@ func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
 	return v.Command("echoerr '" + fmt.Sprintf(format, a...) + "'")
 }
 
-// Echohl provide the vim 'echohl' command with message prefix and message color highlighting.
-// Nomally, used to output the any command results.
-func Echohl(v *vim.Vim, prefix string, highlight string, format string, a ...interface{}) error {
-	return v.Command("echo '" + prefix + ": ' | echohl " + highlight + " | echon '" + fmt.Sprintf(format, a...) + "' | echohl None")
+// EchohlBefore provide the vim 'echohl' command with message prefix and highlighting suffix text.
+func EchohlBefore(v *vim.Vim, prefix string, highlight string, format string, a ...interface{}) error {
+	v.Command("redraw")
+	suffix := "' | echohl None | echon '"
+	if prefix != "" {
+		suffix += ": "
+	}
+	return v.Command("echohl " + highlight + " | echo '" + prefix + suffix + fmt.Sprintf(format, a...) + "'")
+}
+
+// EchohlAfter provide the vim 'echohl' command with message prefix and highlighting prefix text.
+func EchohlAfter(v *vim.Vim, prefix string, highlight string, format string, a ...interface{}) error {
+	v.Command("redraw")
+	if prefix != "" {
+		prefix += ": "
+	}
+	return v.Command("echo '" + prefix + "' | echohl " + highlight + " | echon '" + fmt.Sprintf(format, a...) + "' | echohl None")
 }
 
 // ReportError output of the accumulated errors report.

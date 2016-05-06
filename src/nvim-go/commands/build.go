@@ -56,7 +56,7 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 
 	err = cmd.Run()
 	if err == nil {
-		return nvim.Echohl(v, "GoBuild", "Function", "SUCCESS")
+		return nvim.EchohlAfter(v, "GoBuild", "Function", "SUCCESS")
 	}
 
 	if _, ok := err.(*exec.ExitError); ok {
