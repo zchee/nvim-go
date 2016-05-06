@@ -49,6 +49,42 @@ func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
 // Guru go source analysis and output result to the quickfix or locationlist.
 func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	defer nvim.Profile(time.Now(), "Guru")
+
+	mode := args[0]
+	if len(args) > 1 {
+		arg := args[1]
+		if arg == "-h" || arg == "--help" {
+			switch mode {
+			case "callees":
+				return nvim.EchohlBefore(v, "GoGuruCallees", "Function", "show possible targets of selected function call")
+			case "callers":
+				return nvim.EchohlBefore(v, "GoGuruCallers", "Function", "show possible callers of selected function")
+			case "callstack":
+				return nvim.EchohlBefore(v, "GoGuruCallstack", "Function", "show path from callgraph root to selected function")
+			case "definition":
+				return nvim.EchohlBefore(v, "GoGuruDefinition", "Function", "show declaration of selected identifier")
+			case "describe":
+				return nvim.EchohlBefore(v, "GoGuruDescribe", "Function", "describe selected syntax: definition, methods, etc")
+			case "freevars":
+				return nvim.EchohlBefore(v, "GoGurufreevars", "Function", "show free variables of selection")
+			case "implements":
+				return nvim.EchohlBefore(v, "GoGuruImplements", "Function", "show 'implements' relation for selected type or method")
+			case "peers":
+				return nvim.EchohlBefore(v, "GoGuruChannelPeers", "Function", "show send/receive corresponding to selected channel op")
+			case "pointsto":
+				return nvim.EchohlBefore(v, "GoGuruPointsto", "Function", "show variables the selected pointer may point to")
+			case "referrers":
+				return nvim.EchohlBefore(v, "GoGuruReferrers", "Function", "show all refs to entity denoted by selected identifier")
+			case "what":
+				return nvim.EchohlBefore(v, "GoGuruWhat", "Function", "show basic information about the selected syntax node")
+			case "whicherrs":
+				return nvim.EchohlBefore(v, "GoGuruWhicherrs", "Function", "show possible values of the selected error variable")
+			}
+		} else {
+			return nvim.Echoerr(v, "Invalid arguments")
+		}
+	}
+
 	var c = context.Build{}
 	defer c.SetContext(eval.Dir)()
 
@@ -61,8 +97,6 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	dir := strings.Split(eval.Dir, "src/")
 	scopeFlag := dir[len(dir)-1]
-
-	mode := args[0]
 
 	pos, err := nvim.ByteOffset(p)
 	if err != nil {
