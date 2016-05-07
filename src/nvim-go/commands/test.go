@@ -1,9 +1,6 @@
 package commands
 
 import (
-	"go/build"
-	"os"
-	"strings"
 	"time"
 
 	"nvim-go/config"
@@ -29,14 +26,7 @@ func Test(v *vim.Vim, dir string) error {
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(dir)()
 
-	buildDir := strings.Split(build.Default.GOPATH, ":")[0]
-	var cmd []string
-	if buildDir == os.Getenv("GOPATH") {
-		cmd = append(cmd, "go")
-	} else {
-		cmd = append(cmd, "gb")
-	}
-	cmd = append(cmd, "test", "-v", "./...")
+	cmd := []string{ctxt.Tool, "test", "-v", "./..."}
 
 	term := nvim.NewTerminal(v, cmd, config.TerminalMode)
 
