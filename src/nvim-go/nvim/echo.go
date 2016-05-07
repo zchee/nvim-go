@@ -10,6 +10,11 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 )
 
+var (
+	progress = "Identifier"
+	success  = "Function"
+)
+
 // Echo provide the vim 'echo' command.
 func Echo(v *vim.Vim, format string, a ...interface{}) error {
 	return v.Command("echo '" + fmt.Sprintf(format, a...) + "'")
@@ -49,12 +54,30 @@ func EchohlAfter(v *vim.Vim, prefix string, highlight string, format string, a .
 	return v.Command("echo '" + prefix + "' | echohl " + highlight + " | echon '" + fmt.Sprintf(format, a...) + "' | echohl None")
 }
 
+// EchoProgress displays a command progress message to echo area.
+func EchoProgress(v *vim.Vim, prefix, before, from, to string) error {
+	v.Command("redraw")
+	if prefix != "" {
+		prefix += ": "
+	}
+	// TODO(zchee): Refactoring because line too long.
+	return v.Command(fmt.Sprintf("echon '%s%s ' | echohl %s | echon '%s' | echohl None | echon ' to ' | echohl %s | echon '%s' | echohl None | echon ' ...'", prefix, before, progress, from, progress, to))
+}
+
+// EchoSuccess displays the success of the command to echo area.
+func EchoSuccess(v *vim.Vim, prefix string) error {
+	v.Command("redraw")
+	return v.Command(fmt.Sprintf("echo '%s: ' | echohl %s | echon 'SUCCESS' | echohl None", prefix, success))
+}
+
 // ReportError output of the accumulated errors report.
+// TODO(zchee): research vim.ReportError behavior
+// Why it does not immediately display error?
 func ReportError(v *vim.Vim, format string, a ...interface{}) error {
 	return v.ReportError(fmt.Sprintf(format, a...))
 }
 
-// ClearMsg clear echo message.
+// ClearMsg cleanups the echo area.
 func ClearMsg(v *vim.Vim) error {
 	return v.Command("echon")
 }
