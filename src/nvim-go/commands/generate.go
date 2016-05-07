@@ -2,8 +2,14 @@ package commands
 
 import (
 	"bufio"
+	"fmt"
+	"log"
+	"nvim-go/context"
 	"nvim-go/nvim"
 	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/cweill/gotests/gotests/process"
 	"github.com/garyburd/neovim-go/vim"
@@ -11,16 +17,22 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("GoGenerateTest", &plugin.CommandOptions{NArgs: "*", Complete: "file"}, cmdGenerateTest)
+	plugin.HandleCommand("GoGenerateTest", &plugin.CommandOptions{NArgs: "*", Complete: "file", Eval: "expand('%:p:h')"}, cmdGenerateTest)
 }
 
-func cmdGenerateTest(v *vim.Vim, files []string) {
-	go GenerateTest(v, files)
+func cmdGenerateTest(v *vim.Vim, files []string, dir string) {
+	go GenerateTest(v, files, dir)
 }
 
 // GenerateTest generates the test files based by current buffer or args files
 // functions.
-func GenerateTest(v *vim.Vim, files []string) error {
+// TODO(zchee): Currently Support '-all' flag only.
+// Needs support -excl, -exported, -i, -only flags.
+func GenerateTest(v *vim.Vim, files []string, dir string) error {
+	defer nvim.Profile(time.Now(), "GenerateTest")
+	var ctxt = context.Build{}
+	defer ctxt.SetContext(filepath.Dir(dir))()
+
 	b, err := v.CurrentBuffer()
 	if err != nil {
 		return nvim.Echoerr(v, "GoGenerateTest: %v", err)
@@ -49,11 +61,35 @@ func GenerateTest(v *vim.Vim, files []string) error {
 	w.Close()
 	os.Stdout = oldStdout
 
-	var out string
+	var genFuncs string
 	scan := bufio.NewScanner(r)
 	for scan.Scan() {
-		out += scan.Text() + "\n"
+		genFuncs += scan.Text() + "\n"
 	}
 
-	return nvim.EchoRaw(v, out)
+	// TODO(zchee): More beautiful code
+	suffix := "_test.go "
+	var ftests, ftestsRel string
+	for _, f := range files {
+		fnAbs := strings.Split(f, filepath.Ext(f))
+		ftests += fnAbs[0] + suffix
+
+		_, fnRel := filepath.Split(fnAbs[0])
+		ftestsRel += fnRel + suffix
+	}
+	log.Println(ftests, ftestsRel)
+
+	ask := fmt.Sprintf("%s\nGoGenerateTest: Generated %s\nGoGenerateTest: Open it? (y, n): ", genFuncs, ftestsRel)
+	var answer interface{}
+	if err := v.Call("input", &answer, ask); err != nil {
+		return err
+	}
+
+	// TODO(zchee): Support open the ftests[0] file only.
+	// If passes multiple files for 'edit' commands, occur 'E172: Only one file name allowed' errror.
+	if answer.(string) != "n" {
+		return v.Command(fmt.Sprintf("edit %s", ftests))
+	}
+
+	return nil
 }
