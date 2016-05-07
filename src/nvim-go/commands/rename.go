@@ -17,7 +17,7 @@ import (
 func init() {
 	plugin.HandleCommand("Gorename",
 		&plugin.CommandOptions{
-			NArgs: "?", Eval: "[expand('%:p:h'), expand('%:p'), line2byte(line('.'))+(col('.')-2)]"},
+			NArgs: "?", Eval: "[expand('%:p:h'), expand('%:p'), line2byte(line('.'))+(col('.')-2), expand('<cword>')]"},
 		cmdRename)
 }
 
@@ -25,6 +25,7 @@ type cmdRenameEval struct {
 	Dir    string `msgpack:",array"`
 	File   string
 	Offset int
+	From   string
 }
 
 func cmdRename(v *vim.Vim, args []string, eval *cmdRenameEval) {
@@ -36,11 +37,6 @@ func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
 	defer nvim.Profile(time.Now(), "GoRename")
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(eval.Dir)()
-
-	from, err := v.CommandOutput(fmt.Sprintf("silent! echo expand('<cword>')"))
-	if err != nil {
-		nvim.Echomsg(v, "%s", err)
-	}
 
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
@@ -55,10 +51,10 @@ func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
 	if len(args) > 0 {
 		to = args[0]
 	} else {
-		askMessage := fmt.Sprintf("%s: Rename '%s' to: ", "nvim-go", from[1:])
+		askMessage := fmt.Sprintf("%s: Rename '%s' to: ", "nvim-go", eval.From)
 		var toResult interface{}
 		if config.RenamePrefill {
-			p.Call("input", &toResult, askMessage, from[1:])
+			p.Call("input", &toResult, askMessage, eval.From)
 			if err := p.Wait(); err != nil {
 				return nvim.Echomsg(v, "%s", err)
 			}
@@ -73,13 +69,15 @@ func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
 		}
 	}
 
-	nvim.EchohlBefore(v, "GoRename", "Identifier", "Renaming ...")
+	prefix := "GoRename"
+	nvim.EchoProgress(v, prefix, "Renaming", eval.From, to)
+	defer nvim.EchoSuccess(v, prefix)
+
 	if err := rename.Main(&build.Default, offset, "", to); err != nil {
 		if err != rename.ConflictError {
-			nvim.Echomsg(v, "%s", err)
+			return err
 		}
 	}
-	defer nvim.ClearMsg(v)
 	p.Command("silent! edit!")
 
 	return p.Wait()
