@@ -108,8 +108,19 @@ func (t *Terminal) Run() error {
 		p.SetWindowOption(twindow, "relativenumber", false)
 		p.SetWindowOption(twindow, "winfixheight", true)
 
+		// Cleanup cursor highlighting
+		// TODO(zchee): Can use p.AddBufferHighlight?
+		p.Command("hi TermCursor gui=NONE guifg=NONE guibg=NONE")
+		p.Command("hi! TermCursorNC gui=NONE guifg=NONE guibg=NONE")
+
+		// Cleanup autocmd for terminal buffer
+		// The following autocmd is defined only in the terminal buffer local
 		p.Command("autocmd! * <buffer>")
-		p.Command("autocmd BufEnter <buffer> startinsert")
+		// Set autocmd of automatically insert mode
+		p.Command("autocmd WinEnter <buffer> startinsert")
+		// Set autoclose buffer if the current buffer is only terminal
+		// TODO(zchee): convert to rpc way
+		p.Command("autocmd WinEnter <buffer> if winnr('$') == 1 | quit | endif")
 	}
 
 	// Set buffer name, filetype and options
