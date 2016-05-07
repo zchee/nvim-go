@@ -9,5 +9,5 @@ import (
 // Usage: defer nvim.Profile(time.Now(), "func name")
 func Profile(start time.Time, name string) {
 	elapsed := time.Since(start)
-	log.Printf("%s: %s", name, elapsed)
+	log.Printf("%s: %s\n\n", name, elapsed)
 }
