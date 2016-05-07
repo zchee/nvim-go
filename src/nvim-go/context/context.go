@@ -51,6 +51,12 @@ func (ctxt *Build) buildContext(p string) (string, string) {
 func (ctxt *Build) isGb(p string) (string, bool) {
 	ctxt.Context = build.Default
 
+	// First check
+	manifest := filepath.Join(filepath.Clean(p), "vendor/manifest")
+	if _, err := os.Stat(manifest); err == nil {
+		return filepath.Clean(p), true
+	}
+
 	var pkgRoot string
 	for {
 		pkg, _ := ctxt.ImportDir(p, build.IgnoreVendor)
@@ -67,7 +73,7 @@ func (ctxt *Build) isGb(p string) (string, bool) {
 	// gb project directory is `../../pkgRoot`
 	projRoot, src := filepath.Split(filepath.Dir(pkgRoot))
 
-	manifest := filepath.Join(filepath.Clean(projRoot), "vendor/manifest")
+	manifest = filepath.Join(filepath.Clean(projRoot), "vendor/manifest")
 	_, err := os.Stat(manifest)
 
 	return filepath.Clean(projRoot), (err == nil && src == "src")
