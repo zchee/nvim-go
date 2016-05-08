@@ -1,6 +1,14 @@
 package commands
 
 import (
+	"bytes"
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"nvim-go/config"
@@ -9,10 +17,12 @@ import (
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 func init() {
 	plugin.HandleCommand("Gotest", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, cmdTest)
+	plugin.HandleCommand("GoTestSwitch", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p')]"}, cmdTestSwitch)
 }
 
 func cmdTest(v *vim.Vim, dir string) {
@@ -35,6 +45,156 @@ func Test(v *vim.Vim, dir string) error {
 
 	if err := term.Run(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+var (
+	fset       = token.NewFileSet() // *token.FileSet
+	parserMode parser.Mode          // uint
+	pos        token.Pos
+)
+
+var (
+	testPrefix     = "Test"
+	testSuffix     = "_test"
+	isTest         bool
+	fnName         string
+	fnNameNoExport string
+)
+
+type cmdTestSwitchEval struct {
+	Cwd  string `msgpack:",array"`
+	File string
+}
+
+func cmdTestSwitch(v *vim.Vim, eval cmdTestSwitchEval) {
+	go TestSwitch(v, eval)
+}
+
+func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
+	defer nvim.Profile(time.Now(), "TestSwitch")
+
+	// Check the current buffer name whether '*_test.go'.
+	fname := eval.File
+	exp := filepath.Ext(fname)
+	var switchfile string
+	if strings.Index(fname, testSuffix) == -1 {
+		isTest = false
+		switchfile = strings.Replace(fname, exp, testSuffix+exp, 1) // not testfile
+	} else {
+		isTest = true
+		switchfile = strings.Replace(fname, testSuffix+exp, exp, 1) // testfile
+	}
+	// Check the exists of switch destination file.
+	if _, err := os.Stat(switchfile); err != nil {
+		return nvim.EchohlErr(v, "GoTestSwitch", "Switch destination file file does not exist")
+	}
+
+	var ctxt = context.Build{}
+	dir, _ := filepath.Split(fname)
+	defer ctxt.SetContext(filepath.Dir(dir))()
+
+	// Gets the current buffer information.
+	p := v.NewPipeline()
+	p.CurrentBuffer(&b)
+	if err := p.Wait(); err != nil {
+		return err
+	}
+
+	// Get the byte offset of current cursor position from buffer.
+	// TODO(zchee): Eval 'line2byte(line('.'))+(col('.')-2)' is faster and safer?
+	byteOffset, err := nvim.ByteOffset(p)
+	if err != nil {
+		return err
+	}
+	// Get the 2d byte slice of current buffer.
+	var buf [][]byte
+	p.BufferLines(b, 0, -1, true, &buf)
+	if err := p.Wait(); err != nil {
+		return err
+	}
+
+	f, err := parse(fname, fset, bytes.Join(buf, []byte{'\n'})) // *ast.File
+	if err != nil {
+		return err
+	}
+	offset := fset.File(f.Pos()).Pos(byteOffset) // token.Pos
+
+	// Parses the function ast node from the current cursor position.
+	qpos, _ := astutil.PathEnclosingInterval(f, offset, offset) // path []ast.Node, exact bool
+	for _, q := range qpos {
+		switch x := q.(type) {
+		case *ast.FuncDecl:
+			if x.Name != nil { // *ast.Ident
+				name := fmt.Sprintf("%s", x.Name)
+				if !isTest {
+					// fnNameNoExport is empty because Test function would be exported.
+					fnName = fmt.Sprintf("%s%s%s", testPrefix, bytes.ToUpper([]byte{name[0]}), name[1:])
+				} else {
+					fnName = strings.Replace(name, testPrefix, "", 1)
+					fnNameNoExport = fmt.Sprintf("%s%s", bytes.ToLower([]byte{fnName[0]}), fnName[1:])
+				}
+			}
+		}
+	}
+
+	// Get the switch destination file ast node.
+	fswitch, err := parse(switchfile, fset, nil) // *ast.File
+	if err != nil {
+		return err
+	}
+
+	// Parses the switch destination file ast node.
+	ast.Walk(visitorFunc(parseFunc), fswitch)
+
+	filename, line, col := nvim.SplitPos(fset.Position(pos).String(), eval.Cwd)
+	loclist := append([]*nvim.ErrorlistData{}, &nvim.ErrorlistData{
+		FileName: filename,
+		LNum:     line,
+		Col:      col,
+	})
+	if err := nvim.SetLoclist(p, loclist); err != nil {
+		return err
+	}
+
+	// Jump to the corresponds function.
+	p.Command("silent ll | normal zt")
+	// Define the mapping to add 'zt' to <C-o> in the buffer local.
+	p.Command("nnoremap <silent><buffer> <C-o> <C-o>zt")
+
+	return p.Wait()
+}
+
+// Wrapper of the parser.ParseFile()
+func parse(filename string, fset *token.FileSet, src interface{}) (*ast.File, error) {
+	file, err := parser.ParseFile(fset, filename, src, parserMode)
+	if err != nil {
+		return nil, err
+	}
+
+	return file, err
+}
+
+// visitorFunc for ast.Visit type.
+type visitorFunc func(n ast.Node) ast.Visitor
+
+// visit for ast.Visit function.
+func (f visitorFunc) Visit(n ast.Node) ast.Visitor {
+	return f(n)
+}
+
+// Core of the parser of the ast node.
+func parseFunc(node ast.Node) ast.Visitor {
+	switch x := node.(type) {
+	default:
+		return visitorFunc(parseFunc)
+	case *ast.FuncDecl:
+		if x.Name.Name == fnName || x.Name.Name == fnNameNoExport { // *ast.Ident.string
+			pos = x.Name.NamePos
+			return nil
+		}
 	}
 
 	return nil
