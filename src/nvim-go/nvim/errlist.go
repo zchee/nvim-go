@@ -112,25 +112,26 @@ func CloseQuickfix(v *vim.Vim) error {
 	return v.Command("cclose")
 }
 
-// SplitPos split the result text of the vim error list syntax.
+// SplitPos parses a string of form 'token.Pos', and return the relative
+// filepath from the current working directory path.
 func SplitPos(pos string, cwd string) (string, int, int) {
-	file := strings.Split(pos, ":")
-	line, err := strconv.ParseInt(file[1], 10, 64)
+	slc := strings.Split(pos, ":")
+	line, err := strconv.ParseInt(slc[1], 10, 64)
 	if err != nil {
 		line = 0
 	}
-	col, err := strconv.ParseInt(file[2], 10, 64)
+	col, err := strconv.ParseInt(slc[2], 10, 64)
 	if err != nil {
 		col = 0
 	}
 
-	fabs, err := filepath.Abs(file[0])
-	if err != nil {
-		return file[0], int(line), int(col)
+	fname := slc[0]
+	frel := strings.TrimPrefix(fname, cwd+string(filepath.Separator))
+	if fname == frel {
+		return fname, int(line), int(col)
 	}
-	fname := strings.TrimPrefix(fabs, cwd+string(filepath.Separator))
 
-	return fname, int(line), int(col)
+	return frel, int(line), int(col)
 }
 
 // ParseError parse a typical output of command written in Go.
