@@ -6,9 +6,7 @@
 package main
 
 import (
-	"log"
 	_ "net/http/pprof"
-	"os"
 
 	_ "nvim-go/autocmd"
 	_ "nvim-go/commands"
@@ -18,17 +16,6 @@ import (
 
 	"github.com/garyburd/neovim-go/vim/plugin"
 )
-
-func init() {
-	if lf := os.Getenv("NEOVIM_GO_LOG_FILE"); lf != "" {
-		f, err := os.OpenFile(lf, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.SetOutput(f)
-	}
-}
 
 func main() {
 	plugin.Main()
