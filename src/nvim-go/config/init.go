@@ -12,6 +12,7 @@ type Config struct {
 	Metalinter MetalinterVars
 	Rename     RenameVars
 	Terminal   TerminalVars
+	Test       TestVars
 	Debug      DebugVars
 }
 
@@ -65,6 +66,10 @@ type TerminalVars struct {
 	StartInsetrt int64  `eval:"g:go#terminal#start_insert"`
 }
 
+type TestVars struct {
+	TestAutosave int64 `eval:"g:go#test#autosave"`
+}
+
 // DebugVars debug of nvim-go config variable.
 type DebugVars struct {
 	Pprof int64 `eval:"g:go#debug#pprof"`
@@ -107,6 +112,8 @@ var (
 	TerminalWidth int64
 	// TerminalStartInsert workaround if users set "autocmd BufEnter term://* startinsert"
 	TerminalStartInsert bool
+	// TestAutosave call the GoBuild command automatically at during the BufWritePost.
+	TestAutosave bool
 	// DebugPprof Enable net/http/pprof debugging.
 	DebugPprof bool
 )
@@ -146,6 +153,9 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 	TerminalHeight = cfg.Terminal.Height
 	TerminalWidth = cfg.Terminal.Width
 	TerminalStartInsert = itob(cfg.Terminal.StartInsetrt)
+
+	// Test
+	TestAutosave = itob(cfg.Test.TestAutosave)
 
 	// Debug
 	DebugPprof = itob(cfg.Debug.Pprof)
