@@ -51,17 +51,17 @@ func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
 	if len(args) > 0 {
 		to = args[0]
 	} else {
-		askMessage := fmt.Sprintf("%s: Rename '%s' to: ", "nvim-go", eval.From)
+		askMessage := fmt.Sprintf("%s: Rename '%s' to: ", "GoRename", eval.From)
 		var toResult interface{}
 		if config.RenamePrefill {
 			p.Call("input", &toResult, askMessage, eval.From)
 			if err := p.Wait(); err != nil {
-				return nvim.Echomsg(v, "%s", err)
+				return nvim.EchohlErr(v, "GoRename", err)
 			}
 		} else {
 			p.Call("input", &toResult, askMessage)
 			if err := p.Wait(); err != nil {
-				return nvim.Echomsg(v, "%s", err)
+				return nvim.EchohlErr(v, "GoRename", err)
 			}
 		}
 		if toResult.(string) != "" {
