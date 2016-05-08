@@ -6,13 +6,15 @@ package nvim
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/garyburd/neovim-go/vim"
 )
 
 var (
-	progress = "Identifier"
-	success  = "Function"
+	errorColor = "Identifier"
+	progress   = "Identifier"
+	success    = "Function"
 )
 
 // Echo provide the vim 'echo' command.
@@ -27,7 +29,7 @@ func EchoRaw(v *vim.Vim, a string) error {
 
 // Echomsg provide the vim 'echomsg' command.
 func Echomsg(v *vim.Vim, a ...interface{}) error {
-	return v.Command("echomsg '" + fmt.Sprintln(a...) + "'")
+	return v.Command("echomsg '" + strings.TrimSpace(fmt.Sprintln(a...)) + "'")
 }
 
 // Echoerr provide the vim 'echoerr' command.
@@ -35,7 +37,17 @@ func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
 	return v.Command("echoerr '" + fmt.Sprintf(format, a...) + "'")
 }
 
-// EchohlBefore provide the vim 'echohl' command with message prefix and highlighting suffix text.
+// EchohlErr provide the vim 'echo' command with the 'echohl' highlighting prefix text.
+func EchohlErr(v *vim.Vim, prefix string, a ...interface{}) error {
+	v.Command("redraw")
+	if prefix != "" {
+		prefix += ": "
+	}
+	text := strings.TrimSpace(fmt.Sprintln(a...))
+	return v.Command("echo '" + prefix + "' | echohl " + errorColor + " | echon '" + text + "' | echohl None")
+}
+
+// EchohlBefore provide the vim 'echo' command with the 'echohl' highlighting prefix text.
 func EchohlBefore(v *vim.Vim, prefix string, highlight string, format string, a ...interface{}) error {
 	v.Command("redraw")
 	suffix := "' | echohl None | echon '"
@@ -45,7 +57,7 @@ func EchohlBefore(v *vim.Vim, prefix string, highlight string, format string, a 
 	return v.Command("echohl " + highlight + " | echo '" + prefix + suffix + fmt.Sprintf(format, a...) + "'")
 }
 
-// EchohlAfter provide the vim 'echohl' command with message prefix and highlighting prefix text.
+// EchohlAfter provide the vim 'echo' command with the 'echohl' highlighting message text.
 func EchohlAfter(v *vim.Vim, prefix string, highlight string, format string, a ...interface{}) error {
 	v.Command("redraw")
 	if prefix != "" {
