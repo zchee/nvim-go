@@ -129,13 +129,15 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 		case *ast.FuncDecl:
 			if x.Name != nil { // *ast.Ident
 				name := fmt.Sprintf("%s", x.Name)
+				// TODO(zchee): Support parses the function struct name.
+				// If the function has a struct, gotests will be generated the
+				// mixed camel case test function name include struct name for prefix.
 				if !isTest {
-					// fnNameNoExport is empty because Test function would be exported.
 					fnName = fmt.Sprintf("%s%s%s", testPrefix, bytes.ToUpper([]byte{name[0]}), name[1:])
 				} else {
 					fnName = strings.Replace(name, testPrefix, "", 1)
-					fnNameNoExport = fmt.Sprintf("%s%s", bytes.ToLower([]byte{fnName[0]}), fnName[1:])
 				}
+				fnNameNoExport = fmt.Sprintf("%s%s", bytes.ToLower([]byte{fnName[0]}), fnName[1:])
 			}
 		}
 	}
@@ -146,8 +148,15 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 		return err
 	}
 
+	if pos != token.NoPos {
+		pos = 0
+	}
 	// Parses the switch destination file ast node.
 	ast.Walk(visitorFunc(parseFunc), fswitch)
+
+	if !pos.IsValid() {
+		return nvim.EchohlErr(v, "GoTestSwitch", "Not found the switch destination function")
+	}
 
 	filename, line, col := nvim.SplitPos(fset.Position(pos).String(), eval.Cwd)
 	loclist := append([]*nvim.ErrorlistData{}, &nvim.ErrorlistData{
@@ -191,11 +200,22 @@ func parseFunc(node ast.Node) ast.Visitor {
 	default:
 		return visitorFunc(parseFunc)
 	case *ast.FuncDecl:
-		if x.Name.Name == fnName || x.Name.Name == fnNameNoExport { // *ast.Ident.string
+		if x.Name.Name == fnName || x.Name.Name == fnNameNoExport || indexFuncName(x.Name.Name, fnName, fnNameNoExport) { // x.Name.Name: *ast.Ident.string
 			pos = x.Name.NamePos
 			return nil
 		}
 	}
 
 	return nil
+}
+
+func indexFuncName(s string, sep ...string) bool {
+	for _, fn := range sep {
+		i := strings.Index(fn, s)
+		if i > -1 {
+			return true
+		}
+	}
+
+	return false
 }
