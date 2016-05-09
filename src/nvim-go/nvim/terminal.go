@@ -27,6 +27,17 @@ type Terminal struct {
 	Width int64
 	// Height split window height for open the terminal window.
 	Height int64
+
+	Filetype  string
+	Buftype   string
+	Bufhidden string
+	Buflisted bool
+	Swapfile  bool
+
+	List           bool
+	Number         bool
+	Relativenumber bool
+	Winfixheight   bool
 }
 
 // NewTerminal return the initialize Neovim terminal config.
@@ -35,6 +46,17 @@ func NewTerminal(vim *vim.Vim, command []string, mode string) *Terminal {
 		v:    vim,
 		cmd:  command,
 		mode: mode,
+
+		Filetype:  "terminal",
+		Buftype:   "nofile",
+		Bufhidden: "delete",
+		Buflisted: false,
+		Swapfile:  false,
+
+		List:           false,
+		Number:         false,
+		Relativenumber: false,
+		Winfixheight:   true,
 	}
 }
 
@@ -97,16 +119,16 @@ func (t *Terminal) Run() error {
 			p.Command("stopinsert")
 		}
 
-		p.SetBufferOption(tbuffer, "filetype", "terminal")
-		p.SetBufferOption(tbuffer, "buftype", "nofile")
-		p.SetBufferOption(tbuffer, "bufhidden", "delete")
-		p.SetBufferOption(tbuffer, "buflisted", false)
-		p.SetBufferOption(tbuffer, "swapfile", false)
+		p.SetBufferOption(tbuffer, "filetype", t.Filetype)
+		p.SetBufferOption(tbuffer, "buftype", t.Buftype)
+		p.SetBufferOption(tbuffer, "bufhidden", t.Bufhidden)
+		p.SetBufferOption(tbuffer, "buflisted", t.Buflisted)
+		p.SetBufferOption(tbuffer, "swapfile", t.Swapfile)
 
-		p.SetWindowOption(twindow, "list", false)
-		p.SetWindowOption(twindow, "number", false)
-		p.SetWindowOption(twindow, "relativenumber", false)
-		p.SetWindowOption(twindow, "winfixheight", true)
+		p.SetWindowOption(twindow, "list", t.List)
+		p.SetWindowOption(twindow, "number", t.Number)
+		p.SetWindowOption(twindow, "relativenumber", t.Relativenumber)
+		p.SetWindowOption(twindow, "winfixheight", t.Winfixheight)
 
 		// Cleanup cursor highlighting
 		// TODO(zchee): Can use p.AddBufferHighlight?
