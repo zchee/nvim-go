@@ -8,6 +8,7 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/profile"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -34,7 +35,7 @@ func cmdRename(v *vim.Vim, args []string, eval *cmdRenameEval) {
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
 func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
-	defer nvim.Profile(time.Now(), "GoRename")
+	defer profile.Start(time.Now(), "GoRename")
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(eval.Dir)()
 

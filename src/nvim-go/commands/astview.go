@@ -11,7 +11,7 @@ import (
 	"unsafe"
 
 	"nvim-go/config"
-	"nvim-go/nvim"
+	"nvim-go/nvim/profile"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -36,7 +36,7 @@ func cmdAstView(v *vim.Vim, eval *cmdAstEval) {
 
 // AstView gets the Go AST informations of current buffer.
 func AstView(v *vim.Vim, eval *cmdAstEval) error {
-	defer nvim.Profile(time.Now(), "AstView")
+	defer profile.Start(time.Now(), "AstView")
 
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)

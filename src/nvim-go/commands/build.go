@@ -13,6 +13,8 @@ import (
 
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/profile"
+	"nvim-go/nvim/quickfix"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -35,7 +37,7 @@ func cmdBuild(v *vim.Vim, eval CmdBuildEval) {
 // Build building the current buffer's package use compile tool of determined
 // from the directory structure.
 func Build(v *vim.Vim, eval CmdBuildEval) error {
-	defer nvim.Profile(time.Now(), "GoBuild")
+	defer profile.Start(time.Now(), "GoBuild")
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(eval.Dir)()
 
@@ -60,15 +62,15 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 	}
 
 	if _, ok := err.(*exec.ExitError); ok {
-		loclist, err := nvim.ParseError(stderr.Bytes(), eval.Cwd, &ctxt)
+		loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &ctxt)
 		if err != nil {
 			return err
 		}
-		if err := nvim.SetLoclist(p, loclist); err != nil {
+		if err := quickfix.SetLoclist(p, loclist); err != nil {
 			return err
 		}
 
-		return nvim.OpenLoclist(p, w, loclist, true)
+		return quickfix.OpenLoclist(p, w, loclist, true)
 	}
 
 	return err

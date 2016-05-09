@@ -11,6 +11,8 @@ import (
 
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/profile"
+	"nvim-go/nvim/quickfix"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -30,7 +32,7 @@ func init() {
 
 // Fmt format to the current buffer source uses gofmt behavior.
 func Fmt(v *vim.Vim, dir string) error {
-	defer nvim.Profile(time.Now(), "GoFmt")
+	defer profile.Start(time.Now(), "GoFmt")
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(dir)()
 
@@ -53,10 +55,10 @@ func Fmt(v *vim.Vim, dir string) error {
 
 	buf, err := imports.Process("", bytes.Join(in, []byte{'\n'}), &options)
 	if err != nil {
-		var loclist []*nvim.ErrorlistData
+		var loclist []*quickfix.ErrorlistData
 
 		if e, ok := err.(scanner.Error); ok {
-			loclist = append(loclist, &nvim.ErrorlistData{
+			loclist = append(loclist, &quickfix.ErrorlistData{
 				FileName: bufName,
 				LNum:     e.Pos.Line,
 				Col:      e.Pos.Column,
@@ -64,7 +66,7 @@ func Fmt(v *vim.Vim, dir string) error {
 			})
 		} else if el, ok := err.(scanner.ErrorList); ok {
 			for _, e := range el {
-				loclist = append(loclist, &nvim.ErrorlistData{
+				loclist = append(loclist, &quickfix.ErrorlistData{
 					FileName: bufName,
 					LNum:     e.Pos.Line,
 					Col:      e.Pos.Column,
@@ -73,14 +75,14 @@ func Fmt(v *vim.Vim, dir string) error {
 			}
 		}
 
-		if err := nvim.SetLoclist(p, loclist); err != nil {
+		if err := quickfix.SetLoclist(p, loclist); err != nil {
 			return nvim.Echomsg(v, "Gofmt:", err)
 		}
 
-		return nvim.OpenLoclist(p, w, loclist, true)
+		return quickfix.OpenLoclist(p, w, loclist, true)
 	}
 
-	nvim.CloseLoclist(v)
+	quickfix.CloseLoclist(v)
 
 	out := bytes.Split(bytes.TrimSuffix(buf, []byte{'\n'}), []byte{'\n'})
 

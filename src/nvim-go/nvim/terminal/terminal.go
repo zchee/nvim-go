@@ -1,4 +1,4 @@
-package nvim
+package terminal
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"nvim-go/config"
+	"nvim-go/nvim"
 
 	"github.com/garyburd/neovim-go/vim"
 )
@@ -165,7 +166,7 @@ func chdir(v *vim.Vim, dir string) func() {
 	)
 	m.Lock()
 	if err := v.Eval("getcwd()", &cwd); err != nil {
-		Echoerr(v, "GoTerminal: %v", err)
+		nvim.Echoerr(v, "GoTerminal: %v", err)
 	}
 	v.ChangeDirectory(dir)
 	return func() {

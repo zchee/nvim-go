@@ -6,6 +6,7 @@ package commands
 
 import (
 	"nvim-go/nvim"
+	"nvim-go/nvim/buffer"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -20,6 +21,6 @@ func init() {
 func cmdByteOffset(v *vim.Vim) error {
 	p := v.NewPipeline()
 
-	offset, _ := nvim.ByteOffset(p)
+	offset, _ := buffer.ByteOffset(p)
 	return nvim.Echomsg(v, offset)
 }

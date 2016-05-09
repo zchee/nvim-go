@@ -10,6 +10,7 @@ import (
 
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/profile"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -27,7 +28,7 @@ func cmdIferr(v *vim.Vim, file string) {
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func Iferr(v *vim.Vim, file string) error {
-	defer nvim.Profile(time.Now(), "GoIferr")
+	defer profile.Start(time.Now(), "GoIferr")
 	var ctxt = context.Build{}
 	dir, _ := filepath.Split(file)
 	defer ctxt.SetContext(dir)()

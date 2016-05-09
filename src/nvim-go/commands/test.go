@@ -14,6 +14,10 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/buffer"
+	"nvim-go/nvim/profile"
+	"nvim-go/nvim/quickfix"
+	"nvim-go/nvim/terminal"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -32,13 +36,13 @@ func cmdTest(v *vim.Vim, dir string) {
 // Test run the package test command use compile tool that determined from
 // the directory structure.
 func Test(v *vim.Vim, dir string) error {
-	defer nvim.Profile(time.Now(), "GoTest")
+	defer profile.Start(time.Now(), "GoTest")
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(dir)()
 
 	cmd := []string{ctxt.Tool, "test", "-v", "./..."}
 
-	term := nvim.NewTerminal(v, cmd, config.TerminalMode)
+	term := terminal.NewTerminal(v, cmd, config.TerminalMode)
 
 	rootDir := context.FindVcsRoot(dir)
 	term.Dir = rootDir
@@ -74,7 +78,7 @@ func cmdTestSwitch(v *vim.Vim, eval cmdTestSwitchEval) {
 }
 
 func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
-	defer nvim.Profile(time.Now(), "TestSwitch")
+	defer profile.Start(time.Now(), "TestSwitch")
 
 	// Check the current buffer name whether '*_test.go'.
 	fname := eval.File
@@ -105,7 +109,7 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 
 	// Get the byte offset of current cursor position from buffer.
 	// TODO(zchee): Eval 'line2byte(line('.'))+(col('.')-2)' is faster and safer?
-	byteOffset, err := nvim.ByteOffset(p)
+	byteOffset, err := buffer.ByteOffset(p)
 	if err != nil {
 		return err
 	}
@@ -158,13 +162,13 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 		return nvim.EchohlErr(v, "GoTestSwitch", "Not found the switch destination function")
 	}
 
-	filename, line, col := nvim.SplitPos(fset.Position(pos).String(), eval.Cwd)
-	loclist := append([]*nvim.ErrorlistData{}, &nvim.ErrorlistData{
+	filename, line, col := quickfix.SplitPos(fset.Position(pos).String(), eval.Cwd)
+	loclist := append([]*quickfix.ErrorlistData{}, &quickfix.ErrorlistData{
 		FileName: filename,
 		LNum:     line,
 		Col:      col,
 	})
-	if err := nvim.SetLoclist(p, loclist); err != nil {
+	if err := quickfix.SetLoclist(p, loclist); err != nil {
 		return err
 	}
 

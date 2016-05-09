@@ -4,12 +4,14 @@ import (
 	"bufio"
 	"fmt"
 	"log"
-	"nvim-go/context"
-	"nvim-go/nvim"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"nvim-go/context"
+	"nvim-go/nvim"
+	"nvim-go/nvim/profile"
 
 	"github.com/cweill/gotests/gotests/process"
 	"github.com/garyburd/neovim-go/vim"
@@ -29,7 +31,7 @@ func cmdGenerateTest(v *vim.Vim, files []string, dir string) {
 // TODO(zchee): Currently Support '-all' flag only.
 // Needs support -excl, -exported, -i, -only flags.
 func GenerateTest(v *vim.Vim, files []string, dir string) error {
-	defer nvim.Profile(time.Now(), "GenerateTest")
+	defer profile.Start(time.Now(), "GenerateTest")
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(filepath.Dir(dir))()
 

@@ -13,6 +13,8 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/profile"
+	"nvim-go/nvim/quickfix"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -37,12 +39,12 @@ type metalinterResult struct {
 
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
 func Metalinter(v *vim.Vim, cwd string) error {
-	defer nvim.Profile(time.Now(), "GoMetaLinter")
+	defer profile.Start(time.Now(), "GoMetaLinter")
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(cwd)()
 
 	var (
-		loclist []*nvim.ErrorlistData
+		loclist []*quickfix.ErrorlistData
 		b       vim.Buffer
 		w       vim.Window
 	)
@@ -82,7 +84,7 @@ func Metalinter(v *vim.Vim, cwd string) error {
 		case "warning":
 			errorType = "W"
 		}
-		loclist = append(loclist, &nvim.ErrorlistData{
+		loclist = append(loclist, &quickfix.ErrorlistData{
 			FileName: r.Path,
 			LNum:     r.Line,
 			Col:      r.Col,
@@ -91,8 +93,8 @@ func Metalinter(v *vim.Vim, cwd string) error {
 		})
 	}
 
-	if err := nvim.SetLoclist(p, loclist); err != nil {
+	if err := quickfix.SetLoclist(p, loclist); err != nil {
 		return nvim.Echomsg(v, "Gometalinter: %v", err)
 	}
-	return nvim.OpenLoclist(p, w, loclist, true)
+	return quickfix.OpenLoclist(p, w, loclist, true)
 }

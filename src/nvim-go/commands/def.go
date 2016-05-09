@@ -17,6 +17,9 @@ import (
 
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/buffer"
+	"nvim-go/nvim/profile"
+	"nvim-go/nvim/quickfix"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -49,7 +52,7 @@ func funcDef(v *vim.Vim, args []string) {
 // Def definition to current cursor word.
 // DEPRECATED: godef no longer mantained.
 func Def(v *vim.Vim, file string) error {
-	defer nvim.Profile(time.Now(), "GoDef")
+	defer profile.Start(time.Now(), "GoDef")
 	dir, _ := filepath.Split(file)
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(dir)()
@@ -80,7 +83,7 @@ func Def(v *vim.Vim, file string) error {
 	}
 	src := bytes.Join(buf, []byte{'\n'})
 
-	searchpos, err := nvim.ByteOffset(p)
+	searchpos, err := buffer.ByteOffset(p)
 	if err != nil {
 		return v.WriteErr("cannot get current buffer byte offset")
 	}
@@ -116,14 +119,14 @@ func Def(v *vim.Vim, file string) error {
 		obj, _ := types.ExprType(e, types.DefaultImporter)
 		if obj != nil {
 			pos := types.FileSet.Position(types.DeclPos(obj))
-			var loclist []*nvim.ErrorlistData
-			loclist = append(loclist, &nvim.ErrorlistData{
+			var loclist []*quickfix.ErrorlistData
+			loclist = append(loclist, &quickfix.ErrorlistData{
 				FileName: pos.Filename,
 				LNum:     pos.Line,
 				Col:      pos.Column,
 				Text:     pos.Filename,
 			})
-			if err := nvim.SetLoclist(p, loclist); err != nil {
+			if err := quickfix.SetLoclist(p, loclist); err != nil {
 				nvim.Echomsg(v, "Godef: %s", err)
 			}
 
