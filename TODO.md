@@ -62,7 +62,7 @@ http://ribrdb.github.io/lldb/
 
 # vim-go compatible
 
-- [ ] [GoAlternate](#goalternate)
+- [x] [GoAlternate](#goalternate)
 - [ ] [GoBuild](#gobuild)
 - [ ] [GoCoverage](#gocoverage)
 - [ ] [GoInfo](#goinfo)
@@ -71,13 +71,16 @@ http://ribrdb.github.io/lldb/
 - [ ] [GoTest](#gotest)
 - [ ] [GoGuru](#goguru)
 
-## GoAlternate
+## GoAlternate -> GoTestSwitch
 https://github.com/fatih/vim-go/blob/master/autoload/go/alternate.vim
-  - [ ] Implements `GoAlternate` command
+  - [x] Implements `GoTestSwitch` command
+    - [x] Jumpto the corresponding (test)function based by parses the AST information
+    - [x] Instead of `GoAlternate`
 
 ## GoBuild
 https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L16
-  - [x] Fix display the wrong file path to the `quickfix` or `location-list`
+  - [ ] Fix display the wrong file path to the `quickfix` or `location-list`
+    - [ ] Fixed but less than perfect
   - [ ] Inline build(no spawn `go build`) if possible
 
 ## GoCoverage
@@ -97,7 +100,7 @@ https://github.com/fatih/vim-go/blob/master/autoload/go/complete.vim#L99
 https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L145
   - [ ] Implements `GoInstall` command
 
-## GoLint, lint tools
+## GoLint and other lint tools
 https://github.com/fatih/vim-go/blob/master/autoload/go/lint.vim
   - [ ] Goal is full analysis to Go sources and lint, like `flake8` tool
     - [ ] Will create yet another `gometalinter` tool from scratch if necessary
@@ -117,14 +120,16 @@ https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L188
 ## GoGuru
   - [x] Support unsaved file (buffer)
   - [ ] `definition` subcommand support use cgo file (need fix `guru` core)
+    - [x] Tentatively workaround: https://github.com/zchee/nvim-go/commit/950aa062bd0e7086de3c11753e1bc4ea083e6334
+    - [ ] Less than perfect. Maybe can't parse the `struct` provided behavior
   - [ ] Implements tags flag feature
   - [ ] Support stacking
 
 
 # Command diff list
 
-| Done                   | vim-go commands     | vim-go functions                                         | nvim-go                     | async     |
-|:----------------------:|---------------------|----------------------------------------------------------|-----------------------------|:---------:|
+| Done                   | vim-go commands     | vim-go functions                                    | nvim-go                     | async     |
+|:----------------------:|---------------------|-----------------------------------------------------|-----------------------------|:---------:|
 | <ul><li>[ ] </li></ul> | `GoInstallBinaries` | `s:GoInstallBinaries(-1)`                           | -                           | -         |
 | <ul><li>[ ] </li></ul> | `GoUpdateBinaries`  | `s:GoInstallBinaries(1)`                            | -                           | -         |
 | <ul><li>[ ] </li></ul> | `GoPath`            | `go#path#GoPath(<f-args>)`                          | -                           | -         |
