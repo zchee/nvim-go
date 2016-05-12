@@ -36,6 +36,11 @@ func Fmt(v *vim.Vim, dir string) error {
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(dir)()
 
+	var (
+		b vim.Buffer
+		w vim.Window
+	)
+
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)

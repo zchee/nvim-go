@@ -38,6 +38,11 @@ func cmdAstView(v *vim.Vim, eval *cmdAstEval) {
 func AstView(v *vim.Vim, eval *cmdAstEval) error {
 	defer profile.Start(time.Now(), "AstView")
 
+	var (
+		b vim.Buffer
+		w vim.Window
+	)
+
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
 	if err := p.Wait(); err != nil {

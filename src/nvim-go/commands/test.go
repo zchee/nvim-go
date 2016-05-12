@@ -100,6 +100,8 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 	dir, _ := filepath.Split(fname)
 	defer ctxt.SetContext(filepath.Dir(dir))()
 
+	var b vim.Buffer
+
 	// Gets the current buffer information.
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
