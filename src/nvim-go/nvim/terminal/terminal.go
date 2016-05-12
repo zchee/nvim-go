@@ -2,6 +2,7 @@ package terminal
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -154,6 +155,46 @@ func (t *Terminal) Run() error {
 	p.Command("stopinsert")
 
 	return p.Wait()
+}
+
+func Command(v *vim.Vim, w vim.Window, command string) error {
+	defer switchFocus(v, w)()
+
+	var b vim.Buffer
+	p := v.NewPipeline()
+	p.CurrentBuffer(&b)
+	p.SetBufferOption(b, "modified", false)
+	p.Wait()
+
+	p.FeedKeys("i"+command+"\r", "n", true)
+	p.SetBufferOption(b, "modified", true)
+	log.Printf("command: %+v\n", command)
+	p.Command("stopinsert")
+
+	return p.Wait()
+}
+
+// TODO(zchee): flashing when switch the window.
+func switchFocus(v *vim.Vim, w vim.Window) func() {
+	var (
+		m  sync.Mutex
+		cw vim.Window
+	)
+	m.Lock()
+
+	p := v.NewPipeline()
+	p.CurrentWindow(&cw)
+
+	if err := p.Wait(); err != nil {
+		nvim.Echoerr(v, "GoTerminal: %v", err)
+	}
+
+	p.SetCurrentWindow(w)
+
+	return func() {
+		v.SetCurrentWindow(cw)
+		m.Unlock()
+	}
 }
 
 // chdir changes vim current working directory.
