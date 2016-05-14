@@ -77,9 +77,12 @@ func EchoProgress(v *vim.Vim, prefix, before, from, to string) error {
 }
 
 // EchoSuccess displays the success of the command to echo area.
-func EchoSuccess(v *vim.Vim, prefix string) error {
+func EchoSuccess(v *vim.Vim, prefix string, msg string) error {
 	v.Command("redraw")
-	return v.Command(fmt.Sprintf("echo '%s: ' | echohl %s | echon 'SUCCESS' | echohl None", prefix, success))
+	if msg != "" {
+		msg = " " + msg
+	}
+	return v.Command(fmt.Sprintf("echon '%s: ' | echohl %s | echon 'SUCCESS' | echohl None | echon '%s'", prefix, success, msg))
 }
 
 // ReportError output of the accumulated errors report.
