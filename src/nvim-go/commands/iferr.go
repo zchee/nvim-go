@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"bufio"
+	"bytes"
 	"go/format"
 	"go/parser"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -64,7 +65,7 @@ func Iferr(v *vim.Vim, file string) error {
 		return err
 	}
 
-	oldStdout := os.Stdout
+	saveStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
@@ -76,16 +77,12 @@ func Iferr(v *vim.Vim, file string) error {
 	}
 
 	w.Close()
-	os.Stdout = oldStdout
+	os.Stdout = saveStdout
 
-	var out [][]byte
-	scan := bufio.NewScanner(r)
-	for scan.Scan() {
-		out = append(out, scan.Bytes())
+	out, err := ioutil.ReadAll(r)
+	if err != nil {
+		return err
 	}
 
-	p := v.NewPipeline()
-	p.SetBufferLines(b, 0, -1, false, out)
-
-	return p.Wait()
+	return v.SetBufferLines(b, 0, -1, true, bytes.Split(out, []byte{'\n'}))
 }
