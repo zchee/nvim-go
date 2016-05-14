@@ -2,11 +2,11 @@
 
 ## Compile error
   - Commands
-    - [ ] `GoBuild`
-    - [ ] `GoCoverage`
-    - [ ] `GoInstall`
-    - [ ] `GoTest`
-    - [ ] `GoLint`
+      - [ ] `GoBuild`
+      - [ ] `GoCoverage`
+      - [ ] `GoInstall`
+      - [ ] `GoTest`
+      - [ ] `GoLint`
   - [ ] Implements highlight `sign` to error & warning (like YCM, vim-flake8)
   - [ ] Implements `echo` error & warning message when move cursor to this line
 
@@ -21,40 +21,46 @@
   - [ ] Implements `GoWatch` command
   - [ ] Watch the `*.go`, `*.c` and other cgo files in the current package and automatically real build
   - [ ] Use `inotify` for Linux, `fsevents` for OS X
-    - [ ] Create `go-notify` package?
+      - [ ] Create `go-notify` package?
   - [ ] Show build and watch log in the split buffer
 
 ## AST based syntax highlighting
   - [ ] Re-highlighting color syntax for current buffer based by AST information
     - [ ] Ref: https://github.com/myitcv/neogo/blob/master/neogo.go
 
-## `delve` debugging
+## `Dlv`
+`delve` debugging
+
 https://github.com/derekparker/delve  
 https://blog.gopheracademy.com/advent-2015/debugging-with-delve/
-  - [ ] Debugging use `delve`
-  - [ ] like Microsoft vs-code feature
-  - [ ] Set breakpoint with `sign` and key mapping
+
+  - [x] Debugging use `delve`
   - [ ] `lldb.nvim` like Debugging UI
+  - [ ] Ref: Microsoft vs-code feature
+      - https://github.com/Microsoft/vscode-go
+  - [ ] Ref: go-debug - go debugger for atom
+      - https://github.com/lloiser/go-debug
+  - [ ] Set breakpoint with `sign` and key mapping
 
 ## `lldb` debugging
 http://ribrdb.github.io/lldb/
   - [ ] Debugging use lldb for cgo and more low level debug
   - [ ] Use lldb bindings for Go
-    - [ ] Will create `go-lldb` package
+      - [ ] Will create `go-lldb` package
   - [ ] Set breakpoint with `sign` and key mapping
 
 ## Full cgo support
   - [ ] Support all cgo feature
-    - [ ] Use go-clang: https://github.com/go-clang/v3.7
-    - [ ] Go cgo internal sources:
-      - https://github.com/golang/go/tree/master/src/cmd/cgo
-      - https://github.com/golang/go/tree/master/src/runtime/cgo
+      - [ ] Use go-clang: https://github.com/go-clang/v3.7
+      - [ ] Go cgo internal sources:
+          - https://github.com/golang/go/tree/master/src/cmd/cgo
+          - https://github.com/golang/go/tree/master/src/runtime/cgo
   - [ ] Definition(Jump to) `C.` func or var source
   - [x] cgo completion was Implemented `deoplete-go` use libclang-python3
 
 ## Support useful gotools
   - [x] gotests (`GoGenerateTest`)
-    - https://github.com/cweill/gotests
+      - https://github.com/cweill/gotests
 
 ## Unit Test
   - [ ] Use `go test` feature
@@ -62,7 +68,7 @@ http://ribrdb.github.io/lldb/
 
 # vim-go compatible
 
-- [x] [GoAlternate](#goalternate)
+- [x] [GoAlternate](#goalternate---gotestswitch) -> [GoTestSwitch](#goalternate---gotestswitch)
 - [ ] [GoBuild](#gobuild)
 - [ ] [GoCoverage](#gocoverage)
 - [ ] [GoInfo](#goinfo)
@@ -74,21 +80,21 @@ http://ribrdb.github.io/lldb/
 ## GoAlternate -> GoTestSwitch
 https://github.com/fatih/vim-go/blob/master/autoload/go/alternate.vim
   - [x] Implements `GoTestSwitch` command
-    - [x] Jumpto the corresponding (test)function based by parses the AST information
-    - [x] Instead of `GoAlternate`
+      - [x] Jump to the corresponding (test)function based by parses the AST information
+      - [x] Instead of `GoAlternate`
 
-## GoBuild
+## GoBuild 
 https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L16
-  - [ ] Fix display the wrong file path to the `quickfix` or `location-list`
-    - [ ] Fixed but less than perfect
+  - [x] Fix display the wrong file path to the `quickfix` or `location-list`
+      - [ ] Fixed but less than perfect
   - [ ] Inline build(no spawn `go build`) if possible
 
 ## GoCoverage
 https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim
   - [ ] Implements `GoCoverage` command
-    - [ ] `go test -coverprofile`
+      - [ ] `go test -coverprofile`
   - [ ] Support other coverage tools
-    - [ ] goveralls: https://github.com/mattn/goveralls
+      - [ ] goveralls: https://github.com/mattn/goveralls
 
 ## GoInfo
 https://github.com/fatih/vim-go/blob/master/autoload/go/complete.vim#L99
@@ -103,13 +109,13 @@ https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L145
 ## GoLint and other lint tools
 https://github.com/fatih/vim-go/blob/master/autoload/go/lint.vim
   - [ ] Goal is full analysis to Go sources and lint, like `flake8` tool
-    - [ ] Will create yet another `gometalinter` tool from scratch if necessary
-    - [ ] `flake8` is defact standard in Python, Refer to `flake8` internal and plugin interface
+      - [ ] Will create yet another `gometalinter` tool from scratch if necessary
+      - [ ] `flake8` is defact standard in Python, Refer to `flake8` internal and plugin interface
   - [ ] Implements `golint` only command (`GoLint`)
   - [ ] Implements `govet` only command (`GoVet`)
   - [ ] Support other linter tools
-    - [ ] errcheck: https://github.com/kisielk/errcheck
-    - [ ] lll: https://github.com/walle/lll
+      - [ ] errcheck: https://github.com/kisielk/errcheck
+      - [ ] lll: https://github.com/walle/lll
 
 ## GoTest
 https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L188
@@ -120,8 +126,8 @@ https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L188
 ## GoGuru
   - [x] Support unsaved file (buffer)
   - [ ] `definition` subcommand support use cgo file (need fix `guru` core)
-    - [x] Tentatively workaround: https://github.com/zchee/nvim-go/commit/950aa062bd0e7086de3c11753e1bc4ea083e6334
-    - [ ] Less than perfect. Maybe can't parse the `struct` provided behavior
+      - [x] Tentatively workaround: https://github.com/zchee/nvim-go/commit/950aa062bd0e7086de3c11753e1bc4ea083e6334
+      - [ ] Less than perfect. Maybe can't parse the `struct` provided behavior
   - [ ] Implements tags flag feature
   - [ ] Support stacking
 
