@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 	"go/build"
+	"io/ioutil"
+	"os"
 	"time"
 
 	"nvim-go/config"
@@ -18,7 +20,7 @@ import (
 func init() {
 	plugin.HandleCommand("Gorename",
 		&plugin.CommandOptions{
-			NArgs: "?", Eval: "[expand('%:p:h'), expand('%:p'), line2byte(line('.'))+(col('.')-2), expand('<cword>')]"},
+			NArgs: "?", Bang: true, Eval: "[expand('%:p:h'), expand('%:p'), line2byte(line('.'))+(col('.')-2), expand('<cword>')]"},
 		cmdRename)
 }
 
@@ -29,12 +31,12 @@ type cmdRenameEval struct {
 	From   string
 }
 
-func cmdRename(v *vim.Vim, args []string, eval *cmdRenameEval) {
-	go Rename(v, args, eval)
+func cmdRename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) {
+	go Rename(v, args, bang, eval)
 }
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
-func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
+func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 	defer profile.Start(time.Now(), "GoRename")
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(eval.Dir)()
@@ -69,21 +71,42 @@ func Rename(v *vim.Vim, args []string, eval *cmdRenameEval) error {
 				return nvim.EchohlErr(v, "GoRename", err)
 			}
 		}
-		if toResult.(string) != "" {
-			to = toResult.(string)
+		to = fmt.Sprintf("%s", toResult)
+		if to == "" {
+			return nvim.EchohlErr(v, "GoRename", "Not enough arguments for rename destination name")
 		}
 	}
 
 	prefix := "GoRename"
 	nvim.EchoProgress(v, prefix, "Renaming", eval.From, to)
-	defer nvim.EchoSuccess(v, prefix)
+
+	if bang {
+		rename.Force = true
+	}
+
+	saveStdout := os.Stdout
+	saveStderr := os.Stderr
+	ro, wo, _ := os.Pipe()
+	re, we, _ := os.Pipe()
+	os.Stdout = wo
+	os.Stderr = we
 
 	if err := rename.Main(&build.Default, offset, "", to); err != nil {
-		if err != rename.ConflictError {
-			return err
-		}
+		return err
 	}
-	p.Command("silent! edit!")
 
-	return p.Wait()
+	wo.Close()
+	we.Close()
+	os.Stdout = saveStdout
+	os.Stderr = saveStderr
+
+	out, _ := ioutil.ReadAll(ro)
+	er, _ := ioutil.ReadAll(re)
+	if len(er) != 0 {
+		nvim.EchohlErr(v, "GoRename", er)
+	}
+	defer nvim.EchoSuccess(v, prefix, fmt.Sprintf("%s", out))
+
+	// TODO(zchee): Create tempfile and use SetBufferLines.
+	return v.Command("edit")
 }
