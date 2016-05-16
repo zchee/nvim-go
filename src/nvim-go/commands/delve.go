@@ -187,20 +187,9 @@ func delveStartClient(v *vim.Vim, eval cmdDelveEval) error {
 	var width, height int
 	p.Command("runtime! syntax/go.vim")
 
-	// Define dummy sign for unplace breakpoint sign.
-	//
-	// If not exists dummy sign, flashing(?) the buffer when unplace->place on move source buffer cursor.
-	//
-	//  |-> 173 | func something(s string) error { // exists breakpoint sign
-	//  |173 | func something(s string) error {    // unplace all sign
-	//  |   173 | func something(s string) error { // place breakpoint sign to next breakpoint
-	_, err := nvim.NewSign(v, "delve_dummy", "", "", "")
-	if err != nil {
-		return err
-	}
-
 	// Define sign for breakpoint hit line.
 	// TODO(zchee): Custumizable sign text and highlight group.
+	var err error
 	delve.pcSign, err = nvim.NewSign(v, "delve_pc", "->", "String", "Search")
 	delve.bpSign = map[string]*nvim.Sign{}
 	p.Command("sign define delve_bp text=B> texthl=Type")
