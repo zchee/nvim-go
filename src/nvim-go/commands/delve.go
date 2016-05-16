@@ -55,7 +55,7 @@ type bufferInfo struct {
 // DelveClient represents a delve debugger interface and buffer information.
 type DelveClient struct {
 	client   *delverpc2.RPCClient
-	term     *delveterminal.Term
+	terminal *delveterminal.Term
 	debugger *delveterminal.Commands
 
 	addr    string
@@ -174,7 +174,7 @@ func delveStartClient(v *vim.Vim, eval cmdDelveEval) error {
 	delve.procPid = delve.client.ProcessPid()
 	delve.buffers = make(map[vim.Buffer]*bufferInfo, 5)
 
-	delve.term = delveterminal.New(delve.client, nil)
+	delve.terminal = delveterminal.New(delve.client, nil)
 	delve.debugger = delveterminal.DebugCommands(delve.client)
 
 	channelId, _ = v.ChannelID()
@@ -182,15 +182,17 @@ func delveStartClient(v *vim.Vim, eval cmdDelveEval) error {
 
 	p := v.NewPipeline()
 	newBuffer(p, "source", "0tab", 0, "new", src)
-
-	var width, height int
 	p.Command("runtime! syntax/go.vim")
+	if err := p.Wait(); err != nil {
+		return err
+	}
 
 	// Define sign for breakpoint hit line.
 	// TODO(zchee): Custumizable sign text and highlight group.
+	var width, height int
 	var err error
 	delve.pcSign, err = nvim.NewSign(v, "delve_pc", "->", "String", "Search")
-	delve.bpSign = map[string]*nvim.Sign{}
+	delve.bpSign = make(map[string]*nvim.Sign)
 	p.Command("sign define delve_bp text=B> texthl=Type")
 	p.WindowWidth(src.window, &width)
 	p.WindowHeight(src.window, &height)
@@ -198,11 +200,6 @@ func delveStartClient(v *vim.Vim, eval cmdDelveEval) error {
 		return err
 	}
 
-	// TODO(zchee): Split create buffer section and set buffer option section. Now "delveStartClient" command is slow.
-	// 1. Split the current full width buffer to each output buffers.
-	// We can't use goroutine because may become different split size and buffer position.
-	// neovim (v)split behavior can absolute size?
-	// 2. Set buffer option for each output buffer use goroutine.
 	newBuffer(p, "stacktrace", "belowright", (width * 2 / 5), "vsplit", stacks)
 	newBuffer(p, "breakpoint", "belowright", (height * 1 / 3), "split", breaks)
 	newBuffer(p, "locals", "belowright", (height * 1 / 3), "split", locals)
@@ -210,38 +207,35 @@ func delveStartClient(v *vim.Vim, eval cmdDelveEval) error {
 	if err := p.Wait(); err != nil {
 		return err
 	}
-	newBuffer(p, "logs", "belowright", (height * 1 / 3), "split", logs)
-	p.SetCurrentWindow(src.window)
 
-	// Gets the default unrecovered-panic breakpoint
+	newBuffer(p, "logs", "belowright", (height * 1 / 3), "split", logs)
+
+	// Gets the default "unrecovered-panic" breakpoint
 	delve.breakpoints = make(map[int]*delveapi.Breakpoint)
+
 	panic, err := delve.client.GetBreakpoint(-1)
 	if err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
+
 	delve.breakpoints[-1] = panic
-	delve.breakpoints[-1].ID = 99
-	log.Printf("delve.breakpoints: %+v\n", delve.breakpoints[-1])
 	delve.bpSign[panic.File], err = nvim.NewSign(v, "delve_bp", "B>", "Type", "")
-	log.Printf("delve.bpSign[panic.File]: %+v\n", delve.bpSign[panic.File])
 	if err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	sbp := fmt.Sprintf("Breakpoint %d\n\tPC=%#x func=%s() File=%s:%d (%d)",
-		panic.ID,
-		panic.Addr,
-		panic.FunctionName,
-		panic.File,
-		panic.Line,
-		panic.ID)
-	printbp := bytes.NewBufferString(sbp)
+	printbp := bytes.NewBufferString(
+		fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d (%d)",
+			panic.ID,
+			panic.Addr,
+			panic.FunctionName,
+			panic.File,
+			panic.Line,
+			panic.ID))
 	if breaks.linecount, err = printBuffer(v, breaks.buffer, true, bytes.Split(printbp.Bytes(), []byte{'\n'})); err != nil {
 		return err
 	}
-	if err := v.SetWindowCursor(breaks.window, [2]int{breaks.linecount, 0}); err != nil {
-		return err
-	}
+	p.SetWindowCursor(breaks.window, [2]int{breaks.linecount, 0})
 
 	return p.Wait()
 }
@@ -300,7 +294,7 @@ func delveCommand(v *vim.Vim, args []string) error {
 
 	// First command arguments is delve subcommand.
 	// Splits the after arguments with whitespace.
-	err := delve.debugger.Call(args[0], strings.Join(args[1:], " "), delve.term)
+	err := delve.debugger.Call(args[0], strings.Join(args[1:], " "), delve.terminal)
 	if err != nil {
 		return err
 	}
@@ -310,13 +304,13 @@ func delveCommand(v *vim.Vim, args []string) error {
 	os.Stdout = saveStdout
 
 	// Read all the lines of r file and output results to logs buffer.
-	out := []byte("(dlv) ")
+	out := bytes.NewBufferString(fmt.Sprintf("(dlv) %s\n", strings.Join(args, " ")))
 	result, err := ioutil.ReadAll(r)
 	if err != nil {
 		return err
 	}
-	out = append(out, result...)
-	logs.linecount, err = printBuffer(v, logs.buffer, true, bytes.Split(bytes.TrimSpace(out), []byte{'\n'}))
+	out.Write(result)
+	logs.linecount, err = printBuffer(v, logs.buffer, true, bytes.Split(bytes.TrimSpace(out.Bytes()), []byte{'\n'}))
 	if err != nil {
 		return err
 	}
@@ -368,17 +362,14 @@ func delveBreakpoint(v *vim.Vim, args []string) error {
 	}
 
 	// Breakpoint 1 at 0x2053 for main.main() /Users/zchee/go/src/github.com/zchee/go-sandbox/astdump/astdump.go:19 (1)
-	// delvePrintDebug("bp", newbp)
-	// delvePrintDebug("delve.breakpoints", delve.breakpoints)
-
-	sbp := fmt.Sprintf("Breakpoint %d\n\tPC=%#x func=%s() File=%s:%d (%d)",
-		newbp.ID,
-		newbp.Addr,
-		newbp.FunctionName,
-		newbp.File,
-		newbp.Line,
-		newbp.ID)
-	bufbp := bytes.NewBufferString(sbp)
+	bufbp := bytes.NewBufferString(
+		fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d (%d)",
+			newbp.ID,
+			newbp.Addr,
+			newbp.FunctionName,
+			newbp.File,
+			newbp.Line,
+			newbp.ID))
 	if breaks.linecount, err = printBuffer(v, breaks.buffer, true, bytes.Split(bufbp.Bytes(), []byte{'\n'})); err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
@@ -468,7 +459,6 @@ func delveContinue(v *vim.Vim) error {
 	stateCh := delve.client.Continue()
 	state := <-stateCh
 
-	// delvePrintDebug("state", state)
 	if state == nil || state.Exited {
 		return nvim.Echomsg(v, fmt.Sprintf("Process %d has exited with status %d", delve.procPid, state.ExitStatus))
 	}
@@ -482,7 +472,6 @@ func delveContinue(v *vim.Vim) error {
 		return err
 	}
 	sort.Sort(ByID(breakpoint))
-	// delvePrintDebug("breakpoint", breakpoint)
 
 	var bplines []byte
 	for _, bp := range breakpoint {
@@ -492,14 +481,14 @@ func delveContinue(v *vim.Vim) error {
 		} else {
 			bp = delve.breakpoints[bp.ID]
 		}
-		sbp := fmt.Sprintf("Breakpoint %d\n\tPC=%#x func=%s() File=%s:%d (%d)\n",
-			bp.ID,
-			bp.Addr,
-			bp.FunctionName,
-			bp.File,
-			bp.Line,
-			bp.ID)
-		bufbp := bytes.NewBufferString(sbp)
+		bufbp := bytes.NewBufferString(
+			fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d \n",
+				bp.ID,
+				bp.Addr,
+				bp.FunctionName,
+				bp.File,
+				bp.Line,
+				bp.ID))
 		bplines = append(bplines, bufbp.Bytes()...)
 	}
 
@@ -520,7 +509,6 @@ func delveNext(v *vim.Vim) error {
 		return err
 	}
 
-	// delvePrintDebug("state", state)
 	if state == nil || state.Exited {
 		return nvim.Echomsg(v, fmt.Sprintf("Process %d has exited with status %d", delve.procPid, state.ExitStatus))
 	}
@@ -530,7 +518,6 @@ func delveNext(v *vim.Vim) error {
 		return err
 	}
 	sort.Sort(ByID(breakpoint))
-	// delvePrintDebug("breakpoint", breakpoint)
 
 	var bplines []byte
 	for _, bp := range breakpoint {
