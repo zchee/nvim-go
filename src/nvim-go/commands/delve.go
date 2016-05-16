@@ -207,35 +207,34 @@ func delveStartClient(v *vim.Vim, eval cmdDelveEval) error {
 	if err := p.Wait(); err != nil {
 		return err
 	}
-
 	newBuffer(p, "logs", "belowright", (height * 1 / 3), "split", logs)
+	if err := p.Wait(); err != nil {
+		return err
+	}
 
 	// Gets the default "unrecovered-panic" breakpoint
 	delve.breakpoints = make(map[int]*delveapi.Breakpoint)
 
-	panic, err := delve.client.GetBreakpoint(-1)
+	unrecovered, err := delve.client.GetBreakpoint(-1)
 	if err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	delve.breakpoints[-1] = panic
-	delve.bpSign[panic.File], err = nvim.NewSign(v, "delve_bp", "B>", "Type", "")
+	delve.breakpoints[-1] = unrecovered
+	delve.bpSign[unrecovered.File], err = nvim.NewSign(v, "delve_bp", "B>", "Type", "")
 	if err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
 
 	printbp := bytes.NewBufferString(
 		fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d (%d)",
-			panic.ID,
-			panic.Addr,
-			panic.FunctionName,
-			panic.File,
-			panic.Line,
-			panic.ID))
-	if breaks.linecount, err = printBuffer(v, breaks.buffer, true, bytes.Split(printbp.Bytes(), []byte{'\n'})); err != nil {
-		return err
-	}
-	p.SetWindowCursor(breaks.window, [2]int{breaks.linecount, 0})
+			unrecovered.ID,
+			unrecovered.Addr,
+			unrecovered.FunctionName,
+			unrecovered.File,
+			unrecovered.Line,
+			unrecovered.ID))
+	breaks.linecount = printBufferPipe(p, breaks.buffer, true, bytes.Split(printbp.Bytes(), []byte{'\n'}))
 
 	return p.Wait()
 }
@@ -267,7 +266,7 @@ func newBuffer(p *vim.Pipeline, name string, mode string, size int, split string
 		p.SetWindowOption(buf.window, "number", false)
 		p.SetWindowOption(buf.window, "relativenumber", false)
 	}
-	// modifiable lock to buffer.
+	// modifiable lock.
 	p.SetBufferOption(buf.buffer, "modifiable", false)
 	if err := p.Wait(); err != nil {
 		return err
@@ -583,7 +582,6 @@ func printBuffer(v *vim.Vim, b vim.Buffer, append bool, data [][]byte) (int, err
 
 func printBufferPipe(p *vim.Pipeline, b vim.Buffer, append bool, data [][]byte) int {
 	var start int
-	var buf [][]byte
 
 	// Gets the buffer line count if append is true.
 	if append {
@@ -592,6 +590,7 @@ func printBufferPipe(p *vim.Pipeline, b vim.Buffer, append bool, data [][]byte) 
 
 	// Chceck the target buffer whether empty if line count is 1.
 	if start == 1 {
+		var buf [][]byte
 		p.BufferLines(b, 0, -1, true, &buf)
 		// buf[0] is target buffer's first line []byte slice.
 		if len(buf[0]) == 0 {
