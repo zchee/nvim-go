@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package delve
 
 import (
 	"bytes"
@@ -226,14 +226,8 @@ func delveStartClient(v *vim.Vim, eval cmdDelveEval) error {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	printbp := bytes.NewBufferString(
-		fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d",
-			unrecovered.ID,
-			unrecovered.Addr,
-			unrecovered.FunctionName,
-			unrecovered.File,
-			unrecovered.Line))
-	breaks.linecount = printBufferPipe(p, breaks.buffer, true, bytes.Split(printbp.Bytes(), []byte{'\n'}))
+	ubp := formatBreakpoint(unrecovered)
+	breaks.linecount = printBufferPipe(p, breaks.buffer, false, bytes.Split(ubp, []byte{'\n'}))
 
 	return p.Wait()
 }
@@ -347,7 +341,7 @@ func delveBreakpoint(v *vim.Vim, args []string) error {
 		FunctionName: args[0],
 		Name:         bpName,
 		Tracepoint:   true,
-	})
+	}) // *api.Breakpoint
 	if err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
@@ -360,14 +354,8 @@ func delveBreakpoint(v *vim.Vim, args []string) error {
 	}
 
 	// Breakpoint 1 at 0x2053 for main.main() /Users/zchee/go/src/github.com/zchee/go-sandbox/astdump/astdump.go:19 (1)
-	bufbp := bytes.NewBufferString(
-		fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d\n",
-			newbp.ID,
-			newbp.Addr,
-			newbp.FunctionName,
-			newbp.File,
-			newbp.Line))
-	if breaks.linecount, err = printBuffer(v, breaks.buffer, true, bytes.Split(bufbp.Bytes(), []byte{'\n'})); err != nil {
+	pbp := formatBreakpoint(newbp)
+	if breaks.linecount, err = printBuffer(v, breaks.buffer, true, bytes.Split(pbp, []byte{'\n'})); err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
 	if err := v.SetWindowCursor(breaks.window, [2]int{breaks.linecount, 0}); err != nil {
@@ -384,6 +372,18 @@ func delveFunctionList(v *vim.Vim) ([]string, error) {
 	}
 
 	return funcs, nil
+}
+
+func formatBreakpoint(breakpoint *delveapi.Breakpoint) []byte {
+	bp := bytes.NewBufferString(
+		fmt.Sprintf("%2d: PC=%#x func=%s() File=%s:%d",
+			breakpoint.ID,
+			breakpoint.Addr,
+			breakpoint.FunctionName,
+			breakpoint.File,
+			breakpoint.Line))
+
+	return bp.Bytes()
 }
 
 // parseThread parses the delve Thread information and print the each result
@@ -403,7 +403,7 @@ func parseThread(v *vim.Vim, thread *delveapi.Thread) error {
 		pc := fmt.Sprintf("(PC: %#x)", thread.PC)
 
 		var err error
-		logs.linecount, err = printBuffer(v, logs.buffer, true, bytes.Split([]byte("(dlv) > "+funcName+file+line+goroutine+pc), []byte{'\n'}))
+		logs.linecount, err = printBuffer(v, logs.buffer, true, bytes.Split([]byte("(dlv) "+funcName+file+line+goroutine+pc), []byte{'\n'}))
 		if err != nil {
 			return err
 		}
@@ -476,14 +476,9 @@ func delveContinue(v *vim.Vim) error {
 			delve.breakpoints[bp.ID].TotalHitCount = bp.TotalHitCount
 			delve.breakpoints[bp.ID].HitCount = bp.HitCount
 		}
-		bufbp := bytes.NewBufferString(
-			fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d\n",
-				bp.ID,
-				bp.Addr,
-				bp.FunctionName,
-				bp.File,
-				bp.Line))
-		bplines = append(bplines, bufbp.Bytes()...)
+		bufbp := formatBreakpoint(bp)
+		bplines = append(bplines, bufbp...)
+		bplines = append(bplines, byte('\n'))
 	}
 
 	if breaks.linecount, err = printBuffer(v, breaks.buffer, false, bytes.Split(bplines, []byte{'\n'})); err != nil {
@@ -519,14 +514,9 @@ func delveNext(v *vim.Vim) error {
 			delve.breakpoints[bp.ID].TotalHitCount = bp.TotalHitCount
 			delve.breakpoints[bp.ID].HitCount = bp.HitCount
 		}
-		bufbp := bytes.NewBufferString(
-			fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d\n",
-				bp.ID,
-				bp.Addr,
-				bp.FunctionName,
-				bp.File,
-				bp.Line))
-		bplines = append(bplines, bufbp.Bytes()...)
+		bufbp := formatBreakpoint(bp)
+		bplines = append(bplines, bufbp...)
+		bplines = append(bplines, byte('\n'))
 	}
 
 	if breaks.linecount, err = printBuffer(v, breaks.buffer, false, bytes.Split(bplines, []byte{'\n'})); err != nil {
