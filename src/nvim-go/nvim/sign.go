@@ -35,20 +35,19 @@ func NewSign(v *vim.Vim, name, text, texthl, linehl string) (*Sign, error) {
 	}, nil
 }
 
-// func (s *S
-
 func (s *Sign) Place(p *vim.Pipeline, id, line int, file string, clearLast bool) error {
 	if clearLast && s.Id != 0 {
 		cmd := fmt.Sprintf("sign unplace %d file=%s", s.Id, file)
 		p.Command(cmd)
 	}
 
-	if id <= 0 {
+	if id < 0 {
 		id = 99
 	}
 	cmd := fmt.Sprintf("sign place %d name=%s line=%d file=%s", id, s.Name, line, file)
 	p.Command(cmd)
 	s.Id = id
+	s.File = file
 
 	return nil
 }
@@ -64,5 +63,12 @@ func (s *Sign) UnplaceAll(p *vim.Pipeline, file string) error {
 	cmd := fmt.Sprintf("sign unplace * file=%s", file)
 	p.Command(cmd)
 
-	return nil
+	return p.Wait()
+}
+
+func (s *Sign) UnplaceAllPc(p *vim.Pipeline) error {
+	cmd := fmt.Sprintf("sign unplace %d", s.Id)
+	p.Command(cmd)
+
+	return p.Wait()
 }
