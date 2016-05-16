@@ -24,6 +24,8 @@ _testmain.go
 *.prof
 
 # neovim go rplugin
-bin/
-pkg/
+bin
+pkg
+!vendor/src/github.com/pkg
+
 plugin/specs

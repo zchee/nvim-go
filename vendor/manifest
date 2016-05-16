@@ -15,6 +15,69 @@
 			"path": "/gotests/process"
 		},
 		{
+			"importpath": "github.com/derekparker/delve/config",
+			"repository": "https://github.com/derekparker/delve",
+			"revision": "47269cb10f455e3cdbfe6b52a759475ede4aed70",
+			"branch": "master",
+			"path": "/config"
+		},
+		{
+			"importpath": "github.com/derekparker/delve/dwarf/frame",
+			"repository": "https://github.com/derekparker/delve",
+			"revision": "82ece54737fb247eb71c71a2658b68123b4fd1a7",
+			"branch": "master",
+			"path": "/dwarf/frame"
+		},
+		{
+			"importpath": "github.com/derekparker/delve/dwarf/line",
+			"repository": "https://github.com/derekparker/delve",
+			"revision": "82ece54737fb247eb71c71a2658b68123b4fd1a7",
+			"branch": "master",
+			"path": "/dwarf/line"
+		},
+		{
+			"importpath": "github.com/derekparker/delve/dwarf/op",
+			"repository": "https://github.com/derekparker/delve",
+			"revision": "82ece54737fb247eb71c71a2658b68123b4fd1a7",
+			"branch": "master",
+			"path": "/dwarf/op"
+		},
+		{
+			"importpath": "github.com/derekparker/delve/dwarf/reader",
+			"repository": "https://github.com/derekparker/delve",
+			"revision": "82ece54737fb247eb71c71a2658b68123b4fd1a7",
+			"branch": "master",
+			"path": "/dwarf/reader"
+		},
+		{
+			"importpath": "github.com/derekparker/delve/dwarf/util",
+			"repository": "https://github.com/derekparker/delve",
+			"revision": "82ece54737fb247eb71c71a2658b68123b4fd1a7",
+			"branch": "master",
+			"path": "/dwarf/util"
+		},
+		{
+			"importpath": "github.com/derekparker/delve/proc",
+			"repository": "https://github.com/derekparker/delve",
+			"revision": "82ece54737fb247eb71c71a2658b68123b4fd1a7",
+			"branch": "master",
+			"path": "/proc"
+		},
+		{
+			"importpath": "github.com/derekparker/delve/service",
+			"repository": "https://github.com/derekparker/delve",
+			"revision": "82ece54737fb247eb71c71a2658b68123b4fd1a7",
+			"branch": "master",
+			"path": "/service"
+		},
+		{
+			"importpath": "github.com/derekparker/delve/terminal",
+			"repository": "https://github.com/derekparker/delve",
+			"revision": "47269cb10f455e3cdbfe6b52a759475ede4aed70",
+			"branch": "master",
+			"path": "/terminal"
+		},
+		{
 			"importpath": "github.com/garyburd/neovim-go",
 			"repository": "https://github.com/garyburd/neovim-go",
 			"revision": "6d2309128163fe8e035fbc2cc8fa6ca5b8ae6a63",
@@ -33,11 +96,51 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/peterh/liner",
+			"repository": "https://github.com/peterh/liner",
+			"revision": "0e4af131b90a9786839c8b1b01717be263e8555a",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/pkg/errors",
+			"repository": "https://github.com/pkg/errors",
+			"revision": "d814416a46cbb066b728cfff58d30a986bc9ddbe",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/rogpeppe/godef/go",
 			"repository": "https://github.com/rogpeppe/godef",
 			"revision": "d629cae4d0b474702f8535c656991b94c1cb38a1",
 			"branch": "master",
 			"path": "/go"
+		},
+		{
+			"importpath": "golang.org/x/debug/dwarf",
+			"repository": "https://go.googlesource.com/debug",
+			"revision": "846e2cd1687172d7ce8b1bb507504ac63765ab45",
+			"branch": "master",
+			"path": "/dwarf"
+		},
+		{
+			"importpath": "golang.org/x/debug/macho",
+			"repository": "https://go.googlesource.com/debug",
+			"revision": "846e2cd1687172d7ce8b1bb507504ac63765ab45",
+			"branch": "master",
+			"path": "/macho"
+		},
+		{
+			"importpath": "golang.org/x/net/http2/hpack",
+			"repository": "https://go.googlesource.com/net",
+			"revision": "96dbb961a39ddccf16860cdd355bfa639c497f23",
+			"branch": "master",
+			"path": "/http2/hpack"
+		},
+		{
+			"importpath": "golang.org/x/sys/unix",
+			"repository": "https://go.googlesource.com/sys",
+			"revision": "e82cb4d7dffc35bcec7bc8bf9e402377e0ecf3f4",
+			"branch": "master",
+			"path": "/unix"
 		},
 		{
 			"importpath": "golang.org/x/tools/cmd/guru/serial",
@@ -136,6 +239,19 @@
 			"revision": "3f1f7eeff104d9ef829677f12b9780dfdd26a96a",
 			"branch": "master",
 			"path": "/refactor/satisfy"
+		},
+		{
+			"importpath": "gopkg.in/yaml.v2",
+			"repository": "https://gopkg.in/yaml.v2",
+			"revision": "a83829b6f1293c91addabc89d0571c246397bbf4",
+			"branch": "v2"
+		},
+		{
+			"importpath": "rsc.io/x86/x86asm",
+			"repository": "https://github.com/rsc/x86",
+			"revision": "01d8f0379593fd888e08a4c4057d69f5765ab2e4",
+			"branch": "master",
+			"path": "/x86asm"
 		}
 	]
 }
