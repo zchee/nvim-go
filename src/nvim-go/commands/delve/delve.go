@@ -233,15 +233,16 @@ func delveCommand(v *vim.Vim, args []string) error {
 	w.Close()
 	os.Stdout = saveStdout
 
+	// Print command to logs buffer.
 	if err := printLogs(v, []byte(strings.Join(args, " ")), true); err != nil {
 		return err
 	}
+
 	// Read all the lines of r file and output results to logs buffer.
 	out, err := ioutil.ReadAll(r)
 	if err != nil {
 		return err
 	}
-
 	if err := printLogs(v, out, false); err != nil {
 		return err
 	}
@@ -419,10 +420,13 @@ func updateBreakpoint(v *vim.Vim) error {
 	sort.Sort(ByID(breakpoint))
 
 	var bplines []byte
-	for _, bp := range breakpoint {
+	for i, bp := range breakpoint {
 		if delve.breakpoints[bp.ID].TotalHitCount != bp.TotalHitCount {
 			delve.breakpoints[bp.ID].TotalHitCount = bp.TotalHitCount
 			delve.breakpoints[bp.ID].HitCount = bp.HitCount
+			if delve.breakpoints[bp.ID].ID == bp.ID {
+				delve.lastBpId = i
+			}
 		}
 		bufbp := formatBreakpoint(bp)
 		bplines = append(bplines, bufbp...)
@@ -431,6 +435,12 @@ func updateBreakpoint(v *vim.Vim) error {
 
 	if breaks.linecount, err = printBuffer(v, breaks.buffer, false, bytes.Split(bplines, []byte{'\n'})); err != nil {
 		return err
+	}
+	if delve.lastBpId != 0 {
+		_, err := v.AddBufferHighlight(breaks.buffer, -1, "Search", delve.lastBpId, 0, -1)
+		if err != nil {
+			return err
+		}
 	}
 
 	return v.SetWindowCursor(breaks.window, [2]int{breaks.linecount, 0})
