@@ -18,7 +18,7 @@ func init() {
 	plugin.HandleCommand("DlvCommand", &plugin.CommandOptions{NArgs: "+"}, cmdDelveCommand)
 
 	// Breokpoint
-	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{NArgs: "+", Complete: "customlist,DelveFunctionList"}, delveBreakpoint)
+	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{NArgs: "+", Complete: "customlist,DelveFunctionList"}, delveSetBreakpoint)
 	plugin.HandleFunction("DelveFunctionList", &plugin.FunctionOptions{}, delveFunctionList)
 
 	// RPC export
