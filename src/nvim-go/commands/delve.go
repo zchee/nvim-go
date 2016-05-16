@@ -227,13 +227,12 @@ func delveStartClient(v *vim.Vim, eval cmdDelveEval) error {
 	}
 
 	printbp := bytes.NewBufferString(
-		fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d (%d)",
+		fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d",
 			unrecovered.ID,
 			unrecovered.Addr,
 			unrecovered.FunctionName,
 			unrecovered.File,
-			unrecovered.Line,
-			unrecovered.ID))
+			unrecovered.Line))
 	breaks.linecount = printBufferPipe(p, breaks.buffer, true, bytes.Split(printbp.Bytes(), []byte{'\n'}))
 
 	return p.Wait()
@@ -362,13 +361,12 @@ func delveBreakpoint(v *vim.Vim, args []string) error {
 
 	// Breakpoint 1 at 0x2053 for main.main() /Users/zchee/go/src/github.com/zchee/go-sandbox/astdump/astdump.go:19 (1)
 	bufbp := bytes.NewBufferString(
-		fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d (%d)",
+		fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d\n",
 			newbp.ID,
 			newbp.Addr,
 			newbp.FunctionName,
 			newbp.File,
-			newbp.Line,
-			newbp.ID))
+			newbp.Line))
 	if breaks.linecount, err = printBuffer(v, breaks.buffer, true, bytes.Split(bufbp.Bytes(), []byte{'\n'})); err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
@@ -477,17 +475,14 @@ func delveContinue(v *vim.Vim) error {
 		if delve.breakpoints[bp.ID].TotalHitCount != bp.TotalHitCount {
 			delve.breakpoints[bp.ID].TotalHitCount = bp.TotalHitCount
 			delve.breakpoints[bp.ID].HitCount = bp.HitCount
-		} else {
-			bp = delve.breakpoints[bp.ID]
 		}
 		bufbp := bytes.NewBufferString(
-			fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d \n",
+			fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d\n",
 				bp.ID,
 				bp.Addr,
 				bp.FunctionName,
 				bp.File,
-				bp.Line,
-				bp.ID))
+				bp.Line))
 		bplines = append(bplines, bufbp.Bytes()...)
 	}
 
@@ -523,17 +518,14 @@ func delveNext(v *vim.Vim) error {
 		if delve.breakpoints[bp.ID].TotalHitCount != bp.TotalHitCount {
 			delve.breakpoints[bp.ID].TotalHitCount = bp.TotalHitCount
 			delve.breakpoints[bp.ID].HitCount = bp.HitCount
-		} else {
-			bp = delve.breakpoints[bp.ID]
 		}
-		sbp := fmt.Sprintf("Breakpoint %d\n\tPC=%#x func=%s() File=%s:%d (%d)\n",
-			bp.ID,
-			bp.Addr,
-			bp.FunctionName,
-			bp.File,
-			bp.Line,
-			bp.ID)
-		bufbp := bytes.NewBufferString(sbp)
+		bufbp := bytes.NewBufferString(
+			fmt.Sprintf("%d: PC=%#x func=%s() File=%s:%d\n",
+				bp.ID,
+				bp.Addr,
+				bp.FunctionName,
+				bp.File,
+				bp.Line))
 		bplines = append(bplines, bufbp.Bytes()...)
 	}
 
