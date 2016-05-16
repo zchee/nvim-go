@@ -530,7 +530,8 @@ func delveRestart(v *vim.Vim) error {
 	if err != nil {
 		return err
 	}
-	return nil
+
+	return printLogs(v, []byte("restart"), true)
 }
 
 func delveDetach(v *vim.Vim) error {
