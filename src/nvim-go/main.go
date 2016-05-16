@@ -10,6 +10,7 @@ import (
 
 	_ "nvim-go/autocmd"
 	_ "nvim-go/commands"
+	_ "nvim-go/commands/delve"
 	_ "nvim-go/config"
 	_ "nvim-go/context"
 	_ "nvim-go/nvim"
