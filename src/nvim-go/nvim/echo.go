@@ -6,9 +6,11 @@ package nvim
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/garyburd/neovim-go/vim"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -37,14 +39,25 @@ func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
 	return v.Command("echoerr '" + fmt.Sprintf(format, a...) + "'")
 }
 
+// EchoerrWrap splits the errors.Wrap's cause and error messages,
+// and provide the vim 'echo' message with 'echohl' highlighting to cause text.
+func EchoerrWrap(v *vim.Vim, err error) error {
+	v.Command("redraw")
+	er := strings.SplitAfterN(fmt.Sprintf("%s", err), ": ", 2)
+	if os.Getenv("NVIM_GO_DEBUG") != "" {
+		errors.Fprint(os.Stderr, err)
+	}
+	return v.Command("echo \"" + er[0] + "\" | echohl " + errorColor + " | echon \"" + er[1] + "\" | echohl None")
+}
+
 // EchohlErr provide the vim 'echo' command with the 'echohl' highlighting prefix text.
 func EchohlErr(v *vim.Vim, prefix string, a ...interface{}) error {
 	v.Command("redraw")
 	if prefix != "" {
 		prefix += ": "
 	}
-	text := strings.TrimSpace(fmt.Sprintln(a...))
-	return v.Command("echo '" + prefix + "' | echohl " + errorColor + " | echon '" + text + "' | echohl None")
+	er := fmt.Sprintf("%s", a...)
+	return v.Command("echo '" + prefix + "' | echohl " + errorColor + " | echon \"" + er + "\" | echohl None")
 }
 
 // EchohlBefore provide the vim 'echo' command with the 'echohl' highlighting prefix text.
