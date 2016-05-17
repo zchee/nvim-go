@@ -41,10 +41,8 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(eval.Dir)()
 
-	var w vim.Window
-	p := v.NewPipeline()
-	p.CurrentWindow(&w)
-	if err := p.Wait(); err != nil {
+	w, err := v.CurrentWindow()
+	if err != nil {
 		return err
 	}
 
@@ -56,22 +54,25 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	err = cmd.Run()
-	if err == nil {
-		return nvim.EchohlAfter(v, "GoBuild", "Function", "SUCCESS")
-	}
-
-	if _, ok := err.(*exec.ExitError); ok {
-		loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &ctxt)
-		if err != nil {
-			return err
-		}
-		if err := quickfix.SetLoclist(p, loclist); err != nil {
-			return err
+	go func() error {
+		err = cmd.Run()
+		if err == nil {
+			return nvim.EchohlAfter(v, "GoBuild", "Function", "SUCCESS")
 		}
 
-		return quickfix.OpenLoclist(p, w, loclist, true)
-	}
+		if _, ok := err.(*exec.ExitError); ok {
+			loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &ctxt)
+			if err != nil {
+				return err
+			}
+			if err := quickfix.SetLoclist(v, loclist); err != nil {
+				return err
+			}
+
+			return quickfix.OpenLoclist(v, w, loclist, true)
+		}
+		return nil
+	}()
 
 	return err
 }
@@ -92,7 +93,7 @@ func compileCmd(ctxt *context.Build, eval CmdBuildEval) (*exec.Cmd, error) {
 		args = append(args, "-o", tmpfile.Name())
 		buildDir = eval.Dir
 	} else if compiler == "gb" {
-		buildDir = eval.Cwd
+		buildDir = ctxt.ProjectDir
 	}
 
 	cmd := exec.Command(compiler, args...)

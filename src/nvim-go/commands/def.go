@@ -130,7 +130,7 @@ func Def(v *vim.Vim, file string) error {
 				Col:      pos.Column,
 				Text:     pos.Filename,
 			})
-			if err := quickfix.SetLoclist(p, loclist); err != nil {
+			if err := quickfix.SetLoclist(v, loclist); err != nil {
 				nvim.Echomsg(v, "Godef: %s", err)
 			}
 

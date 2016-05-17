@@ -170,7 +170,7 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 		LNum:     line,
 		Col:      col,
 	})
-	if err := quickfix.SetLoclist(p, loclist); err != nil {
+	if err := quickfix.SetLoclist(v, loclist); err != nil {
 		return err
 	}
 

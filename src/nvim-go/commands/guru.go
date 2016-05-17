@@ -153,7 +153,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		return nvim.Echomsg(v, "GoGuru:", err)
 	}
 
-	if err := quickfix.SetLoclist(p, loclist); err != nil {
+	if err := quickfix.SetLoclist(v, loclist); err != nil {
 		return nvim.Echomsg(v, "GoGuru:", err)
 	}
 
@@ -166,7 +166,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	// not definition mode
 	if mode != "definition" {
-		return quickfix.OpenLoclist(p, w, loclist, config.GuruKeepCursor)
+		return quickfix.OpenLoclist(v, w, loclist, config.GuruKeepCursor)
 	}
 
 	return nil

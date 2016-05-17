@@ -93,8 +93,8 @@ func Metalinter(v *vim.Vim, cwd string) error {
 		})
 	}
 
-	if err := quickfix.SetLoclist(p, loclist); err != nil {
+	if err := quickfix.SetLoclist(v, loclist); err != nil {
 		return nvim.Echomsg(v, "Gometalinter: %v", err)
 	}
-	return quickfix.OpenLoclist(p, w, loclist, true)
+	return quickfix.OpenLoclist(v, w, loclist, true)
 }

@@ -50,36 +50,28 @@ type ErrorlistData struct {
 }
 
 // SetLoclist set the error results data to current buffer's locationlist.
-func SetLoclist(p *vim.Pipeline, loclist []*ErrorlistData) error {
+func SetLoclist(v *vim.Vim, loclist []*ErrorlistData) error {
 	// setloclist({nr}, {list} [, {action}])
 	// Call(fname string, result interface{}, args ...interface{})
 	if len(loclist) > 0 {
-		p.Call("setloclist", nil, 0, loclist)
+		v.Call("setloclist", nil, 0, loclist)
 	} else {
-		p.Command("lexpr ''")
+		v.Command("lexpr ''")
 	}
 
 	return nil
 }
 
 // OpenLoclist open or close the current buffer's locationlist window.
-func OpenLoclist(p *vim.Pipeline, w vim.Window, loclist []*ErrorlistData, keep bool) error {
-	if len(loclist) > 0 {
-		p.Command("lopen")
-		if keep {
-			p.SetCurrentWindow(w)
-		}
-
-		if err := p.Wait(); err != nil {
-			return err
-		}
-	} else {
-		p.Command("lclose")
-		if err := p.Wait(); err != nil {
-			return err
-		}
+func OpenLoclist(v *vim.Vim, w vim.Window, loclist []*ErrorlistData, keep bool) error {
+	if len(loclist) == 0 {
+		return v.Command("lclose")
 	}
 
+	v.Command("lopen")
+	if keep {
+		return v.SetCurrentWindow(w)
+	}
 	return nil
 }
 

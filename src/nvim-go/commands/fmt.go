@@ -80,11 +80,11 @@ func Fmt(v *vim.Vim, dir string) error {
 			}
 		}
 
-		if err := quickfix.SetLoclist(p, loclist); err != nil {
+		if err := quickfix.SetLoclist(v, loclist); err != nil {
 			return nvim.Echomsg(v, "Gofmt:", err)
 		}
 
-		return quickfix.OpenLoclist(p, w, loclist, true)
+		return quickfix.OpenLoclist(v, w, loclist, true)
 	}
 
 	quickfix.CloseLoclist(v)
