@@ -6,6 +6,7 @@ package quickfix
 
 import (
 	"bytes"
+	"log"
 	"nvim-go/context"
 	"path/filepath"
 	"regexp"
@@ -145,14 +146,16 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistDat
 	for _, m := range errPat.FindAllSubmatch(errors, -1) {
 		fb := bytes.Split(m[1], []byte("\n"))
 		fs := string(bytes.Join(fb, []byte(string(filepath.Separator))))
-		if ctxt.Tool == "go" {
-			sep := ctxt.GOPATH + string(filepath.Separator) + "src" + string(filepath.Separator)
-			c := strings.TrimPrefix(cwd, sep)
 
+		switch ctxt.Tool {
+		case "go":
+			sep := filepath.Join(ctxt.GOPATH, "src")
+			c := strings.TrimPrefix(cwd, sep)
 			fname = strings.TrimPrefix(filepath.Clean(fs), c+string(filepath.Separator))
-		} else if ctxt.Tool == "gb" {
-			sep := filepath.Base(cwd) + string(filepath.Separator)
-			fname = strings.TrimPrefix(filepath.Clean(fs), sep)
+
+		case "gb":
+			fabs := filepath.Join(ctxt.ProjectDir, "src", fs)
+			fname, _ = filepath.Rel(cwd, fabs)
 		}
 
 		line, _ := strconv.Atoi(string(m[2]))
@@ -164,6 +167,7 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistDat
 			Col:      col,
 			Text:     string(bytes.TrimSpace(m[4])),
 		})
+		log.Printf("errlist: %+v\n")
 	}
 
 	return errlist, nil
