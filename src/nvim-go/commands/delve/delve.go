@@ -126,7 +126,7 @@ func stdin(v *vim.Vim) error {
 			if err != nil {
 				return nvim.EchohlErr(v, "Delve", err)
 			}
-			if err := parseThread(v, state.CurrentThread); err != nil {
+			if err := printThread(v, state.CurrentThread); err != nil {
 				return err
 			}
 			if err := updateBreakpoint(v); err != nil {
@@ -165,7 +165,7 @@ func setBreakpoint(v *vim.Vim, args []string) error {
 		FunctionName: args[0],
 		Name:         bpName,
 		Tracepoint:   true,
-	}) // *api.Breakpoint
+	}) // *delveapi.Breakpoint
 	if err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
@@ -207,7 +207,7 @@ func functionList(v *vim.Vim) ([]string, error) {
 //  > main.main() /Users/zchee/go/src/github.com/zchee/golist/golist.go:29 (hits goroutine(1):1 total:1) (PC: 0x20eb)
 //  // next
 //  > runtime.main() /usr/local/go/src/runtime/proc.go:182 (PC: 0x26e2a)
-func parseThread(v *vim.Vim, thread *delveapi.Thread) error {
+func printThread(v *vim.Vim, thread *delveapi.Thread) error {
 	if thread != nil {
 		p := v.NewPipeline()
 		if src.name != thread.File {
@@ -267,7 +267,7 @@ func cont(v *vim.Vim) error {
 		return err
 	}
 
-	if err := parseThread(v, state.CurrentThread); err != nil {
+	if err := printThread(v, state.CurrentThread); err != nil {
 		return err
 	}
 
@@ -287,7 +287,7 @@ func next(v *vim.Vim) error {
 		return err
 	}
 
-	if err := parseThread(v, state.CurrentThread); err != nil {
+	if err := printThread(v, state.CurrentThread); err != nil {
 		return err
 	}
 
@@ -306,7 +306,7 @@ func step(v *vim.Vim) error {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	if err := parseThread(v, state.CurrentThread); err != nil {
+	if err := printThread(v, state.CurrentThread); err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
 
@@ -325,7 +325,7 @@ func stepInstruction(v *vim.Vim) error {
 		return err
 	}
 
-	if err := parseThread(v, state.CurrentThread); err != nil {
+	if err := printThread(v, state.CurrentThread); err != nil {
 		return err
 	}
 
