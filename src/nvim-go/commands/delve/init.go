@@ -28,7 +28,7 @@ func init() {
 	plugin.Handle("DlvNext", cmdNext)
 	plugin.Handle("DlvStep", cmdStep)
 	plugin.Handle("DlvStepInstruction", cmdStepInstruction)
-	plugin.Handle("DelveStdin", stdin)
+	plugin.Handle("DelveStdin", cmdStdin)
 	plugin.Handle("DlvRestart", cmdRestart)
 	plugin.Handle("DlvDetach", CmdDetach)
 
