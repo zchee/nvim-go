@@ -41,12 +41,8 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(eval.Dir)()
 
-	var (
-		b vim.Buffer
-		w vim.Window
-	)
+	var w vim.Window
 	p := v.NewPipeline()
-	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)
 	if err := p.Wait(); err != nil {
 		return err
