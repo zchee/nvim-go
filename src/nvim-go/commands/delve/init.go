@@ -7,29 +7,34 @@ import (
 
 func init() {
 	// Launch
-	plugin.HandleCommand("DlvStartServer", &plugin.CommandOptions{NArgs: "*", Eval: "[getcwd(), expand('%:p:h')]", Complete: "file"}, cmdDelveStartServer)
+	plugin.HandleCommand("DlvStartServer", &plugin.CommandOptions{NArgs: "*", Eval: "[getcwd(), expand('%:p:h')]", Complete: "file"}, cmdStartServer)
 	plugin.HandleCommand("DlvStartClient", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p:h')]"}, delveStartClient)
 
 	// Command
-	plugin.HandleCommand("DlvContinue", &plugin.CommandOptions{}, cmdDelveContinue)
-	plugin.HandleCommand("DlvNext", &plugin.CommandOptions{}, cmdDelveNext)
-	plugin.HandleCommand("DlvRestart", &plugin.CommandOptions{}, cmdDelveRestart)
-	plugin.HandleCommand("DlvDisassemble", &plugin.CommandOptions{}, delveDisassemble)
-	plugin.HandleCommand("DlvCommand", &plugin.CommandOptions{NArgs: "+"}, cmdDelveCommand)
+	plugin.HandleCommand("DlvContinue", &plugin.CommandOptions{}, cmdContinue)
+	plugin.HandleCommand("DlvNext", &plugin.CommandOptions{}, cmdNext)
+	plugin.HandleCommand("DlvStep", &plugin.CommandOptions{}, cmdStep)
+	plugin.HandleCommand("DlvStepInstruction", &plugin.CommandOptions{}, cmdStepInstruction)
+	plugin.HandleCommand("DlvRestart", &plugin.CommandOptions{}, cmdRestart)
+	plugin.HandleCommand("DlvDisassemble", &plugin.CommandOptions{}, disassemble)
+	plugin.HandleCommand("DlvStdin", &plugin.CommandOptions{NArgs: "+"}, cmdStdin)
 
 	// Breokpoint
-	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{NArgs: "+", Complete: "customlist,DelveFunctionList"}, delveSetBreakpoint)
-	plugin.HandleFunction("DelveFunctionList", &plugin.FunctionOptions{}, delveFunctionList)
+	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{NArgs: "+", Complete: "customlist,DelveFunctionList"}, setBreakpoint)
+	plugin.HandleFunction("DelveFunctionList", &plugin.FunctionOptions{}, functionList)
 
 	// RPC export
-	plugin.Handle("DlvContinue", cmdDelveContinue)
-	plugin.Handle("DlvNext", cmdDelveNext)
-	plugin.Handle("DlvRestart", cmdDelveRestart)
-	plugin.Handle("DlvDetach", CmdDelveDetach)
+	plugin.Handle("DlvContinue", cmdContinue)
+	plugin.Handle("DlvNext", cmdNext)
+	plugin.Handle("DlvStep", cmdStep)
+	plugin.Handle("DlvStepInstruction", cmdStepInstruction)
+	plugin.Handle("DelveStdin", stdin)
+	plugin.Handle("DlvRestart", cmdRestart)
+	plugin.Handle("DlvDetach", CmdDetach)
 
 	// Exit
-	plugin.HandleCommand("DlvDetach", &plugin.CommandOptions{}, CmdDelveDetach)
-	plugin.HandleCommand("DlvKill", &plugin.CommandOptions{}, CmdDelveKill)
+	plugin.HandleCommand("DlvDetach", &plugin.CommandOptions{}, CmdDetach)
+	plugin.HandleCommand("DlvKill", &plugin.CommandOptions{}, CmdKill)
 }
 
 // cmdBuildEval represent a Dlv commands Eval args.
@@ -47,24 +52,30 @@ type cmdDelveEval struct {
 //    -> Wrapper function (goroutine)
 //      -> Remote plugin internal (goroutine)
 //        -> neovim-go/vim.Pipeline (goroutine & chan)
-func cmdDelveStartServer(v *vim.Vim, args []string, eval cmdDelveEval) {
+func cmdStartServer(v *vim.Vim, args []string, eval cmdDelveEval) {
 	go delveStartServer(v, args, eval)
 }
-func cmdDelveCommand(v *vim.Vim, args []string) {
-	go delveCommand(v, args)
+func cmdStdin(v *vim.Vim) {
+	go stdin(v)
 }
-func cmdDelveContinue(v *vim.Vim) {
-	go delveContinue(v)
+func cmdContinue(v *vim.Vim) {
+	go cont(v)
 }
-func cmdDelveNext(v *vim.Vim) {
-	go delveNext(v)
+func cmdNext(v *vim.Vim) {
+	go next(v)
 }
-func cmdDelveRestart(v *vim.Vim) {
-	go delveRestart(v)
+func cmdStep(v *vim.Vim) {
+	go step(v)
 }
-func CmdDelveDetach(v *vim.Vim) {
-	go delveDetach(v)
+func cmdStepInstruction(v *vim.Vim) {
+	go stepInstruction(v)
 }
-func CmdDelveKill(v *vim.Vim) {
-	go delveKill()
+func cmdRestart(v *vim.Vim) {
+	go restart(v)
+}
+func CmdDetach(v *vim.Vim) {
+	go detach(v)
+}
+func CmdKill(v *vim.Vim) {
+	go kill()
 }

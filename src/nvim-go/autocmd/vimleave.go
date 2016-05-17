@@ -7,5 +7,5 @@ import (
 )
 
 func init() {
-	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*"}, delve.CmdDelveDetach)
+	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*"}, delve.CmdDetach)
 }
