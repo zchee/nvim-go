@@ -61,20 +61,20 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 		askMessage := fmt.Sprintf("%s: Rename '%s' to: ", "GoRename", eval.From)
 		var toResult interface{}
 		if config.RenamePrefill {
-			p.Call("input", &toResult, askMessage, eval.From)
-			if err := p.Wait(); err != nil {
-				return nvim.EchohlErr(v, "GoRename", err)
+			err := v.Call("input", &toResult, askMessage, eval.From)
+			if err != nil {
+				return nvim.EchohlErr(v, "GoRename", "Keyboard interrupt")
 			}
 		} else {
-			p.Call("input", &toResult, askMessage)
-			if err := p.Wait(); err != nil {
-				return nvim.EchohlErr(v, "GoRename", err)
+			err := v.Call("input", &toResult, askMessage)
+			if err != nil {
+				return nvim.EchohlErr(v, "GoRename", "Keyboard interrupt")
 			}
 		}
-		to = fmt.Sprintf("%s", toResult)
-		if to == "" {
+		if toResult.(string) == "" {
 			return nvim.EchohlErr(v, "GoRename", "Not enough arguments for rename destination name")
 		}
+		to = fmt.Sprintf("%s", toResult)
 	}
 
 	prefix := "GoRename"
