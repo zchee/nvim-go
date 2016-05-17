@@ -15,7 +15,8 @@ import (
 // A Context specifies the supporting context for a build and embedded
 // build.Context type struct.
 type Build struct {
-	Tool string
+	Tool       string
+	ProjectDir string
 	build.Context
 }
 
@@ -36,8 +37,8 @@ func (ctxt *Build) buildContext(p string) (string, string) {
 	p = filepath.Clean(p)
 
 	// Check the path p are Gb directory structure.
-	// If yes, append gb root and vendor path to the goPath lists.
-	if gbpath, yes := ctxt.isGb(p); yes {
+	// If ok, append gb root and vendor path to the goPath lists.
+	if gbpath, ok := ctxt.isGb(p); ok {
 		goPath = gbpath + string(filepath.ListSeparator) +
 			filepath.Join(gbpath, "vendor") + string(filepath.ListSeparator) +
 			goPath
@@ -75,6 +76,10 @@ func (ctxt *Build) isGb(p string) (string, bool) {
 
 	manifest = filepath.Join(filepath.Clean(projRoot), "vendor/manifest")
 	_, err := os.Stat(manifest)
+	if err != nil || src != "src" {
+		return "", false
+	}
+	ctxt.ProjectDir = projRoot
 
 	return filepath.Clean(projRoot), (err == nil && src == "src")
 }
