@@ -77,17 +77,17 @@ func NewDelveClient(addr string) *DelveClient {
 	}
 }
 
-// stdin sends the users input delve subcommand and arguments to the internal launched delve vertual terminal.
+// stdin sends the users input command to the internal launched delve vertual terminal.
 func stdin(v *vim.Vim) error {
 	var cmd interface{}
 	err := v.Call("input", &cmd, "dlv > ")
 	if err != nil {
-		return nvim.EchohlErr(v, "Delve", "Keyboard interrupt")
+		return nil
 	}
 
 	if cmd.(string) != "" {
 		// Print command to logs buffer.
-		if err := printLogs(v, []byte(cmd.(string)), true); err != nil {
+		if err := printLogs(v, []byte(cmd.(string)), false); err != nil {
 			return err
 		}
 
@@ -104,7 +104,7 @@ func stdin(v *vim.Vim) error {
 		}
 		err := delve.debugger.Call(prompt[0], arg, delve.terminal)
 		if err != nil {
-			return err
+			return nvim.EchohlErr(v, "Delve", err)
 		}
 
 		// Close the w file and restore os.Stdout to original.
@@ -112,13 +112,13 @@ func stdin(v *vim.Vim) error {
 		os.Stdout = saveStdout
 
 		switch cmd.(string) {
-		case "help", "h":
+		case "help", "h", "print", "p", "sources", "funcs", "types", "args", "locals", "vars", "regs", "list", "ls", "stack", "bp":
 			// Read all the lines of r file and output results to logs buffer.
 			out, err := ioutil.ReadAll(r)
 			if err != nil {
 				return err
 			}
-			if err := printLogs(v, out, false); err != nil {
+			if err := printLogs(v, out, true); err != nil {
 				return err
 			}
 		default:
@@ -129,7 +129,7 @@ func stdin(v *vim.Vim) error {
 			if err := printThread(v, state.CurrentThread); err != nil {
 				return err
 			}
-			if err := updateBreakpoint(v); err != nil {
+			if err := printBreakpoint(v); err != nil {
 				return err
 			}
 		}
@@ -169,6 +169,7 @@ func setBreakpoint(v *vim.Vim, args []string) error {
 	if err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
+
 	delve.breakpoints[newbp.ID] = newbp
 	if delve.bpSign[newbp.File] == nil {
 		delve.bpSign[newbp.File], err = nvim.NewSign(v, "delve_bp", "B>", "Type", "")
@@ -186,70 +187,23 @@ func setBreakpoint(v *vim.Vim, args []string) error {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	msg := []byte(fmt.Sprintf("Breakpoint %d set at %#x for %s() %s:%d", newbp.ID, newbp.Addr, newbp.FunctionName, newbp.File, newbp.Line))
+	msg := []byte(
+		fmt.Sprintf("Breakpoint %d set at %#x for %s() %s:%d",
+			newbp.ID,
+			newbp.Addr,
+			newbp.FunctionName,
+			newbp.File,
+			newbp.Line))
 	return printLogs(v, msg, true)
 }
 
 func functionList(v *vim.Vim) ([]string, error) {
 	funcs, err := delve.client.ListFunctions("main")
 	if err != nil {
-		return []string{}, nil
+		return []string{}, err
 	}
 
 	return funcs, nil
-}
-
-// parseThread parses the delve Thread information and print the each result
-// to the corresponding buffer.
-//
-// delve original stdout output sample:
-//  // continue
-//  > main.main() /Users/zchee/go/src/github.com/zchee/golist/golist.go:29 (hits goroutine(1):1 total:1) (PC: 0x20eb)
-//  // next
-//  > runtime.main() /usr/local/go/src/runtime/proc.go:182 (PC: 0x26e2a)
-func printThread(v *vim.Vim, thread *delveapi.Thread) error {
-	if thread != nil {
-		p := v.NewPipeline()
-		if src.name != thread.File {
-			byt, err := ioutil.ReadFile(thread.File)
-			if err != nil {
-				return err
-			}
-			src.name = thread.File
-
-			p.SetBufferName(src.buffer, thread.File)
-			if _ = printBufferPipe(p, src.buffer, false, bytes.Split(byt, []byte{'\n'})); err != nil {
-				return err
-			}
-			delve.bpSign[thread.File].UnplaceAll(p, thread.File)
-			for _, bp := range delve.breakpoints {
-				if bp.File == thread.File {
-					delve.bpSign[thread.File].Place(p, bp.ID, bp.Line, thread.File, false)
-				}
-			}
-		}
-
-		delve.pcSign.Place(p, thread.ID, thread.Line, thread.File, true)
-		p.SetWindowCursor(src.window, [2]int{thread.Line, 0})
-		err := p.Wait()
-		if err != nil {
-			return err
-		}
-
-		if stdout.Len() != 0 {
-			printLogs(v, stdout.Bytes(), false)
-			defer stdout.Reset()
-		}
-
-		funcName := fmt.Sprintf("%s() ", thread.Function.Name)
-		file := fmt.Sprintf("%s", thread.File)
-		line := fmt.Sprintf(":%d ", thread.Line)
-		goroutine := fmt.Sprintf("goroutine(%d) ", thread.GoroutineID)
-		pc := fmt.Sprintf("(PC: %#x)", thread.PC)
-
-		printLogs(v, ([]byte("> " + funcName + file + line + goroutine + pc)), false)
-	}
-	return nil
 }
 
 // cont sends the 'continue' signals to the delve headless server over the client use json-rpc2 protocol.
@@ -258,40 +212,34 @@ func cont(v *vim.Vim) error {
 	state := <-stateCh
 
 	if state == nil || state.Exited {
-		p := v.NewPipeline()
-		delve.pcSign.UnplaceAllPc(p)
-		return nvim.EchohlErr(v, "Delve", fmt.Sprintf("%s", state.Err))
+		return nvim.EchohlErr(v, "Delve", state.Err)
 	}
 
 	if err := printLogs(v, []byte("continue"), true); err != nil {
-		return err
+		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	if err := printThread(v, state.CurrentThread); err != nil {
-		return err
-	}
+	go printThread(v, state.CurrentThread)
+	go printBreakpoint(v)
 
-	return updateBreakpoint(v)
+	return nil
 }
 
 // next sends the 'next' signals to the delve headless server over the client use json-rpc2 protocol.
 func next(v *vim.Vim) error {
 	state, err := delve.client.Next()
 	if err != nil {
-		p := v.NewPipeline()
-		delve.pcSign.UnplaceAllPc(p)
-		return nvim.EchohlErr(v, "Delve", fmt.Sprintf("%s", err))
+		return nvim.EchohlErr(v, "Delve", err)
 	}
 
 	if err := printLogs(v, []byte("next"), true); err != nil {
-		return err
+		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	if err := printThread(v, state.CurrentThread); err != nil {
-		return err
-	}
+	go printThread(v, state.CurrentThread)
+	go printBreakpoint(v)
 
-	return updateBreakpoint(v)
+	return nil
 }
 
 func step(v *vim.Vim) error {
@@ -302,15 +250,14 @@ func step(v *vim.Vim) error {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	if err := printLogs(v, []byte("step"), true); err != nil {
+	if err := printLogs(v, []byte("step"), false); err != nil {
 		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	if err := printThread(v, state.CurrentThread); err != nil {
-		return nvim.EchohlErr(v, "Delve", err)
-	}
+	go printThread(v, state.CurrentThread)
+	go printBreakpoint(v)
 
-	return updateBreakpoint(v)
+	return nil
 }
 
 func stepInstruction(v *vim.Vim) error {
@@ -318,21 +265,71 @@ func stepInstruction(v *vim.Vim) error {
 	if err != nil {
 		p := v.NewPipeline()
 		delve.pcSign.UnplaceAllPc(p)
-		return nvim.EchohlErr(v, "Delve", fmt.Sprintf("%s", err))
+		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	if err := printLogs(v, []byte("step-instruction"), true); err != nil {
-		return err
+	if err := printLogs(v, []byte("step-instruction"), false); err != nil {
+		return nvim.EchohlErr(v, "Delve", err)
 	}
 
-	if err := printThread(v, state.CurrentThread); err != nil {
-		return err
-	}
+	go printThread(v, state.CurrentThread)
+	go printBreakpoint(v)
 
-	return updateBreakpoint(v)
+	return nil
 }
 
-func updateBreakpoint(v *vim.Vim) error {
+// printThread parses the delve Thread information and print the each result
+// to the corresponding buffer.
+//
+// delve original stdout output sample:
+//  // continue
+//  > main.main() /Users/zchee/go/src/github.com/zchee/golist/golist.go:29 (hits goroutine(1):1 total:1) (PC: 0x20eb)
+//  // next
+//  > runtime.main() /usr/local/go/src/runtime/proc.go:182 (PC: 0x26e2a)
+func printThread(v *vim.Vim, thread *delveapi.Thread) error {
+	p := v.NewPipeline()
+	if src.name != thread.File {
+		byt, err := ioutil.ReadFile(thread.File)
+		if err != nil {
+			return err
+		}
+		src.name = thread.File
+
+		p.SetBufferName(src.buffer, thread.File)
+		if _ = printBufferPipe(p, src.buffer, false, bytes.Split(byt, []byte{'\n'})); err != nil {
+			return err
+		}
+		delve.bpSign[thread.File].UnplaceAll(p, thread.File)
+		for _, bp := range delve.breakpoints {
+			if bp.File == thread.File {
+				delve.bpSign[thread.File].Place(p, bp.ID, bp.Line, thread.File, false)
+			}
+		}
+		if err := p.Wait(); err != nil {
+			return err
+		}
+	}
+
+	delve.pcSign.Place(p, thread.ID, thread.Line, thread.File, true)
+	p.SetWindowCursor(src.window, [2]int{thread.Line, 0})
+
+	if stdout.Len() != 0 {
+		printLogs(v, stdout.Bytes(), true)
+		defer stdout.Reset()
+	}
+
+	printLogs(v, []byte(
+		fmt.Sprintf("> %s() %s:%d goroutine(%d) (PC: %#x)",
+			thread.Function.Name,
+			thread.File,
+			thread.Line,
+			thread.GoroutineID,
+			thread.PC)), true)
+
+	return p.Wait()
+}
+
+func printBreakpoint(v *vim.Vim) error {
 	breakpoint, err := delve.client.ListBreakpoints()
 	if err != nil {
 		return err
@@ -378,21 +375,26 @@ func formatBreakpoint(breakpoint *delveapi.Breakpoint) []byte {
 	return bp.Bytes()
 }
 
-func printLogs(v *vim.Vim, message []byte, prefix bool) error {
-	var msg []byte
-	var err error
-
-	if prefix {
-		msg = []byte("(dlv) ")
+func printLogs(v *vim.Vim, message []byte, scroll bool) error {
+	v.SetBufferOption(logs.buffer, "modifiable", true)
+	err := v.SetBufferLines(logs.buffer, logs.linecount-1, -1, false, [][]byte{})
+	if err != nil {
+		return err
 	}
 
+	msg := []byte("(dlv) ")
+
 	msg = append(msg, bytes.TrimSpace(message)...)
+	msg = append(msg, []byte("\n(dlv)  ")...)
 	logs.linecount, err = printBuffer(v, logs.buffer, true, bytes.Split(msg, []byte{'\n'}))
 	if err != nil {
 		return err
 	}
 
-	return v.SetWindowCursor(logs.window, [2]int{logs.linecount, 0})
+	if scroll {
+		return v.SetWindowCursor(logs.window, [2]int{logs.linecount, 7})
+	}
+	return nil
 }
 
 func printBuffer(v *vim.Vim, b vim.Buffer, append bool, data [][]byte) (int, error) {
@@ -461,7 +463,7 @@ func restart(v *vim.Vim) error {
 		return err
 	}
 
-	return printLogs(v, []byte("restart"), true)
+	return printLogs(v, []byte(fmt.Sprintf("restart\nProcess restarted with PID %d", delve.client.ProcessPid())), true)
 }
 
 func detach(v *vim.Vim) error {
