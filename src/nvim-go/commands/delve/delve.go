@@ -24,52 +24,27 @@ import (
 	"github.com/pkg/errors"
 )
 
-const addr = "localhost:41222" // d:4 l:12 v:22
+const (
+	addr = "localhost:41222" // d:4 l:12 v:22
+
+	pkgDelve = "Delve"
+)
 
 func init() {
 	d := NewDelveClient()
 	// Launch
 	plugin.HandleCommand("DlvDebug", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug)
 	// Breakpoint
-	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{Eval: "[expand('%:p:h')]"}, d.cmdBreakpoint)
-	plugin.HandleCommand("DlvState", &plugin.CommandOptions{}, d.cmdState)
+	plugin.HandleCommand("DlvSetBreakpoint", &plugin.CommandOptions{Eval: "[expand('%:p')]"}, d.cmdBreakpoint)
 	// Stdin
 	plugin.HandleCommand("DlvStdin", &plugin.CommandOptions{}, d.stdin)
+	// State
+	plugin.HandleCommand("DlvState", &plugin.CommandOptions{}, d.cmdState)
 	// Detach
-	plugin.HandleCommand("DlvDetach", &plugin.CommandOptions{}, d.CmdDetach)
+	plugin.HandleCommand("DlvDetach", &plugin.CommandOptions{}, d.cmdDetach)
 
-	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*"}, d.CmdDetach)
-}
-
-// debugEval represent a debug commands Eval args.
-type debugEval struct {
-	Cwd string `msgpack:",array"`
-	Dir string
-}
-
-// breakpointEval represent a breakpoint commands Eval args.
-type breakpointEval struct {
-	File string `msgpack:",array"`
-}
-
-func (d *delveClient) cmdDebug(v *vim.Vim, eval debugEval) {
-	d.debug(v, eval)
-}
-
-func (d *delveClient) cmdState(v *vim.Vim) {
-	go d.state(v)
-}
-
-func (d *delveClient) cmdBreakpoint(v *vim.Vim, eval breakpointEval) {
-	go d.breakpoint(v, eval)
-}
-
-func (d *delveClient) cmdStdin(v *vim.Vim) {
-	go d.stdin(v)
-}
-
-func (d *delveClient) CmdDetach(v *vim.Vim) {
-	go d.detach(v)
+	// autocmd VimLeavePre
+	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*.go"}, d.cmdDetach)
 }
 
 type delveClient struct {
@@ -82,10 +57,13 @@ type delveClient struct {
 	serverOut, serverErr bytes.Buffer
 
 	channelID int
-	cb        vim.Buffer
-	cw        vim.Window
 
+	cb      vim.Buffer
+	cw      vim.Window
 	buffers []*buffer.Buffer
+
+	bpSign map[int]*nvim.Sign
+	pcSign *nvim.Sign
 }
 
 // NewDelveClient represents a delve client interface.
@@ -105,7 +83,7 @@ func (d *delveClient) SetupDelveClient(v *vim.Vim) error {
 	d.channelID, err = v.ChannelID()               // int
 	d.processPid = d.client.ProcessPid()           // int
 	if err != nil {
-		return errors.Wrap(err, "Delve")
+		return errors.Wrap(err, pkgDelve)
 	}
 
 	return nil
@@ -115,7 +93,7 @@ func (d *delveClient) SetupDelveClient(v *vim.Vim) error {
 func (d *delveClient) startServer(cmd, path string) error {
 	dlvBin, err := exec.LookPath("dlv")
 	if err != nil {
-		return errors.Wrap(err, "Delve")
+		return errors.Wrap(err, pkgDelve)
 	}
 
 	// TODO(zchee): costomizable build flag
@@ -128,7 +106,7 @@ func (d *delveClient) startServer(cmd, path string) error {
 	if err := d.server.Start(); err != nil {
 		err = errors.New(d.serverOut.String())
 		defer d.serverOut.Reset()
-		return errors.Wrap(err, "Delve")
+		return errors.Wrap(err, pkgDelve)
 	}
 
 	return nil
@@ -147,7 +125,7 @@ func (d *delveClient) waitServer(v *vim.Vim) error {
 		break
 	}
 	if err := d.SetupDelveClient(v); err != nil {
-		return nvim.EchoerrWrap(v, errors.Wrap(err, "Delve"))
+		return nvim.EchoerrWrap(v, errors.Wrap(err, pkgDelve))
 	}
 	return nvim.Echomsg(v, "Delve: Launched dlv headless server")
 }
@@ -157,14 +135,14 @@ func (d *delveClient) createDebugBuffer(v *vim.Vim) error {
 	p.CurrentBuffer(&d.cb)
 	p.CurrentWindow(&d.cw)
 	if err := p.Wait(); err != nil {
-		return errors.Wrap(err, "Delve")
+		return errors.Wrap(err, pkgDelve)
 	}
 
 	var height, width int
 	p.WindowHeight(d.cw, &height)
 	p.WindowWidth(d.cw, &width)
 	if err := p.Wait(); err != nil {
-		return errors.Wrap(err, "Delve")
+		return errors.Wrap(err, pkgDelve)
 	}
 
 	bufOption := d.setNvimOption("buffer")
@@ -180,7 +158,7 @@ func (d *delveClient) createDebugBuffer(v *vim.Vim) error {
 
 	for _, buf := range d.buffers {
 		if err := buf.Create(v, bufOption, winOption); err != nil {
-			return errors.Wrap(err, "Delve")
+			return errors.Wrap(err, pkgDelve)
 		}
 	}
 
@@ -208,6 +186,16 @@ func (d *delveClient) setNvimOption(scope string) map[string]interface{} {
 	return options
 }
 
+// debugEval represent a debug commands Eval args.
+type debugEval struct {
+	Cwd string `msgpack:",array"`
+	Dir string
+}
+
+func (d *delveClient) cmdDebug(v *vim.Vim, eval debugEval) {
+	d.debug(v, eval)
+}
+
 func (d *delveClient) debug(v *vim.Vim, eval debugEval) error {
 	rootDir := context.FindVcsRoot(eval.Dir)
 	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
@@ -226,36 +214,52 @@ func (d *delveClient) debug(v *vim.Vim, eval debugEval) error {
 	return nil
 }
 
+func (d *delveClient) cmdState(v *vim.Vim) {
+	go d.state(v)
+}
+
 func (d *delveClient) state(v *vim.Vim) error {
 	state, err := d.client.GetState()
 	if err != nil {
-		return errors.Wrap(err, "Delve")
+		return errors.Wrap(err, pkgDelve)
 	}
 	printDebug("state: %+v\n", state)
 	return nil
 }
 
+// breakpointEval represent a breakpoint commands Eval args.
+type breakpointEval struct {
+	File string `msgpack:",array"`
+}
+
+func (d *delveClient) cmdBreakpoint(v *vim.Vim, eval breakpointEval) {
+	go d.breakpoint(v, eval)
+}
+
 func (d *delveClient) breakpoint(v *vim.Vim, eval breakpointEval) error {
+	if d.bpSign == nil {
+		d.bpSign = make(map[int]*nvim.Sign)
+	}
+
 	cursor, err := v.WindowCursor(d.cw)
 	if err != nil {
-		return errors.Wrap(err, "Delve")
+		return nvim.EchoerrWrap(v, errors.Wrap(err, pkgDelve))
 	}
 
 	bp, err := d.client.CreateBreakpoint(&delveapi.Breakpoint{
-		Name: "foobar",
 		File: eval.File,
 		Line: cursor[0],
-	})
+	}) // *delveapi.Breakpoint
 	if err != nil {
-		return err
+		return nvim.EchoerrWrap(v, errors.Wrap(err, pkgDelve))
 	}
 
-	// *delveapi.Breakpoint
-	if err != nil {
-		return errors.Wrap(err, "Delve")
-	}
-	printDebug("bp: %+v\n", bp)
+	printDebug("setBreakpoint(bp): %+v\n", bp)
 	return nil
+}
+
+func (d *delveClient) cmdStdin(v *vim.Vim) {
+	go d.stdin(v)
 }
 
 // stdin sends the users input command to the internal delve terminal.
@@ -281,7 +285,7 @@ func (d *delveClient) stdin(v *vim.Vim) error {
 
 		err := d.debugger.Call(cmd[0], args, d.term)
 		if err != nil {
-			return nvim.EchoerrWrap(v, errors.Wrap(err, "Delve"))
+			return nvim.EchoerrWrap(v, errors.Wrap(err, pkgDelve))
 		}
 
 		// Close the w file and restore os.Stdout to original.
@@ -291,7 +295,7 @@ func (d *delveClient) stdin(v *vim.Vim) error {
 		// Read all the lines of r file and output results to logs buffer.
 		out, err := ioutil.ReadAll(r)
 		if err != nil {
-			return nvim.EchoerrWrap(v, errors.Wrap(err, "Delve"))
+			return nvim.EchoerrWrap(v, errors.Wrap(err, pkgDelve))
 		}
 		nvim.EchoRaw(v, string(out))
 	}
@@ -299,12 +303,16 @@ func (d *delveClient) stdin(v *vim.Vim) error {
 	return nil
 }
 
+func (d *delveClient) cmdDetach(v *vim.Vim) {
+	go d.detach(v)
+}
+
 func (d *delveClient) detach(v *vim.Vim) error {
 	defer d.kill()
 	if d.processPid != 0 {
 		err := d.client.Detach(true)
 		if err != nil {
-			return errors.Wrap(err, "Delve")
+			return errors.Wrap(err, pkgDelve)
 		}
 		log.Printf("Detached delve client\n")
 	}
@@ -316,7 +324,7 @@ func (d *delveClient) kill() error {
 	if d.server != nil {
 		err := d.server.Process.Kill()
 		if err != nil {
-			return errors.Wrap(err, "Delve")
+			return errors.Wrap(err, pkgDelve)
 		}
 		log.Printf("Killed delve server\n")
 	}
