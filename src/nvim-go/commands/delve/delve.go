@@ -1,7 +1,3 @@
-// Copyright 2016 Koichi Shiraishi. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package delve
 
 import (
@@ -10,495 +6,319 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"os/exec"
-	"sort"
+	"path/filepath"
 	"strings"
 
+	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/buffer"
 
 	delveapi "github.com/derekparker/delve/service/api"
 	delverpc2 "github.com/derekparker/delve/service/rpc2"
-	delveterminal "github.com/derekparker/delve/terminal"
+	delveterm "github.com/derekparker/delve/terminal"
 	"github.com/garyburd/neovim-go/vim"
+	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/pkg/errors"
 )
 
 const addr = "localhost:41222" // d:4 l:12 v:22
 
-var (
-	delve  *DelveClient
-	server *exec.Cmd
+func init() {
+	d := NewDelveClient()
+	// Launch
+	plugin.HandleCommand("DlvDebug", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug)
+	// Breakpoint
+	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{Eval: "[expand('%:p:h')]"}, d.cmdBreakpoint)
+	plugin.HandleCommand("DlvState", &plugin.CommandOptions{}, d.cmdState)
+	// Stdin
+	plugin.HandleCommand("DlvStdin", &plugin.CommandOptions{}, d.stdin)
+	// Detach
+	plugin.HandleCommand("DlvDetach", &plugin.CommandOptions{}, d.CmdDetach)
 
-	stdout, stderr bytes.Buffer
-
-	channelId   int
-	baseTabpage vim.Tabpage
-
-	// TODO(zchee): More elegant way.
-	src    = &bufferInfo{}
-	logs   = &bufferInfo{}
-	breaks = &bufferInfo{}
-	stacks = &bufferInfo{}
-	locals = &bufferInfo{}
-)
-
-type bufferInfo struct {
-	buffer vim.Buffer
-	window vim.Window
-
-	bufnr     interface{}
-	linecount int
-	name      string
+	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*"}, d.CmdDetach)
 }
 
-// DelveClient represents a delve debugger interface and buffer information.
-type DelveClient struct {
+// debugEval represent a debug commands Eval args.
+type debugEval struct {
+	Cwd string `msgpack:",array"`
+	Dir string
+}
+
+// breakpointEval represent a breakpoint commands Eval args.
+type breakpointEval struct {
+	File string `msgpack:",array"`
+}
+
+func (d *delveClient) cmdDebug(v *vim.Vim, eval debugEval) {
+	d.debug(v, eval)
+}
+
+func (d *delveClient) cmdState(v *vim.Vim) {
+	go d.state(v)
+}
+
+func (d *delveClient) cmdBreakpoint(v *vim.Vim, eval breakpointEval) {
+	go d.breakpoint(v, eval)
+}
+
+func (d *delveClient) cmdStdin(v *vim.Vim) {
+	go d.stdin(v)
+}
+
+func (d *delveClient) CmdDetach(v *vim.Vim) {
+	go d.detach(v)
+}
+
+type delveClient struct {
+	server   *exec.Cmd
 	client   *delverpc2.RPCClient
-	terminal *delveterminal.Term
-	debugger *delveterminal.Commands
+	term     *delveterm.Term
+	debugger *delveterm.Commands
 
-	addr    string
-	procPid int
+	processPid           int
+	serverOut, serverErr bytes.Buffer
 
-	buffers     map[vim.Buffer]*bufferInfo
-	breakpoints map[int]*delveapi.Breakpoint
-	bpSign      map[string]*nvim.Sign
-	pcSign      *nvim.Sign
-	lastBpId    int
+	channelID int
+	cb        vim.Buffer
+	cw        vim.Window
+
+	buffers []*buffer.Buffer
 }
 
 // NewDelveClient represents a delve client interface.
-func NewDelveClient(addr string) *DelveClient {
-	// TODO(zchee): custimizable listen address. Now use constant port.
-	// delve can remote debugging of another PC over the http?
-	// and can debug any binary in the Docker container?
-	return &DelveClient{
-		addr: addr,
-	}
+func NewDelveClient() *delveClient {
+	return &delveClient{}
 }
 
-// stdin sends the users input command to the internal launched delve vertual terminal.
-func stdin(v *vim.Vim) error {
-	var cmd interface{}
-	err := v.Call("input", &cmd, "dlv > ")
+// SetupDelveClient setup the delve client.
+// It's separate the NewDelveClient() function.
+// caused by neovim-go can't call the rpc2.NewClient?
+func (d *delveClient) SetupDelveClient(v *vim.Vim) error {
+	var err error
+
+	d.client = delverpc2.NewClient(addr)           // *rpc2.RPCClient
+	d.term = delveterm.New(d.client, nil)          // *terminal.Term
+	d.debugger = delveterm.DebugCommands(d.client) // *terminal.Commands
+	d.channelID, err = v.ChannelID()               // int
+	d.processPid = d.client.ProcessPid()           // int
+	if err != nil {
+		return errors.Wrap(err, "Delve")
+	}
+
+	return nil
+}
+
+// startServer starts the delve headless server and hijacked stdout & stderr.
+func (d *delveClient) startServer(cmd, path string) error {
+	dlvBin, err := exec.LookPath("dlv")
+	if err != nil {
+		return errors.Wrap(err, "Delve")
+	}
+
+	// TODO(zchee): costomizable build flag
+	args := []string{cmd, path, "--headless=true", "--accept-multiclient=true", "--api-version=2", "--log", "--listen=" + addr}
+	d.server = exec.Command(dlvBin, args...)
+
+	d.server.Stdout = &d.serverOut
+	d.server.Stderr = &d.serverErr
+
+	if err := d.server.Start(); err != nil {
+		err = errors.New(d.serverOut.String())
+		defer d.serverOut.Reset()
+		return errors.Wrap(err, "Delve")
+	}
+
+	return nil
+}
+
+func (d *delveClient) waitServer(v *vim.Vim) error {
+	// Waiting for dlv launch the headless server.
+	// "net.Dial" is better way?
+	nvim.EchoProgress(v, "Delve", "Wait for running dlv server")
+	for {
+		conn, err := net.Dial("tcp", addr)
+		if err != nil {
+			continue
+		}
+		defer conn.Close()
+		break
+	}
+	if err := d.SetupDelveClient(v); err != nil {
+		return nvim.EchoerrWrap(v, errors.Wrap(err, "Delve"))
+	}
+	return nvim.Echomsg(v, "Delve: Launched dlv headless server")
+}
+
+func (d *delveClient) createDebugBuffer(v *vim.Vim) error {
+	p := v.NewPipeline()
+	p.CurrentBuffer(&d.cb)
+	p.CurrentWindow(&d.cw)
+	if err := p.Wait(); err != nil {
+		return errors.Wrap(err, "Delve")
+	}
+
+	var height, width int
+	p.WindowHeight(d.cw, &height)
+	p.WindowWidth(d.cw, &width)
+	if err := p.Wait(); err != nil {
+		return errors.Wrap(err, "Delve")
+	}
+
+	bufOption := d.setNvimOption("buffer")
+	winOption := d.setNvimOption("window")
+
+	d.buffers = make([]*buffer.Buffer, 3)
+	for i, n := range []string{"stacktarce", "breakpoints", "locals"} {
+		d.buffers[i] = buffer.NewBuffer(n)
+	}
+	d.buffers[0].Mode = fmt.Sprintf("belowright %d vsplit", (width * 2 / 5))
+	d.buffers[1].Mode = fmt.Sprintf("belowright %d split", (height * 1 / 3))
+	d.buffers[2].Mode = fmt.Sprintf("belowright %d split", (height * 1 / 3))
+
+	for _, buf := range d.buffers {
+		if err := buf.Create(v, bufOption, winOption); err != nil {
+			return errors.Wrap(err, "Delve")
+		}
+	}
+
+	p.SetCurrentWindow(d.cw)
+	return p.Wait()
+}
+
+func (d *delveClient) setNvimOption(scope string) map[string]interface{} {
+	options := make(map[string]interface{})
+
+	switch scope {
+	case "buffer":
+		options[buffer.Bufhidden] = buffer.BufhiddenDelete
+		options[buffer.Buflisted] = false
+		options[buffer.Buftype] = buffer.BuftypeNofile
+		options[buffer.Filetype] = buffer.FiletypeGo
+		options[buffer.Swapfile] = false
+	case "window":
+		options[buffer.List] = false
+		options[buffer.Number] = false
+		options[buffer.Relativenumber] = false
+		options[buffer.Winfixheight] = true
+	}
+
+	return options
+}
+
+func (d *delveClient) debug(v *vim.Vim, eval debugEval) error {
+	rootDir := context.FindVcsRoot(eval.Dir)
+	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
+	path := filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
+
+	if err := d.startServer("debug", path); err != nil {
+		return nvim.EchoerrWrap(v, err)
+	}
+
+	if err := d.createDebugBuffer(v); err != nil {
+		return nvim.EchoerrWrap(v, err)
+	}
+	defer d.state(v)
+
+	defer d.waitServer(v)
+	return nil
+}
+
+func (d *delveClient) state(v *vim.Vim) error {
+	state, err := d.client.GetState()
+	if err != nil {
+		return errors.Wrap(err, "Delve")
+	}
+	printDebug("state: %+v\n", state)
+	return nil
+}
+
+func (d *delveClient) breakpoint(v *vim.Vim, eval breakpointEval) error {
+	cursor, err := v.WindowCursor(d.cw)
+	if err != nil {
+		return errors.Wrap(err, "Delve")
+	}
+
+	bp, err := d.client.CreateBreakpoint(&delveapi.Breakpoint{
+		Name: "foobar",
+		File: eval.File,
+		Line: cursor[0],
+	})
+	if err != nil {
+		return err
+	}
+
+	// *delveapi.Breakpoint
+	if err != nil {
+		return errors.Wrap(err, "Delve")
+	}
+	printDebug("bp: %+v\n", bp)
+	return nil
+}
+
+// stdin sends the users input command to the internal delve terminal.
+func (d *delveClient) stdin(v *vim.Vim) error {
+	var stdin interface{}
+	err := v.Call("input", &stdin, "(dlv) ")
 	if err != nil {
 		return nil
 	}
 
-	if cmd.(string) != "" {
-		// Print command to logs buffer.
-		if err := printLogs(v, []byte(cmd.(string)), false); err != nil {
-			return err
-		}
-
+	if stdin.(string) != "" {
 		// Create the connected pair of *os.Files and replace os.Stdout.
-		// delve terminal return to stdout only.
+		// delve terminal package return to stdout only.
 		r, w, _ := os.Pipe() // *os.File
 		saveStdout := os.Stdout
 		os.Stdout = w
 
-		prompt := strings.SplitN(cmd.(string), " ", 1)
-		arg := ""
-		if len(prompt) == 2 {
-			arg = prompt[1]
+		cmd := strings.SplitN(stdin.(string), " ", 2)
+		var args string
+		if len(cmd) == 2 {
+			args = cmd[1]
 		}
-		err := delve.debugger.Call(prompt[0], arg, delve.terminal)
+
+		err := d.debugger.Call(cmd[0], args, d.term)
 		if err != nil {
-			return nvim.EchohlErr(v, "Delve", err)
+			return nvim.EchoerrWrap(v, errors.Wrap(err, "Delve"))
 		}
 
 		// Close the w file and restore os.Stdout to original.
 		w.Close()
 		os.Stdout = saveStdout
 
-		switch cmd.(string) {
-		case "help", "h", "print", "p", "sources", "funcs", "types", "args", "locals", "vars", "regs", "list", "ls", "stack", "bp":
-			// Read all the lines of r file and output results to logs buffer.
-			out, err := ioutil.ReadAll(r)
-			if err != nil {
-				return err
-			}
-			if err := printLogs(v, out, true); err != nil {
-				return err
-			}
-		default:
-			state, err := delve.client.GetState()
-			if err != nil {
-				return nvim.EchohlErr(v, "Delve", err)
-			}
-			if err := printThread(v, state.CurrentThread); err != nil {
-				return err
-			}
-			if err := printBreakpoint(v); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-// ByID sorts breakpoints by ID.
-type ByID []*delveapi.Breakpoint
-
-func (a ByID) Len() int           { return len(a) }
-func (a ByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByID) Less(i, j int) bool { return a[i].ID < a[j].ID }
-
-func setBreakpoint(v *vim.Vim, args []string) error {
-	var bpName string
-	switch len(args) {
-	case 0:
-		return nvim.EchohlErr(v, "Delve", "Invalid argument")
-	case 1:
-		// TODO(zchee): more elegant way
-		bpslice := strings.Split(args[0], ".")
-		bpslice[1] = fmt.Sprintf("%s%s", strings.ToUpper(bpslice[1][:1]), bpslice[1][1:])
-		bpName = strings.Join(bpslice, "")
-	case 2:
-		bpName = args[1]
-	default:
-		return nvim.EchohlErr(v, "Delve", "Too many arguments")
-	}
-
-	newbp, err := delve.client.CreateBreakpoint(&delveapi.Breakpoint{
-		FunctionName: args[0],
-		Name:         bpName,
-		Tracepoint:   true,
-	}) // *delveapi.Breakpoint
-	if err != nil {
-		return nvim.EchohlErr(v, "Delve", err)
-	}
-
-	delve.breakpoints[newbp.ID] = newbp
-	if delve.bpSign[newbp.File] == nil {
-		delve.bpSign[newbp.File], err = nvim.NewSign(v, "delve_bp", "B>", "Type", "")
+		// Read all the lines of r file and output results to logs buffer.
+		out, err := ioutil.ReadAll(r)
 		if err != nil {
-			return nvim.EchohlErr(v, "Delve", err)
+			return nvim.EchoerrWrap(v, errors.Wrap(err, "Delve"))
 		}
+		nvim.EchoRaw(v, string(out))
 	}
-
-	// Breakpoint 1 at 0x2053 for main.main() /Users/zchee/go/src/github.com/zchee/go-sandbox/astdump/astdump.go:19 (1)
-	bp := formatBreakpoint(newbp)
-	if breaks.linecount, err = printBuffer(v, breaks.buffer, true, bytes.Split(bp, []byte{'\n'})); err != nil {
-		return nvim.EchohlErr(v, "Delve", err)
-	}
-	if err := v.SetWindowCursor(breaks.window, [2]int{breaks.linecount, 0}); err != nil {
-		return nvim.EchohlErr(v, "Delve", err)
-	}
-
-	msg := []byte(
-		fmt.Sprintf("Breakpoint %d set at %#x for %s() %s:%d",
-			newbp.ID,
-			newbp.Addr,
-			newbp.FunctionName,
-			newbp.File,
-			newbp.Line))
-	return printLogs(v, msg, true)
-}
-
-func functionList(v *vim.Vim) ([]string, error) {
-	funcs, err := delve.client.ListFunctions("main")
-	if err != nil {
-		return []string{}, err
-	}
-
-	return funcs, nil
-}
-
-// cont sends the 'continue' signals to the delve headless server over the client use json-rpc2 protocol.
-func cont(v *vim.Vim) error {
-	stateCh := delve.client.Continue()
-	state := <-stateCh
-
-	if state == nil || state.Exited {
-		return nvim.EchohlErr(v, "Delve", state.Err)
-	}
-
-	if err := printLogs(v, []byte("continue"), true); err != nil {
-		return nvim.EchohlErr(v, "Delve", err)
-	}
-
-	go printThread(v, state.CurrentThread)
-	go printBreakpoint(v)
 
 	return nil
 }
 
-// next sends the 'next' signals to the delve headless server over the client use json-rpc2 protocol.
-func next(v *vim.Vim) error {
-	state, err := delve.client.Next()
-	if err != nil {
-		return nvim.EchohlErr(v, "Delve", err)
-	}
-
-	if err := printLogs(v, []byte("next"), true); err != nil {
-		return nvim.EchohlErr(v, "Delve", err)
-	}
-
-	go printThread(v, state.CurrentThread)
-	go printBreakpoint(v)
-
-	return nil
-}
-
-func step(v *vim.Vim) error {
-	state, err := delve.client.Step()
-	if err != nil {
-		p := v.NewPipeline()
-		delve.pcSign.UnplaceAllPc(p)
-		return nvim.EchohlErr(v, "Delve", err)
-	}
-
-	if err := printLogs(v, []byte("step"), false); err != nil {
-		return nvim.EchohlErr(v, "Delve", err)
-	}
-
-	go printThread(v, state.CurrentThread)
-	go printBreakpoint(v)
-
-	return nil
-}
-
-func stepInstruction(v *vim.Vim) error {
-	state, err := delve.client.StepInstruction()
-	if err != nil {
-		p := v.NewPipeline()
-		delve.pcSign.UnplaceAllPc(p)
-		return nvim.EchohlErr(v, "Delve", err)
-	}
-
-	if err := printLogs(v, []byte("step-instruction"), false); err != nil {
-		return nvim.EchohlErr(v, "Delve", err)
-	}
-
-	go printThread(v, state.CurrentThread)
-	go printBreakpoint(v)
-
-	return nil
-}
-
-// printThread parses the delve Thread information and print the each result
-// to the corresponding buffer.
-//
-// delve original stdout output sample:
-//  // continue
-//  > main.main() /Users/zchee/go/src/github.com/zchee/golist/golist.go:29 (hits goroutine(1):1 total:1) (PC: 0x20eb)
-//  // next
-//  > runtime.main() /usr/local/go/src/runtime/proc.go:182 (PC: 0x26e2a)
-func printThread(v *vim.Vim, thread *delveapi.Thread) error {
-	p := v.NewPipeline()
-	if src.name != thread.File {
-		byt, err := ioutil.ReadFile(thread.File)
+func (d *delveClient) detach(v *vim.Vim) error {
+	defer d.kill()
+	if d.processPid != 0 {
+		err := d.client.Detach(true)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Delve")
 		}
-		src.name = thread.File
-
-		p.SetBufferName(src.buffer, thread.File)
-		if _ = printBufferPipe(p, src.buffer, false, bytes.Split(byt, []byte{'\n'})); err != nil {
-			return err
-		}
-		delve.bpSign[thread.File].UnplaceAll(p, thread.File)
-		for _, bp := range delve.breakpoints {
-			if bp.File == thread.File {
-				delve.bpSign[thread.File].Place(p, bp.ID, bp.Line, thread.File, false)
-			}
-		}
-		if err := p.Wait(); err != nil {
-			return err
-		}
+		log.Printf("Detached delve client\n")
 	}
-
-	delve.pcSign.Place(p, thread.ID, thread.Line, thread.File, true)
-	p.SetWindowCursor(src.window, [2]int{thread.Line, 0})
-
-	if stdout.Len() != 0 {
-		printLogs(v, stdout.Bytes(), true)
-		defer stdout.Reset()
-	}
-
-	printLogs(v, []byte(
-		fmt.Sprintf("> %s() %s:%d goroutine(%d) (PC: %#x)",
-			thread.Function.Name,
-			thread.File,
-			thread.Line,
-			thread.GoroutineID,
-			thread.PC)), true)
-
-	return p.Wait()
-}
-
-func printBreakpoint(v *vim.Vim) error {
-	breakpoint, err := delve.client.ListBreakpoints()
-	if err != nil {
-		return err
-	}
-	sort.Sort(ByID(breakpoint))
-
-	var bplines []byte
-	for i, bp := range breakpoint {
-		if delve.breakpoints[bp.ID].TotalHitCount != bp.TotalHitCount {
-			delve.breakpoints[bp.ID].TotalHitCount = bp.TotalHitCount
-			delve.breakpoints[bp.ID].HitCount = bp.HitCount
-			if delve.breakpoints[bp.ID].ID == bp.ID {
-				delve.lastBpId = i
-			}
-		}
-		bufbp := formatBreakpoint(bp)
-		bplines = append(bplines, bufbp...)
-		bplines = append(bplines, byte('\n'))
-	}
-
-	if breaks.linecount, err = printBuffer(v, breaks.buffer, false, bytes.Split(bplines, []byte{'\n'})); err != nil {
-		return err
-	}
-	if delve.lastBpId != 0 {
-		_, err := v.AddBufferHighlight(breaks.buffer, -1, "Search", delve.lastBpId, 0, -1)
-		if err != nil {
-			return err
-		}
-	}
-
-	return v.SetWindowCursor(breaks.window, [2]int{breaks.linecount, 0})
-}
-
-func formatBreakpoint(breakpoint *delveapi.Breakpoint) []byte {
-	bp := bytes.NewBufferString(
-		fmt.Sprintf("%2d: PC=%#x func=%s() File=%s:%d",
-			breakpoint.ID,
-			breakpoint.Addr,
-			breakpoint.FunctionName,
-			breakpoint.File,
-			breakpoint.Line))
-
-	return bp.Bytes()
-}
-
-func printLogs(v *vim.Vim, message []byte, scroll bool) error {
-	v.SetBufferOption(logs.buffer, "modifiable", true)
-	err := v.SetBufferLines(logs.buffer, logs.linecount-1, -1, false, [][]byte{})
-	if err != nil {
-		return err
-	}
-
-	msg := []byte("(dlv) ")
-
-	msg = append(msg, bytes.TrimSpace(message)...)
-	msg = append(msg, []byte("\n(dlv)  ")...)
-	logs.linecount, err = printBuffer(v, logs.buffer, true, bytes.Split(msg, []byte{'\n'}))
-	if err != nil {
-		return err
-	}
-
-	if scroll {
-		return v.SetWindowCursor(logs.window, [2]int{logs.linecount, 7})
-	}
-	return nil
-}
-
-func printBuffer(v *vim.Vim, b vim.Buffer, append bool, data [][]byte) (int, error) {
-	var start int
-
-	// Gets the buffer line count if append is true.
-	if append {
-		var err error
-		start, err = v.BufferLineCount(b)
-		if err != nil {
-			return 0, err
-		}
-	}
-
-	// Chceck the target buffer whether empty if line count is 1.
-	if start == 1 {
-		buf, err := v.BufferLines(b, 0, -1, true)
-		if err != nil {
-			return 0, err
-		}
-		// buf[0] is target buffer's first line []byte slice.
-		if len(buf[0]) == 0 {
-			start = 0
-		}
-	}
-
-	v.SetBufferOption(b, "modifiable", true)
-	defer v.SetBufferOption(b, "modifiable", false)
-
-	return start + len(data), v.SetBufferLines(b, start, -1, true, data)
-}
-
-func printBufferPipe(p *vim.Pipeline, b vim.Buffer, append bool, data [][]byte) int {
-	var start int
-
-	// Gets the buffer line count if append is true.
-	if append {
-		p.BufferLineCount(b, &start)
-	}
-
-	// Chceck the target buffer whether empty if line count is 1.
-	if start == 1 {
-		var buf [][]byte
-		p.BufferLines(b, 0, -1, true, &buf)
-		// buf[0] is target buffer's first line []byte slice.
-		if len(buf[0]) == 0 {
-			start = 0
-		}
-	}
-
-	p.SetBufferOption(b, "modifiable", true)
-	defer p.SetBufferOption(b, "modifiable", false)
-
-	p.SetBufferLines(b, start, -1, true, data)
-	return start + len(data)
-}
-
-func disassemble(v *vim.Vim) error {
-	// delve.c.DisassemblePC()
-	return nil
-}
-
-func restart(v *vim.Vim) error {
-	err := delve.client.Restart()
-	if err != nil {
-		return err
-	}
-
-	return printLogs(v, []byte(fmt.Sprintf("restart\nProcess restarted with PID %d", delve.client.ProcessPid())), true)
-}
-
-func detach(v *vim.Vim) error {
-	defer kill()
-	if delve.procPid == 0 {
-		return nil
-	}
-
-	if delve.buffers != nil {
-		p := v.NewPipeline()
-		p.SetCurrentTabpage(baseTabpage)
-		for _, buf := range delve.buffers {
-			p.Command(fmt.Sprintf("bdelete %d", buf.bufnr))
-		}
-
-		if err := p.Wait(); err != nil {
-			return err
-		}
-	}
-	err := delve.client.Detach(true)
-	if err != nil {
-		return err
-	}
-	log.Println("Detached delve client")
 
 	return nil
 }
 
-func kill() error {
-	if server != nil {
-		err := server.Process.Kill()
+func (d *delveClient) kill() error {
+	if d.server != nil {
+		err := d.server.Process.Kill()
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Delve")
 		}
-		log.Println("Killed delve server")
+		log.Printf("Killed delve server\n")
 	}
 
 	return nil
