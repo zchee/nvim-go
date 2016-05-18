@@ -80,13 +80,10 @@ func EchohlAfter(v *vim.Vim, prefix string, highlight string, format string, a .
 }
 
 // EchoProgress displays a command progress message to echo area.
-func EchoProgress(v *vim.Vim, prefix, before, from, to string) error {
+func EchoProgress(v *vim.Vim, prefix, format string, a ...interface{}) error {
 	v.Command("redraw")
-	if prefix != "" {
-		prefix += ": "
-	}
-	// TODO(zchee): Refactoring because line too long.
-	return v.Command(fmt.Sprintf("echon '%s%s ' | echohl %s | echon '%s' | echohl None | echon ' to ' | echohl %s | echon '%s' | echohl None | echon ' ...'", prefix, before, progress, from, progress, to))
+	msg := fmt.Sprintf(format, a...)
+	return v.Command(fmt.Sprintf("echon '%s: ' | echohl %s | echon '%s ...' | echohl None", prefix, progress, msg))
 }
 
 // EchoSuccess displays the success of the command to echo area.
