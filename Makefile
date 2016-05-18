@@ -1,7 +1,6 @@
 GITHUB_USER := zchee
 
 VERBOSE := -v
-GIT_VERSION := ${GO_GCFLAGS} -X `go list ./version`.GitCommit=`git rev-parse --short HEAD 2>/dev/null`
 ifeq ($(RELEASE),true)
 	GO_LDFLAGS += -ldflags "-w -s"
 else
@@ -9,7 +8,7 @@ else
 endif
 
 TOP_PACKAGE_DIR := github.com/${GITHUB_USER}
-PACKAGE_NAME := $(shell basename $(PWD))
+PACKAGE_NAME := nvim-go
 PACKAGE_DIR := ${HOME}/src/${TOP_PACKAGE_DIR}/${PACKAGE_NAME}
 BINARY_NAME := bin/nvim
 
