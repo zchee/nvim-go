@@ -78,7 +78,7 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 	}
 
 	prefix := "GoRename"
-	nvim.EchoProgress(v, prefix, "Renaming", eval.From, to)
+	v.Command(fmt.Sprintf("echon '%s: Renaming ' | echohl Identifier | echon '%s' | echohl None | echon ' to ' | echohl Identifier | echon '%s' | echohl None | echon ' ...'", prefix, eval.From, to))
 
 	if bang {
 		rename.Force = true
