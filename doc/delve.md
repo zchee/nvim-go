@@ -2,13 +2,29 @@
 
 ## Command list
 
-| Done                   | dlv commnad      | nvim-go commands |
-|:----------------------:|------------------|------------------|
-| <ul><li>[ ] </li></ul> | `dlv --headless` | `DlvStartServer` |
-| <ul><li>[ ] </li></ul> | `dlv connect`    | `DlvStartClient` |
-| <ul><li>[ ] </li></ul> | `restart`, `r`   | `DlvRestart`     |
-| <ul><li>[ ] </li></ul> | `continue`, `c`  | `DlvContinue`    |
-| <ul><li>[ ] </li></ul> | `next`, `n`      | `DlvNext`        |
+| Done                   | dlv commnad | dlv alias | nvim-go commands |
+|:----------------------:|-------------|:---------:|------------------|
+| <ul><li>[x] </li></ul> | `dlv debug` | -         | `DlvDebug`       |
+| <ul><li>[ ] </li></ul> | `dlv exec`  | -         | `DlvExec`        |
+| <ul><li>[ ] </li></ul> | `restart`   | `r`       | `DlvRestart`     |
+| <ul><li>[ ] </li></ul> | `continue`  | `c`       | `DlvContinue`    |
+| <ul><li>[ ] </li></ul> | `next`      | `n`       | `DlvNext`        |
+
+
+## Commands state
+Unknown, given, conditions. (How to Solve it. By G.Polya)
+
+### `DlvDebug`
+#### unknown
+
+#### given
+
+#### conditions
+
+
+## Test code
+- https://github.com/lukehoban/webapp-go/tree/debugging
+  - use vscode-go
 
 ## dlv command help
 
