@@ -84,6 +84,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/juju/errors",
+			"repository": "https://github.com/juju/errors",
+			"revision": "b2c7a7da5b2995941048f60146e67702a292e468",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/motemen/go-astmanip",
 			"repository": "https://github.com/motemen/go-astmanip",
 			"revision": "d6ad31f02153082f74e488284fdae6730e055a44",
@@ -99,12 +105,6 @@
 			"importpath": "github.com/peterh/liner",
 			"repository": "https://github.com/peterh/liner",
 			"revision": "0e4af131b90a9786839c8b1b01717be263e8555a",
-			"branch": "master"
-		},
-		{
-			"importpath": "github.com/pkg/errors",
-			"repository": "https://github.com/pkg/errors",
-			"revision": "d814416a46cbb066b728cfff58d30a986bc9ddbe",
 			"branch": "master"
 		},
 		{
