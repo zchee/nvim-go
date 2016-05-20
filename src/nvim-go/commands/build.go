@@ -54,25 +54,22 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	go func() error {
-		err = cmd.Run()
-		if err == nil {
-			return nvim.EchohlAfter(v, "GoBuild", "Function", "SUCCESS")
+	err = cmd.Run()
+	if err == nil {
+		return nvim.EchoSuccess(v, "GoBuild", "")
+	}
+
+	if _, ok := err.(*exec.ExitError); ok {
+		loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &ctxt)
+		if err != nil {
+			return err
+		}
+		if err := quickfix.SetLoclist(v, loclist); err != nil {
+			return err
 		}
 
-		if _, ok := err.(*exec.ExitError); ok {
-			loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &ctxt)
-			if err != nil {
-				return err
-			}
-			if err := quickfix.SetLoclist(v, loclist); err != nil {
-				return err
-			}
-
-			return quickfix.OpenLoclist(v, w, loclist, true)
-		}
-		return nil
-	}()
+		return quickfix.OpenLoclist(v, w, loclist, true)
+	}
 
 	return err
 }
