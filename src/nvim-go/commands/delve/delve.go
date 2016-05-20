@@ -35,7 +35,7 @@ func init() {
 	plugin.HandleCommand("DlvDebug", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug)
 
 	// Breakpoint
-	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{NArgs: "*", Eval: "[expand('%:p')]", Complete: "customlist,DelveFunctionList"}, d.cmdCreateBreakpoint)
+	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{NArgs: "*", Eval: "[expand('%:p')]", Complete: "customlist,DlvListFunctions"}, d.cmdCreateBreakpoint)
 
 	// Stepping execution control
 	plugin.HandleCommand("DlvContinue", &plugin.CommandOptions{Eval: "[expand('%:p:h')]"}, d.cmdContinue)
@@ -45,7 +45,7 @@ func init() {
 	// Interactive mode
 	// XXX(zchee): Support contextual command completion
 	plugin.HandleCommand("DlvStdin", &plugin.CommandOptions{}, d.stdin)
-	plugin.HandleFunction("DelveListFunctions", &plugin.FunctionOptions{}, d.ListFunctions)
+	plugin.HandleFunction("DlvListFunctions", &plugin.FunctionOptions{}, d.ListFunctions)
 
 	// Detach
 	plugin.HandleCommand("DlvDetach", &plugin.CommandOptions{}, d.cmdDetach)
