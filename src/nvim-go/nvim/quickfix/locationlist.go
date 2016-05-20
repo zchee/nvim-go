@@ -6,7 +6,6 @@ package quickfix
 
 import (
 	"bytes"
-	"log"
 	"nvim-go/context"
 	"path/filepath"
 	"regexp"
@@ -52,7 +51,7 @@ type ErrorlistData struct {
 // SetLoclist set the error results data to current buffer's locationlist.
 func SetLoclist(v *vim.Vim, loclist []*ErrorlistData) error {
 	// setloclist({nr}, {list} [, {action}])
-	// Call(fname string, result interface{}, args ...interface{})
+	// v.Call(fname string, result interface{}, args ...interface{})
 	if len(loclist) > 0 {
 		v.Call("setloclist", nil, 0, loclist)
 	} else {
@@ -159,7 +158,6 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistDat
 			Col:      col,
 			Text:     string(bytes.TrimSpace(m[4])),
 		})
-		log.Printf("errlist: %+v\n")
 	}
 
 	return errlist, nil
