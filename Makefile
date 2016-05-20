@@ -71,4 +71,10 @@ docker/build-nocache:
 clean:
 	@${RM} -r ./bin ./pkg
 
-.PHONY: clean build test test-run dep-save dep-restore docker-build docker-build-nocache
+todo: 
+	@ag 'TODO(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal --ignore Makefile || true
+	@ag 'BUG(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal  --ignore Makefile|| true
+	@ag 'XXX(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal  --ignore Makefile|| true
+	@ag 'FIXME(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal --ignore Makefile || true
+
+.PHONY: clean test
