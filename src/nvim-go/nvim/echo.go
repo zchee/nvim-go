@@ -6,11 +6,12 @@ package nvim
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
 	"github.com/garyburd/neovim-go/vim"
-	"github.com/pkg/errors"
+	"github.com/juju/errors"
 )
 
 var (
@@ -39,13 +40,13 @@ func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
 	return v.Command("echoerr '" + fmt.Sprintf(format, a...) + "'")
 }
 
-// EchoerrWrap splits the errors.Wrap's cause and error messages,
+// ErrorWrap splits the errors.Annotate's cause and error messages,
 // and provide the vim 'echo' message with 'echohl' highlighting to cause text.
-func EchoerrWrap(v *vim.Vim, err error) error {
+func ErrorWrap(v *vim.Vim, err error) error {
 	v.Command("redraw")
 	er := strings.SplitAfterN(fmt.Sprintf("%s", err), ": ", 2)
 	if os.Getenv("NVIM_GO_DEBUG") != "" {
-		errors.Fprint(os.Stderr, err)
+		log.Printf("Error stack\n%s", errors.ErrorStack(err))
 	}
 	return v.Command("echo \"" + er[0] + "\" | echohl " + errorColor + " | echon \"" + er[1] + "\" | echohl None")
 }
@@ -67,7 +68,7 @@ func EchohlBefore(v *vim.Vim, prefix string, highlight string, format string, a 
 	if prefix != "" {
 		suffix += ": "
 	}
-	return v.Command("echohl " + highlight + " | echo '" + prefix + suffix + fmt.Sprintf(format, a...) + "'")
+	return v.Command("echohl " + highlight + " | echo \"" + prefix + suffix + fmt.Sprintf(format, a...) + "\" | echohl None")
 }
 
 // EchohlAfter provide the vim 'echo' command with the 'echohl' highlighting message text.
@@ -76,23 +77,25 @@ func EchohlAfter(v *vim.Vim, prefix string, highlight string, format string, a .
 	if prefix != "" {
 		prefix += ": "
 	}
-	return v.Command("echo '" + prefix + "' | echohl " + highlight + " | echon '" + fmt.Sprintf(format, a...) + "' | echohl None")
+	return v.Command("echo \"" + prefix + "\" | echohl " + highlight + " | echon \"" + fmt.Sprintf(format, a...) + "\" | echohl None")
 }
 
 // EchoProgress displays a command progress message to echo area.
 func EchoProgress(v *vim.Vim, prefix, format string, a ...interface{}) error {
-	v.Command("redraw")
+	v.Command("echon")
+	// v.Command("redraw")
 	msg := fmt.Sprintf(format, a...)
-	return v.Command(fmt.Sprintf("echon '%s: ' | echohl %s | echon '%s ...' | echohl None", prefix, progress, msg))
+	return v.Command(fmt.Sprintf("echon \"%s: \" | echohl %s | echon \"%s ...\" | echohl None", prefix, progress, msg))
 }
 
 // EchoSuccess displays the success of the command to echo area.
 func EchoSuccess(v *vim.Vim, prefix string, msg string) error {
-	v.Command("redraw")
+	v.Command("echon")
+	// v.Command("redraw")
 	if msg != "" {
-		msg = " " + msg
+		msg = " - " + msg
 	}
-	return v.Command(fmt.Sprintf("echon '%s: ' | echohl %s | echon 'SUCCESS' | echohl None | echon '%s'", prefix, success, msg))
+	return v.Command(fmt.Sprintf("echon \"%s: \" | echohl %s | echon 'SUCCESS' | echohl None | echon \"%s\" | echohl None", prefix, success, msg))
 }
 
 // ReportError output of the accumulated errors report.
