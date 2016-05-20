@@ -95,7 +95,7 @@ func (b *Buffer) Create(v *vim.Vim, bufOption, winOption map[string]interface{})
 	defer profile.Start(time.Now(), "nvim/buffer.Create")
 
 	p := v.NewPipeline()
-	p.Command(fmt.Sprintf("silent %s [delve] %s", b.Mode, b.Name))
+	p.Command(fmt.Sprintf("silent %s %s", b.Mode, b.Name))
 	if err := p.Wait(); err != nil {
 		return errors.Annotate(err, "nvim/buffer.Create")
 	}
