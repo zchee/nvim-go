@@ -57,7 +57,8 @@ func init() {
 	plugin.HandleCommand("DlvState", &plugin.CommandOptions{}, d.cmdState)
 
 	// autocmd VimLeavePre
-	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*"}, d.cmdDetach)
+	// FIXME(zchee): Why "[delve]*" pattern dose not handle autocmd?
+	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*.go,terminal,stacktrace,locals,threads"}, d.cmdDetach)
 }
 
 type delveClient struct {
