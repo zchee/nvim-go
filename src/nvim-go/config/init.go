@@ -4,6 +4,7 @@ import "github.com/garyburd/neovim-go/vim"
 
 // Config struct of config variable for nvim-go commands.
 type Config struct {
+	Remote     RemoteVars
 	AstView    AstViewVars
 	Build      BuildVars
 	Fmt        FmtVars
@@ -14,6 +15,11 @@ type Config struct {
 	Terminal   TerminalVars
 	Test       TestVars
 	Debug      DebugVars
+}
+
+// AstViewVars GoAstView command config variable.
+type RemoteVars struct {
+	ChannelID int
 }
 
 // AstViewVars GoAstView command config variable.
@@ -76,6 +82,8 @@ type DebugVars struct {
 }
 
 var (
+	// ChannelID remote plugin itself msgpack channel id.
+	ChannelID int
 	// AstFoldIcon define default astview tree fold icon.
 	AstFoldIcon string
 	// BuildAutosave call the GoBuild command automatically at during the BufWritePost.
@@ -120,6 +128,9 @@ var (
 
 // Getconfig define the user config variables to Go global varialble.
 func Getconfig(v *vim.Vim, cfg *Config) {
+	// remote channelID
+	ChannelID = cfg.Remote.ChannelID
+
 	// AstView
 	AstFoldIcon = cfg.AstView.FoldIcon
 
