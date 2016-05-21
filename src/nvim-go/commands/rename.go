@@ -1,3 +1,7 @@
+// Copyright 2016 Koichi Shiraishi. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package commands
 
 import (
@@ -11,6 +15,7 @@ import (
 	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
+	"nvim-go/nvim/quickfix"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -20,12 +25,13 @@ import (
 func init() {
 	plugin.HandleCommand("Gorename",
 		&plugin.CommandOptions{
-			NArgs: "?", Bang: true, Eval: "[expand('%:p:h'), expand('%:p'), line2byte(line('.'))+(col('.')-2), expand('<cword>')]"},
+			NArgs: "?", Bang: true, Eval: "[getcwd(), expand('%:p:h'), expand('%:p'), line2byte(line('.'))+(col('.')-2), expand('<cword>')]"},
 		cmdRename)
 }
 
 type cmdRenameEval struct {
-	Dir    string `msgpack:",array"`
+	Cwd    string `msgpack:",array"`
+	Dir    string
 	File   string
 	Offset int
 	From   string
@@ -84,27 +90,27 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 		rename.Force = true
 	}
 
-	saveStdout := os.Stdout
-	saveStderr := os.Stderr
-	ro, wo, _ := os.Pipe()
-	re, we, _ := os.Pipe()
-	os.Stdout = wo
-	os.Stderr = we
+	os.Stderr = os.Stdout
+	saveStdout := os.Stderr
+	read, write, _ := os.Pipe()
+	os.Stderr = write
 
 	if err := rename.Main(&build.Default, offset, "", to); err != nil {
-		return err
+		write.Close()
+		os.Stderr = saveStdout
+		er, _ := ioutil.ReadAll(read)
+		go func() {
+			loclist, _ := quickfix.ParseError(er, eval.Cwd, &ctxt)
+			quickfix.SetLoclist(v, loclist)
+			quickfix.OpenLoclist(v, w, loclist, true)
+		}()
+
+		return nvim.EchohlErr(v, "GoRename", err)
 	}
 
-	wo.Close()
-	we.Close()
+	write.Close()
 	os.Stdout = saveStdout
-	os.Stderr = saveStderr
-
-	out, _ := ioutil.ReadAll(ro)
-	er, _ := ioutil.ReadAll(re)
-	if len(er) != 0 {
-		nvim.EchohlErr(v, "GoRename", er)
-	}
+	out, _ := ioutil.ReadAll(read)
 	defer nvim.EchoSuccess(v, prefix, fmt.Sprintf("%s", out))
 
 	// TODO(zchee): Create tempfile and use SetBufferLines.
