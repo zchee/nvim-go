@@ -24,6 +24,9 @@ const (
 	Modified   = "modified"   // bool
 	Swapfile   = "swapfile"   // bool
 
+	// Buffer var
+	Colorcolumn = "colorcolumn" // string
+
 	// Window options
 	List           = "list"           // bool
 	Number         = "number"         // bool
@@ -69,29 +72,7 @@ func NewBuffer(name string) *Buffer {
 	return b
 }
 
-var (
-	Map             = "map"
-	MapNormal       = "nmap"
-	MapVisualSelect = "vmap"
-	MapSelect       = "smap"
-	MapVisual       = "xmap"
-	MapOperator     = "omap"
-	MapInsert       = "imap"
-	MapCLI          = "cmap"
-	MapTerminal     = "tmap"
-
-	Noremap             = "noremap"
-	NoremapNormal       = "nnoremap"
-	NoremapVisualSelect = "vnoremap"
-	NoremapSelect       = "snoremap"
-	NoremapVisual       = "xnoremap"
-	NoremapOperator     = "onoremap"
-	NoremapInsert       = "inoremap"
-	NoremapCLI          = "cnoremap"
-	NoremapTerminal     = "tnoremap"
-)
-
-func (b *Buffer) Create(v *vim.Vim, bufOption, winOption map[string]interface{}) error {
+func (b *Buffer) Create(v *vim.Vim, bufOption, bufVar, winOption, winVar map[string]interface{}) error {
 	defer profile.Start(time.Now(), "nvim/buffer.Create")
 
 	p := v.NewPipeline()
@@ -113,6 +94,11 @@ func (b *Buffer) Create(v *vim.Vim, bufOption, winOption map[string]interface{})
 			p.SetBufferOption(b.Buffer, k, op)
 		}
 	}
+	if bufVar != nil {
+		for k, op := range bufVar {
+			p.SetBufferVar(b.Buffer, k, op, nil)
+		}
+	}
 	if winOption != nil {
 		for k, op := range winOption {
 			p.SetWindowOption(b.Window, k, op)
@@ -128,6 +114,28 @@ func (b *Buffer) Create(v *vim.Vim, bufOption, winOption map[string]interface{})
 
 	return p.Wait()
 }
+
+const (
+	Map             = "map"
+	MapNormal       = "nmap"
+	MapVisualSelect = "vmap"
+	MapSelect       = "smap"
+	MapVisual       = "xmap"
+	MapOperator     = "omap"
+	MapInsert       = "imap"
+	MapCLI          = "cmap"
+	MapTerminal     = "tmap"
+
+	Noremap             = "noremap"
+	NoremapNormal       = "nnoremap"
+	NoremapVisualSelect = "vnoremap"
+	NoremapSelect       = "snoremap"
+	NoremapVisual       = "xnoremap"
+	NoremapOperator     = "onoremap"
+	NoremapInsert       = "inoremap"
+	NoremapCLI          = "cnoremap"
+	NoremapTerminal     = "tnoremap"
+)
 
 // SetBufferMapping sets buffer local mapping.
 // 'mapping' arg: [key]{destination}
