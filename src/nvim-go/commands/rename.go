@@ -14,6 +14,7 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/buffer"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
@@ -25,16 +26,15 @@ import (
 func init() {
 	plugin.HandleCommand("Gorename",
 		&plugin.CommandOptions{
-			NArgs: "?", Bang: true, Eval: "[getcwd(), expand('%:p:h'), expand('%:p'), line2byte(line('.'))+(col('.')-2), expand('<cword>')]"},
+			NArgs: "?", Bang: true, Eval: "[getcwd(), expand('%:p:h'), expand('%:p'), expand('<cword>')]"},
 		cmdRename)
 }
 
 type cmdRenameEval struct {
-	Cwd    string `msgpack:",array"`
-	Dir    string
-	File   string
-	Offset int
-	From   string
+	Cwd  string `msgpack:",array"`
+	Dir  string
+	File string
+	From string
 }
 
 func cmdRename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) {
@@ -58,7 +58,11 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 		return err
 	}
 
-	offset := fmt.Sprintf("%s:#%d", eval.File, eval.Offset)
+	offset, err := buffer.ByteOffsetPipe(p, b, w)
+	if err != nil {
+		return err
+	}
+	pos := fmt.Sprintf("%s:#%d", eval.File, offset)
 
 	var to string
 	if len(args) > 0 {
@@ -95,7 +99,7 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 	read, write, _ := os.Pipe()
 	os.Stderr = write
 
-	if err := rename.Main(&build.Default, offset, "", to); err != nil {
+	if err := rename.Main(&build.Default, pos, "", to); err != nil {
 		write.Close()
 		os.Stderr = saveStdout
 		er, _ := ioutil.ReadAll(read)
