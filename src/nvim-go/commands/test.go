@@ -104,18 +104,22 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 	dir, _ := filepath.Split(fname)
 	defer ctxt.SetContext(filepath.Dir(dir))()
 
-	var b vim.Buffer
+	var (
+		b vim.Buffer
+		w vim.Window
+	)
 
 	// Gets the current buffer information.
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
+	p.CurrentWindow(&w)
 	if err := p.Wait(); err != nil {
 		return err
 	}
 
 	// Get the byte offset of current cursor position from buffer.
 	// TODO(zchee): Eval 'line2byte(line('.'))+(col('.')-2)' is faster and safer?
-	byteOffset, err := buffer.ByteOffset(p)
+	byteOffset, err := buffer.ByteOffsetPipe(p, b, w)
 	if err != nil {
 		return err
 	}

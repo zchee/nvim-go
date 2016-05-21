@@ -87,7 +87,7 @@ func Def(v *vim.Vim, file string) error {
 	}
 	src := bytes.Join(buf, []byte{'\n'})
 
-	searchpos, err := buffer.ByteOffset(p)
+	searchpos, err := buffer.ByteOffsetPipe(p, b, w)
 	if err != nil {
 		return v.WriteErr("cannot get current buffer byte offset")
 	}

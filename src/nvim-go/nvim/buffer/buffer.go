@@ -161,23 +161,65 @@ func (b *Buffer) SetMapping(v *vim.Vim, mode string, mapping map[string]string) 
 }
 
 // ByteOffset calculation of byte offset the current cursor position.
-func ByteOffset(p *vim.Pipeline) (int, error) {
-	var (
-		b vim.Buffer
-		w vim.Window
-	)
+func ByteOffset(v *vim.Vim, b vim.Buffer, w vim.Window) (int, error) {
+	var err error
+	if b == 0 {
+		b, err = v.CurrentBuffer()
+		if err != nil {
+			return 0, errors.Annotate(err, "nvim/buffer.ByteOffset")
+		}
+	}
+	if w == 0 {
+		w, err = v.CurrentWindow()
+		if err != nil {
+			return 0, errors.Annotate(err, "nvim/buffer.ByteOffset")
+		}
+	}
 
-	p.CurrentBuffer(&b)
-	p.CurrentWindow(&w)
-	if err := p.Wait(); err != nil {
-		return 0, err
+	// var cursor [2]int
+	cursor, err := v.WindowCursor(w)
+
+	// var byteBuf [][]byte
+	byteBuf, err := v.BufferLines(b, 0, -1, true)
+
+	if cursor[0] == 1 {
+		return (1 + (cursor[1] - 1)), nil
+	}
+
+	offset := 0
+	line := 1
+	for _, buf := range byteBuf {
+		if line == cursor[0] {
+			offset++
+			break
+		}
+		offset += (binary.Size(buf) + 1)
+		line++
+	}
+
+	return (offset + (cursor[1] - 1)), nil
+}
+
+// ByteOffsetPipe calculation of byte offset the current cursor position use vim.Pipeline.
+func ByteOffsetPipe(p *vim.Pipeline, b vim.Buffer, w vim.Window) (int, error) {
+	if b == 0 {
+		p.CurrentBuffer(&b)
+		if err := p.Wait(); err != nil {
+			return 0, err
+		}
+	}
+	if w == 0 {
+		p.CurrentWindow(&w)
+		if err := p.Wait(); err != nil {
+			return 0, err
+		}
 	}
 
 	var cursor [2]int
 	p.WindowCursor(w, &cursor)
 
 	var byteBuf [][]byte
-	p.BufferLines(b, 0, -1, false, &byteBuf)
+	p.BufferLines(b, 0, -1, true, &byteBuf)
 
 	if err := p.Wait(); err != nil {
 		return 0, err

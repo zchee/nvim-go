@@ -19,8 +19,6 @@ func init() {
 }
 
 func cmdByteOffset(v *vim.Vim) error {
-	p := v.NewPipeline()
-
-	offset, _ := buffer.ByteOffset(p)
+	offset, _ := buffer.ByteOffset(v, 0, 0)
 	return nvim.Echomsg(v, offset)
 }

@@ -105,7 +105,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	dir := strings.Split(eval.Dir, "src/")
 	scopeFlag := dir[len(dir)-1]
 
-	pos, err := buffer.ByteOffset(p)
+	pos, err := buffer.ByteOffsetPipe(p, b, w)
 	if err != nil {
 		return nvim.Echomsg(v, err)
 	}
