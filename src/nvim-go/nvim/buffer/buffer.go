@@ -7,8 +7,9 @@ package buffer
 import (
 	"encoding/binary"
 	"fmt"
-	"nvim-go/nvim/profile"
 	"time"
+
+	"nvim-go/nvim/profile"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
