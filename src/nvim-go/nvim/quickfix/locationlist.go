@@ -130,8 +130,9 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistData, error) {
 	var (
 		errlist []*ErrorlistData
-		errPat  = regexp.MustCompile(`^# ([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
-		fname   string
+		// errPat  = regexp.MustCompile(`^# ([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
+		errPat = regexp.MustCompile(`([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
+		fname  string
 	)
 
 	for _, m := range errPat.FindAllSubmatch(errors, -1) {
@@ -145,8 +146,10 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistDat
 			fname = strings.TrimPrefix(filepath.Clean(fs), c+string(filepath.Separator))
 
 		case "gb":
-			fabs := filepath.Join(ctxt.ProjectDir, "src", fs)
-			fname, _ = filepath.Rel(cwd, fabs)
+			if !filepath.IsAbs(fs) {
+				fs = filepath.Join(ctxt.ProjectDir, "src", fs)
+			}
+			fname, _ = filepath.Rel(cwd, fs)
 		}
 
 		line, _ := strconv.Atoi(string(m[2]))
