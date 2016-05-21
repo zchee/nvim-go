@@ -41,7 +41,7 @@ build: $(PACKAGE_DIR)/plugin/specs
 $(PACKAGE_DIR)/plugin/specs:
 	$(GO_CMD) build -o $(PACKAGE_DIR)/plugin/specs $(PACKAGE_DIR)/plugin/specs.go
 
-rebuild:
+rebuild: clean
 	${GO_BUILD} -f $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
 
 test:
