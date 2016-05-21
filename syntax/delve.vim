@@ -1,4 +1,4 @@
-let s:bufname = expand('%')[8:]
+let s:bufname = expand('%')
 
 if s:bufname == 'terminal'
   syn match delveTerminalPS        /(dlv)/
