@@ -379,19 +379,6 @@ func (d *delve) printLogs(v *vim.Vim, cmd string, message []byte) error {
 	return v.SetWindowCursor(d.buffers[0].Window, [2]int{len(afterBuf), 7})
 }
 
-func (d *delve) cmdState(v *vim.Vim) {
-	go d.state(v)
-}
-
-func (d *delve) state(v *vim.Vim) error {
-	state, err := d.client.GetState()
-	if err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-	printDebug("state: %+v\n", state)
-	return nil
-}
-
 func (d *delve) cmdStdin(v *vim.Vim) {
 	go d.stdin(v)
 }
@@ -436,7 +423,6 @@ func (d *delve) stdin(v *vim.Vim) error {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
 	}
 
-	// Output results to logs buffer.
 	return d.printLogs(v, stdin.(string), out)
 }
 
@@ -452,15 +438,26 @@ func (d *delve) ListFunctions(v *vim.Vim) ([]string, error) {
 func (d *delve) readServerStdout(v *vim.Vim, cmd, args string) error {
 	command := cmd + " " + args
 
-	// Output results to logs buffer.
 	return d.printLogs(v, command, d.serverOut.Bytes())
 }
 
 func (d *delve) readServerStderr(v *vim.Vim, cmd, args string) error {
 	command := cmd + " " + args
 
-	// Output results to logs buffer.
 	return d.printLogs(v, command, d.serverErr.Bytes())
+}
+
+func (d *delve) cmdState(v *vim.Vim) {
+	go d.state(v)
+}
+
+func (d *delve) state(v *vim.Vim) error {
+	state, err := d.client.GetState()
+	if err != nil {
+		return errors.Annotate(err, pkgDelve)
+	}
+	printDebug("state: %+v\n", state)
+	return nil
 }
 
 func printDebug(prefix string, data interface{}) error {
