@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"nvim-go/context"
@@ -240,15 +241,26 @@ func (d *delve) cont(v *vim.Vim, eval continueEval) error {
 		return errors.Annotate(err, pkgDelve)
 	}
 
-	msg := []byte(
-		fmt.Sprintf("> %s() %s:%d (hits goroutine(%d):%d total:%d) (PC: %#x)",
-			cThread.Function.Name,
-			cThread.File,
-			cThread.Line,
-			cThread.GoroutineID,
-			cThread.Breakpoint.HitCount,
-			cThread.Breakpoint.TotalHitCount,
-			cThread.PC))
+	var msg []byte
+	if hitCount, ok := cThread.Breakpoint.HitCount[strconv.Itoa(cThread.GoroutineID)]; ok {
+		msg = []byte(
+			fmt.Sprintf("> %s() %s:%d (hits goroutine(%d):%d total:%d) (PC: %#v)",
+				cThread.Function.Name,
+				shortFilePath(cThread.File, eval.Dir),
+				cThread.Line,
+				cThread.GoroutineID,
+				hitCount,
+				cThread.Breakpoint.TotalHitCount,
+				cThread.PC))
+	} else {
+		msg = []byte(
+			fmt.Sprintf("> %s() %s:%d (hits total:%d) (PC: %#v)",
+				cThread.Function.Name,
+				shortFilePath(cThread.File, eval.Dir),
+				cThread.Line,
+				cThread.Breakpoint.TotalHitCount,
+				cThread.PC))
+	}
 	return d.printLogs(v, "continue", msg)
 }
 
@@ -286,7 +298,13 @@ func (d *delve) next(v *vim.Vim, eval nextEval) error {
 		return errors.Annotate(err, pkgDelve)
 	}
 
-	msg := []byte(fmt.Sprintf("> %s() %s:%d  goroutine(%d) (PC: %d)", cThread.Function.Name, cThread.File, cThread.Line, cThread.GoroutineID, cThread.PC))
+	msg := []byte(
+		fmt.Sprintf("> %s() %s:%d goroutine(%d) (PC: %d)",
+			cThread.Function.Name,
+			shortFilePath(cThread.File, eval.Dir),
+			cThread.Line,
+			cThread.GoroutineID,
+			cThread.PC))
 	return d.printLogs(v, "next", msg)
 }
 
@@ -433,6 +451,10 @@ func (d *delve) ListFunctions(v *vim.Vim) ([]string, error) {
 	}
 
 	return funcs, nil
+}
+
+func shortFilePath(p, cwd string) string {
+	return strings.Replace(p, cwd, ".", 1)
 }
 
 func (d *delve) readServerStdout(v *vim.Vim, cmd, args string) error {
