@@ -34,6 +34,7 @@ func (d *delve) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
 	}
 
 	bufOption := d.setNvimOption("buffer")
+	bufVar := d.setNvimVar("buffer")
 	winOption := d.setNvimOption("window")
 
 	d.buffers = make([]*buffer.Buffer, 4, 5)
@@ -52,7 +53,7 @@ func (d *delve) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
 	// d.buffers[4].Mode = fmt.Sprintf("silent belowright %d split", d.buffers[4].Size)
 
 	for _, buf := range d.buffers {
-		if err := buf.Create(v, bufOption, winOption); err != nil {
+		if err := buf.Create(v, bufOption, bufVar, winOption, nil); err != nil {
 			return errors.Annotate(err, "delve/createDebugBuffer")
 		}
 	}
@@ -87,6 +88,17 @@ func (d *delve) setNvimOption(scope string) map[string]interface{} {
 		options[buffer.Number] = false
 		options[buffer.Relativenumber] = false
 		options[buffer.Winfixheight] = false
+	}
+
+	return options
+}
+
+func (d *delve) setNvimVar(scope string) map[string]interface{} {
+	options := make(map[string]interface{})
+
+	switch scope {
+	case "buffer":
+		options[buffer.Colorcolumn] = ""
 	}
 
 	return options
