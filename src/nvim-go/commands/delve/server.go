@@ -53,7 +53,7 @@ func (d *delve) waitServer(v *vim.Vim) error {
 		break
 	}
 
-	if err := d.setupDelveClient(v); err != nil {
+	if err := d.setupDelve(v); err != nil {
 		return errors.Annotate(err, "delve/server.waitServer")
 	}
 
