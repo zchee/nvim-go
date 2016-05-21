@@ -40,70 +40,31 @@ nnoremap <silent><Plug>(nvim-go-rename)  :<C-u>Gorename<CR>
 " GoRun
 nnoremap <silent><Plug>(nvim-go-run)  :<C-u>Gorun<CR>
 
-" dlv
+
+" Dlv
 " Mode 
-nnoremap <silent><Plug>(go-delve-debug)  :<C-u>DlvDebug<CR>
-nnoremap <silent><Plug>(go-delve-exec)  :<C-u>DlvExec<CR>
-nnoremap <silent><Plug>(go-delve-connect)  :<C-u>DlvConnct<CR>
-nmap     <silent><LocalLeader>dd    <Plug>(go-delve-debug)
-nmap     <silent><LocalLeader>de    <Plug>(go-delve-exec)
-nmap     <silent><LocalLeader>dcn    <Plug>(go-delve-tracepoint)
+nnoremap <silent><Plug>(nvim-go-delve-debug)    :<C-u>DlvDebug<CR>
+nnoremap <silent><Plug>(nvim-go-delve-exec)     :<C-u>DlvExec<CR>
+nnoremap <silent><Plug>(nvim-go-delve-connect)  :<C-u>DlvConnct<CR>
 
 " Set (Break|Trace)point
-nnoremap <silent><Plug>(go-delve-breakpoint)  :<C-u>DlvBreakpoint<CR>
-nmap     <silent><LocalLeader>db    <Plug>(go-delve-breakpoint)
-nnoremap <silent><Plug>(go-delve-tracepoint)  :<C-u>DlvTracepoint<CR>
-nmap     <silent><LocalLeader>dt    <Plug>(go-delve-tracepoint)
+nnoremap <silent><Plug>(nvim-go-delve-breakpoint)  :<C-u>DlvBreakpoint<CR>
+nnoremap <silent><Plug>(nvim-go-delve-tracepoint)  :<C-u>DlvTracepoint<CR>
 
 " Stepping execution (program counter)
-nnoremap <silent><Plug>(go-delve-continue)  :<C-u>DlvContinue<CR>
-nnoremap <silent><Plug>(go-delve-next)  :<C-u>DlvNext<CR>
-nmap     <silent><LocalLeader>dn    <Plug>(go-delve-next)
-nnoremap <silent><Plug>(go-delve-step)  :<C-u>DlvStep<CR>
-nnoremap <silent><Plug>(go-delve-stepinstruction)  :<C-u>DlvStepInstruction<CR>
-nnoremap <silent><Plug>(go-delve-restart)  :<C-u>DlvRestart<CR>
-nmap     <silent><LocalLeader>dr    <Plug>(go-delve-restart)
-nnoremap <silent><Plug>(go-delve-stop)  :<C-u>DlvStop<CR>
+nnoremap <silent><Plug>(nvim-go-delve-continue)         :<C-u>DlvContinue<CR>
+nnoremap <silent><Plug>(nvim-go-delve-next)             :<C-u>DlvNext<CR>
+nnoremap <silent><Plug>(nvim-go-delve-step)             :<C-u>DlvStep<CR>
+nnoremap <silent><Plug>(nvim-go-delve-stepinstruction)  :<C-u>DlvStepInstruction<CR>
+nnoremap <silent><Plug>(nvim-go-delve-restart)          :<C-u>DlvRestart<CR>
+nnoremap <silent><Plug>(nvim-go-delve-stop)             :<C-u>DlvStop<CR>
 
 " Interactive mode
-nnoremap <silent><Plug>(go-delve-stdin)  :<C-u>DlvStdin<CR>
+nnoremap <silent><Plug>(nvim-go-delve-stdin)  :<C-u>DlvStdin<CR>
 
 " Exit
-nnoremap <silent><Plug>(go-delve-exit)  :<C-u>Dlv<CR>
+nnoremap <silent><Plug>(nvim-go-delve-exit)  :<C-u>Dlv<CR>
 
 " Print
 
 " Information
-
-" help (alias: h) ------------- Prints the help message.
-" break (alias: b) ------------ Sets a breakpoint.
-" trace (alias: t) ------------ Set tracepoint.
-" restart (alias: r) ---------- Restart process.
-" continue (alias: c) --------- Run until breakpoint or program termination.
-" step (alias: s) ------------- Single step through program.
-" step-instruction (alias: si)  Single step a single cpu instruction.
-" next (alias: n) ------------- Step over to next source line.
-" threads --------------------- Print out info for every traced thread.
-" thread (alias: tr) ---------- Switch to the specified thread.
-" clear ----------------------- Deletes breakpoint.
-" clearall -------------------- Deletes multiple breakpoints.
-" goroutines ------------------ List program goroutines.
-" goroutine ------------------- Shows or changes current goroutine
-" breakpoints (alias: bp) ----- Print out info for active breakpoints.
-" print (alias: p) ------------ Evaluate an expression.
-" set ------------------------- Changes the value of a variable.
-" sources --------------------- Print list of source files.
-" funcs ----------------------- Print list of functions.
-" types ----------------------- Print list of types
-" args ------------------------ Print function arguments.
-" locals ---------------------- Print local variables.
-" vars ------------------------ Print package variables.
-" regs ------------------------ Print contents of CPU registers.
-" exit (alias: quit | q) ------ Exit the debugger.
-" list (alias: ls) ------------ Show source code.
-" stack (alias: bt) ----------- Print stack trace.
-" frame ----------------------- Executes command on a different frame.
-" source ---------------------- Executes a file containing a list of delve commands
-" disassemble (alias: disass) - Disassembler.
-" on -------------------------- Executes a command when a breakpoint is hit.
-" condition (alias: cond) ----- Set breakpoint condition.
