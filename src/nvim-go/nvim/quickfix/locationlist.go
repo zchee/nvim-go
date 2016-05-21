@@ -130,13 +130,12 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistData, error) {
 	var (
 		errlist []*ErrorlistData
-		// errPat  = regexp.MustCompile(`^# ([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
-		errPat = regexp.MustCompile(`([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
-		fname  string
+		errPat  = regexp.MustCompile(`([^#:]+):(\d+)(?::(\d+))?:\s(.*)`)
+		fname   string
 	)
 
 	for _, m := range errPat.FindAllSubmatch(errors, -1) {
-		fb := bytes.Split(m[1], []byte("\n"))
+		fb := bytes.Split(bytes.TrimSpace(m[1]), []byte("\n"))
 		fs := string(bytes.Join(fb, []byte(string(filepath.Separator))))
 
 		switch ctxt.Tool {
