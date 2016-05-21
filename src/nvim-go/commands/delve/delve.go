@@ -239,13 +239,16 @@ func (d *delve) cont(v *vim.Vim, eval continueEval) error {
 		return errors.Annotate(err, pkgDelve)
 	}
 
-	// debug
-	printDebug("stacks", cStacks)
-	// printDebug("state.CurrentThread", state.CurrentThread)
-	printDebug("state.SelectedGoroutine", state.SelectedGoroutine)
-	// printDebug("state.Threads", state.Threads)
-
-	return d.printLogs(v, "continue", []byte{})
+	msg := []byte(
+		fmt.Sprintf("> %s() %s:%d (hits goroutine(%d):%d total:%d) (PC: %#x)",
+			cThread.Function.Name,
+			cThread.File,
+			cThread.Line,
+			cThread.GoroutineID,
+			cThread.Breakpoint.HitCount,
+			cThread.Breakpoint.TotalHitCount,
+			cThread.PC))
+	return d.printLogs(v, "continue", msg)
 }
 
 // breakpointEval represent a breakpoint commands Eval args.
@@ -282,7 +285,7 @@ func (d *delve) next(v *vim.Vim, eval nextEval) error {
 		return errors.Annotate(err, pkgDelve)
 	}
 
-	msg := []byte(fmt.Sprintf("%s() %s:%d  goroutine(%d) (PC: %d)", cThread.Function.Name, cThread.File, cThread.Line, cThread.GoroutineID, cThread.PC))
+	msg := []byte(fmt.Sprintf("> %s() %s:%d  goroutine(%d) (PC: %d)", cThread.Function.Name, cThread.File, cThread.Line, cThread.GoroutineID, cThread.PC))
 	return d.printLogs(v, "next", msg)
 }
 
