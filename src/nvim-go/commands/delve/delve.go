@@ -35,24 +35,25 @@ const (
 
 func init() {
 	d := NewDelve()
+
 	// Launch
-	plugin.HandleCommand("DlvDebug", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug)
+	plugin.HandleCommand("DlvDebug", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug) // Compile and begin debugging program.
 
 	// Breakpoint
-	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{NArgs: "*", Eval: "[expand('%:p')]", Complete: "customlist,DlvListFunctions"}, d.cmdCreateBreakpoint)
+	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{NArgs: "*", Eval: "[expand('%:p')]", Complete: "customlist,DlvListFunctions"}, d.cmdCreateBreakpoint) // Sets a breakpoint.
 
 	// Stepping execution control
-	plugin.HandleCommand("DlvContinue", &plugin.CommandOptions{Eval: "[expand('%:p:h')]"}, d.cmdContinue)
-	plugin.HandleCommand("DlvNext", &plugin.CommandOptions{Eval: "[expand('%:p:h')]"}, d.cmdNext)
-	plugin.HandleCommand("DlvRestart", &plugin.CommandOptions{}, d.cmdRestart)
+	plugin.HandleCommand("DlvContinue", &plugin.CommandOptions{Eval: "[expand('%:p:h')]"}, d.cmdContinue) // Run until breakpoint or program termination.
+	plugin.HandleCommand("DlvNext", &plugin.CommandOptions{Eval: "[expand('%:p:h')]"}, d.cmdNext)         // Step over to next source line.
+	plugin.HandleCommand("DlvRestart", &plugin.CommandOptions{}, d.cmdRestart)                            // Restart process.
 
 	// Interactive mode
 	// XXX(zchee): Support contextual command completion
 	plugin.HandleCommand("DlvStdin", &plugin.CommandOptions{}, d.stdin)
-	plugin.HandleFunction("DlvListFunctions", &plugin.FunctionOptions{}, d.ListFunctions)
+	plugin.HandleFunction("DlvListFunctions", &plugin.FunctionOptions{}, d.ListFunctions) // list of functions for command completion.
 
 	// Detach
-	plugin.HandleCommand("DlvDetach", &plugin.CommandOptions{}, d.cmdDetach)
+	plugin.HandleCommand("DlvDetach", &plugin.CommandOptions{}, d.cmdDetach) // Exit the debugger.
 
 	// RPC Exports
 	plugin.Handle("DlvStdin", d.stdin)
