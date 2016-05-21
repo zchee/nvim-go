@@ -1,3 +1,7 @@
+// Copyright 2016 Koichi Shiraishi. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package delve
 
 import (
@@ -7,11 +11,11 @@ import (
 	"github.com/juju/errors"
 )
 
-func (d *delveClient) cmdDetach(v *vim.Vim) {
+func (d *delve) cmdDetach(v *vim.Vim) {
 	go d.detach(v)
 }
 
-func (d *delveClient) detach(v *vim.Vim) error {
+func (d *delve) detach(v *vim.Vim) error {
 	defer d.kill()
 	if d.processPid != 0 {
 		err := d.client.Detach(true)
@@ -24,7 +28,7 @@ func (d *delveClient) detach(v *vim.Vim) error {
 	return nil
 }
 
-func (d *delveClient) kill() error {
+func (d *delve) kill() error {
 	if d.server != nil {
 		err := d.server.Process.Kill()
 		if err != nil {

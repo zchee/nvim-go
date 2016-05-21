@@ -1,16 +1,21 @@
+// Copyright 2016 Koichi Shiraishi. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package delve
 
 import (
 	"net"
-	"nvim-go/nvim"
 	"os/exec"
+
+	"nvim-go/nvim"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
 )
 
 // startServer starts the delve headless server and replace server Stdout & Stderr.
-func (d *delveClient) startServer(cmd, path string) error {
+func (d *delve) startServer(cmd, path string) error {
 	dlvBin, err := exec.LookPath("dlv")
 	if err != nil {
 		return errors.Annotate(err, pkgDelve)
@@ -35,7 +40,7 @@ func (d *delveClient) startServer(cmd, path string) error {
 // waitServer Waits for dlv launch the headless server.
 // `net.Dial` is better way?
 // http://stackoverflow.com/a/30838807/5228839
-func (d *delveClient) waitServer(v *vim.Vim) error {
+func (d *delve) waitServer(v *vim.Vim) error {
 	defer nvim.ClearMsg(v)
 	nvim.EchoProgress(v, "Delve", "Wait for running dlv server")
 

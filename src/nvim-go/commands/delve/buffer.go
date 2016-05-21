@@ -1,3 +1,7 @@
+// Copyright 2016 Koichi Shiraishi. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package delve
 
 import (
@@ -13,7 +17,7 @@ import (
 	"github.com/juju/errors"
 )
 
-func (d *delveClient) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
+func (d *delve) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
 	defer profile.Start(time.Now(), "delve/createDebugBuffer")
 
 	p.CurrentBuffer(&d.cb)
@@ -67,7 +71,7 @@ func (d *delveClient) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
 	return p.Wait()
 }
 
-func (d *delveClient) setNvimOption(scope string) map[string]interface{} {
+func (d *delve) setNvimOption(scope string) map[string]interface{} {
 	options := make(map[string]interface{})
 
 	switch scope {

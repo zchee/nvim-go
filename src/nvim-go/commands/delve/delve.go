@@ -1,3 +1,7 @@
+// Copyright 2016 Koichi Shiraishi. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package delve
 
 import (
@@ -30,7 +34,7 @@ const (
 )
 
 func init() {
-	d := NewDelveClient()
+	d := NewDelve()
 	// Launch
 	plugin.HandleCommand("DlvDebug", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug)
 
@@ -61,33 +65,39 @@ func init() {
 	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*.go,terminal,stacktrace,locals,threads"}, d.cmdDetach)
 }
 
-type delveClient struct {
-	server   *exec.Cmd
-	client   *delverpc2.RPCClient
-	term     *delveterm.Term
-	debugger *delveterm.Commands
-
+type delve struct {
+	server               *exec.Cmd
+	client               *delverpc2.RPCClient
+	term                 *delveterm.Term
+	debugger             *delveterm.Commands
 	processPid           int
 	serverOut, serverErr bytes.Buffer
 
 	channelID int
 
+	BufferContext
+	SignContext
+}
+
+type BufferContext struct {
 	cb      vim.Buffer
 	cw      vim.Window
 	buffers []*buffer.Buffer
+}
 
+type SignContext struct {
 	bpSign map[int]*nvim.Sign // map[breakPoint.id]*nvim.Sign
 	pcSign *nvim.Sign
 }
 
 // NewDelveClient represents a delve client interface.
-func NewDelveClient() *delveClient {
-	return &delveClient{}
+func NewDelve() *delve {
+	return &delve{}
 }
 
 // setupDelveClient setup the delve client. Separate the NewDelveClient() function.
 // caused by neovim-go can't call the rpc2.NewClient?
-func (d *delveClient) setupDelveClient(v *vim.Vim) error {
+func (d *delve) setupDelveClient(v *vim.Vim) error {
 	d.client = delverpc2.NewClient(addr)           // *rpc2.RPCClient
 	d.term = delveterm.New(d.client, nil)          // *terminal.Term
 	d.debugger = delveterm.DebugCommands(d.client) // *terminal.Commands
@@ -102,11 +112,11 @@ type debugEval struct {
 	Dir string
 }
 
-func (d *delveClient) cmdDebug(v *vim.Vim, eval debugEval) {
+func (d *delve) cmdDebug(v *vim.Vim, eval debugEval) {
 	d.debug(v, eval)
 }
 
-func (d *delveClient) debug(v *vim.Vim, eval debugEval) error {
+func (d *delve) debug(v *vim.Vim, eval debugEval) error {
 	rootDir := context.FindVcsRoot(eval.Dir)
 	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
 	path := filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
@@ -121,7 +131,7 @@ func (d *delveClient) debug(v *vim.Vim, eval debugEval) error {
 	return d.createDebugBuffer(v, p)
 }
 
-func (d *delveClient) parseArgs(v *vim.Vim, args []string, eval createBreakpointEval) (*delveapi.Breakpoint, error) {
+func (d *delve) parseArgs(v *vim.Vim, args []string, eval createBreakpointEval) (*delveapi.Breakpoint, error) {
 	var bpInfo *delveapi.Breakpoint
 
 	// TODO(zchee): Now support function only.
@@ -159,11 +169,11 @@ type createBreakpointEval struct {
 	File string `msgpack:",array"`
 }
 
-func (d *delveClient) cmdCreateBreakpoint(v *vim.Vim, args []string, eval createBreakpointEval) {
+func (d *delve) cmdCreateBreakpoint(v *vim.Vim, args []string, eval createBreakpointEval) {
 	go d.createBreakpoint(v, args, eval)
 }
 
-func (d *delveClient) createBreakpoint(v *vim.Vim, args []string, eval createBreakpointEval) error {
+func (d *delve) createBreakpoint(v *vim.Vim, args []string, eval createBreakpointEval) error {
 	bpInfo, err := d.parseArgs(v, args, eval)
 	if err != nil {
 		nvim.ErrorWrap(v, err)
@@ -197,12 +207,12 @@ type continueEval struct {
 	Dir string `msgpack:",array"`
 }
 
-func (d *delveClient) cmdContinue(v *vim.Vim, eval continueEval) {
+func (d *delve) cmdContinue(v *vim.Vim, eval continueEval) {
 	go d.cont(v, eval)
 }
 
 // cont sends the 'continue' signals to the delve headless server over the client use json-rpc2 protocol.
-func (d *delveClient) cont(v *vim.Vim, eval continueEval) error {
+func (d *delve) cont(v *vim.Vim, eval continueEval) error {
 	stateCh := d.client.Continue()
 	state := <-stateCh
 
@@ -243,11 +253,11 @@ type nextEval struct {
 	Dir string `msgpack:",array"`
 }
 
-func (d *delveClient) cmdNext(v *vim.Vim, eval nextEval) {
+func (d *delve) cmdNext(v *vim.Vim, eval nextEval) {
 	go d.next(v, eval)
 }
 
-func (d *delveClient) next(v *vim.Vim, eval nextEval) error {
+func (d *delve) next(v *vim.Vim, eval nextEval) error {
 	state, err := d.client.Next()
 	if err != nil {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
@@ -276,11 +286,11 @@ func (d *delveClient) next(v *vim.Vim, eval nextEval) error {
 	return d.printLogs(v, "next", msg)
 }
 
-func (d *delveClient) cmdRestart(v *vim.Vim) {
+func (d *delve) cmdRestart(v *vim.Vim) {
 	go d.restart(v)
 }
 
-func (d *delveClient) restart(v *vim.Vim) error {
+func (d *delve) restart(v *vim.Vim) error {
 	err := d.client.Restart()
 	if err != nil {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve+"restart"))
@@ -290,7 +300,7 @@ func (d *delveClient) restart(v *vim.Vim) error {
 	return d.printLogs(v, "restart", []byte(fmt.Sprintf("Process restarted with PID %d", d.processPid)))
 }
 
-func (d *delveClient) printStacktrace(v *vim.Vim, cwd string, cThread *delveapi.Thread, cStacks []delveapi.Stackframe) error {
+func (d *delve) printStacktrace(v *vim.Vim, cwd string, cThread *delveapi.Thread, cStacks []delveapi.Stackframe) error {
 	v.SetBufferOption(d.buffers[2].Buffer, "modifiable", true)
 	v.SetBufferOption(d.buffers[3].Buffer, "modifiable", true)
 	defer v.SetBufferOption(d.buffers[2].Buffer, "modifiable", false)
@@ -330,7 +340,7 @@ func (d *delveClient) printStacktrace(v *vim.Vim, cwd string, cThread *delveapi.
 	return nil
 }
 
-func (d *delveClient) printLogs(v *vim.Vim, cmd string, message []byte) error {
+func (d *delve) printLogs(v *vim.Vim, cmd string, message []byte) error {
 	v.SetBufferOption(d.buffers[0].Buffer, "modifiable", true)
 	defer v.SetBufferOption(d.buffers[0].Buffer, "modifiable", false)
 
@@ -365,11 +375,11 @@ func (d *delveClient) printLogs(v *vim.Vim, cmd string, message []byte) error {
 	return v.SetWindowCursor(d.buffers[0].Window, [2]int{len(afterBuf), 7})
 }
 
-func (d *delveClient) cmdState(v *vim.Vim) {
+func (d *delve) cmdState(v *vim.Vim) {
 	go d.state(v)
 }
 
-func (d *delveClient) state(v *vim.Vim) error {
+func (d *delve) state(v *vim.Vim) error {
 	state, err := d.client.GetState()
 	if err != nil {
 		return errors.Annotate(err, pkgDelve)
@@ -378,7 +388,7 @@ func (d *delveClient) state(v *vim.Vim) error {
 	return nil
 }
 
-func (d *delveClient) cmdStdin(v *vim.Vim) {
+func (d *delve) cmdStdin(v *vim.Vim) {
 	go d.stdin(v)
 }
 
@@ -388,7 +398,7 @@ func (d *delveClient) cmdStdin(v *vim.Vim) {
 // More information of input() funciton and word completion are
 //  :help input()
 //  :help command-completion-custom
-func (d *delveClient) stdin(v *vim.Vim) error {
+func (d *delve) stdin(v *vim.Vim) error {
 	var stdin interface{}
 	err := v.Call("input", &stdin, "(dlv) ", "")
 	if err != nil {
@@ -426,7 +436,7 @@ func (d *delveClient) stdin(v *vim.Vim) error {
 	return d.printLogs(v, stdin.(string), out)
 }
 
-func (d *delveClient) ListFunctions(v *vim.Vim) ([]string, error) {
+func (d *delve) ListFunctions(v *vim.Vim) ([]string, error) {
 	funcs, err := d.client.ListFunctions("main")
 	if err != nil {
 		return []string{}, err
@@ -435,14 +445,14 @@ func (d *delveClient) ListFunctions(v *vim.Vim) ([]string, error) {
 	return funcs, nil
 }
 
-func (d *delveClient) readServerStdout(v *vim.Vim, cmd, args string) error {
+func (d *delve) readServerStdout(v *vim.Vim, cmd, args string) error {
 	command := cmd + " " + args
 
 	// Output results to logs buffer.
 	return d.printLogs(v, command, d.serverOut.Bytes())
 }
 
-func (d *delveClient) readServerStderr(v *vim.Vim, cmd, args string) error {
+func (d *delve) readServerStderr(v *vim.Vim, cmd, args string) error {
 	command := cmd + " " + args
 
 	// Output results to logs buffer.
