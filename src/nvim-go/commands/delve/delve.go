@@ -77,6 +77,8 @@ type delve struct {
 
 	channelID int
 
+	Locals []delveapi.Variable
+
 	BufferContext
 	SignContext
 }
@@ -228,7 +230,7 @@ func (d *delve) cont(v *vim.Vim, eval continueEval) error {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
 	}
 
-	if err := d.printStacktrace(v, eval.Dir, cThread, cStacks); err != nil {
+	if err := d.printStacktrace(v, eval.Dir, cThread.Function, cStacks); err != nil {
 		return errors.Annotate(err, pkgDelve)
 	}
 	if err := d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true); err != nil {
@@ -285,7 +287,7 @@ func (d *delve) next(v *vim.Vim, eval nextEval) error {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
 	}
 
-	if err := d.printStacktrace(v, eval.Dir, cThread, cStacks); err != nil {
+	if err := d.printStacktrace(v, eval.Dir, cThread.Function, cStacks); err != nil {
 		return errors.Annotate(err, pkgDelve)
 	}
 	if err := d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true); err != nil {
@@ -322,37 +324,36 @@ func (d *delve) restart(v *vim.Vim) error {
 	return d.printLogs(v, "restart", []byte(fmt.Sprintf("Process restarted with PID %d", d.processPid)))
 }
 
-func (d *delve) printStacktrace(v *vim.Vim, cwd string, cThread *delveapi.Thread, cStacks []delveapi.Stackframe) error {
+func (d *delve) printStacktrace(v *vim.Vim, cwd string, funcs *delveapi.Function, cStacks []delveapi.Stackframe) error {
 	v.SetBufferOption(d.buffers[2].Buffer, "modifiable", true)
 	v.SetBufferOption(d.buffers[3].Buffer, "modifiable", true)
 	defer v.SetBufferOption(d.buffers[2].Buffer, "modifiable", false)
 	defer v.SetBufferOption(d.buffers[3].Buffer, "modifiable", false)
 
+	stacksMsg := []byte("\u25BC " + funcs.Name + "\n")
 	var locals []byte
-	stacks := []byte("\u25BC " + cThread.Function.Name + "\n")
 	for _, s := range cStacks {
-		if strings.HasPrefix(s.File, cwd+string(filepath.Separator)) {
-			s.File = strings.TrimPrefix(s.File, cwd+string(filepath.Separator))
-		}
-		stacks = append(stacks, []byte(fmt.Sprintf("\t\t%s\t%s:%d\n", s.Function.Name, s.File, s.Line))...)
-
-		for _, l := range s.Locals {
-			locals = append(locals, []byte(
-				fmt.Sprintf("\u25B6 %s\n\t\taddr=%d onlyAddr=%t type=%q realType=%q kind=%d value=%s len=%d cap=%d unreadable=%q\n",
-					l.Name,
-					l.Addr,
-					l.OnlyAddr,
-					l.Type,
-					l.RealType,
-					l.Kind,
-					l.Value,
-					l.Len,
-					l.Cap,
-					l.Unreadable))...)
-		}
+		stacksMsg = append(stacksMsg, []byte(fmt.Sprintf("\t\t%s\t%s:%d\n", s.Function.Name, shortFilePath(s.File, cwd), s.Line))...)
+		// TODO(zchee): Comparison and cacheing.
+		d.Locals = s.Locals // []delveapi.Variable
 	}
 
-	if err := v.SetBufferLines(d.buffers[2].Buffer, 0, -1, true, bytes.Split(stacks, []byte{'\n'})); err != nil {
+	for _, l := range d.Locals {
+		locals = append(locals, []byte(
+			fmt.Sprintf("\u25B6 %s\n\t\taddr=%d onlyAddr=%t type=%q realType=%q kind=%d value=%s len=%d cap=%d unreadable=%q\n",
+				l.Name,
+				l.Addr,
+				l.OnlyAddr,
+				l.Type,
+				l.RealType,
+				l.Kind,
+				l.Value,
+				l.Len,
+				l.Cap,
+				l.Unreadable))...)
+	}
+
+	if err := v.SetBufferLines(d.buffers[2].Buffer, 0, -1, true, bytes.Split(stacksMsg, []byte{'\n'})); err != nil {
 		return errors.Annotate(err, pkgDelve)
 	}
 	if err := v.SetBufferLines(d.buffers[3].Buffer, 0, -1, true, bytes.Split(locals, []byte{'\n'})); err != nil {
@@ -402,7 +403,7 @@ func (d *delve) cmdStdin(v *vim.Vim) {
 }
 
 // stdin sends the users input command to the internal delve terminal.
-// vim input() function args is
+// vim input() function args:
 //  input({prompt} [, {text} [, {completion}]])
 // More information of input() funciton and word completion are
 //  :help input()
