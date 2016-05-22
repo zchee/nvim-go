@@ -31,4 +31,13 @@ if s:bufname == 'terminal'
 
   hi def link delveTerminalPS        Comment
   hi def link delveTerminalCommand   Debug
+
+elseif s:bufname == 'stacktrace'
+  syn match delveStacktraceIcon    /▼/
+  syn match delveStacktraceFunc    /\(\.\)\@<=\w\+\(\)\@=$/ contains=delveStacktraceIcon
+  " syn match delveStacktraceFunc    /▼.*$/ contains=delveStacktraceIcon
+
+  hi def link delveStacktraceIcon  Identifier
+  hi def link delveStacktraceFunc  Function
+
 endif
