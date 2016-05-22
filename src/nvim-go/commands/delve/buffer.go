@@ -38,7 +38,7 @@ func (d *delve) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
 	winOption := d.setNvimOption("window")
 
 	d.buffers = make([]*buffer.Buffer, 4, 5)
-	for i, n := range []string{"terminal", "threads", "stacktarce", "locals"} {
+	for i, n := range []string{"terminal", "threads", "stacktrace", "locals"} {
 		d.buffers[i] = buffer.NewBuffer(n)
 	}
 	d.buffers[0].Size = (width * 2 / 5)

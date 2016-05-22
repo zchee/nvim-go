@@ -31,7 +31,7 @@ import (
 const (
 	addr string = "localhost:41222" // d:4 l:12 v:22
 
-	pkgDelve string = "Delve."
+	pkgDelve string = "Delve"
 )
 
 func init() {
