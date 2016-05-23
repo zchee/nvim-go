@@ -6,10 +6,8 @@ package delve
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -50,7 +48,7 @@ func init() {
 
 	// Interactive mode
 	// XXX(zchee): Support contextual command completion
-	plugin.HandleCommand("DlvStdin", &plugin.CommandOptions{}, d.stdin)
+	plugin.HandleCommand("DlvStdin", &plugin.CommandOptions{}, d.cmdStdin)
 	plugin.HandleFunction("DlvListFunctions", &plugin.FunctionOptions{}, d.ListFunctions) // list of functions for command completion.
 
 	// Detach
@@ -64,7 +62,7 @@ func init() {
 
 	// autocmd VimLeavePre
 	// FIXME(zchee): Why "[delve]*" pattern dose not handle autocmd?
-	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*.go,terminal,stacktrace,locals,threads"}, d.cmdDetach)
+	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*.go,terminal,context,thread"}, d.cmdDetach)
 }
 
 type delve struct {
@@ -86,7 +84,7 @@ type delve struct {
 type BufferContext struct {
 	cb      vim.Buffer
 	cw      vim.Window
-	buffers []*buffer.Buffer
+	buffers map[string]*buffer.Buffer
 }
 
 type SignContext struct {
@@ -198,11 +196,10 @@ func (d *delve) createBreakpoint(v *vim.Vim, args []string, eval createBreakpoin
 	}
 	d.bpSign[bp.ID].Place(v, bp.ID, bp.Line, bp.File, false)
 
-	if err := d.printLogs(v, "break "+bp.FunctionName, []byte{}); err != nil {
+	if err := d.printTerminal(v, "break "+bp.FunctionName, []byte{}); err != nil {
 		return nvim.ErrorWrap(v, err)
 	}
 
-	printDebug("createBreakpoint(bp)", bp)
 	return nil
 }
 
@@ -219,29 +216,35 @@ func (d *delve) cmdContinue(v *vim.Vim, eval continueEval) {
 func (d *delve) cont(v *vim.Vim, eval continueEval) error {
 	stateCh := d.client.Continue()
 	state := <-stateCh
-
 	if state == nil || state.Exited {
 		return nvim.ErrorWrap(v, errors.Annotate(state.Err, pkgDelve))
 	}
 
 	cThread := state.CurrentThread
-	cStacks, err := d.client.Stacktrace(cThread.GoroutineID, 1, &delveapi.LoadConfig{FollowPointers: true}) // []delveapi.Stackframe
-	if err != nil {
-		return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
-	}
 
-	if err := d.printStacktrace(v, eval.Dir, cThread.Function, cStacks); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-	if err := d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-	if err := v.SetWindowCursor(d.cw, [2]int{cThread.Line, 0}); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-	if err := v.Command("silent normal zz"); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
+	go func() {
+		goroutines, err := d.client.ListGoroutines()
+		if err != nil {
+			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+			return
+		}
+		d.printContext(v, eval.Dir, cThread, goroutines)
+	}()
+
+	go func() {
+		if err := d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true); err != nil {
+			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+			return
+		}
+		if err := v.SetWindowCursor(d.cw, [2]int{cThread.Line, 0}); err != nil {
+			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+			return
+		}
+		if err := v.Command("silent normal zz"); err != nil {
+			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+			return
+		}
+	}()
 
 	var msg []byte
 	if hitCount, ok := cThread.Breakpoint.HitCount[strconv.Itoa(cThread.GoroutineID)]; ok {
@@ -263,7 +266,7 @@ func (d *delve) cont(v *vim.Vim, eval continueEval) error {
 				cThread.Breakpoint.TotalHitCount,
 				cThread.PC))
 	}
-	return d.printLogs(v, "continue", msg)
+	return d.printTerminal(v, "continue", msg)
 }
 
 // breakpointEval represent a breakpoint commands Eval args.
@@ -282,23 +285,44 @@ func (d *delve) next(v *vim.Vim, eval nextEval) error {
 	}
 
 	cThread := state.CurrentThread
-	cStacks, err := d.client.Stacktrace(cThread.GoroutineID, 1, &delveapi.LoadConfig{FollowPointers: true}) // []delveapi.Stackframe
-	if err != nil {
-		return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
-	}
 
-	if err := d.printStacktrace(v, eval.Dir, cThread.Function, cStacks); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-	if err := d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-	if err := v.SetWindowCursor(d.cw, [2]int{cThread.Line, 0}); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-	if err := v.Command("silent normal zz"); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
+	go func() {
+		goroutines, err := d.client.ListGoroutines()
+		if err != nil {
+			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+			return
+		}
+		d.printContext(v, eval.Dir, cThread, goroutines)
+	}()
+
+	go func() {
+		if err := d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true); err != nil {
+			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+			return
+		}
+		if err := v.SetWindowCursor(d.cw, [2]int{cThread.Line, 0}); err != nil {
+			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+			return
+		}
+		if err := v.Command("silent normal zz"); err != nil {
+			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+			return
+		}
+	}()
+
+	// cThread := state.CurrentThread
+	// if err := d.printContext(v, eval.Dir, cThread, state.Threads); err != nil {
+	// 	return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+	// }
+	// if err := d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true); err != nil {
+	// 	return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+	// }
+	// if err := v.SetWindowCursor(d.cw, [2]int{cThread.Line, 0}); err != nil {
+	// 	return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+	// }
+	// if err := v.Command("silent normal zz"); err != nil {
+	// 	return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+	// }
 
 	msg := []byte(
 		fmt.Sprintf("> %s() %s:%d goroutine(%d) (PC: %d)",
@@ -307,7 +331,7 @@ func (d *delve) next(v *vim.Vim, eval nextEval) error {
 			cThread.Line,
 			cThread.GoroutineID,
 			cThread.PC))
-	return d.printLogs(v, "next", msg)
+	return d.printTerminal(v, "next", msg)
 }
 
 func (d *delve) cmdRestart(v *vim.Vim) {
@@ -321,85 +345,20 @@ func (d *delve) restart(v *vim.Vim) error {
 	}
 
 	d.processPid = d.client.ProcessPid()
-	return d.printLogs(v, "restart", []byte(fmt.Sprintf("Process restarted with PID %d", d.processPid)))
-}
-
-func (d *delve) printStacktrace(v *vim.Vim, cwd string, funcs *delveapi.Function, cStacks []delveapi.Stackframe) error {
-	v.SetBufferOption(d.buffers[2].Buffer, "modifiable", true)
-	v.SetBufferOption(d.buffers[3].Buffer, "modifiable", true)
-	defer v.SetBufferOption(d.buffers[2].Buffer, "modifiable", false)
-	defer v.SetBufferOption(d.buffers[3].Buffer, "modifiable", false)
-
-	stacksMsg := []byte("\u25BC " + funcs.Name + "\n")
-	var locals []byte
-	for _, s := range cStacks {
-		stacksMsg = append(stacksMsg, []byte(fmt.Sprintf("\t\t%s\t%s:%d\n", s.Function.Name, shortFilePath(s.File, cwd), s.Line))...)
-		// TODO(zchee): Comparison and cacheing.
-		d.Locals = s.Locals // []delveapi.Variable
-	}
-
-	for _, l := range d.Locals {
-		locals = append(locals, []byte(
-			fmt.Sprintf("\u25B6 %s\n\t\taddr=%d onlyAddr=%t type=%q realType=%q kind=%d value=%s len=%d cap=%d unreadable=%q\n",
-				l.Name,
-				l.Addr,
-				l.OnlyAddr,
-				l.Type,
-				l.RealType,
-				l.Kind,
-				l.Value,
-				l.Len,
-				l.Cap,
-				l.Unreadable))...)
-	}
-
-	if err := v.SetBufferLines(d.buffers[2].Buffer, 0, -1, true, bytes.Split(stacksMsg, []byte{'\n'})); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-	if err := v.SetBufferLines(d.buffers[3].Buffer, 0, -1, true, bytes.Split(locals, []byte{'\n'})); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-
-	return nil
-}
-
-func (d *delve) printLogs(v *vim.Vim, cmd string, message []byte) error {
-	v.SetBufferOption(d.buffers[0].Buffer, "modifiable", true)
-	defer v.SetBufferOption(d.buffers[0].Buffer, "modifiable", false)
-
-	lcount, err := v.BufferLineCount(d.buffers[0].Buffer)
-	if err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-	if lcount == 1 {
-		lcount = 0
-	}
-
-	var msg []byte
-	if cmd != "" {
-		msg = []byte("(dlv) " + cmd + "\n")
-		lcount--
-	}
-	msg = append(msg, bytes.TrimSpace(message)...)
-	if len(message) != 0 {
-		msg = append(msg, []byte("\n")...)
-	}
-	msg = append(msg, []byte("(dlv)  ")...)
-
-	if err := v.SetBufferLines(d.buffers[0].Buffer, lcount, -1, true, bytes.Split(msg, []byte{'\n'})); err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-
-	afterBuf, err := v.BufferLines(d.buffers[0].Buffer, 0, -1, true)
-	if err != nil {
-		return errors.Annotate(err, pkgDelve)
-	}
-
-	return v.SetWindowCursor(d.buffers[0].Window, [2]int{len(afterBuf), 7})
+	return d.printTerminal(v, "restart", []byte(fmt.Sprintf("Process restarted with PID %d", d.processPid)))
 }
 
 func (d *delve) cmdStdin(v *vim.Vim) {
 	go d.stdin(v)
+}
+
+func (d *delve) ListFunctions(v *vim.Vim) ([]string, error) {
+	funcs, err := d.client.ListFunctions("main")
+	if err != nil {
+		return []string{}, err
+	}
+
+	return funcs, nil
 }
 
 // stdin sends the users input command to the internal delve terminal.
@@ -442,32 +401,11 @@ func (d *delve) stdin(v *vim.Vim) error {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
 	}
 
-	return d.printLogs(v, stdin.(string), out)
-}
-
-func (d *delve) ListFunctions(v *vim.Vim) ([]string, error) {
-	funcs, err := d.client.ListFunctions("main")
-	if err != nil {
-		return []string{}, err
-	}
-
-	return funcs, nil
+	return d.printTerminal(v, stdin.(string), out)
 }
 
 func shortFilePath(p, cwd string) string {
 	return strings.Replace(p, cwd, ".", 1)
-}
-
-func (d *delve) readServerStdout(v *vim.Vim, cmd, args string) error {
-	command := cmd + " " + args
-
-	return d.printLogs(v, command, d.serverOut.Bytes())
-}
-
-func (d *delve) readServerStderr(v *vim.Vim, cmd, args string) error {
-	command := cmd + " " + args
-
-	return d.printLogs(v, command, d.serverErr.Bytes())
 }
 
 func (d *delve) cmdState(v *vim.Vim) {
@@ -480,15 +418,5 @@ func (d *delve) state(v *vim.Vim) error {
 		return errors.Annotate(err, pkgDelve)
 	}
 	printDebug("state: %+v\n", state)
-	return nil
-}
-
-func printDebug(prefix string, data interface{}) error {
-	d, err := json.MarshalIndent(data, "", "    ")
-	if err != nil {
-		log.Printf("PrintDebug: %s\n%s", prefix, data)
-	}
-	log.Printf("PrintDebug: %s\n%s", prefix, d)
-
 	return nil
 }
