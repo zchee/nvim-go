@@ -6,20 +6,22 @@ package delve
 
 import (
 	"fmt"
-	"time"
 
 	"nvim-go/config"
 	"nvim-go/nvim"
 	"nvim-go/nvim/buffer"
-	"nvim-go/nvim/profile"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
 )
 
-func (d *delve) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
-	defer profile.Start(time.Now(), "delve/createDebugBuffer")
+const (
+	Terminal = "terminal"
+	Context  = "context"
+	Threads  = "thread"
+)
 
+func (d *delve) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
 	p.CurrentBuffer(&d.cb)
 	p.CurrentWindow(&d.cw)
 	if err := p.Wait(); err != nil {
@@ -37,30 +39,25 @@ func (d *delve) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
 	bufVar := d.setNvimVar("buffer")
 	winOption := d.setNvimOption("window")
 
-	d.buffers = make([]*buffer.Buffer, 4, 5)
-	for i, n := range []string{"terminal", "threads", "stacktrace", "locals"} {
-		d.buffers[i] = buffer.NewBuffer(n)
-	}
-	d.buffers[0].Size = (width * 2 / 5)
-	d.buffers[1].Size = (height * 2 / 3)
-	d.buffers[2].Size = (width * 1 / 5)
-	d.buffers[3].Size = (height * 1 / 2)
-	// d.buffers[4].Size = (height * 2 / 5)
-	d.buffers[0].Mode = fmt.Sprintf("silent belowright %d vsplit", d.buffers[0].Size)
-	d.buffers[1].Mode = fmt.Sprintf("silent belowright %d split", d.buffers[1].Size)
-	d.buffers[2].Mode = fmt.Sprintf("silent belowright %d vsplit", d.buffers[2].Size)
-	d.buffers[3].Mode = fmt.Sprintf("silent belowright %d split", d.buffers[3].Size)
-	// d.buffers[4].Mode = fmt.Sprintf("silent belowright %d split", d.buffers[4].Size)
+	go func() {
+		d.buffers = make(map[string]*buffer.Buffer)
+		nnoremap := make(map[string]string)
 
-	for _, buf := range d.buffers {
-		if err := buf.Create(v, bufOption, bufVar, winOption, nil); err != nil {
-			return errors.Annotate(err, "delve/createDebugBuffer")
-		}
-	}
+		d.buffers[Terminal] = buffer.NewBuffer(Terminal, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), 0)
+		d.buffers[Terminal].Create(v, bufOption, bufVar, winOption, nil)
+		nnoremap["i"] = fmt.Sprintf(":<C-u>call rpcrequest(%d, 'DlvStdin')<CR>", config.ChannelID)
+		d.buffers[Terminal].SetMapping(v, buffer.NoremapNormal, nnoremap)
 
-	nnoremap := make(map[string]string)
-	nnoremap["i"] = fmt.Sprintf(":<C-u>call rpcrequest(%d, 'DlvStdin')<CR>", config.ChannelID)
-	d.buffers[0].SetMapping(v, buffer.NoremapNormal, nnoremap)
+		d.buffers[Context] = buffer.NewBuffer(Context, fmt.Sprintf("silent belowright %d split", (height*2/3)), 0)
+		d.buffers[Context].Create(v, bufOption, bufVar, winOption, nil)
+
+		d.buffers[Threads] = buffer.NewBuffer(Threads, fmt.Sprintf("silent belowright %d split", (height*1/5)), 0)
+		d.buffers[Threads].Create(v, bufOption, bufVar, winOption, nil)
+
+		v.SetWindowOption(d.buffers[Threads].Window, "winfixheight", true)
+
+		defer v.SetCurrentWindow(d.cw)
+	}()
 
 	var err error
 	d.pcSign, err = nvim.NewSign(v, "delve_pc", nvim.ProgramCounterSymbol, "delvePCSign", "delvePCLine") // *nvim.Sign
@@ -68,7 +65,6 @@ func (d *delve) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
 		return errors.Annotate(err, "delve/createDebugBuffer")
 	}
 
-	p.SetCurrentWindow(d.cw)
 	return p.Wait()
 }
 
