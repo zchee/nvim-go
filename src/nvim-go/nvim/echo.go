@@ -15,9 +15,9 @@ import (
 )
 
 var (
-	errorColor = "Identifier"
-	progress   = "Identifier"
-	success    = "Function"
+	ErrorColor    = "Identifier"
+	ProgressColor = "Identifier"
+	SuccessColor  = "Function"
 )
 
 // Echo provide the vim 'echo' command.
@@ -52,7 +52,7 @@ func ErrorWrap(v *vim.Vim, err error) error {
 	if os.Getenv("NVIM_GO_DEBUG") != "" {
 		log.Printf("Error stack\n%s", errors.ErrorStack(err))
 	}
-	return v.Command("echo \"" + er[0] + "\" | echohl " + errorColor + " | echon \"" + er[1] + "\" | echohl None")
+	return v.Command("echo \"" + er[0] + "\" | echohl " + ErrorColor + " | echon \"" + er[1] + "\" | echohl None")
 }
 
 // EchohlErr provide the vim 'echo' command with the 'echohl' highlighting prefix text.
@@ -62,7 +62,7 @@ func EchohlErr(v *vim.Vim, prefix string, a ...interface{}) error {
 		prefix += ": "
 	}
 	er := fmt.Sprintf("%s", a...)
-	return v.Command("echo '" + prefix + "' | echohl " + errorColor + " | echon \"" + er + "\" | echohl None")
+	return v.Command("echo '" + prefix + "' | echohl " + ErrorColor + " | echon \"" + er + "\" | echohl None")
 }
 
 // EchohlBefore provide the vim 'echo' command with the 'echohl' highlighting prefix text.
@@ -88,7 +88,7 @@ func EchohlAfter(v *vim.Vim, prefix string, highlight string, format string, a .
 func EchoProgress(v *vim.Vim, prefix, format string, a ...interface{}) error {
 	v.Command("redraw")
 	msg := fmt.Sprintf(format, a...)
-	return v.Command(fmt.Sprintf("echo \"%s: \" | echohl %s | echon \"%s ...\" | echohl None", prefix, progress, msg))
+	return v.Command(fmt.Sprintf("echo \"%s: \" | echohl %s | echon \"%s ...\" | echohl None", prefix, ProgressColor, msg))
 }
 
 // EchoSuccess displays the success of the command to echo area.
@@ -97,7 +97,7 @@ func EchoSuccess(v *vim.Vim, prefix string, msg string) error {
 	if msg != "" {
 		msg = " - " + msg
 	}
-	return v.Command(fmt.Sprintf("echo \"%s: \" | echohl %s | echon 'SUCCESS' | echohl None | echon \"%s\" | echohl None", prefix, success, msg))
+	return v.Command(fmt.Sprintf("echo \"%s: \" | echohl %s | echon 'SUCCESS' | echohl None | echon \"%s\" | echohl None", prefix, SuccessColor, msg))
 }
 
 // ReportError output of the accumulated errors report.
