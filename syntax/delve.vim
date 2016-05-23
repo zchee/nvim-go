@@ -32,12 +32,38 @@ if s:bufname == 'terminal'
   hi def link delveTerminalPS        Comment
   hi def link delveTerminalCommand   Debug
 
-elseif s:bufname == 'stacktrace'
-  syn match delveStacktraceIcon    /▼/
-  syn match delveStacktraceFunc    /\(\.\)\@<=\w\+\(\)\@=$/ contains=delveStacktraceIcon
-  " syn match delveStacktraceFunc    /▼.*$/ contains=delveStacktraceIcon
+elseif s:bufname == 'context'
+  syn match delveHeadline              /\(Stacktraces\|Local Variables\)/
+  syn match delveStacksCurrentSymbol   /*/
+  syn match delveStacksSymbol          /\(▼\|▶\)/
+  syn match delveStacksFunc            /\.\zs\w\+\((\)\@=/ contains=delveStacksIcon
 
-  hi def link delveStacktraceIcon  Identifier
-  hi def link delveStacktraceFunc  Function
+  syn match delveStacksAddr            /addr:\s\zs\d*/
+  syn match delveStacksOnlyAddr        /onlyAddr:\s\zs\(true\|false\)/
+  syn match delveStacksType            /type:\s\zs[0-9A-Za-z_]*/
+  syn match delveStacksRealType        /realType:\s\zs[\s0-9A-Za-z_]*/
+  syn match delveStacksKind            /kind:\s\zs[\s0-9A-Za-z_]*/
+  syn match delveStacksValue           /value:\s\zs\w*/
+  syn match delveStacksLenCap          /\(len\|cap\):\s\zs\d*/
+  syn match delveStacksUnreadable      /unreadable:\s\zs\d*/
+
+  hi def link delveHeadline            Statement
+  hi def link delveStacksCurrentSymbol Operator
+  hi def link delveStacksSymbol        Debug
+  hi def link delveStacksFunc          Type
+  hi def link delveStacksAddr          Number
+  hi def link delveStacksonlyAddr      Boolean
+  hi def link delveStacksType          Type
+  hi def link delveStacksRealType      Type
+  hi def link delveStacksKind          Type
+  hi def link delveStacksValue         String
+  hi def link delveStacksLenCap        Number
+  hi def link delveStacksUnreadable    String
+
+  hi! delveFade1 guibg=#85888d
+  hi! delveFade2 guibg=#5c6066
+  hi! delveFade3 guibg=#343941
+  hi! delveFade4 guibg=#292d34
+  hi! delveFade5 guibg=#1f2227
 
 endif
