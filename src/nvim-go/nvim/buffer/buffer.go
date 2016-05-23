@@ -5,6 +5,7 @@
 package buffer
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"time"
@@ -65,9 +66,11 @@ type Buffer struct {
 	Size  int
 }
 
-func NewBuffer(name string) *Buffer {
+func NewBuffer(name, mode string, size int) *Buffer {
 	b := &Buffer{
 		Name: name,
+		Mode: mode,
+		Size: size,
 	}
 
 	return b
@@ -158,6 +161,10 @@ func (b *Buffer) SetMapping(v *vim.Vim, mode string, mapping map[string]string) 
 	}
 
 	return p.Wait()
+}
+
+func ToBufferLines(v *vim.Vim, byt []byte) [][]byte {
+	return bytes.Split(byt, []byte{'\n'})
 }
 
 // ByteOffset calculation of byte offset the current cursor position.
