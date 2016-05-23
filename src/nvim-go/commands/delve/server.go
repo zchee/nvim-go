@@ -41,7 +41,7 @@ func (d *delve) startServer(cmd, path string) error {
 // `net.Dial` is better way?
 // http://stackoverflow.com/a/30838807/5228839
 func (d *delve) waitServer(v *vim.Vim) error {
-	defer nvim.ClearMsg(v)
+	defer nvim.EchohlAfter(v, "Delve", nvim.ProgressColor, "Ready")
 	nvim.EchoProgress(v, "Delve", "Wait for running dlv server")
 
 	for {
@@ -57,5 +57,5 @@ func (d *delve) waitServer(v *vim.Vim) error {
 		return errors.Annotate(err, "delve/server.waitServer")
 	}
 
-	return d.printLogs(v, "", []byte("Type 'help' for list of commands."))
+	return d.printTerminal(v, "", []byte("Type 'help' for list of commands."))
 }
