@@ -21,7 +21,9 @@ const (
 	Threads  = "thread"
 )
 
-func (d *delve) createDebugBuffer(v *vim.Vim, p *vim.Pipeline) error {
+func (d *delve) createDebugBuffer(v *vim.Vim) error {
+	p := v.NewPipeline()
+
 	p.CurrentBuffer(&d.cb)
 	p.CurrentWindow(&d.cw)
 	if err := p.Wait(); err != nil {
