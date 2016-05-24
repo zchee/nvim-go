@@ -6,8 +6,9 @@ package commands
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
+	"sort"
+	"strings"
 	"time"
 
 	"nvim-go/config"
@@ -56,7 +57,15 @@ func Metalinter(v *vim.Vim, cwd string) error {
 		return err
 	}
 
-	args := []string{cwd + "/...", "--json", "--disable-all", "--deadline", config.MetalinterDeadline}
+	var args []string
+	switch ctxt.Tool {
+	case "go":
+		args = append(args, cwd+"/...")
+	case "gb":
+		args = append(args, ctxt.ProjectDir+"/...")
+	}
+	args = append(args, []string{"--json", "--disable-all", "--deadline", config.MetalinterDeadline}...)
+
 	for _, t := range config.MetalinterTools {
 		args = append(args, "--enable", t)
 	}
@@ -67,29 +76,25 @@ func Metalinter(v *vim.Vim, cwd string) error {
 	}
 
 	cmd := exec.Command("gometalinter", args...)
-	cmd.Dir = cwd
-	stdout, _ := cmd.Output()
+	stdout, err := cmd.Output()
 	cmd.Run()
 
 	var result = []metalinterResult{}
-	if err := json.Unmarshal(stdout, &result); err != nil {
-		fmt.Println(err)
+	if err != nil {
+		if err := json.Unmarshal(stdout, &result); err != nil {
+			return err
+		}
 	}
 
+	sort.Sort(byPath(result))
+
 	for _, r := range result {
-		var errorType string
-		switch r.Severity {
-		case "error":
-			errorType = "E"
-		case "warning":
-			errorType = "W"
-		}
 		loclist = append(loclist, &quickfix.ErrorlistData{
-			FileName: r.Path,
+			FileName: nvim.ToRelPath(r.Path, cwd),
 			LNum:     r.Line,
 			Col:      r.Col,
 			Text:     r.Linter + ": " + r.Message,
-			Type:     errorType,
+			Type:     strings.ToUpper(r.Severity[:1]),
 		})
 	}
 
@@ -98,3 +103,9 @@ func Metalinter(v *vim.Vim, cwd string) error {
 	}
 	return quickfix.OpenLoclist(v, w, loclist, true)
 }
+
+type byPath []metalinterResult
+
+func (a byPath) Len() int           { return len(a) }
+func (a byPath) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byPath) Less(i, j int) bool { return a[i].Path < a[j].Path }
