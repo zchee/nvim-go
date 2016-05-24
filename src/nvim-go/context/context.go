@@ -8,7 +8,6 @@ import (
 	"go/build"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 )
 
@@ -30,12 +29,6 @@ func (ctxt *Build) buildContext(p string) (string, string) {
 	// Check the path p are Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
 	if gbpath, ok := ctxt.isGb(p); ok {
-		// Get runtime $GOROOT path and join to goPath.
-		r := runtime.GOROOT()
-		if r != "" {
-			goPath = goPath + string(filepath.ListSeparator) + r
-		}
-
 		// Cleanup directory path.
 		p = filepath.Clean(p)
 		goPath = gbpath + string(filepath.ListSeparator) +
@@ -70,17 +63,24 @@ func (ctxt *Build) isGb(p string) (string, bool) {
 		continue
 	}
 
-	// gb project directory is `../../pkgRoot`
-	projRoot, src := filepath.Split(filepath.Dir(pkgRoot))
+	projRoot := pkgRoot
+	src := "src"
+	if projRoot != FindVcsRoot(p) {
+		// gb project directory is `../../pkgRoot`
+		projRoot, src = filepath.Split(filepath.Dir(pkgRoot))
+		if src != "src" {
+			return "", false
+		}
+	}
 
 	manifest = filepath.Join(filepath.Clean(projRoot), "vendor/manifest")
 	_, err := os.Stat(manifest)
-	if err != nil || src != "src" {
+	if err != nil {
 		return "", false
 	}
-	ctxt.ProjectDir = projRoot
+	ctxt.ProjectDir = filepath.Clean(projRoot)
 
-	return filepath.Clean(projRoot), (err == nil && src == "src")
+	return ctxt.ProjectDir, (err == nil && src == "src")
 }
 
 // contextMu Mutex lock for SetContext.
