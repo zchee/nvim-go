@@ -66,12 +66,13 @@ func init() {
 }
 
 type delve struct {
-	server               *exec.Cmd
-	client               *delverpc2.RPCClient
-	term                 *delveterm.Term
-	debugger             *delveterm.Commands
-	processPid           int
-	serverOut, serverErr bytes.Buffer
+	server     *exec.Cmd
+	client     *delverpc2.RPCClient
+	term       *delveterm.Term
+	debugger   *delveterm.Commands
+	processPid int
+	serverOut  bytes.Buffer
+	serverErr  bytes.Buffer
 
 	channelID int
 
@@ -79,6 +80,8 @@ type delve struct {
 
 	BufferContext
 	SignContext
+
+	ctxt *context.Build
 }
 
 type BufferContext struct {
@@ -118,19 +121,21 @@ func (d *delve) cmdDebug(v *vim.Vim, eval debugEval) {
 	d.debug(v, eval)
 }
 
+// TODO(zchee): If failed debug(build), even create each buffers.
 func (d *delve) debug(v *vim.Vim, eval debugEval) error {
+	d.ctxt = new(context.Build)
+	defer d.ctxt.SetContext(eval.Cwd)()
+
 	rootDir := context.FindVcsRoot(eval.Dir)
 	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
 	path := filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
-
-	p := v.NewPipeline()
 
 	if err := d.startServer("debug", path); err != nil {
 		nvim.ErrorWrap(v, err)
 	}
 	defer d.waitServer(v)
 
-	return d.createDebugBuffer(v, p)
+	return d.createDebugBuffer(v)
 }
 
 func (d *delve) parseArgs(v *vim.Vim, args []string, eval createBreakpointEval) (*delveapi.Breakpoint, error) {
@@ -231,11 +236,9 @@ func (d *delve) cont(v *vim.Vim, eval continueEval) error {
 		d.printContext(v, eval.Dir, cThread, goroutines)
 	}()
 
+	go d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true)
+
 	go func() {
-		if err := d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true); err != nil {
-			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
-			return
-		}
 		if err := v.SetWindowCursor(d.cw, [2]int{cThread.Line, 0}); err != nil {
 			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
 			return
@@ -309,20 +312,6 @@ func (d *delve) next(v *vim.Vim, eval nextEval) error {
 			return
 		}
 	}()
-
-	// cThread := state.CurrentThread
-	// if err := d.printContext(v, eval.Dir, cThread, state.Threads); err != nil {
-	// 	return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
-	// }
-	// if err := d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true); err != nil {
-	// 	return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
-	// }
-	// if err := v.SetWindowCursor(d.cw, [2]int{cThread.Line, 0}); err != nil {
-	// 	return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
-	// }
-	// if err := v.Command("silent normal zz"); err != nil {
-	// 	return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
-	// }
 
 	msg := []byte(
 		fmt.Sprintf("> %s() %s:%d goroutine(%d) (PC: %d)",
