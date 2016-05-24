@@ -138,7 +138,7 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistData, error) {
 	var (
 		errlist      []*ErrorlistData
-		reErrPattern = regexp.MustCompile(`(?m)^#\s([-_./\w]+)\n([.,-_'":\s\w]+)`)
+		reErrPattern = regexp.MustCompile(`(?m)^#\s([-_./\w]+)\n([\s\w!"#$%&'()*+,\-./:;<=>?@[\\\]^_{|}~]+)`)
 		reFile       = regexp.MustCompile(`([.\w]+):(\d+)(?::(\d+))?:\s(.*)`)
 	)
 
