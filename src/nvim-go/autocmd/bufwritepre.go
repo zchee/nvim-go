@@ -26,18 +26,18 @@ type bufwritepreEval struct {
 func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
 	dir, _ := filepath.Split(eval.File)
 
+	if config.FmtAsync {
+		go commands.Fmt(v, dir)
+	} else {
+		commands.Fmt(v, dir)
+	}
+
 	if config.IferrAutosave {
 		go commands.Iferr(v, eval.File)
 	}
 
 	if config.MetalinterAutosave {
 		go commands.Metalinter(v, eval.Cwd)
-	}
-
-	if config.FmtAsync {
-		go commands.Fmt(v, dir)
-	} else {
-		return commands.Fmt(v, dir)
 	}
 
 	return nil
