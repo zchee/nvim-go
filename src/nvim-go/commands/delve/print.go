@@ -84,7 +84,6 @@ func (d *delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Fu
 
 	var locals []delveapi.Variable
 	var fade *highlight.Fade
-	var symbol string
 
 	stacksMsg := []byte("Stacktraces\n")
 	end, _ := v.BufferLineCount(d.buffers[Context].Buffer)
@@ -100,7 +99,7 @@ func (d *delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Fu
 			continue
 		}
 
-		stacksMsg = append(stacksMsg, []byte(fmt.Sprintf("\t\u25BC %s\n", symbol, g.CurrentLoc.Function.Name))...) // \u25BC: ▼
+		stacksMsg = append(stacksMsg, []byte(fmt.Sprintf("\t\u25BC %s\n", g.CurrentLoc.Function.Name))...) // \u25BC: ▼
 
 		// Appends the stacktrace from each threads goroutine if valid goroutine ID.
 		if g.ID != 0 {
