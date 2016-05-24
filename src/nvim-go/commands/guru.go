@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"go/build"
 	"go/token"
-	"strconv"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -52,7 +52,6 @@ func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
 // Guru go source analysis and output result to the quickfix or locationlist.
 func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	defer profile.Start(time.Now(), "Guru")
-
 	mode := args[0]
 	if len(args) > 1 {
 		arg := args[1]
@@ -88,7 +87,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		}
 	}
 
-	var c = context.Build{}
+	c := new(context.Build)
 	defer c.SetContext(eval.Dir)()
 
 	var (
@@ -102,13 +101,17 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		return err
 	}
 
-	dir := strings.Split(eval.Dir, "src/")
-	scopeFlag := dir[len(dir)-1]
+	var scopeFlag []string
+	switch c.Tool {
+	case "go":
+		scopeFlag = []string{strings.TrimPrefix(nvim.PackagePath(eval.Dir), "src"+string(filepath.Separator)) + string(filepath.Separator) + "..."}
+	case "gb":
+		goPath := strings.Split(build.Default.GOPATH, string(filepath.ListSeparator))
+		globPath := strings.Join(goPath, string(filepath.Separator)+"..."+string(filepath.ListSeparator))
+		scopeFlag = strings.Split(globPath, string(filepath.ListSeparator))
+	}
 
 	pos, err := buffer.ByteOffsetPipe(p, b, w)
-	if err != nil {
-		return nvim.Echomsg(v, err)
-	}
 
 	ctxt := &build.Default
 
@@ -140,12 +143,15 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 			nvim.Echoerr(v, "GoGuru: %v", err)
 		}
 	}
+	if err := p.Wait(); err != nil {
+		return err
+	}
 
 	query := guru.Query{
 		Output:     output,
-		Pos:        eval.File + ":#" + strconv.FormatInt(int64(pos), 10),
+		Pos:        fmt.Sprintf("%s:#%d", eval.File, pos),
 		Build:      ctxt,
-		Scope:      []string{scopeFlag},
+		Scope:      scopeFlag,
 		Reflection: config.GuruReflection,
 	}
 
@@ -159,9 +165,13 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	// jumpfirst or definition mode
 	if config.GuruJumpFirst || mode == "definition" {
-		p.Command("silent ll 1 | normal zz")
+		// TODO(zchee): before cursor position mark always '"'?
+		p.Command("silent ll | delmark \" | normal zz")
 		// Define the mapping to add 'zz' to <C-o> in the buffer local.
 		p.Command("nnoremap <silent><buffer> <C-o> <C-o>zz")
+		if err := p.Wait(); err != nil {
+			return err
+		}
 	}
 
 	// not definition mode
