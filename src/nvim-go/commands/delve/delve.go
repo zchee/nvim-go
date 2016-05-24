@@ -85,9 +85,9 @@ type delve struct {
 }
 
 type BufferContext struct {
-	cb      vim.Buffer
-	cw      vim.Window
-	buffers map[string]*buffer.Buffer
+	cb     vim.Buffer
+	cw     vim.Window
+	buffer map[string]*buffer.Buffer
 }
 
 type SignContext struct {

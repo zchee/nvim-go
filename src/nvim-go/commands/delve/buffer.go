@@ -42,21 +42,21 @@ func (d *delve) createDebugBuffer(v *vim.Vim) error {
 	winOption := d.setNvimOption("window")
 
 	go func() {
-		d.buffers = make(map[string]*buffer.Buffer)
+		d.buffer = make(map[string]*buffer.Buffer)
 		nnoremap := make(map[string]string)
 
-		d.buffers[Terminal] = buffer.NewBuffer(Terminal, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), 0)
-		d.buffers[Terminal].Create(v, bufOption, bufVar, winOption, nil)
+		d.buffer[Terminal] = buffer.NewBuffer(Terminal, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), 0)
+		d.buffer[Terminal].Create(v, bufOption, bufVar, winOption, nil)
 		nnoremap["i"] = fmt.Sprintf(":<C-u>call rpcrequest(%d, 'DlvStdin')<CR>", config.ChannelID)
-		d.buffers[Terminal].SetMapping(v, buffer.NoremapNormal, nnoremap)
+		d.buffer[Terminal].SetMapping(v, buffer.NoremapNormal, nnoremap)
 
-		d.buffers[Context] = buffer.NewBuffer(Context, fmt.Sprintf("silent belowright %d split", (height*2/3)), 0)
-		d.buffers[Context].Create(v, bufOption, bufVar, winOption, nil)
+		d.buffer[Context] = buffer.NewBuffer(Context, fmt.Sprintf("silent belowright %d split", (height*2/3)), 0)
+		d.buffer[Context].Create(v, bufOption, bufVar, winOption, nil)
 
-		d.buffers[Threads] = buffer.NewBuffer(Threads, fmt.Sprintf("silent belowright %d split", (height*1/5)), 0)
-		d.buffers[Threads].Create(v, bufOption, bufVar, winOption, nil)
+		d.buffer[Threads] = buffer.NewBuffer(Threads, fmt.Sprintf("silent belowright %d split", (height*1/5)), 0)
+		d.buffer[Threads].Create(v, bufOption, bufVar, winOption, nil)
 
-		v.SetWindowOption(d.buffers[Threads].Window, "winfixheight", true)
+		v.SetWindowOption(d.buffer[Threads].Window, "winfixheight", true)
 
 		defer v.SetCurrentWindow(d.cw)
 	}()
@@ -92,12 +92,12 @@ func (d *delve) setNvimOption(scope string) map[string]interface{} {
 }
 
 func (d *delve) setNvimVar(scope string) map[string]interface{} {
-	options := make(map[string]interface{})
+	vars := make(map[string]interface{})
 
 	switch scope {
 	case "buffer":
-		options[buffer.Colorcolumn] = ""
+		vars[buffer.Colorcolumn] = ""
 	}
 
-	return options
+	return vars
 }
