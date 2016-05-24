@@ -35,18 +35,28 @@ https://github.com/derekparker/delve
 https://blog.gopheracademy.com/advent-2015/debugging-with-delve/
 
   - [x] Debugging use `delve`
-  - [ ] `lldb.nvim` like Debugging UI
-  - [ ] Ref: Microsoft vs-code feature
+  - [x] Support `debug` command
+      - [x] Build from current sources
+  - [ ] Support `exec` command
+      - [ ] Execute go binary
+  - [ ] Support `connect` command
+    - [ ] Currently use dlv headless feature and api. `connect` command should be execute with standalone.
+  - [x] Stepping exection(`continue`, `next`, `step`, `step-instruction`) with pc sign and color highlight
+      - [ ] If debug a large output command, sometimes freezing the neovim. need state(busy) check
+  - [x] ~~`lldb.nvim` like Debugging UI~~
+  - [x] vs-code and go-debug like UI interface
+      - [x] Highlight the current hitting breakpoint with fadeout (but too far)
+  - [x] Set breakpoint with `sign` and key mapping
+  - Ref: Microsoft vs-code feature
       - https://github.com/Microsoft/vscode-go
-  - [ ] Ref: go-debug - go debugger for atom
+  - Ref: go-debug - go debugger for atom
       - https://github.com/lloiser/go-debug
-  - [ ] Set breakpoint with `sign` and key mapping
 
 ## `lldb` debugging
 http://ribrdb.github.io/lldb/
   - [ ] Debugging use lldb for cgo and more low level debug
   - [ ] Use lldb bindings for Go
-      - [ ] Will create `go-lldb` package
+      - [ ] Needs create `go-lldb` package
   - [ ] Set breakpoint with `sign` and key mapping
 
 ## Full cgo support
