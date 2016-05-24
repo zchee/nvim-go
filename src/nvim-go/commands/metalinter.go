@@ -90,7 +90,7 @@ func Metalinter(v *vim.Vim, cwd string) error {
 
 	for _, r := range result {
 		loclist = append(loclist, &quickfix.ErrorlistData{
-			FileName: nvim.ToRelPath(r.Path, cwd),
+			FileName: nvim.RelPath(r.Path, cwd),
 			LNum:     r.Line,
 			Col:      r.Col,
 			Text:     r.Linter + ": " + r.Message,
