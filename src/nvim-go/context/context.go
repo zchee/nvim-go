@@ -27,18 +27,17 @@ func (ctxt *Build) buildContext(p string) (string, string) {
 	// Get original $GOPATH path.
 	goPath := os.Getenv("GOPATH")
 
-	// Get runtime $GOROOT path and join to goPath.
-	r := runtime.GOROOT()
-	if r != "" {
-		goPath = goPath + string(filepath.ListSeparator) + r
-	}
-
-	// Cleanup directory path.
-	p = filepath.Clean(p)
-
 	// Check the path p are Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
 	if gbpath, ok := ctxt.isGb(p); ok {
+		// Get runtime $GOROOT path and join to goPath.
+		r := runtime.GOROOT()
+		if r != "" {
+			goPath = goPath + string(filepath.ListSeparator) + r
+		}
+
+		// Cleanup directory path.
+		p = filepath.Clean(p)
 		goPath = gbpath + string(filepath.ListSeparator) +
 			filepath.Join(gbpath, "vendor") + string(filepath.ListSeparator) +
 			goPath
