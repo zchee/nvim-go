@@ -16,6 +16,7 @@ import (
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/juju/errors"
 	"golang.org/x/tools/imports"
 )
 
@@ -84,7 +85,8 @@ func Fmt(v *vim.Vim, dir string) error {
 			return nvim.Echomsg(v, "Gofmt:", err)
 		}
 
-		return quickfix.OpenLoclist(v, w, loclist, true)
+		quickfix.OpenLoclist(v, w, loclist, true)
+		return errors.Annotate(err, "GoFmt")
 	}
 
 	quickfix.CloseLoclist(v)
