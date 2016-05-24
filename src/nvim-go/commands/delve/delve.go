@@ -298,11 +298,9 @@ func (d *delve) next(v *vim.Vim, eval nextEval) error {
 		d.printContext(v, eval.Dir, cThread, goroutines)
 	}()
 
+	go d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true)
+
 	go func() {
-		if err := d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true); err != nil {
-			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
-			return
-		}
 		if err := v.SetWindowCursor(d.cw, [2]int{cThread.Line, 0}); err != nil {
 			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
 			return
