@@ -54,6 +54,7 @@ func GenerateTest(v *vim.Vim, files []string, dir string) error {
 
 	var opt = process.Options{
 		AllFuncs:    true,
+		ExclFuncs:   "init",
 		WriteOutput: true,
 		PrintInputs: true,
 	}
