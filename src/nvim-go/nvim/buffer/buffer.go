@@ -18,13 +18,13 @@ import (
 
 const (
 	// Buffer options
-	Bufhidden  = "bufhidden"  // string
-	Buflisted  = "buflisted"  // bool
-	Buftype    = "buftype"    // string
-	Filetype   = "filetype"   // string
-	Modifiable = "modifiable" // bool
-	Modified   = "modified"   // bool
-	Swapfile   = "swapfile"   // bool
+	Bufhidden    = "bufhidden"  // string
+	Buflisted    = "buflisted"  // bool
+	Buftype      = "buftype"    // string
+	Filetype     = "filetype"   // string
+	OpModifiable = "modifiable" // bool
+	OpModified   = "modified"   // bool
+	Swapfile     = "swapfile"   // bool
 
 	// Buffer var
 	Colorcolumn = "colorcolumn" // string
@@ -37,22 +37,23 @@ const (
 )
 
 const (
-	BufhiddenDelete = "delete"   // delete the buffer from the buffer list, also when 'hidden' is set or using :hide, like using :bdelete.
-	BufhiddenHide   = "hide"     // hide the buffer (don't unload it), also when 'hidden' is not set.
-	BufhiddenUnload = "unload"   // unload the buffer, also when 'hidden' is set or using :hide.
-	BufhiddenWipe   = "wipe"     // wipe out the buffer from the buffer list, also when 'hidden' is set or using :hide, like using :bwipeout.
-	BuftypeAcwrite  = "acwrite"  // buffer which will always be written with BufWriteCmd autocommands.
-	BuftypeHelp     = "help"     // help buffer (you are not supposed to set this manually)
-	BuftypeNofile   = "nofile"   // buffer which is not related to a file and will not be written.
-	BuftypeNowrite  = "nowrite"  // buffer which will not be written.
-	BuftypeQuickfix = "quickfix" // quickfix buffer, contains list of errors :cwindow or list of locations :lwindow
-	BuftypeTerminal = "terminal" // terminal buffer, this is set automatically when a terminal is created. See nvim-terminal-emulator for more information.
-	FiletypeAsm     = "asm"
-	FiletypeC       = "c"
-	FiletypeCpp     = "cpp"
-	FiletypeGas     = "gas"
-	FiletypeGo      = "go"
-	FiletypeDelve   = "delve"
+	BufhiddenDelete  = "delete"   // delete the buffer from the buffer list, also when 'hidden' is set or using :hide, like using :bdelete.
+	BufhiddenHide    = "hide"     // hide the buffer (don't unload it), also when 'hidden' is not set.
+	BufhiddenUnload  = "unload"   // unload the buffer, also when 'hidden' is set or using :hide.
+	BufhiddenWipe    = "wipe"     // wipe out the buffer from the buffer list, also when 'hidden' is set or using :hide, like using :bwipeout.
+	BuftypeAcwrite   = "acwrite"  // buffer which will always be written with BufWriteCmd autocommands.
+	BuftypeHelp      = "help"     // help buffer (you are not supposed to set this manually)
+	BuftypeNofile    = "nofile"   // buffer which is not related to a file and will not be written.
+	BuftypeNowrite   = "nowrite"  // buffer which will not be written.
+	BuftypeQuickfix  = "quickfix" // quickfix buffer, contains list of errors :cwindow or list of locations :lwindow
+	BuftypeTerminal  = "terminal" // terminal buffer, this is set automatically when a terminal is created. See nvim-terminal-emulator for more information.
+	FiletypeAsm      = "asm"
+	FiletypeC        = "c"
+	FiletypeCpp      = "cpp"
+	FiletypeDelve    = "delve"
+	FiletypeGas      = "gas"
+	FiletypeGo       = "go"
+	FiletypeTerminal = "terminal"
 )
 
 type Buffer struct {
@@ -76,15 +77,29 @@ func NewBuffer(name, mode string, size int) *Buffer {
 	return b
 }
 
+func (b *Buffer) Open(v *vim.Vim) error {
+	err := v.Command(fmt.Sprintf("silent %s %s", b.Mode, b.Name))
+	if err != nil {
+		return errors.Annotate(err, "buffer.Open")
+	}
+
+	p := v.NewPipeline()
+	p.CurrentBuffer(&b.Buffer)
+	p.CurrentWindow(&b.Window)
+	p.CurrentTabpage(&b.Tabpage)
+
+	return p.Wait()
+}
+
 func (b *Buffer) Create(v *vim.Vim, bufOption, bufVar, winOption, winVar map[string]interface{}) error {
 	defer profile.Start(time.Now(), "nvim/buffer.Create")
 
-	p := v.NewPipeline()
-	p.Command(fmt.Sprintf("silent %s %s", b.Mode, b.Name))
-	if err := p.Wait(); err != nil {
-		return errors.Annotate(err, "nvim/buffer.Create")
+	err := v.Command(fmt.Sprintf("silent %s %s", b.Mode, b.Name))
+	if err != nil {
+		return errors.Annotate(err, "buffer.Open")
 	}
 
+	p := v.NewPipeline()
 	p.CurrentBuffer(&b.Buffer)
 	p.CurrentWindow(&b.Window)
 	p.CurrentTabpage(&b.Tabpage)
@@ -127,7 +142,7 @@ const (
 	MapVisual       = "xmap"
 	MapOperator     = "omap"
 	MapInsert       = "imap"
-	MapCLI          = "cmap"
+	MapCommandLine  = "cmap"
 	MapTerminal     = "tmap"
 
 	Noremap             = "noremap"
@@ -137,7 +152,7 @@ const (
 	NoremapVisual       = "xnoremap"
 	NoremapOperator     = "onoremap"
 	NoremapInsert       = "inoremap"
-	NoremapCLI          = "cnoremap"
+	NoremapCommandLine  = "cnoremap"
 	NoremapTerminal     = "tnoremap"
 )
 
@@ -212,13 +227,13 @@ func ByteOffsetPipe(p *vim.Pipeline, b vim.Buffer, w vim.Window) (int, error) {
 	if b == 0 {
 		p.CurrentBuffer(&b)
 		if err := p.Wait(); err != nil {
-			return 0, err
+			return 0, errors.Annotate(err, "nvim/buffer.ByteOffsetPipe")
 		}
 	}
 	if w == 0 {
 		p.CurrentWindow(&w)
 		if err := p.Wait(); err != nil {
-			return 0, err
+			return 0, errors.Annotate(err, "nvim/buffer.ByteOffsetPipe")
 		}
 	}
 
@@ -229,7 +244,7 @@ func ByteOffsetPipe(p *vim.Pipeline, b vim.Buffer, w vim.Window) (int, error) {
 	p.BufferLines(b, 0, -1, true, &byteBuf)
 
 	if err := p.Wait(); err != nil {
-		return 0, err
+		return 0, errors.Annotate(err, "nvim/buffer.ByteOffsetPipe")
 	}
 
 	if cursor[0] == 1 {
@@ -248,4 +263,22 @@ func ByteOffsetPipe(p *vim.Pipeline, b vim.Buffer, w vim.Window) (int, error) {
 	}
 
 	return (offset + (cursor[1] - 1)), nil
+}
+
+func Contains(v *vim.Vim, b vim.Buffer) bool {
+	bufs, _ := v.Buffers()
+	for _, buf := range bufs {
+		if buf == b {
+			return true
+		}
+	}
+	return false
+}
+
+func Modifiable(v *vim.Vim, b vim.Buffer) func() {
+	v.SetBufferOption(b, OpModifiable, true)
+
+	return func() {
+		v.SetBufferOption(b, OpModifiable, false)
+	}
 }

@@ -79,7 +79,7 @@ func (d *delve) setNvimOption(scope string) map[string]interface{} {
 		options[buffer.Buflisted] = false
 		options[buffer.Buftype] = buffer.BuftypeNofile
 		options[buffer.Filetype] = buffer.FiletypeDelve
-		options[buffer.Modifiable] = false
+		options[buffer.OpModifiable] = false
 		options[buffer.Swapfile] = false
 	case "window":
 		options[buffer.List] = false
