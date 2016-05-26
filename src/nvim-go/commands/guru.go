@@ -27,12 +27,16 @@ import (
 	"nvim-go/nvim/buffer"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
+	"nvim-go/pathutil"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/juju/errors"
 	"golang.org/x/tools/cmd/guru/serial"
 	"golang.org/x/tools/go/buildutil"
 )
+
+var pkgGuru = "Guru"
 
 func init() {
 	plugin.HandleFunction("GoGuru", &plugin.FunctionOptions{Eval: "[getcwd(), expand('%:p:h'), expand('%:p'), &modified]"}, funcGuru)
@@ -98,20 +102,23 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)
 	if err := p.Wait(); err != nil {
-		return err
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
 
 	var scopeFlag []string
 	switch c.Tool {
 	case "go":
-		scopeFlag = []string{strings.TrimPrefix(nvim.PackagePath(eval.Dir), "src"+string(filepath.Separator)) + string(filepath.Separator) + "..."}
+		pkgPath := strings.TrimPrefix(nvim.PackagePath(eval.Dir), "src"+string(filepath.Separator))
+		scopeFlag = []string{pkgPath + string(filepath.Separator) + "..."}
 	case "gb":
-		goPath := strings.Split(build.Default.GOPATH, string(filepath.ListSeparator))
-		globPath := strings.Join(goPath, string(filepath.Separator)+"..."+string(filepath.ListSeparator))
-		scopeFlag = strings.Split(globPath, string(filepath.ListSeparator))
+		projectName := pathutil.GbProjectName(eval.Dir, c.ProjectDir)
+		scopeFlag = append(scopeFlag, projectName+string(filepath.Separator)+"...")
 	}
 
 	pos, err := buffer.ByteOffsetPipe(p, b, w)
+	if err != nil {
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+	}
 
 	ctxt := &build.Default
 
@@ -127,7 +134,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		p.BufferLines(b, 0, -1, true, &buffer)
 		p.BufferName(b, &bname)
 		if err := p.Wait(); err != nil {
-			return err
+			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		}
 
 		overlay[bname] = bytes.Join(buffer, []byte{'\n'})
@@ -140,7 +147,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		outputMu.Lock()
 		defer outputMu.Unlock()
 		if loclist, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
-			nvim.Echoerr(v, "GoGuru: %v", err)
+			nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		}
 	}
 	if err := p.Wait(); err != nil {
@@ -156,17 +163,17 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	}
 
 	if err := guru.Run(mode, &query); err != nil {
-		return nvim.Echomsg(v, "GoGuru:", err)
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
 
 	if err := quickfix.SetLoclist(v, loclist); err != nil {
-		return nvim.Echomsg(v, "GoGuru:", err)
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
 
 	// jumpfirst or definition mode
 	if config.GuruJumpFirst || mode == "definition" {
 		// TODO(zchee): before cursor position mark always '"'?
-		p.Command("silent ll | delmark \" | normal zz")
+		p.Command("lclose | silent ll | delmark \" | normal zz")
 		// Define the mapping to add 'zz' to <C-o> in the buffer local.
 		p.Command("nnoremap <silent><buffer> <C-o> <C-o>zz")
 		if err := p.Wait(); err != nil {
