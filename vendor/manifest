@@ -17,63 +17,63 @@
 		{
 			"importpath": "github.com/derekparker/delve/config",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "93d82ca8d2f373e1439c2b4f97bb4fa9ba5bebdc",
+			"revision": "7f6d7e214d38509a5efd92da91ebc9f6744f7511",
 			"branch": "master",
 			"path": "/config"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/frame",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "93d82ca8d2f373e1439c2b4f97bb4fa9ba5bebdc",
+			"revision": "7f6d7e214d38509a5efd92da91ebc9f6744f7511",
 			"branch": "master",
 			"path": "/dwarf/frame"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/line",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "93d82ca8d2f373e1439c2b4f97bb4fa9ba5bebdc",
+			"revision": "7f6d7e214d38509a5efd92da91ebc9f6744f7511",
 			"branch": "master",
 			"path": "/dwarf/line"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/op",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "93d82ca8d2f373e1439c2b4f97bb4fa9ba5bebdc",
+			"revision": "7f6d7e214d38509a5efd92da91ebc9f6744f7511",
 			"branch": "master",
 			"path": "/dwarf/op"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/reader",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "93d82ca8d2f373e1439c2b4f97bb4fa9ba5bebdc",
+			"revision": "7f6d7e214d38509a5efd92da91ebc9f6744f7511",
 			"branch": "master",
 			"path": "/dwarf/reader"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/util",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "93d82ca8d2f373e1439c2b4f97bb4fa9ba5bebdc",
+			"revision": "7f6d7e214d38509a5efd92da91ebc9f6744f7511",
 			"branch": "master",
 			"path": "/dwarf/util"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/proc",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "93d82ca8d2f373e1439c2b4f97bb4fa9ba5bebdc",
+			"revision": "7f6d7e214d38509a5efd92da91ebc9f6744f7511",
 			"branch": "master",
 			"path": "/proc"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "93d82ca8d2f373e1439c2b4f97bb4fa9ba5bebdc",
+			"revision": "7f6d7e214d38509a5efd92da91ebc9f6744f7511",
 			"branch": "master",
 			"path": "/service"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/terminal",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "93d82ca8d2f373e1439c2b4f97bb4fa9ba5bebdc",
+			"revision": "7f6d7e214d38509a5efd92da91ebc9f6744f7511",
 			"branch": "master",
 			"path": "/terminal"
 		},
@@ -131,7 +131,7 @@
 		{
 			"importpath": "golang.org/x/net/http2/hpack",
 			"repository": "https://go.googlesource.com/net",
-			"revision": "0c607074acd38c5f23d1344dfe74c977464d1257",
+			"revision": "dfd9ed699ea197b58a32e0d1dcfa2be66f127ec4",
 			"branch": "master",
 			"path": "/http2/hpack"
 		},
@@ -145,98 +145,98 @@
 		{
 			"importpath": "golang.org/x/tools/cmd/guru/serial",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/cmd/guru/serial"
 		},
 		{
 			"importpath": "golang.org/x/tools/container/intsets",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/container/intsets"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/ast/astutil",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/go/ast/astutil"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/buildutil",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/go/buildutil"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/callgraph",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/go/callgraph"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/loader",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/go/loader"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/pointer",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/go/pointer"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/ssa",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/go/ssa"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/types",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/go/types"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/types/typeutil",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/go/types/typeutil"
 		},
 		{
 			"importpath": "golang.org/x/tools/imports",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/imports"
 		},
 		{
 			"importpath": "golang.org/x/tools/refactor/importgraph",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/refactor/importgraph"
 		},
 		{
 			"importpath": "golang.org/x/tools/refactor/rename",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/refactor/rename"
 		},
 		{
 			"importpath": "golang.org/x/tools/refactor/satisfy",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "9ae4729fba20b3533d829a9c6ba8195b068f2abc",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
 			"branch": "master",
 			"path": "/refactor/satisfy"
 		},
