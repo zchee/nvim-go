@@ -28,12 +28,8 @@ func (ctxt *Build) buildContext(p string) (string, string) {
 
 	// Check the path p are Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
-	if gbpath, ok := ctxt.isGb(p); ok {
-		// Cleanup directory path.
-		p = filepath.Clean(p)
-		goPath = gbpath + string(filepath.ListSeparator) +
-			filepath.Join(gbpath, "vendor") + string(filepath.ListSeparator) +
-			goPath
+	if gbpath, ok := ctxt.isGb(filepath.Clean(p)); ok {
+		goPath = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")
 		tool = "gb"
 	}
 
@@ -45,9 +41,9 @@ func (ctxt *Build) isGb(p string) (string, bool) {
 	ctxt.Context = build.Default
 
 	// First check
-	manifest := filepath.Join(filepath.Clean(p), "vendor/manifest")
+	manifest := filepath.Join(p, "vendor/manifest")
 	if _, err := os.Stat(manifest); err == nil {
-		return filepath.Clean(p), true
+		return p, true
 	}
 
 	var pkgRoot string
