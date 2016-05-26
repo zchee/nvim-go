@@ -93,10 +93,12 @@ func (c *Build) SetContext(p string) func() {
 	original := build.Default.GOPATH
 
 	build.Default.GOPATH, c.Tool = c.buildContext(p)
+	c.Context.GOPATH = build.Default.GOPATH
 	os.Setenv("GOPATH", build.Default.GOPATH)
 
 	return func() {
 		build.Default.GOPATH = original
+		c.Context.GOPATH = build.Default.GOPATH
 		os.Setenv("GOPATH", build.Default.GOPATH)
 		contextMu.Unlock()
 	}
