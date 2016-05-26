@@ -37,17 +37,20 @@ func cmdTest(v *vim.Vim, dir string) {
 	go Test(v, dir)
 }
 
+var term *terminal.Terminal
+
 // Test run the package test command use compile tool that determined from
 // the directory structure.
 func Test(v *vim.Vim, dir string) error {
 	defer profile.Start(time.Now(), "GoTest")
-	var ctxt = context.Build{}
+	ctxt := new(context.Build)
 	defer ctxt.SetContext(dir)()
 
 	cmd := []string{ctxt.Tool, "test", "-v", "./..."}
 
-	term := terminal.NewTerminal(v, cmd, config.TerminalMode)
-
+	if term == nil {
+		term = terminal.NewTerminal(v, cmd, config.TerminalMode)
+	}
 	rootDir := context.FindVcsRoot(dir)
 	term.Dir = rootDir
 
@@ -62,9 +65,7 @@ var (
 	fset       = token.NewFileSet() // *token.FileSet
 	parserMode parser.Mode          // uint
 	pos        token.Pos
-)
 
-var (
 	testPrefix     = "Test"
 	testSuffix     = "_test"
 	isTest         bool
@@ -95,9 +96,10 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 		isTest = true
 		switchfile = strings.Replace(fname, testSuffix+exp, exp, 1) // testfile
 	}
+
 	// Check the exists of switch destination file.
 	if _, err := os.Stat(switchfile); err != nil {
-		return nvim.EchohlErr(v, "GoTestSwitch", "Switch destination file file does not exist")
+		return nvim.EchohlErr(v, "GoTestSwitch", "Switch destination file does not exist")
 	}
 
 	var ctxt = context.Build{}
