@@ -38,7 +38,7 @@ func cmdBuild(v *vim.Vim, eval CmdBuildEval) {
 // from the directory structure.
 func Build(v *vim.Vim, eval CmdBuildEval) error {
 	defer profile.Start(time.Now(), "GoBuild")
-	var ctxt = context.Build{}
+	ctxt := new(context.Build)
 	defer ctxt.SetContext(eval.Dir)()
 
 	w, err := v.CurrentWindow()
@@ -46,7 +46,7 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 		return err
 	}
 
-	cmd, err := compileCmd(&ctxt, eval)
+	cmd, err := compileCmd(ctxt, eval)
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 	}
 
 	if _, ok := err.(*exec.ExitError); ok {
-		loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &ctxt)
+		loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, ctxt)
 		if err != nil {
 			return err
 		}
