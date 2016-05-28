@@ -68,7 +68,7 @@ func EchohlErr(v *vim.Vim, prefix string, a ...interface{}) error {
 // EchohlBefore provide the vim 'echo' command with the 'echohl' highlighting prefix text.
 func EchohlBefore(v *vim.Vim, prefix string, highlight string, format string, a ...interface{}) error {
 	v.Command("redraw")
-	suffix := "' | echohl None | echon '"
+	suffix := "\" | echohl None | echon \""
 	if prefix != "" {
 		suffix += ": "
 	}
