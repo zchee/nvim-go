@@ -123,15 +123,20 @@ func (b *Buffer) Create(v *vim.Vim, bufOption, bufVar, winOption, winVar map[str
 			p.SetWindowOption(b.Window, k, op)
 		}
 	}
-	p.Command(fmt.Sprintf("runtime! syntax/%s.vim", bufOption[Filetype]))
-	if err := p.Wait(); err != nil {
-		return errors.Annotate(err, "nvim/buffer.Create")
-	}
-
-	// TODO(zchee): Why can't set p.SetBufferOption?
-	// p.Call("setbufvar", nil, b.Bufnr.(int64), "&colorcolumn", "")
 
 	return p.Wait()
+}
+
+func (b *Buffer) UpdateSyntax(v *vim.Vim, syntax string) {
+	if b.Name != "" {
+		v.SetBufferName(b.Buffer, b.Name)
+	}
+	if syntax == "" {
+		var filetype interface{}
+		v.BufferOption(b.Buffer, "filetype", &filetype)
+		syntax = fmt.Sprintf("%s", filetype)
+	}
+	v.Command(fmt.Sprintf("runtime! syntax/%s.vim", syntax))
 }
 
 const (
@@ -184,25 +189,8 @@ func ToBufferLines(v *vim.Vim, byt []byte) [][]byte {
 
 // ByteOffset calculation of byte offset the current cursor position.
 func ByteOffset(v *vim.Vim, b vim.Buffer, w vim.Window) (int, error) {
-	var err error
-	if b == 0 {
-		b, err = v.CurrentBuffer()
-		if err != nil {
-			return 0, errors.Annotate(err, "nvim/buffer.ByteOffset")
-		}
-	}
-	if w == 0 {
-		w, err = v.CurrentWindow()
-		if err != nil {
-			return 0, errors.Annotate(err, "nvim/buffer.ByteOffset")
-		}
-	}
-
-	// var cursor [2]int
-	cursor, err := v.WindowCursor(w)
-
-	// var byteBuf [][]byte
-	byteBuf, err := v.BufferLines(b, 0, -1, true)
+	cursor, _ := v.WindowCursor(w)
+	byteBuf, _ := v.BufferLines(b, 0, -1, true)
 
 	if cursor[0] == 1 {
 		return (1 + (cursor[1] - 1)), nil
@@ -224,19 +212,6 @@ func ByteOffset(v *vim.Vim, b vim.Buffer, w vim.Window) (int, error) {
 
 // ByteOffsetPipe calculation of byte offset the current cursor position use vim.Pipeline.
 func ByteOffsetPipe(p *vim.Pipeline, b vim.Buffer, w vim.Window) (int, error) {
-	if b == 0 {
-		p.CurrentBuffer(&b)
-		if err := p.Wait(); err != nil {
-			return 0, errors.Annotate(err, "nvim/buffer.ByteOffsetPipe")
-		}
-	}
-	if w == 0 {
-		p.CurrentWindow(&w)
-		if err := p.Wait(); err != nil {
-			return 0, errors.Annotate(err, "nvim/buffer.ByteOffsetPipe")
-		}
-	}
-
 	var cursor [2]int
 	p.WindowCursor(w, &cursor)
 
