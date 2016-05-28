@@ -11,7 +11,6 @@ package commands
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"go/build"
 	"go/token"
@@ -23,8 +22,8 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/internal/guru"
+	"nvim-go/internal/guru/serial"
 	"nvim-go/nvim"
-	"nvim-go/nvim/buffer"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 	"nvim-go/pathutil"
@@ -32,21 +31,21 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/juju/errors"
-	"golang.org/x/tools/cmd/guru/serial"
+	json "github.com/pquerna/ffjson/ffjson"
 	"golang.org/x/tools/go/buildutil"
 )
 
 var pkgGuru = "Guru"
 
 func init() {
-	plugin.HandleFunction("GoGuru", &plugin.FunctionOptions{Eval: "[getcwd(), expand('%:p:h'), expand('%:p'), &modified]"}, funcGuru)
+	plugin.HandleFunction("GoGuru", &plugin.FunctionOptions{Eval: "[getcwd(), expand('%:p'), &modified, line2byte(line('.')) + (col('.')-2)]"}, funcGuru)
 }
 
 type funcGuruEval struct {
 	Cwd      string `msgpack:",array"`
-	Dir      string
 	File     string
 	Modified int
+	Offset   int
 }
 
 func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
@@ -58,41 +57,12 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	defer profile.Start(time.Now(), "Guru")
 	mode := args[0]
 	if len(args) > 1 {
-		arg := args[1]
-		if arg == "-h" || arg == "--help" {
-			switch mode {
-			case "callees":
-				return nvim.EchohlBefore(v, "GoGuruCallees", "Function", "show possible targets of selected function call")
-			case "callers":
-				return nvim.EchohlBefore(v, "GoGuruCallers", "Function", "show possible callers of selected function")
-			case "callstack":
-				return nvim.EchohlBefore(v, "GoGuruCallstack", "Function", "show path from callgraph root to selected function")
-			case "definition":
-				return nvim.EchohlBefore(v, "GoGuruDefinition", "Function", "show declaration of selected identifier")
-			case "describe":
-				return nvim.EchohlBefore(v, "GoGuruDescribe", "Function", "describe selected syntax: definition, methods, etc")
-			case "freevars":
-				return nvim.EchohlBefore(v, "GoGurufreevars", "Function", "show free variables of selection")
-			case "implements":
-				return nvim.EchohlBefore(v, "GoGuruImplements", "Function", "show 'implements' relation for selected type or method")
-			case "peers":
-				return nvim.EchohlBefore(v, "GoGuruChannelPeers", "Function", "show send/receive corresponding to selected channel op")
-			case "pointsto":
-				return nvim.EchohlBefore(v, "GoGuruPointsto", "Function", "show variables the selected pointer may point to")
-			case "referrers":
-				return nvim.EchohlBefore(v, "GoGuruReferrers", "Function", "show all refs to entity denoted by selected identifier")
-			case "what":
-				return nvim.EchohlBefore(v, "GoGuruWhat", "Function", "show basic information about the selected syntax node")
-			case "whicherrs":
-				return nvim.EchohlBefore(v, "GoGuruWhicherrs", "Function", "show possible values of the selected error variable")
-			}
-		} else {
-			return nvim.Echoerr(v, "Invalid arguments")
-		}
+		return guruHelp(v, mode)
 	}
 
-	c := new(context.Build)
-	defer c.SetContext(eval.Dir)()
+	ctxt := new(context.Build)
+	dir, _ := filepath.Split(eval.File)
+	defer ctxt.SetContext(dir)()
 
 	var (
 		b vim.Buffer
@@ -106,58 +76,55 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	}
 
 	var scopeFlag []string
-	switch c.Tool {
-	case "go":
-		pkgPath := strings.TrimPrefix(nvim.PackagePath(eval.Dir), "src"+string(filepath.Separator))
-		scopeFlag = []string{pkgPath + string(filepath.Separator) + "..."}
-	case "gb":
-		projectName := pathutil.GbProjectName(eval.Dir, c.ProjectDir)
-		scopeFlag = append(scopeFlag, projectName+string(filepath.Separator)+"...")
+	if mode != "definition" {
+		switch ctxt.Tool {
+		case "go":
+			pkgPath := strings.TrimPrefix(nvim.PackagePath(dir), "src"+string(filepath.Separator))
+			scopeFlag = []string{pkgPath + string(filepath.Separator) + "..."}
+		case "gb":
+			projectName := pathutil.GbProjectName(dir, ctxt.ProjectDir)
+			scopeFlag = append(scopeFlag, projectName+string(filepath.Separator)+"...")
+		}
 	}
 
-	pos, err := buffer.ByteOffsetPipe(p, b, w)
-	if err != nil {
-		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
-	}
-
-	ctxt := &build.Default
+	guruContext := &build.Default
 
 	// https://github.com/golang/tools/blob/master/cmd/guru/main.go
 	if eval.Modified != 0 {
 		overlay := make(map[string][]byte)
 
 		var (
-			buffer [][]byte
-			bname  string
+			buf [][]byte
 		)
 
-		p.BufferLines(b, 0, -1, true, &buffer)
-		p.BufferName(b, &bname)
+		p.BufferLines(b, 0, -1, true, &buf)
 		if err := p.Wait(); err != nil {
 			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		}
 
-		overlay[bname] = bytes.Join(buffer, []byte{'\n'})
-		ctxt = buildutil.OverlayContext(ctxt, overlay)
+		overlay[eval.File] = bytes.Join(buf, []byte{'\n'})
+		guruContext = buildutil.OverlayContext(guruContext, overlay)
 	}
 
 	var outputMu sync.Mutex
 	var loclist []*quickfix.ErrorlistData
+	var (
+		fname     string
+		line, col int
+		err       error
+	)
 	output := func(fset *token.FileSet, qr guru.QueryResult) {
 		outputMu.Lock()
 		defer outputMu.Unlock()
-		if loclist, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
+		if loclist, fname, line, col, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
 			nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		}
-	}
-	if err := p.Wait(); err != nil {
-		return err
 	}
 
 	query := guru.Query{
 		Output:     output,
-		Pos:        fmt.Sprintf("%s:#%d", eval.File, pos),
-		Build:      ctxt,
+		Pos:        fmt.Sprintf("%s:#%d", eval.File, eval.Offset),
+		Build:      guruContext,
 		Scope:      scopeFlag,
 		Reflection: config.GuruReflection,
 	}
@@ -172,24 +139,17 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 
 	// jumpfirst or definition mode
 	if config.GuruJumpFirst || mode == "definition" {
-		// TODO(zchee): before cursor position mark always '"'?
-		p.Command("lclose | silent ll | delmark \" | normal zz")
-		// Define the mapping to add 'zz' to <C-o> in the buffer local.
-		p.Command("nnoremap <silent><buffer> <C-o> <C-o>zz")
-		if err := p.Wait(); err != nil {
-			return err
-		}
+		p.Command(fmt.Sprintf("edit %s", fname))
+		p.SetWindowCursor(w, [2]int{line, col - 1})
+		p.Command(`lclose | normal! zz`)
+		return nil
 	}
 
 	// not definition mode
-	if mode != "definition" {
-		return quickfix.OpenLoclist(v, w, loclist, config.GuruKeepCursor)
-	}
-
-	return nil
+	return quickfix.OpenLoclist(v, w, loclist, config.GuruKeepCursor)
 }
 
-func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*quickfix.ErrorlistData, error) {
+func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*quickfix.ErrorlistData, string, int, int, error) {
 	var (
 		loclist []*quickfix.ErrorlistData
 		fname   string
@@ -202,9 +162,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "callees":
 		var value = serial.Callees{}
-		err := json.Unmarshal(data, &value)
+		err := json.UnmarshalFast(data, &value)
 		if err != nil {
-			return loclist, err
+			return loclist, "", 0, 0, err
 		}
 		for _, v := range value.Callees {
 			fname, line, col = quickfix.SplitPos(v.Pos, cwd)
@@ -219,9 +179,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "callers":
 		var value = []serial.Caller{}
-		err := json.Unmarshal(data, &value)
+		err := json.UnmarshalFast(data, &value)
 		if err != nil {
-			return loclist, err
+			return loclist, "", 0, 0, err
 		}
 		for _, v := range value {
 			fname, line, col = quickfix.SplitPos(v.Pos, cwd)
@@ -236,9 +196,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "callstack":
 		var value = serial.CallStack{}
-		err := json.Unmarshal(data, &value)
+		err := json.UnmarshalFast(data, &value)
 		if err != nil {
-			return loclist, err
+			return loclist, "", 0, 0, err
 		}
 		for _, v := range value.Callers {
 			fname, line, col = quickfix.SplitPos(v.Pos, cwd)
@@ -253,9 +213,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "definition":
 		var value = serial.Definition{}
-		err := json.Unmarshal(data, &value)
+		err := json.UnmarshalFast(data, &value)
 		if err != nil {
-			return loclist, err
+			return loclist, "", 0, 0, err
 		}
 		fname, line, col = quickfix.SplitPos(value.ObjPos, cwd)
 		text = value.Desc
@@ -268,9 +228,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "describe":
 		var value = serial.Describe{}
-		err := json.Unmarshal(data, &value)
+		err := json.UnmarshalFast(data, &value)
 		if err != nil {
-			return loclist, err
+			return loclist, "", 0, 0, err
 		}
 		fname, line, col = quickfix.SplitPos(value.Value.ObjPos, cwd)
 		text = value.Desc + " " + value.Value.Type
@@ -283,9 +243,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "freevars":
 		var value = serial.FreeVar{}
-		err := json.Unmarshal(data, &value)
+		err := json.UnmarshalFast(data, &value)
 		if err != nil {
-			return loclist, err
+			return loclist, "", 0, 0, err
 		}
 		fname, line, col = quickfix.SplitPos(value.Pos, cwd)
 		text = value.Kind + " " + value.Type + " " + value.Ref
@@ -298,9 +258,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "implements":
 		var value = serial.Implements{}
-		err := json.Unmarshal(data, &value)
+		err := json.UnmarshalFast(data, &value)
 		if err != nil {
-			return loclist, err
+			return loclist, "", 0, 0, err
 		}
 		for _, v := range value.AssignableFrom {
 			fname, line, col := quickfix.SplitPos(v.Pos, cwd)
@@ -315,9 +275,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "peers":
 		var value = serial.Peers{}
-		err := json.Unmarshal(data, &value)
+		err := json.UnmarshalFast(data, &value)
 		if err != nil {
-			return loclist, err
+			return loclist, "", 0, 0, err
 		}
 		fname, line, col := quickfix.SplitPos(value.Pos, cwd)
 		loclist = append(loclist, &quickfix.ErrorlistData{
@@ -365,9 +325,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "pointsto":
 		var value = []serial.PointsTo{}
-		err := json.Unmarshal(data, &value)
+		err := json.UnmarshalFast(data, &value)
 		if err != nil {
-			return loclist, err
+			return loclist, "", 0, 0, err
 		}
 		for _, v := range value {
 			fname, line, col := quickfix.SplitPos(v.NamePos, cwd)
@@ -392,8 +352,8 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "referrers":
 		var packages = serial.ReferrersPackage{}
-		if err := json.Unmarshal(data, &packages); err != nil {
-			return loclist, err
+		if err := json.UnmarshalFast(data, &packages); err != nil {
+			return loclist, "", 0, 0, err
 		}
 		for _, v := range packages.Refs {
 			fname, line, col := quickfix.SplitPos(v.Pos, cwd)
@@ -407,9 +367,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "whicherrs":
 		var value = serial.WhichErrs{}
-		err := json.Unmarshal(data, &value)
+		err := json.UnmarshalFast(data, &value)
 		if err != nil {
-			return loclist, err
+			return loclist, "", 0, 0, err
 		}
 		fname, line, col := quickfix.SplitPos(value.ErrPos, cwd)
 		loclist = append(loclist, &quickfix.ErrorlistData{
@@ -449,7 +409,38 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 	}
 
 	if len(loclist) == 0 {
-		return loclist, fmt.Errorf("%s not fount", mode)
+		return loclist, "", 0, 0, fmt.Errorf("%s not fount", mode)
 	}
-	return loclist, nil
+	return loclist, fname, line, col, nil
+}
+
+func guruHelp(v *vim.Vim, mode string) error {
+	switch mode {
+	case "callees":
+		return nvim.EchohlBefore(v, "GoGuruCallees", "Function", "Show possible targets of selected function call")
+	case "callers":
+		return nvim.EchohlBefore(v, "GoGuruCallers", "Function", "Show possible callers of selected function")
+	case "callstack":
+		return nvim.EchohlBefore(v, "GoGuruCallstack", "Function", "Show path from callgraph root to selected function")
+	case "definition":
+		return nvim.EchohlBefore(v, "GoGuruDefinition", "Function", "Show declaration of selected identifier")
+	case "describe":
+		return nvim.EchohlBefore(v, "GoGuruDescribe", "Function", "Describe selected syntax: definition, methods, etc")
+	case "freevars":
+		return nvim.EchohlBefore(v, "GoGurufreevars", "Function", "Show free variables of selection")
+	case "implements":
+		return nvim.EchohlBefore(v, "GoGuruImplements", "Function", "Show 'implements' relation for selected type or method")
+	case "peers":
+		return nvim.EchohlBefore(v, "GoGuruChannelPeers", "Function", "Show send/receive corresponding to selected channel op")
+	case "pointsto":
+		return nvim.EchohlBefore(v, "GoGuruPointsto", "Function", "Show variables the selected pointer may point to")
+	case "referrers":
+		return nvim.EchohlBefore(v, "GoGuruReferrers", "Function", "Show all refs to entity denoted by selected identifier")
+	case "what":
+		return nvim.EchohlBefore(v, "GoGuruWhat", "Function", "Show basic information about the selected syntax node")
+	case "whicherrs":
+		return nvim.EchohlBefore(v, "GoGuruWhicherrs", "Function", "Show possible values of the selected error variable")
+	}
+
+	return nvim.Echoerr(v, "Invalid arguments")
 }
