@@ -1,4 +1,4 @@
-// Copyright 2015 Gary Burd. All rights reserved.
+// Copyright 2016 Koichi Shiraishi. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -6,11 +6,50 @@ package commands
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/garyburd/neovim-go/vim"
 )
+
+func TestFmt(t *testing.T) {
+	tests := []struct {
+		// Parameters.
+		v   *vim.Vim
+		dir string
+		// Expected results.
+		wantErr bool
+	}{
+		{
+			v:       testVim(t, filepath.Join(astdump, "astdump.go")), // correct file
+			dir:     astdump,
+			wantErr: false,
+		},
+		{
+			v:       testVim(t, filepath.Join(broken, "broken.go")), // broken file
+			dir:     broken,
+			wantErr: true,
+		},
+		{
+			v:       testVim(t, filepath.Join(gsftp, "src", "cmd", "gsftp", "main.go")), // broken file
+			dir:     filepath.Join(gsftp, "src", "cmd", "gsftp"),
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		stat, err := os.Stat(tt.dir)
+		if err != nil {
+			t.Error(err)
+		}
+		err = Fmt(tt.v, tt.dir)
+		t.Logf("%v", err)
+		if (err != nil) != tt.wantErr && !stat.IsDir() {
+			t.Errorf("Fmt(%v, %v) error = %v, wantErr %v", tt.v, tt.dir, err, tt.wantErr)
+		}
+	}
+}
 
 var minUpdateTests = []struct {
 	in  string
