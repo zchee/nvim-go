@@ -1,4 +1,5 @@
 let s:bufname = expand('%')
+
 if s:bufname == '__GO_TEST__'
   syn match GoTestRun         /\<\v(RUN)/
   syn match GoTestPass        /\<\v(PASS)/
