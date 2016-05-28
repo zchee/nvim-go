@@ -41,11 +41,6 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 	ctxt := new(context.Build)
 	defer ctxt.SetContext(eval.Dir)()
 
-	w, err := v.CurrentWindow()
-	if err != nil {
-		return err
-	}
-
 	cmd, err := compileCmd(ctxt, eval)
 	if err != nil {
 		return err
@@ -60,6 +55,11 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 	}
 
 	if _, ok := err.(*exec.ExitError); ok {
+		w, err := v.CurrentWindow()
+		if err != nil {
+			return err
+		}
+
 		loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, ctxt)
 		if err != nil {
 			return err
