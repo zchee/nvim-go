@@ -30,7 +30,7 @@ func autocmdBufWritePost(v *vim.Vim, eval bufwritepostEval) error {
 	}
 
 	if config.TestAutosave {
-		go commands.Test(v, eval.Dir)
+		go commands.Test(v, []string{}, eval.Dir)
 	}
 
 	return nil
