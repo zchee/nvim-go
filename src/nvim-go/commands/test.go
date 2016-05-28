@@ -52,6 +52,7 @@ func Test(v *vim.Vim, dir string) error {
 		term = terminal.NewTerminal(v, cmd, config.TerminalMode)
 	}
 	rootDir := context.FindVcsRoot(dir)
+	term.Name = "__GO_TEST__"
 	term.Dir = rootDir
 
 	if err := term.Run(); err != nil {

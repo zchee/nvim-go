@@ -26,6 +26,7 @@ type Terminal struct {
 	v    *vim.Vim
 	cmd  []string
 	mode string
+	Name string
 	// Dir specifies the working directory of the command on terminal.
 	Dir string
 	// Width split window width for open the terminal window.
@@ -76,6 +77,10 @@ func (t *Terminal) Create() error {
 	p.CurrentWindow(&t.Buffer.Window)
 	if err := p.Wait(); err != nil {
 		return err
+	}
+
+	if t.Name != "" {
+		p.SetBufferName(t.Buffer.Buffer, t.Name)
 	}
 
 	// Cleanup cursor highlighting
