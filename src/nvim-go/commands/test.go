@@ -29,33 +29,40 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Gotest", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, cmdTest)
+	plugin.HandleCommand("Gotest", &plugin.CommandOptions{NArgs: "*", Eval: "expand('%:p:h')"}, cmdTest)
 	plugin.HandleCommand("GoTestSwitch", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p')]"}, cmdTestSwitch)
 }
 
-func cmdTest(v *vim.Vim, dir string) {
-	go Test(v, dir)
+func cmdTest(v *vim.Vim, args []string, dir string) {
+	go Test(v, args, dir)
 }
 
 var term *terminal.Terminal
 
 // Test run the package test command use compile tool that determined from
 // the directory structure.
-func Test(v *vim.Vim, dir string) error {
+func Test(v *vim.Vim, args []string, dir string) error {
 	defer profile.Start(time.Now(), "GoTest")
+
 	ctxt := new(context.Build)
 	defer ctxt.SetContext(dir)()
 
-	cmd := []string{ctxt.Tool, "test", "-v", "./..."}
+	cmd := []string{ctxt.Tool, "test"}
+	args = append(args, config.TestArgs...)
+	if len(args) > 0 {
+		cmd = append(cmd, args...)
+	}
+	if ctxt.Tool == "go" {
+		cmd = append(cmd, string("./..."))
+	}
 
 	if term == nil {
-		term = terminal.NewTerminal(v, cmd, config.TerminalMode)
+		term = terminal.NewTerminal(v, "__GO_TEST__", cmd, config.TerminalMode)
 	}
 	rootDir := context.FindVcsRoot(dir)
-	term.Name = "__GO_TEST__"
 	term.Dir = rootDir
 
-	if err := term.Run(); err != nil {
+	if err := term.Run(cmd); err != nil {
 		return err
 	}
 
@@ -186,9 +193,8 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 	}
 
 	// Jump to the corresponds function.
-	p.Command("silent ll | normal zt")
-	// Define the mapping to add 'zt' to <C-o> in the buffer local.
-	p.Command("nnoremap <silent><buffer> <C-o> <C-o>zt")
+	p.Command(fmt.Sprintf("edit %s", filename))
+	p.Command("normal! zz")
 
 	return p.Wait()
 }

@@ -77,7 +77,8 @@ type TerminalVars struct {
 }
 
 type TestVars struct {
-	TestAutosave int64 `eval:"g:go#test#autosave"`
+	TestAutosave int64    `eval:"g:go#test#autosave"`
+	TestArgs     []string `eval:"g:go#test#args"`
 }
 
 // DebugVars debug of nvim-go config variable.
@@ -126,6 +127,8 @@ var (
 	TerminalStartInsert bool
 	// TestAutosave call the GoBuild command automatically at during the BufWritePost.
 	TestAutosave bool
+	// TestArgs test command default args.
+	TestArgs []string
 	// DebugPprof Enable net/http/pprof debugging.
 	DebugPprof bool
 )
@@ -171,6 +174,7 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 
 	// Test
 	TestAutosave = itob(cfg.Test.TestAutosave)
+	TestArgs = cfg.Test.TestArgs
 
 	// Debug
 	DebugPprof = itob(cfg.Debug.Pprof)
