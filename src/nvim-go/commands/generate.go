@@ -7,7 +7,6 @@ package commands
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -84,7 +83,6 @@ func GenerateTest(v *vim.Vim, files []string, dir string) error {
 		_, fnRel := filepath.Split(fnAbs[0])
 		ftestsRel += fnRel + suffix
 	}
-	log.Println(ftests, ftestsRel)
 
 	ask := fmt.Sprintf("%s\nGoGenerateTest: Generated %s\nGoGenerateTest: Open it? (y, n): ", genFuncs, ftestsRel)
 	var answer interface{}
