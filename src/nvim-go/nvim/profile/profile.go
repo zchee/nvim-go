@@ -6,6 +6,7 @@ package profile
 
 import (
 	"log"
+	"os"
 	"time"
 )
 
@@ -13,5 +14,7 @@ import (
 // Usage: defer nvim.Profile(time.Now(), "func name")
 func Start(start time.Time, name string) {
 	elapsed := time.Since(start).Seconds()
-	log.Printf("%s: %fsec\n", name, elapsed)
+	if os.Getenv("NVIM_GO_DEBUG") != "" {
+		log.Printf("%s: %fsec\n", name, elapsed)
+	}
 }
