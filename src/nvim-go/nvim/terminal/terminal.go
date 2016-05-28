@@ -41,9 +41,10 @@ type Terminal struct {
 }
 
 // NewTerminal return the initialize Neovim terminal config.
-func NewTerminal(vim *vim.Vim, command []string, mode string) *Terminal {
+func NewTerminal(vim *vim.Vim, name string, command []string, mode string) *Terminal {
 	return &Terminal{
 		v:    vim,
+		Name: name,
 		cmd:  command,
 		mode: mode,
 	}
@@ -71,16 +72,14 @@ func (t *Terminal) Create() error {
 
 	t.Buffer = buffer.NewBuffer(fmt.Sprintf("| terminal %s", strings.Join(t.cmd, " ")), fmt.Sprintf("%s %d%s", config.TerminalPosition, t.Size, t.mode), t.Size)
 	t.Buffer.Create(t.v, t.setTerminalOption("buffer"), t.setTerminalVar("buffer"), t.setTerminalOption("window"), t.setTerminalVar("window"))
+	t.Buffer.Name = t.Name
+	t.Buffer.UpdateSyntax(t.v, "")
 
 	// Get terminal buffer and windows information.
 	p.CurrentBuffer(&t.Buffer.Buffer)
 	p.CurrentWindow(&t.Buffer.Window)
 	if err := p.Wait(); err != nil {
 		return err
-	}
-
-	if t.Name != "" {
-		p.SetBufferName(t.Buffer.Buffer, t.Name)
 	}
 
 	// Cleanup cursor highlighting
@@ -99,7 +98,7 @@ func (t *Terminal) Create() error {
 }
 
 // Run runs the command in the terminal buffer.
-func (t *Terminal) Run() error {
+func (t *Terminal) Run(cmd []string) error {
 	if t.Dir != "" {
 		defer pathutil.Chdir(t.v, t.Dir)()
 	}
@@ -108,7 +107,7 @@ func (t *Terminal) Run() error {
 		defer t.switchFocus()()
 
 		t.v.SetBufferOption(t.Buffer.Buffer, buffer.OpModified, false)
-		t.v.Call("termopen", nil, t.cmd)
+		t.v.Call("termopen", nil, cmd)
 	} else {
 		t.Create()
 		defer t.switchFocus()()

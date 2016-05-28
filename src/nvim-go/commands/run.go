@@ -24,9 +24,9 @@ func init() {
 // Run runs the go run command for current buffer's packages.
 func Run(v *vim.Vim, cmd []string) error {
 	defer profile.Start(time.Now(), "GoRun")
-	term := terminal.NewTerminal(v, cmd, config.TerminalMode)
+	term := terminal.NewTerminal(v, "__GO_RUN__", cmd, config.TerminalMode)
 
-	if err := term.Run(); err != nil {
+	if err := term.Run(cmd); err != nil {
 		return err
 	}
 
