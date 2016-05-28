@@ -33,10 +33,10 @@ func TestBuild(t *testing.T) {
 			},
 		},
 		{
-			v: testVim(t, gsftp),
+			v: testVim(t, gsftpRoot),
 			eval: CmdBuildEval{
-				Cwd: gsftp,
-				Dir: gsftp,
+				Cwd: gsftpRoot,
+				Dir: gsftpRoot,
 			},
 		},
 		{
@@ -65,7 +65,7 @@ func BenchmarkBuildGo(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if err := Build(benchVim(b), CmdBuildEval{
+		if err := Build(benchVim(b, astdumpMain), CmdBuildEval{
 			Cwd: astdump,
 			Dir: astdump,
 		}); err != nil {
@@ -81,9 +81,9 @@ func BenchmarkBuildGb(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if err := Build(benchVim(b), CmdBuildEval{
-			Cwd: gsftp,
-			Dir: gsftp,
+		if err := Build(benchVim(b, gsftpMain), CmdBuildEval{
+			Cwd: gsftpRoot,
+			Dir: gsftpRoot,
 		}); err != nil {
 			b.Errorf("BenchmarkBuildGb: %v", err)
 		}
@@ -128,11 +128,11 @@ func TestCompileCmd(t *testing.T) {
 		{
 			ctxt: &context.Build{
 				Tool:       "gb",
-				ProjectDir: gsftp,
+				ProjectDir: gsftpRoot,
 			},
 			eval: CmdBuildEval{
-				Cwd: gsftp,
-				Dir: gsftp,
+				Cwd: gsftpRoot,
+				Dir: gsftpRoot,
 			},
 			want: gbCompiler,
 		},

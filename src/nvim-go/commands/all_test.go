@@ -17,9 +17,15 @@ var (
 	testdata   = filepath.Join(projectRoot, "tests/testdata")
 	testGoPath = filepath.Join(testdata, "gopath")
 
-	astdump = filepath.Join(testGoPath, "src/astdump")
-	broken  = filepath.Join(testGoPath, "src/broken")
-	gsftp   = filepath.Join(testdata, "gsftp")
+	astdump     = filepath.Join(testGoPath, "src/astdump")
+	astdumpMain = filepath.Join(astdump, "astdump.go")
+
+	broken     = filepath.Join(testGoPath, "src/broken")
+	brokenMain = filepath.Join(astdump, "broken.go")
+
+	gsftp     = filepath.Join(testdata, "gsftp", "src", "cmd", "gsftp")
+	gsftpRoot = filepath.Join(testdata, "gsftp")
+	gsftpMain = filepath.Join(gsftpRoot, "src", "cmd", "gsftp", "main.go")
 )
 
 var testVim = func(t *testing.T, file string) *vim.Vim {
@@ -34,13 +40,13 @@ var testVim = func(t *testing.T, file string) *vim.Vim {
 	return v
 }
 
-var benchVim = func(b *testing.B) *vim.Vim {
+var benchVim = func(b *testing.B, file string) *vim.Vim {
 	xdg_data_home := filepath.Join(testdata, "local", "share")
 	os.Setenv("XDG_DATA_HOME", xdg_data_home)
 	os.Setenv("NVIM_GO_DEBUG", "")
 
 	v, err := vim.StartEmbeddedVim(&vim.EmbedOptions{
-		Args: []string{"-u", "NONE", "-n"},
+		Args: []string{"-u", "NONE", "-n", file},
 		Env:  []string{},
 		Logf: b.Logf,
 	})

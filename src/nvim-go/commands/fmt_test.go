@@ -7,7 +7,6 @@ package commands
 import (
 	"bytes"
 	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -23,18 +22,18 @@ func TestFmt(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			v:       testVim(t, filepath.Join(astdump, "astdump.go")), // correct file
+			v:       testVim(t, astdumpMain), // correct file
 			dir:     astdump,
 			wantErr: false,
 		},
 		{
-			v:       testVim(t, filepath.Join(broken, "broken.go")), // broken file
+			v:       testVim(t, brokenMain), // broken file
 			dir:     broken,
 			wantErr: true,
 		},
 		{
-			v:       testVim(t, filepath.Join(gsftp, "src", "cmd", "gsftp", "main.go")), // broken file
-			dir:     filepath.Join(gsftp, "src", "cmd", "gsftp"),
+			v:       testVim(t, gsftpMain), // correct file
+			dir:     gsftp,
 			wantErr: false,
 		},
 	}
