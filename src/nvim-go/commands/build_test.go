@@ -59,8 +59,8 @@ func TestBuild(t *testing.T) {
 }
 
 func BenchmarkBuildGo(b *testing.B) {
-	xdg_data_home := filepath.Join(testdata, "local", "share")
-	os.Setenv("XDG_DATA_HOME", xdg_data_home)
+	xdgDataHome := filepath.Join(testdata, "local", "share")
+	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
 	b.ResetTimer()
 
@@ -75,8 +75,8 @@ func BenchmarkBuildGo(b *testing.B) {
 }
 
 func BenchmarkBuildGb(b *testing.B) {
-	xdg_data_home := filepath.Join(testdata, "local", "share")
-	os.Setenv("XDG_DATA_HOME", xdg_data_home)
+	xdgDataHome := filepath.Join(testdata, "local", "share")
+	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
 	b.ResetTimer()
 

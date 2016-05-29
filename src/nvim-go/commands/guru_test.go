@@ -38,8 +38,8 @@ func TestGuru(t *testing.T) {
 }
 
 func BenchmarkGuru(b *testing.B) {
-	xdg_data_home := filepath.Join(testdata, "local", "share")
-	os.Setenv("XDG_DATA_HOME", xdg_data_home)
+	xdgDataHome := filepath.Join(testdata, "local", "share")
+	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
 	v := benchVim(b, gsftpMain)
 	w, err := v.CurrentWindow()
