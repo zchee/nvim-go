@@ -23,7 +23,7 @@ type bufwritepostEval struct {
 
 func autocmdBufWritePost(v *vim.Vim, eval bufwritepostEval) error {
 	if config.BuildAutosave {
-		go commands.Build(v, commands.CmdBuildEval{
+		go commands.Build(v, false, commands.CmdBuildEval{
 			Cwd: eval.Cwd,
 			Dir: eval.Dir,
 		})

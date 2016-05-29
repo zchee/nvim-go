@@ -21,7 +21,7 @@ import (
 )
 
 func init() {
-	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p:h')]"}, cmdBuild)
+	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{Bang: true, Eval: "[getcwd(), expand('%:p:h')]"}, cmdBuild)
 }
 
 // CmdBuildEval struct type for Eval of GoBuild command.
@@ -30,18 +30,18 @@ type CmdBuildEval struct {
 	Dir string
 }
 
-func cmdBuild(v *vim.Vim, eval CmdBuildEval) {
-	go Build(v, eval)
+func cmdBuild(v *vim.Vim, bang bool, eval CmdBuildEval) {
+	go Build(v, bang, eval)
 }
 
 // Build building the current buffer's package use compile tool of determined
 // from the directory structure.
-func Build(v *vim.Vim, eval CmdBuildEval) error {
+func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
 	defer profile.Start(time.Now(), "GoBuild")
 	ctxt := new(context.Build)
 	defer ctxt.SetContext(eval.Dir)()
 
-	cmd, err := compileCmd(ctxt, eval)
+	cmd, err := compileCmd(ctxt, bang, eval)
 	if err != nil {
 		return err
 	}
@@ -74,21 +74,22 @@ func Build(v *vim.Vim, eval CmdBuildEval) error {
 	return err
 }
 
-func compileCmd(ctxt *context.Build, eval CmdBuildEval) (*exec.Cmd, error) {
+func compileCmd(ctxt *context.Build, bang bool, eval CmdBuildEval) (*exec.Cmd, error) {
 	var (
 		compiler = ctxt.Tool
 		args     = []string{"build"}
 		buildDir string
 	)
 	if compiler == "go" {
-		tmpfile, err := ioutil.TempFile(os.TempDir(), "nvim-go")
-		if err != nil {
-			return nil, err
-		}
-		defer os.Remove(tmpfile.Name())
-
-		args = append(args, "-o", tmpfile.Name())
 		buildDir = eval.Dir
+		if !bang {
+			tmpfile, err := ioutil.TempFile(os.TempDir(), "nvim-go")
+			if err != nil {
+				return nil, err
+			}
+			defer os.Remove(tmpfile.Name())
+			args = append(args, "-o", tmpfile.Name())
+		}
 	} else if compiler == "gb" {
 		buildDir = ctxt.ProjectDir
 	}
