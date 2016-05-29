@@ -129,6 +129,9 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		Reflection: config.GuruReflection,
 	}
 
+	if mode != "definition" {
+		nvim.EchoProgress(v, pkgGuru, "analysing")
+	}
 	if err := guru.Run(mode, &query); err != nil {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
@@ -179,7 +182,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "callers":
 		var value = []serial.Caller{}
-		err := json.UnmarshalFast(data, &value)
+		err := json.Unmarshal(data, &value)
 		if err != nil {
 			return loclist, "", 0, 0, err
 		}
