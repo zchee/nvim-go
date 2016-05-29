@@ -93,7 +93,7 @@ let s:specs = [
 \ {'type': 'command', 'name': 'GoTabpages', 'sync': 1, 'opts': {}},
 \ {'type': 'command', 'name': 'GoTestSwitch', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p'')]'}},
 \ {'type': 'command', 'name': 'GoWindows', 'sync': 1, 'opts': {}},
-\ {'type': 'command', 'name': 'Gobuild', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p:h'')]'}},
+\ {'type': 'command', 'name': 'Gobuild', 'sync': 0, 'opts': {'bang': '', 'eval': '[getcwd(), expand(''%:p:h'')]'}},
 \ {'type': 'command', 'name': 'Gofmt', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},
 \ {'type': 'command', 'name': 'Gometalinter', 'sync': 0, 'opts': {'eval': 'getcwd()'}},
 \ {'type': 'command', 'name': 'Gorename', 'sync': 0, 'opts': {'bang': '', 'eval': '[getcwd(), expand(''%:p:h''), expand(''%:p''), expand(''<cword>'')]', 'nargs': '?'}},
