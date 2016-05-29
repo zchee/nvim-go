@@ -54,7 +54,7 @@ func Iferr(v *vim.Vim, file string) error {
 	}
 
 	conf := loader.Config{
-		AllowErrors: true,
+		AllowErrors: false,
 		ParserMode:  parser.ParseComments,
 	}
 
