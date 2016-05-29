@@ -16,12 +16,15 @@ import (
 )
 
 const (
+	// Terminal define terminal buffer name.
 	Terminal = "terminal"
-	Context  = "context"
-	Threads  = "thread"
+	// Context define context buffer name.
+	Context = "context"
+	// Threads define threads buffer name.
+	Threads = "thread"
 )
 
-func (d *delve) createDebugBuffer(v *vim.Vim) error {
+func (d *Delve) createDebugBuffer(v *vim.Vim) error {
 	p := v.NewPipeline()
 
 	p.CurrentBuffer(&d.cb)
@@ -47,14 +50,17 @@ func (d *delve) createDebugBuffer(v *vim.Vim) error {
 
 		d.buffer[Terminal] = buffer.NewBuffer(Terminal, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), 0)
 		d.buffer[Terminal].Create(v, bufOption, bufVar, winOption, nil)
+		d.buffer[Terminal].UpdateSyntax(v, "delve")
 		nnoremap["i"] = fmt.Sprintf(":<C-u>call rpcrequest(%d, 'DlvStdin')<CR>", config.ChannelID)
 		d.buffer[Terminal].SetMapping(v, buffer.NoremapNormal, nnoremap)
 
 		d.buffer[Context] = buffer.NewBuffer(Context, fmt.Sprintf("silent belowright %d split", (height*2/3)), 0)
 		d.buffer[Context].Create(v, bufOption, bufVar, winOption, nil)
+		d.buffer[Context].UpdateSyntax(v, "delve")
 
 		d.buffer[Threads] = buffer.NewBuffer(Threads, fmt.Sprintf("silent belowright %d split", (height*1/5)), 0)
 		d.buffer[Threads].Create(v, bufOption, bufVar, winOption, nil)
+		d.buffer[Threads].UpdateSyntax(v, "delve")
 
 		v.SetWindowOption(d.buffer[Threads].Window, "winfixheight", true)
 
@@ -70,7 +76,7 @@ func (d *delve) createDebugBuffer(v *vim.Vim) error {
 	return p.Wait()
 }
 
-func (d *delve) setNvimOption(scope string) map[string]interface{} {
+func (d *Delve) setNvimOption(scope string) map[string]interface{} {
 	options := make(map[string]interface{})
 
 	switch scope {
@@ -91,7 +97,7 @@ func (d *delve) setNvimOption(scope string) map[string]interface{} {
 	return options
 }
 
-func (d *delve) setNvimVar(scope string) map[string]interface{} {
+func (d *Delve) setNvimVar(scope string) map[string]interface{} {
 	vars := make(map[string]interface{})
 
 	switch scope {

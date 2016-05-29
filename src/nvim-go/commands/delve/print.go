@@ -19,7 +19,7 @@ import (
 	"github.com/juju/errors"
 )
 
-func (d *delve) printTerminal(v *vim.Vim, cmd string, message []byte) error {
+func (d *Delve) printTerminal(v *vim.Vim, cmd string, message []byte) error {
 	v.SetBufferOption(d.buffer[Terminal].Buffer, "modifiable", true)
 	defer v.SetBufferOption(d.buffer[Terminal].Buffer, "modifiable", false)
 
@@ -54,7 +54,7 @@ func (d *delve) printTerminal(v *vim.Vim, cmd string, message []byte) error {
 	return v.SetWindowCursor(d.buffer[Terminal].Window, [2]int{len(afterBuf), 7})
 }
 
-func (d *delve) printContext(v *vim.Vim, cwd string, cThread *delveapi.Thread, goroutines []*delveapi.Goroutine) error {
+func (d *Delve) printContext(v *vim.Vim, cwd string, cThread *delveapi.Thread, goroutines []*delveapi.Goroutine) error {
 	v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", true)
 	defer v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", false)
 
@@ -79,7 +79,7 @@ func (a byGroutineID) Less(i, j int) bool { return a[i].ID < a[j].ID }
 
 const goroutineDepth = 20
 
-func (d *delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Function, goroutines []*delveapi.Goroutine) (int, error) {
+func (d *Delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Function, goroutines []*delveapi.Goroutine) (int, error) {
 	sort.Sort(byGroutineID(goroutines))
 
 	var locals []delveapi.Variable
@@ -152,7 +152,7 @@ func (d *delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Fu
 	return end, nil
 }
 
-func (d *delve) printLocals(v *vim.Vim, cwd string, locals []delveapi.Variable, stackHeight int) error {
+func (d *Delve) printLocals(v *vim.Vim, cwd string, locals []delveapi.Variable, stackHeight int) error {
 	localsMsg := []byte("Local Variables\n")
 	for _, l := range locals {
 		localsMsg = append(localsMsg, []byte(fmt.Sprintf("\t\u25B6 %s %s\n", l.Name, l.Kind.String()))...) // \u25B6: ▶
@@ -165,7 +165,7 @@ func (d *delve) printLocals(v *vim.Vim, cwd string, locals []delveapi.Variable, 
 	return nil
 }
 
-func (d *delve) printThread(v *vim.Vim, cwd string, threads []*delveapi.Thread) error {
+func (d *Delve) printThread(v *vim.Vim, cwd string, threads []*delveapi.Thread) error {
 	v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", true)
 	defer v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", false)
 

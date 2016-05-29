@@ -11,11 +11,11 @@ import (
 	"github.com/juju/errors"
 )
 
-func (d *delve) cmdDetach(v *vim.Vim) {
+func (d *Delve) cmdDetach(v *vim.Vim) {
 	go d.detach(v)
 }
 
-func (d *delve) detach(v *vim.Vim) error {
+func (d *Delve) detach(v *vim.Vim) error {
 	defer d.kill()
 	if d.processPid != 0 {
 		err := d.client.Detach(true)
@@ -28,7 +28,7 @@ func (d *delve) detach(v *vim.Vim) error {
 	return nil
 }
 
-func (d *delve) kill() error {
+func (d *Delve) kill() error {
 	if d.server != nil {
 		err := d.server.Process.Kill()
 		if err != nil {

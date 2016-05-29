@@ -15,7 +15,7 @@ import (
 )
 
 // startServer starts the delve headless server and replace server Stdout & Stderr.
-func (d *delve) startServer(cmd, path string) error {
+func (d *Delve) startServer(cmd, path string) error {
 	dlvBin, err := exec.LookPath("dlv")
 	if err != nil {
 		return errors.Annotate(err, pkgDelve)
@@ -40,7 +40,7 @@ func (d *delve) startServer(cmd, path string) error {
 // waitServer Waits for dlv launch the headless server.
 // `net.Dial` is better way?
 // http://stackoverflow.com/a/30838807/5228839
-func (d *delve) waitServer(v *vim.Vim) error {
+func (d *Delve) waitServer(v *vim.Vim) error {
 	defer nvim.EchohlAfter(v, "Delve", nvim.ProgressColor, "Ready")
 	nvim.EchoProgress(v, "Delve", "Wait for running dlv server")
 
