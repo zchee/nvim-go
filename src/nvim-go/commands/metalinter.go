@@ -16,6 +16,7 @@ import (
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
+	"nvim-go/pathutil"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -90,7 +91,7 @@ func Metalinter(v *vim.Vim, cwd string) error {
 
 	for _, r := range result {
 		loclist = append(loclist, &quickfix.ErrorlistData{
-			FileName: nvim.RelPath(r.Path, cwd),
+			FileName: pathutil.RelPath(r.Path, cwd),
 			LNum:     r.Line,
 			Col:      r.Col,
 			Text:     r.Linter + ": " + r.Message,

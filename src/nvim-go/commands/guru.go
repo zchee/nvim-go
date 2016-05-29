@@ -79,7 +79,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	if mode != "definition" {
 		switch ctxt.Tool {
 		case "go":
-			pkgPath := strings.TrimPrefix(nvim.PackagePath(dir), "src"+string(filepath.Separator))
+			pkgPath := strings.TrimPrefix(pathutil.PackagePath(dir), "src"+string(filepath.Separator))
 			scopeFlag = []string{pkgPath + string(filepath.Separator) + "..."}
 		case "gb":
 			projectName := pathutil.GbProjectName(dir, ctxt.ProjectDir)
