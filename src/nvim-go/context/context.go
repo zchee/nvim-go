@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-// A Context specifies the supporting context for a build and embedded
+// Build specifies the supporting context for a build and embedded
 // build.Context type struct.
 type Build struct {
 	Tool       string
@@ -88,17 +88,17 @@ var contextMu sync.Mutex
 // unlocks the mutex.
 //
 // This function intended to be used to the go/build Default.
-func (c *Build) SetContext(p string) func() {
+func (ctxt *Build) SetContext(p string) func() {
 	contextMu.Lock()
 	original := build.Default.GOPATH
 
-	build.Default.GOPATH, c.Tool = c.buildContext(p)
-	c.Context.GOPATH = build.Default.GOPATH
+	build.Default.GOPATH, ctxt.Tool = ctxt.buildContext(p)
+	ctxt.Context.GOPATH = build.Default.GOPATH
 	os.Setenv("GOPATH", build.Default.GOPATH)
 
 	return func() {
 		build.Default.GOPATH = original
-		c.Context.GOPATH = build.Default.GOPATH
+		ctxt.Context.GOPATH = build.Default.GOPATH
 		os.Setenv("GOPATH", build.Default.GOPATH)
 		contextMu.Unlock()
 	}

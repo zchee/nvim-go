@@ -21,7 +21,7 @@ type Config struct {
 	Debug      DebugVars
 }
 
-// AstViewVars GoAstView command config variable.
+// RemoteVars represents a remote plugin information.
 type RemoteVars struct {
 	ChannelID int
 }
@@ -76,6 +76,7 @@ type TerminalVars struct {
 	StartInsetrt int64  `eval:"g:go#terminal#start_insert"`
 }
 
+// TestVars GoTest command config variables.
 type TestVars struct {
 	TestAutosave int64    `eval:"g:go#test#autosave"`
 	TestArgs     []string `eval:"g:go#test#args"`

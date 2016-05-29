@@ -90,6 +90,7 @@ func cmdTestSwitch(v *vim.Vim, eval cmdTestSwitchEval) {
 	go TestSwitch(v, eval)
 }
 
+// TestSwitch switch to corresponds current cursor (test)function.
 func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 	defer profile.Start(time.Now(), "TestSwitch")
 
