@@ -49,6 +49,8 @@ func cmdTabpagas(v *vim.Vim) error {
 }
 
 func cmdByteOffset(v *vim.Vim) error {
-	offset, _ := buffer.ByteOffset(v, 0, 0)
+	b, _ := v.CurrentBuffer()
+	w, _ := v.CurrentWindow()
+	offset, _ := buffer.ByteOffset(v, b, w)
 	return nvim.Echomsg(v, offset)
 }
