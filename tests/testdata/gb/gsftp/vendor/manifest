@@ -1,0 +1,26 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/kr/fs",
+			"repository": "https://github.com/kr/fs",
+			"revision": "2788f0dbd16903de03cb8186e5c7d97b69ad387b",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "golang.org/x/crypto/ssh",
+			"repository": "https://go.googlesource.com/crypto",
+			"revision": "c10c31b5e94b6f7a0283272dc2bb27163dcea24b",
+			"branch": "master",
+			"path": "/ssh"
+		},
+		{
+			"importpath": "github.com/pkg/sftp",
+			"repository": "https://github.com/pkg/sftp",
+			"revision": "f234c3c6540c0358b1802f7fd90c0879af9232eb",
+			"branch": "master",
+			"path": ""
+		}
+	]
+}
