@@ -171,7 +171,7 @@ func importQueryPackage(pos string, conf *loader.Config) (string, error) {
 	}
 	filename := fqpos.fset.File(fqpos.start).Name()
 
-	_, importPath, err := guessImportPath(filename, conf.Build)
+	_, importPath, err := GuessImportPath(filename, conf.Build)
 	if err != nil {
 		return "", err // can't find GOPATH dir
 	}

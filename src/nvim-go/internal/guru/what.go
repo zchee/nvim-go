@@ -31,7 +31,7 @@ func what(q *Query) error {
 	}
 
 	// (ignore errors)
-	srcdir, importPath, _ := guessImportPath(qpos.fset.File(qpos.start).Name(), q.Build)
+	srcdir, importPath, _ := GuessImportPath(qpos.fset.File(qpos.start).Name(), q.Build)
 
 	// Determine which query modes are applicable to the selection.
 	enable := map[string]bool{
@@ -146,7 +146,7 @@ func what(q *Query) error {
 // TODO(adonovan): what about _test.go files that are not part of the
 // package?
 //
-func guessImportPath(filename string, buildContext *build.Context) (srcdir, importPath string, err error) {
+func GuessImportPath(filename string, buildContext *build.Context) (srcdir, importPath string, err error) {
 	absFile, err := filepath.Abs(filename)
 	if err != nil {
 		err = fmt.Errorf("can't form absolute path of %s", filename)

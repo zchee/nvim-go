@@ -46,9 +46,9 @@ func definition(q *Query) error {
 		}
 
 		// Qualified identifier?
-		if pkg := packageForQualIdent(qpos.path, id); pkg != "" {
+		if pkg := PackageForQualIdent(qpos.path, id); pkg != "" {
 			srcdir := filepath.Dir(qpos.fset.File(qpos.start).Name())
-			tok, pos, err := findPackageMember(q.Build, qpos.fset, srcdir, pkg, id.Name)
+			tok, pos, err := FindPackageMember(q.Build, qpos.fset, srcdir, pkg, id.Name)
 			if err != nil {
 				return err
 			}
@@ -112,7 +112,7 @@ func definition(q *Query) error {
 // local object.  For speed, packageForQualIdent assumes that p is a
 // package iff it is the basename of an import path (and not, say, a
 // package-level decl in another file or a predeclared identifier).
-func packageForQualIdent(path []ast.Node, id *ast.Ident) string {
+func PackageForQualIdent(path []ast.Node, id *ast.Ident) string {
 	if sel, ok := path[1].(*ast.SelectorExpr); ok && sel.Sel == id && ast.IsExported(id.Name) {
 		if pkgid, ok := sel.X.(*ast.Ident); ok && pkgid.Obj == nil {
 			f := path[len(path)-1].(*ast.File)
@@ -134,7 +134,7 @@ func packageForQualIdent(path []ast.Node, id *ast.Ident) string {
 // findPackageMember returns the type and position of the declaration of
 // pkg.member by loading and parsing the files of that package.
 // srcdir is the directory in which the import appears.
-func findPackageMember(ctxt *build.Context, fset *token.FileSet, srcdir, pkg, member string) (token.Token, token.Pos, error) {
+func FindPackageMember(ctxt *build.Context, fset *token.FileSet, srcdir, pkg, member string) (token.Token, token.Pos, error) {
 	bp, err := ctxt.Import(pkg, srcdir, 0)
 	if err != nil {
 		return 0, token.NoPos, err // no files for package
