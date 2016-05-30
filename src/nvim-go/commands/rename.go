@@ -94,14 +94,20 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 		rename.Force = true
 	}
 
+	// TODO(zchee): More elegant way
+	saveStdout := os.Stdout
+	saveStderr := os.Stderr
 	os.Stderr = os.Stdout
-	saveStdout := os.Stderr
 	read, write, _ := os.Pipe()
 	os.Stderr = write
+	os.Stdout = write
+	defer func() {
+		os.Stderr = saveStderr
+		os.Stderr = saveStdout
+	}()
 
 	if err := rename.Main(&build.Default, pos, "", to); err != nil {
 		write.Close()
-		os.Stderr = saveStdout
 		er, _ := ioutil.ReadAll(read)
 		go func() {
 			loclist, _ := quickfix.ParseError(er, eval.Cwd, &ctxt)
@@ -113,10 +119,10 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 	}
 
 	write.Close()
-	os.Stdout = saveStdout
 	out, _ := ioutil.ReadAll(read)
 	defer nvim.EchoSuccess(v, prefix, fmt.Sprintf("%s", out))
 
-	// TODO(zchee): Create tempfile and use SetBufferLines.
-	return v.Command("edit")
+	// TODO(zchee): 'edit' command is ugly.
+	// Should create tempfile and use SetBufferLines.
+	return v.Command("silent edit")
 }
