@@ -71,6 +71,8 @@ func (ctxt *Build) SetContext(p string) func() {
 	contextMu.Lock()
 	original := build.Default.GOPATH
 
+	ctxt.Context = build.Default
+
 	build.Default.GOPATH, ctxt.Tool = ctxt.buildContext(p)
 	ctxt.Context.GOPATH = build.Default.GOPATH
 	os.Setenv("GOPATH", build.Default.GOPATH)
