@@ -97,7 +97,7 @@ func EchoSuccess(v *vim.Vim, prefix string, msg string) error {
 	if msg != "" {
 		msg = " - " + msg
 	}
-	return v.Command(fmt.Sprintf("echo \"%s: \" | echohl %s | echon 'SUCCESS' | echohl None | echon \"%s\" | echohl None", prefix, SuccessColor, msg))
+	return v.Command(fmt.Sprintf("echo \"%s: \" | echohl %s | echon 'SUCCESS' | echohl None | echon '%s' | echohl None", prefix, SuccessColor, msg))
 }
 
 // ReportError output of the accumulated errors report.
