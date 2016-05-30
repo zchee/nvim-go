@@ -6,6 +6,7 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -48,10 +49,13 @@ func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
+	if ctxt.Tool == "gb" {
+		cmd.Dir = ctxt.ProjectDir
+	}
 
 	err = cmd.Run()
 	if err == nil {
-		return nvim.EchoSuccess(v, "GoBuild", "")
+		return nvim.EchoSuccess(v, "GoBuild", fmt.Sprintf("tool: %s", ctxt.Tool))
 	}
 
 	if _, ok := err.(*exec.ExitError); ok {
