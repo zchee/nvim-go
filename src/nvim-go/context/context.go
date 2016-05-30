@@ -55,7 +55,7 @@ func (ctxt *Build) isGb(dir string) (string, bool) {
 		}
 	}
 	ctxt.GbProjectDir = root
-	return root, true
+	return ctxt.GbProjectDir, true
 }
 
 // contextMu Mutex lock for SetContext.
