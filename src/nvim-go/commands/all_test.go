@@ -9,13 +9,12 @@ import (
 )
 
 var (
-	home           = "/Users/zchee"
 	goPath         = os.Getenv("GOPATH")
 	cwd, _         = os.Getwd()
 	projectRoot, _ = filepath.Abs(filepath.Join(cwd, "../../.."))
 
 	testdata   = filepath.Join(projectRoot, "tests/testdata")
-	testGoPath = filepath.Join(testdata, "gopath")
+	testGoPath = filepath.Join(testdata, "go")
 
 	astdump     = filepath.Join(testGoPath, "src/astdump")
 	astdumpMain = filepath.Join(astdump, "astdump.go")
@@ -23,8 +22,8 @@ var (
 	broken     = filepath.Join(testGoPath, "src/broken")
 	brokenMain = filepath.Join(astdump, "broken.go")
 
-	gsftp     = filepath.Join(testdata, "gsftp", "src", "cmd", "gsftp")
-	gsftpRoot = filepath.Join(testdata, "gsftp")
+	gsftp     = filepath.Join(testdata, "gb", "gsftp", "src", "cmd", "gsftp")
+	gsftpRoot = filepath.Join(testdata, "gb", "gsftp")
 	gsftpMain = filepath.Join(gsftpRoot, "src", "cmd", "gsftp", "main.go")
 )
 
