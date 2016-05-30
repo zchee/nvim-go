@@ -52,7 +52,7 @@ func TestBuild(t *testing.T) {
 		os.Setenv("NVIM_GO_DEBUG", "")
 		os.Setenv("XDG_DATA_HOME", filepath.Join(testdata, "local", "share"))
 
-		if err := Build(tt.v, tt.eval); (err != nil) != tt.wantErr {
+		if err := Build(tt.v, false, tt.eval); (err != nil) != tt.wantErr {
 			t.Errorf("Build(%+v, %+v) error = %v, wantErr %v", tt.v, tt.eval, err, tt.wantErr)
 		}
 	}
@@ -65,7 +65,7 @@ func BenchmarkBuildGo(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if err := Build(benchVim(b, astdumpMain), CmdBuildEval{
+		if err := Build(benchVim(b, astdumpMain), false, CmdBuildEval{
 			Cwd: astdump,
 			Dir: astdump,
 		}); err != nil {
@@ -81,7 +81,7 @@ func BenchmarkBuildGb(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if err := Build(benchVim(b, gsftpMain), CmdBuildEval{
+		if err := Build(benchVim(b, gsftpMain), false, CmdBuildEval{
 			Cwd: gsftpRoot,
 			Dir: gsftpRoot,
 		}); err != nil {
@@ -140,7 +140,7 @@ func TestCompileCmd(t *testing.T) {
 	for _, tt := range tests {
 		os.Setenv("GOPATH", testGoPath)
 
-		got, err := compileCmd(tt.ctxt, tt.eval)
+		got, err := compileCmd(tt.ctxt, false, tt.eval)
 		if (err != nil) != tt.wantErr {
 			t.Errorf("compileCmd(%v, %v) error = %v, wantErr %v", tt.ctxt, tt.eval, err, tt.wantErr)
 			continue
