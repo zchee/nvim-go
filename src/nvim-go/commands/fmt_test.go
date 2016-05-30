@@ -38,13 +38,10 @@ func TestFmt(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		stat, err := os.Stat(tt.dir)
-		if err != nil {
+		if stat, err := os.Stat(tt.dir); err != nil || !stat.IsDir() {
 			t.Error(err)
 		}
-		err = Fmt(tt.v, tt.dir)
-		t.Logf("%v", err)
-		if (err != nil) != tt.wantErr && !stat.IsDir() {
+		if err := Fmt(tt.v, tt.dir); (err != nil) != tt.wantErr {
 			t.Errorf("Fmt(%v, %v) error = %v, wantErr %v", tt.v, tt.dir, err, tt.wantErr)
 		}
 	}
