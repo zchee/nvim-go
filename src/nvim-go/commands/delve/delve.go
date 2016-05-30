@@ -17,6 +17,7 @@ import (
 	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/nvim/buffer"
+	"nvim-go/pathutil"
 
 	delveapi "github.com/derekparker/delve/service/api"
 	delverpc2 "github.com/derekparker/delve/service/rpc2"
@@ -129,7 +130,7 @@ func (d *Delve) debug(v *vim.Vim, eval debugEval) error {
 	d.ctxt = new(context.Build)
 	defer d.ctxt.SetContext(eval.Cwd)()
 
-	rootDir := context.FindVcsRoot(eval.Dir)
+	rootDir := pathutil.FindVcsRoot(eval.Dir)
 	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
 	path := filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
 

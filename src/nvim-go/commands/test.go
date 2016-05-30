@@ -22,6 +22,7 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 	"nvim-go/nvim/terminal"
+	"nvim-go/pathutil"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -59,7 +60,7 @@ func Test(v *vim.Vim, args []string, dir string) error {
 	if term == nil {
 		term = terminal.NewTerminal(v, "__GO_TEST__", cmd, config.TerminalMode)
 	}
-	rootDir := context.FindVcsRoot(dir)
+	rootDir := pathutil.FindVcsRoot(dir)
 	term.Dir = rootDir
 
 	if err := term.Run(cmd); err != nil {

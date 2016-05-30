@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+
+	"nvim-go/pathutil"
 )
 
 // Build specifies the supporting context for a build and embedded
@@ -28,7 +30,7 @@ func (ctxt *Build) buildContext(p string) (string, string) {
 
 	// Check the path p are Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
-	if gbpath, ok := ctxt.isGb(filepath.Clean(p)); ok {
+	if gbpath, ok := ctxt.isGb(p); ok {
 		goPath = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")
 		tool = "gb"
 	}
@@ -36,47 +38,24 @@ func (ctxt *Build) buildContext(p string) (string, string) {
 	return goPath, tool
 }
 
-// isGb return the gb package root path if p is gb project directory structure.
-func (ctxt *Build) isGb(p string) (string, bool) {
-	ctxt.Context = build.Default
-
-	// First check
-	manifest := filepath.Join(p, "vendor/manifest")
-	if _, err := os.Stat(manifest); err == nil {
-		return p, true
-	}
-
-	var pkgRoot string
-	for {
-		pkg, _ := ctxt.ImportDir(p, build.IgnoreVendor)
-		rootDir := FindVcsRoot(p)
-
-		if pkg.Name == "main" || rootDir == pkg.Dir {
-			pkgRoot = pkg.Dir
-			break
-		}
-		p = filepath.Dir(p)
-		continue
-	}
-
-	projRoot := pkgRoot
-	src := "src"
-	if projRoot != FindVcsRoot(p) {
-		// gb project directory is `../../pkgRoot`
-		projRoot, src = filepath.Split(filepath.Dir(pkgRoot))
-		if src != "src" {
-			return "", false
-		}
-	}
-
-	manifest = filepath.Join(filepath.Clean(projRoot), "vendor/manifest")
-	_, err := os.Stat(manifest)
+// isGb check the current buffer directory whether gb directory structure.
+// Return the gb project root path and boolean, and sets the context.GbProjectDir.
+func (ctxt *Build) isGb(dir string) (string, bool) {
+	root, err := pathutil.FindGbProjectRoot(dir)
 	if err != nil {
 		return "", false
 	}
-	ctxt.ProjectDir = filepath.Clean(projRoot)
 
-	return ctxt.ProjectDir, (err == nil && src == "src")
+	// pathutil.FindGbProjectRoot Gets the GOPATH root if go directory structure.
+	// Recheck use vendor directory.
+	vendor := filepath.Join(pathutil.FindVcsRoot(dir), "vendor")
+	if _, err := os.Stat(vendor); err != nil {
+		if os.IsNotExist(err) {
+			return "", false
+		}
+	}
+	ctxt.ProjectDir = root
+	return root, true
 }
 
 // contextMu Mutex lock for SetContext.
