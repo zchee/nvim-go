@@ -158,7 +158,7 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistDat
 
 			case "gb":
 				if !filepath.IsAbs(fpath) {
-					fpath = filepath.Join(ctxt.ProjectDir, "src", fpath)
+					fpath = filepath.Join(ctxt.GbProjectDir, "src", fpath)
 				}
 				fname, _ = filepath.Rel(cwd, fpath)
 			}

@@ -16,8 +16,8 @@ import (
 // Build specifies the supporting context for a build and embedded
 // build.Context type struct.
 type Build struct {
-	Tool       string
-	ProjectDir string
+	Tool         string
+	GbProjectDir string
 	build.Context
 }
 
@@ -54,7 +54,7 @@ func (ctxt *Build) isGb(dir string) (string, bool) {
 			return "", false
 		}
 	}
-	ctxt.ProjectDir = root
+	ctxt.GbProjectDir = root
 	return root, true
 }
 

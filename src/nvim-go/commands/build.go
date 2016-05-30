@@ -50,7 +50,7 @@ func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if ctxt.Tool == "gb" {
-		cmd.Dir = ctxt.ProjectDir
+		cmd.Dir = ctxt.GbProjectDir
 	}
 
 	err = cmd.Run()
@@ -95,7 +95,7 @@ func compileCmd(ctxt *context.Build, bang bool, eval CmdBuildEval) (*exec.Cmd, e
 			args = append(args, "-o", tmpfile.Name())
 		}
 	} else if compiler == "gb" {
-		buildDir = ctxt.ProjectDir
+		buildDir = ctxt.GbProjectDir
 	}
 
 	cmd := exec.Command(compiler, args...)

@@ -63,7 +63,7 @@ func Metalinter(v *vim.Vim, cwd string) error {
 	case "go":
 		args = append(args, cwd+"/...")
 	case "gb":
-		args = append(args, ctxt.ProjectDir+"/...")
+		args = append(args, ctxt.GbProjectDir+"/...")
 	}
 	args = append(args, []string{"--json", "--disable-all", "--deadline", config.MetalinterDeadline}...)
 

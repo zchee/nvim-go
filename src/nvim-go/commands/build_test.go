@@ -115,8 +115,8 @@ func TestCompileCmd(t *testing.T) {
 		},
 		{
 			ctxt: &context.Build{
-				Tool:       "gb",
-				ProjectDir: projectRoot,
+				Tool:         "gb",
+				GbProjectDir: projectRoot,
 			},
 			eval: CmdBuildEval{
 				Cwd: projectRoot,
@@ -127,8 +127,8 @@ func TestCompileCmd(t *testing.T) {
 		},
 		{
 			ctxt: &context.Build{
-				Tool:       "gb",
-				ProjectDir: gsftpRoot,
+				Tool:         "gb",
+				GbProjectDir: gsftpRoot,
 			},
 			eval: CmdBuildEval{
 				Cwd: gsftpRoot,
