@@ -7,7 +7,6 @@ package commands
 import (
 	"bytes"
 	"fmt"
-	"go/build"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -30,45 +29,22 @@ import (
 	"github.com/rogpeppe/godef/go/types"
 )
 
-var (
-	defFiler         = "go#def#filer"
-	vDefFiler        interface{}
-	defFilerMode     = "go#def#filer_mode"
-	vDefFilerMode    interface{}
-	defNomodifiable  = "go#def#nomodifiable"
-	vDefNomodifiable interface{}
-	defDebug         = "go#def#debug"
-	vDefDebug        interface{}
-)
-
 func init() {
-	plugin.HandleFunction("GoDef", &plugin.FunctionOptions{}, funcDef)
+	plugin.HandleCommand("Godef", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, cmdDef)
 }
 
-func funcDef(v *vim.Vim, args []string) {
-	go Def(v, args[0])
+func cmdDef(v *vim.Vim, file string) {
+	go Def(v, file)
 }
 
 // Def definition to current cursor word.
 // DEPRECATED: godef no longer mantained.
 func Def(v *vim.Vim, file string) error {
 	defer profile.Start(time.Now(), "GoDef")
+
 	dir, _ := filepath.Split(file)
-	var ctxt = context.Build{}
+	ctxt := new(context.Build)
 	defer ctxt.SetContext(dir)()
-
-	gopath := strings.Split(build.Default.GOPATH, ":")
-	for i, d := range gopath {
-		gopath[i] = filepath.Join(d, "src")
-	}
-	types.GoPath = gopath
-
-	v.Var(defDebug, &vDefDebug)
-	if vDefDebug == int64(1) {
-		types.Debug = true
-	}
-
-	v.Var(defNomodifiable, &vDefNomodifiable)
 
 	var (
 		b vim.Buffer
@@ -102,20 +78,6 @@ func Def(v *vim.Vim, file string) error {
 
 	switch e := o.(type) {
 
-	case *ast.ImportSpec:
-		path := importPath(v, e)
-		pkg, err := build.Default.Import(path, "", build.FindOnly)
-		if err != nil {
-			nvim.Echomsg(v, "Godef: error finding import path for %s: %s", path, err)
-		}
-
-		v.Var(defFilerMode, &vDefFilerMode)
-		if vDefFilerMode.(string) != "" {
-			v.Command(vDefFilerMode.(string))
-		}
-		v.Var(defFiler, &vDefFiler)
-		return v.Command(vDefFiler.(string) + " " + pkg.Dir)
-
 	case ast.Expr:
 		if err := parseLocalPackage(file, f, pkgScope); err != nil {
 			nvim.Echomsg(v, "Godef: error parseLocalPackage %v", err)
@@ -134,17 +96,11 @@ func Def(v *vim.Vim, file string) error {
 				nvim.Echomsg(v, "Godef: %s", err)
 			}
 
-			p.Command("silent! ll 1")
-			if vDefNomodifiable == int64(1) {
-				cb, err := v.CurrentBuffer()
-				if err != nil {
-					return nvim.Echoerr(v, "GoDef: %v", err)
-				}
-				p.SetBufferOption(cb, "modifiable", false)
-			}
-			p.FeedKeys("zz", "n", false)
+			p.Command(fmt.Sprintf("edit %s", pos.Filename))
+			p.SetWindowCursor(w, [2]int{pos.Line, pos.Column})
+			p.Command("normal zz")
 
-			return p.Wait()
+			return nil
 		}
 		nvim.Echomsg(v, "Godef: not found of obj")
 
@@ -278,7 +234,7 @@ func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
 			}
 			return true
 		}
-		ast.Walk(FVisitor(visit), f)
+		ast.Walk(defVisitor(visit), f)
 		ec <- nil
 	}()
 	ev := <-ec
@@ -301,18 +257,16 @@ func parseExpr(v *vim.Vim, s *ast.Scope, expr string) ast.Expr {
 	return nil
 }
 
-// FVisitor for ast.Visit type.
-type FVisitor func(n ast.Node) bool
+// defVisitor for ast.Visit type.
+type defVisitor func(n ast.Node) bool
 
 // Visit for ast.Visit functions.
-func (f FVisitor) Visit(n ast.Node) ast.Visitor {
+func (f defVisitor) Visit(n ast.Node) ast.Visitor {
 	if f(n) {
 		return f
 	}
 	return nil
 }
-
-// var errNoPkgFiles = errors.New("no more package files found")
 
 // parseLocalPackage reads and parses all go files from the
 // current directory that implement the same package name
@@ -361,10 +315,6 @@ func pkgName(filename string) string {
 		return prog.Name.Name
 	}
 	return ""
-}
-
-func hasSuffix(s, suff string) bool {
-	return len(s) >= len(suff) && s[len(s)-len(suff):] == suff
 }
 
 type pretty struct {
