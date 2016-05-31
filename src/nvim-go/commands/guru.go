@@ -109,9 +109,11 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		}
 		fname, line, col := quickfix.SplitPos(obj.ObjPos, eval.Cwd)
 		text := obj.Desc
-		v.Command(fmt.Sprintf("edit %s", fname))
-
+		p.Command(fmt.Sprintf("edit %s", fname))
 		p.SetWindowCursor(w, [2]int{line, col - 1})
+		if err := p.Wait(); err != nil {
+			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		}
 		p.Command(`lclose`)
 		p.Command(`normal! zz`)
 		if err := p.Wait(); err != nil {
