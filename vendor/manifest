@@ -108,17 +108,18 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/pquerna/ffjson",
-			"repository": "https://github.com/pquerna/ffjson",
-			"revision": "fa49a9f5832ba121db144795c147fe8449124aeb",
-			"branch": "master"
-		},
-		{
 			"importpath": "github.com/rogpeppe/godef/go",
 			"repository": "https://github.com/rogpeppe/godef",
 			"revision": "d629cae4d0b474702f8535c656991b94c1cb38a1",
 			"branch": "master",
 			"path": "/go"
+		},
+		{
+			"importpath": "github.com/ugorji/go/codec",
+			"repository": "https://github.com/ugorji/go",
+			"revision": "a396ed22fc049df733440d90efe17475e3929ccb",
+			"branch": "master",
+			"path": "/codec"
 		},
 		{
 			"importpath": "golang.org/x/debug/dwarf",
@@ -140,6 +141,13 @@
 			"revision": "dfd9ed699ea197b58a32e0d1dcfa2be66f127ec4",
 			"branch": "master",
 			"path": "/http2/hpack"
+		},
+		{
+			"importpath": "golang.org/x/net/lex/httplex",
+			"repository": "https://go.googlesource.com/net",
+			"revision": "30db96677b74e24b967e23f911eb3364fc61a011",
+			"branch": "master",
+			"path": "/lex/httplex"
 		},
 		{
 			"importpath": "golang.org/x/net/route",
