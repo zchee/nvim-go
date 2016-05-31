@@ -11,9 +11,12 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"go/ast"
+	"go/parser"
 	"go/token"
+	"go/types"
 	"log"
 	"path/filepath"
 	"strings"
@@ -32,7 +35,7 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/juju/errors"
-	json "github.com/pquerna/ffjson/ffjson"
+	"github.com/pquerna/ffjson/ffjson"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
 )
@@ -77,17 +80,6 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
 
-	var scopeDir string
-	if mode != "definition" {
-		switch ctxt.Tool {
-		case "go":
-			scopeDir = strings.TrimPrefix(pathutil.PackagePath(dir), "src"+string(filepath.Separator))
-		case "gb":
-			scopeDir = pathutil.GbProjectName(dir, ctxt.ProjectDir)
-		}
-	}
-	scopeFlag := []string{scopeDir + string(filepath.Separator) + "..."}
-
 	guruContext := &ctxt.Context
 
 	// https://github.com/golang/tools/blob/master/cmd/guru/main.go
@@ -104,41 +96,30 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		guruContext = buildutil.OverlayContext(guruContext, overlay)
 	}
 
-	var (
-		outputMu sync.Mutex
-		loclist  []*quickfix.ErrorlistData
-	)
-	output := func(fset *token.FileSet, qr guru.QueryResult) {
-		var err error
-		outputMu.Lock()
-		defer outputMu.Unlock()
-		if loclist, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
-			nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
-		}
-	}
-
+	var loclist []*quickfix.ErrorlistData
 	query := guru.Query{
-		Output:     output,
 		Pos:        fmt.Sprintf("%s:#%d", eval.File, eval.Offset),
 		Build:      guruContext,
-		Scope:      scopeFlag,
 		Reflection: config.GuruReflection,
 	}
 
 	if mode == "definition" {
-		obj := definition(&query)
-		if obj == nil {
-			err := errors.New("no identifier here")
+		obj, err := definition(&query)
+		if err != nil {
 			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		}
 		fname, line, col := quickfix.SplitPos(obj.ObjPos, eval.Cwd)
 		text := obj.Desc
-		p.Command(fmt.Sprintf("silent edit +%d %s", line, fname))
+		v.Command(fmt.Sprintf("edit %s", fname))
+
 		p.SetWindowCursor(w, [2]int{line, col - 1})
 		p.Command(`lclose`)
 		p.Command(`normal! zz`)
+		if err := p.Wait(); err != nil {
+			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		}
 
-		defer func() {
+		go func() {
 			loclist = append(loclist, &quickfix.ErrorlistData{
 				FileName: fname,
 				LNum:     line,
@@ -147,8 +128,28 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 			})
 			quickfix.SetLoclist(v, loclist)
 		}()
-		return p.Wait()
+		return nil
 	}
+
+	var scopeDir string
+	switch ctxt.Tool {
+	case "go":
+		scopeDir = strings.TrimPrefix(pathutil.PackagePath(dir), "src"+string(filepath.Separator))
+	case "gb":
+		scopeDir = pathutil.GbProjectName(dir, ctxt.GbProjectDir)
+	}
+	query.Scope = []string{scopeDir + string(filepath.Separator) + "..."}
+
+	var outputMu sync.Mutex
+	output := func(fset *token.FileSet, qr guru.QueryResult) {
+		var err error
+		outputMu.Lock()
+		defer outputMu.Unlock()
+		if loclist, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
+			nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		}
+	}
+	query.Output = output
 
 	nvim.EchoProgress(v, pkgGuru, "analysing")
 	if err := guru.Run(mode, &query); err != nil {
@@ -156,12 +157,12 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	}
 
 	if err := quickfix.SetLoclist(v, loclist); err != nil {
-		nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
 
 	// jumpfirst or definition mode
 	if config.GuruJumpFirst {
-		p.Command(`ll 1`)
+		p.Command(`silent ll 1`)
 		p.Command(`normal! zz`)
 		return p.Wait()
 	}
@@ -169,15 +170,19 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	return quickfix.OpenLoclist(v, w, loclist, config.GuruKeepCursor)
 }
 
+type fallback struct {
+	Obj *serial.Definition
+	Err error
+}
+
 // definition reports the location of the definition of an identifier.
 //
 // Imported by golang.org/x/tools/cmd/guru/definition.go
 // Modify use goroutine and channel.
-func definition(q *guru.Query) *serial.Definition {
+func definition(q *guru.Query) (*serial.Definition, error) {
 	defer profile.Start(time.Now(), "definition")
 
-	c := make(chan *serial.Definition)
-	go definitionFallback(q, c)
+	c := make(chan fallback)
 
 	// First try the simple resolution done by parser.
 	// It only works for intra-file references but it is very fast.
@@ -185,12 +190,13 @@ func definition(q *guru.Query) *serial.Definition {
 	// resolved using ast.NewPackage, was not worth the effort.)
 	qpos, err := fastQueryPos(q.Build, q.Pos)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	id, _ := qpos.path[0].(*ast.Ident)
 	if id == nil {
-		return nil
+		err := errors.New("qpos.path[0].(*ast.Ident)")
+		return nil, err
 	}
 
 	// Did the parser resolve it to a local object?
@@ -198,7 +204,7 @@ func definition(q *guru.Query) *serial.Definition {
 		return &serial.Definition{
 			ObjPos: qpos.fset.Position(obj.Pos()).String(),
 			Desc:   fmt.Sprintf("%s %s", obj.Kind, obj.Name),
-		}
+		}, nil
 	}
 
 	// Qualified identifier?
@@ -206,57 +212,93 @@ func definition(q *guru.Query) *serial.Definition {
 		srcdir := filepath.Dir(qpos.fset.File(qpos.start).Name())
 		tok, pos, err := guru.FindPackageMember(q.Build, qpos.fset, srcdir, pkg, id.Name)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 		return &serial.Definition{
 			ObjPos: qpos.fset.Position(pos).String(),
 			Desc:   fmt.Sprintf("%s %s.%s", tok, pkg, id.Name),
-		}
+		}, nil
 	}
 
-	log.Printf("Waiting...\n")
-	return <-c
+	go definitionFallback(q, c)
+	obj := <-c
+	if obj.Err != nil {
+		return nil, obj.Err
+	}
+	log.Println("fallback")
+	return obj.Obj, nil
+}
+
+func fallbackChan(obj *serial.Definition, err error) fallback {
+	return fallback{
+		Obj: obj,
+		Err: err,
+	}
 }
 
 // definitionFallback fall back on the type checker.
-func definitionFallback(q *guru.Query, c chan *serial.Definition) {
+func definitionFallback(q *guru.Query, c chan fallback) {
 	defer profile.Start(time.Now(), "definitionFallback")
 
 	// Run the type checker.
-	lconf := loader.Config{Build: q.Build}
+	lconf := loader.Config{
+		ParserMode: parser.ImportsOnly,
+		TypeChecker: types.Config{
+			IgnoreFuncBodies:         true,
+			DisableUnusedImportCheck: true,
+		},
+		Build: q.Build,
+	}
 	allowErrors(&lconf)
 
 	if _, err := importQueryPackage(q.Pos, &lconf); err != nil {
-		c <- nil
+		c <- fallbackChan(nil, err)
 		return
 	}
 
 	// Load/parse/type-check the program.
 	lprog, err := lconf.Load()
 	if err != nil {
-		c <- nil
+		c <- fallbackChan(nil, err)
 		return
 	}
 
 	qpos, err := parseQueryPos(lprog, q.Pos, false)
 	if err != nil {
-		c <- nil
+		c <- fallbackChan(nil, err)
 		return
 	}
 
 	id, ok := qpos.path[0].(*ast.Ident)
 	if !ok {
-		c <- nil
+		err := errors.New("no identifier here")
+		c <- fallbackChan(nil, err)
 		return
 	}
 
 	obj := qpos.info.ObjectOf(id)
-	c <- &serial.Definition{
+	if obj == nil {
+		err := errors.New("no object for identifier")
+		c <- fallbackChan(nil, err)
+		return
+	}
+
+	if !obj.Pos().IsValid() {
+		err := errors.Errorf("%s is built in", obj.Name())
+		c <- fallbackChan(nil, err)
+		return
+	}
+
+	res := serial.Definition{
 		ObjPos: qpos.fset.Position(obj.Pos()).String(),
 		Desc:   qpos.ObjectString(obj),
 	}
+
+	c <- fallbackChan(&res, nil)
+	return
 }
 
+// TODO(zchee): Should not use json.Unmarshal(Fast).
 func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*quickfix.ErrorlistData, error) {
 	var (
 		loclist []*quickfix.ErrorlistData
@@ -266,11 +308,13 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		text    string
 	)
 
+	log.Printf("string(data): %+v\n", string(data))
+
 	switch mode {
 
 	case "callees":
 		var value = serial.Callees{}
-		err := json.UnmarshalFast(data, &value)
+		err := ffjson.UnmarshalFast(data, &value)
 		if err != nil {
 			return loclist, err
 		}
@@ -304,7 +348,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "callstack":
 		var value = serial.CallStack{}
-		err := json.UnmarshalFast(data, &value)
+		err := ffjson.UnmarshalFast(data, &value)
 		if err != nil {
 			return loclist, err
 		}
@@ -321,7 +365,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "definition":
 		var value = serial.Definition{}
-		err := json.UnmarshalFast(data, &value)
+		err := ffjson.UnmarshalFast(data, &value)
 		if err != nil {
 			return loclist, err
 		}
@@ -336,7 +380,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "describe":
 		var value = serial.Describe{}
-		err := json.UnmarshalFast(data, &value)
+		err := ffjson.UnmarshalFast(data, &value)
 		if err != nil {
 			return loclist, err
 		}
@@ -351,7 +395,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "freevars":
 		var value = serial.FreeVar{}
-		err := json.UnmarshalFast(data, &value)
+		err := ffjson.UnmarshalFast(data, &value)
 		if err != nil {
 			return loclist, err
 		}
@@ -366,7 +410,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "implements":
 		var value = serial.Implements{}
-		err := json.UnmarshalFast(data, &value)
+		err := json.Unmarshal(data, &value)
 		if err != nil {
 			return loclist, err
 		}
@@ -383,7 +427,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "peers":
 		var value = serial.Peers{}
-		err := json.UnmarshalFast(data, &value)
+		err := ffjson.UnmarshalFast(data, &value)
 		if err != nil {
 			return loclist, err
 		}
@@ -433,7 +477,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "pointsto":
 		var value = []serial.PointsTo{}
-		err := json.UnmarshalFast(data, &value)
+		err := ffjson.UnmarshalFast(data, &value)
 		if err != nil {
 			return loclist, err
 		}
@@ -460,7 +504,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "referrers":
 		var packages = serial.ReferrersPackage{}
-		if err := json.UnmarshalFast(data, &packages); err != nil {
+		if err := ffjson.UnmarshalFast(data, &packages); err != nil {
 			return loclist, err
 		}
 		for _, v := range packages.Refs {
@@ -475,7 +519,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "whicherrs":
 		var value = serial.WhichErrs{}
-		err := json.UnmarshalFast(data, &value)
+		err := ffjson.UnmarshalFast(data, &value)
 		if err != nil {
 			return loclist, err
 		}
