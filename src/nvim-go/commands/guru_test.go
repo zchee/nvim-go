@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/garyburd/neovim-go/vim"
@@ -35,15 +33,7 @@ import (
 // }
 
 func BenchmarkGuruDefinition(b *testing.B) {
-	xdgDataHome := filepath.Join(testdata, "local", "share")
-	os.Setenv("XDG_DATA_HOME", xdgDataHome)
-	os.Setenv("NVIM_GO_DEBUG", "")
 	v := benchVim(b, gsftpMain)
-	w, err := v.CurrentWindow()
-	if err != nil {
-		b.Errorf("%v", err)
-	}
-	v.SetWindowCursor(w, [2]int{106, 26}) // client, err := sftp.|N|ewClient(conn)
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -51,6 +41,7 @@ func BenchmarkGuruDefinition(b *testing.B) {
 			Cwd:      gsftp,
 			File:     gsftpMain,
 			Modified: 0,
+			Offset:   2027, // client, err := sftp.|N|ewClient(conn)
 		}); err != nil {
 			b.Errorf("BenchmarkGuruDefinition: %v", err)
 		}
@@ -58,15 +49,7 @@ func BenchmarkGuruDefinition(b *testing.B) {
 }
 
 func BenchmarkGuruDefinitionFallback(b *testing.B) {
-	xdgDataHome := filepath.Join(testdata, "local", "share")
-	os.Setenv("XDG_DATA_HOME", xdgDataHome)
-	os.Setenv("NVIM_GO_DEBUG", "")
 	v := benchVim(b, gsftpMain)
-	w, err := v.CurrentWindow()
-	if err != nil {
-		b.Errorf("%v", err)
-	}
-	v.SetWindowCursor(w, [2]int{104, 17}) // defer conn.|C|lose()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -74,6 +57,7 @@ func BenchmarkGuruDefinitionFallback(b *testing.B) {
 			Cwd:      gsftp,
 			File:     gsftpMain,
 			Modified: 0,
+			Offset:   2132, // defer conn.|C|lose()
 		}); err != nil {
 			b.Errorf("BenchmarkGuruDefinitionFallback: %v", err)
 		}
