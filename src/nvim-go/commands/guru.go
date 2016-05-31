@@ -11,7 +11,6 @@ package commands
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -35,7 +34,7 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/juju/errors"
-	"github.com/pquerna/ffjson/ffjson"
+	"github.com/ugorji/go/codec"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
 )
@@ -156,6 +155,9 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
 
+	if len(loclist) == 0 {
+		return fmt.Errorf("%s not fount", mode)
+	}
 	if err := quickfix.SetLoclist(v, loclist); err != nil {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
@@ -307,12 +309,18 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		col     int
 		text    string
 	)
+	var (
+		jh codec.JsonHandle
+	)
+
+	log.Printf("string(data): %+v\n", string(data))
 
 	switch mode {
 
 	case "callees":
 		var value = serial.Callees{}
-		err := ffjson.UnmarshalFast(data, &value)
+		dec := codec.NewDecoderBytes(data, &jh)
+		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
 		}
@@ -329,7 +337,8 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "callers":
 		var value = []serial.Caller{}
-		err := json.Unmarshal(data, &value)
+		dec := codec.NewDecoderBytes(data, &jh)
+		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
 		}
@@ -346,7 +355,8 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "callstack":
 		var value = serial.CallStack{}
-		err := ffjson.UnmarshalFast(data, &value)
+		dec := codec.NewDecoderBytes(data, &jh)
+		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
 		}
@@ -361,24 +371,10 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 			})
 		}
 
-	case "definition":
-		var value = serial.Definition{}
-		err := ffjson.UnmarshalFast(data, &value)
-		if err != nil {
-			return loclist, err
-		}
-		fname, line, col = quickfix.SplitPos(value.ObjPos, cwd)
-		text = value.Desc
-		loclist = append(loclist, &quickfix.ErrorlistData{
-			FileName: fname,
-			LNum:     line,
-			Col:      col,
-			Text:     text,
-		})
-
 	case "describe":
 		var value = serial.Describe{}
-		err := ffjson.UnmarshalFast(data, &value)
+		dec := codec.NewDecoderBytes(data, &jh)
+		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
 		}
@@ -393,7 +389,8 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "freevars":
 		var value = serial.FreeVar{}
-		err := ffjson.UnmarshalFast(data, &value)
+		dec := codec.NewDecoderBytes(data, &jh)
+		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
 		}
@@ -408,7 +405,8 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "implements":
 		var value = serial.Implements{}
-		err := ffjson.UnmarshalFast(data, &value)
+		dec := codec.NewDecoderBytes(data, &jh)
+		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
 		}
@@ -423,7 +421,8 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "peers":
 		var value = serial.Peers{}
-		err := ffjson.UnmarshalFast(data, &value)
+		dec := codec.NewDecoderBytes(data, &jh)
+		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
 		}
@@ -473,7 +472,8 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "pointsto":
 		var value = []serial.PointsTo{}
-		err := ffjson.UnmarshalFast(data, &value)
+		dec := codec.NewDecoderBytes(data, &jh)
+		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
 		}
@@ -500,7 +500,8 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "referrers":
 		var packages = serial.ReferrersPackage{}
-		if err := ffjson.UnmarshalFast(data, &packages); err != nil {
+		dec := codec.NewDecoderBytes(data, &jh)
+		if err := dec.Decode(&packages); err != nil {
 			return loclist, err
 		}
 		for _, v := range packages.Refs {
@@ -515,7 +516,8 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "whicherrs":
 		var value = serial.WhichErrs{}
-		err := ffjson.UnmarshalFast(data, &value)
+		dec := codec.NewDecoderBytes(data, &jh)
+		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
 		}
@@ -554,10 +556,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 			})
 		}
 
-	}
-
-	if len(loclist) == 0 {
-		return loclist, fmt.Errorf("%s not fount", mode)
 	}
 	return loclist, nil
 }
