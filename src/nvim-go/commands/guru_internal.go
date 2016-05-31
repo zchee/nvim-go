@@ -7,16 +7,118 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
-	"nvim-go/internal/guru"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	"nvim-go/internal/guru"
+	"nvim-go/internal/guru/serial"
+
+	"github.com/juju/errors"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
 )
+
+func Definition(q *guru.Query) (*serial.Definition, error) {
+	// First try the simple resolution done by parser.
+	// It only works for intra-file references but it is very fast.
+	// (Extending this approach to all the files of the package,
+	// resolved using ast.NewPackage, was not worth the effort.)
+	{
+		qpos, err := fastQueryPos(q.Build, q.Pos)
+		if err != nil {
+			// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+			return nil, err
+		}
+
+		id, _ := qpos.path[0].(*ast.Ident)
+		if id == nil {
+			err := errors.New("no identifier here")
+			// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+			return nil, err
+			// return nil, nil
+		}
+
+		// Did the parser resolve it to a local object?
+		if obj := id.Obj; obj != nil && obj.Pos().IsValid() {
+			return &serial.Definition{
+				ObjPos: qpos.fset.Position(obj.Pos()).String(),
+				Desc:   fmt.Sprintf("%s %s", obj.Kind, obj.Name),
+			}, nil
+		}
+
+		// Qualified identifier?
+		if pkg := guru.PackageForQualIdent(qpos.path, id); pkg != "" {
+			srcdir := filepath.Dir(qpos.fset.File(qpos.start).Name())
+			tok, pos, err := guru.FindPackageMember(q.Build, qpos.fset, srcdir, pkg, id.Name)
+			if err != nil {
+				// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+				return nil, err
+			}
+			return &serial.Definition{
+				ObjPos: qpos.fset.Position(pos).String(),
+				Desc:   fmt.Sprintf("%s %s.%s", tok, pkg, id.Name),
+			}, nil
+		}
+
+		// Fall back on the type checker.
+	}
+
+	// Run the type checker.
+	lconf := loader.Config{Build: q.Build}
+	allowErrors(&lconf)
+
+	if _, err := importQueryPackage(q.Pos, &lconf); err != nil {
+		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		return nil, err
+	}
+
+	// Load/parse/type-check the program.
+	lprog, err := lconf.Load()
+	if err != nil {
+		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		return nil, err
+	}
+
+	qpos, err := parseQueryPos(lprog, q.Pos, false)
+	if err != nil {
+		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		return nil, err
+	}
+
+	id, _ := qpos.path[0].(*ast.Ident)
+	if id == nil {
+		err := errors.New("no identifier here")
+		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		// return nil, nil
+		return nil, err
+	}
+
+	obj := qpos.info.ObjectOf(id)
+	if obj == nil {
+		// Happens for y in "switch y := x.(type)",
+		// and the package declaration,
+		// but I think that's all.
+		err := errors.New("no object for identifier")
+		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		// return nil, nil
+		return nil, err
+	}
+
+	if !obj.Pos().IsValid() {
+		err := errors.Errorf("%s is built in", obj.Name())
+		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		// return nil, nil
+		return nil, err
+	}
+
+	return &serial.Definition{
+		ObjPos: qpos.fset.Position(obj.Pos()).String(),
+		Desc:   qpos.ObjectString(obj),
+	}, nil
+}
 
 // A QueryPos represents the position provided as input to a query:
 // a textual extent in the program's source code, the AST node it
