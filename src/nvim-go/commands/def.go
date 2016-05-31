@@ -69,7 +69,7 @@ func Def(v *vim.Vim, file string) error {
 	}
 
 	pkgScope := ast.NewScope(parser.Universe)
-	f, err := parser.ParseFile(types.FileSet, file, src, 0, pkgScope)
+	f, err := parser.ParseFile(types.FileSet, file, src, 0, pkgScope, types.DefaultImportPathToName)
 	if f == nil {
 		nvim.Echomsg(v, "Godef: cannot parse %s: %v", file, err)
 	}
@@ -82,7 +82,7 @@ func Def(v *vim.Vim, file string) error {
 		if err := parseLocalPackage(file, f, pkgScope); err != nil {
 			nvim.Echomsg(v, "Godef: error parseLocalPackage %v", err)
 		}
-		obj, _ := types.ExprType(e, types.DefaultImporter)
+		obj, _ := types.ExprType(e, types.DefaultImporter, types.FileSet)
 		if obj != nil {
 			pos := types.FileSet.Position(types.DeclPos(obj))
 			var loclist []*quickfix.ErrorlistData
@@ -159,7 +159,7 @@ func typeStr(obj *ast.Object, typ types.Type) string {
 	case ast.Lbl:
 		return fmt.Sprintf("label %s", obj.Name)
 	case ast.Typ:
-		typ = typ.Underlying(false, types.DefaultImporter)
+		typ = typ.Underlying(false)
 		return fmt.Sprintf("type %s %v", obj.Name, prettyType{typ})
 	}
 	return fmt.Sprintf("unknown %s %v", obj.Name, typ.Kind)
@@ -245,7 +245,7 @@ func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
 }
 
 func parseExpr(v *vim.Vim, s *ast.Scope, expr string) ast.Expr {
-	n, err := parser.ParseExpr(types.FileSet, "<arg>", expr, s)
+	n, err := parser.ParseExpr(types.FileSet, "<arg>", expr, s, types.DefaultImportPathToName)
 	if err != nil {
 		nvim.Echomsg(v, "Godef: cannot parse expression: %v", err)
 	}
@@ -297,7 +297,7 @@ func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) erro
 			pkgName(file) != pkg.Name {
 			continue
 		}
-		src, err := parser.ParseFile(types.FileSet, file, nil, 0, pkg.Scope)
+		src, err := parser.ParseFile(types.FileSet, file, nil, 0, pkg.Scope, types.DefaultImportPathToName)
 		if err == nil {
 			pkg.Files[file] = src
 		}
@@ -310,7 +310,7 @@ func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) erro
 
 // pkgName returns the package name implemented by the go source filename
 func pkgName(filename string) string {
-	prog, _ := parser.ParseFile(types.FileSet, filename, nil, parser.PackageClauseOnly, nil)
+	prog, _ := parser.ParseFile(types.FileSet, filename, nil, parser.PackageClauseOnly, nil, types.DefaultImportPathToName)
 	if prog != nil {
 		return prog.Name.Name
 	}
