@@ -308,8 +308,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		text    string
 	)
 
-	log.Printf("string(data): %+v\n", string(data))
-
 	switch mode {
 
 	case "callees":
@@ -410,20 +408,18 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "implements":
 		var value = serial.Implements{}
-		err := json.Unmarshal(data, &value)
+		err := ffjson.UnmarshalFast(data, &value)
 		if err != nil {
 			return loclist, err
 		}
-		for _, v := range value.AssignableFrom {
-			fname, line, col := quickfix.SplitPos(v.Pos, cwd)
-			text = v.Kind + " " + v.Name
-			loclist = append(loclist, &quickfix.ErrorlistData{
-				FileName: fname,
-				LNum:     line,
-				Col:      col,
-				Text:     text,
-			})
-		}
+		fname, line, col := quickfix.SplitPos(value.T.Pos, cwd)
+		text = value.T.Kind + " " + value.T.Name
+		loclist = append(loclist, &quickfix.ErrorlistData{
+			FileName: fname,
+			LNum:     line,
+			Col:      col,
+			Text:     text,
+		})
 
 	case "peers":
 		var value = serial.Peers{}
