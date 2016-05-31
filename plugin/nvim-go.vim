@@ -94,13 +94,13 @@ let s:specs = [
 \ {'type': 'command', 'name': 'GoTestSwitch', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p'')]'}},
 \ {'type': 'command', 'name': 'GoWindows', 'sync': 1, 'opts': {}},
 \ {'type': 'command', 'name': 'Gobuild', 'sync': 0, 'opts': {'bang': '', 'eval': '[getcwd(), expand(''%:p:h'')]'}},
+\ {'type': 'command', 'name': 'Godef', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')'}},
 \ {'type': 'command', 'name': 'Gofmt', 'sync': 1, 'opts': {'eval': 'expand(''%:p:h'')'}},
 \ {'type': 'command', 'name': 'Gometalinter', 'sync': 0, 'opts': {'eval': 'getcwd()'}},
 \ {'type': 'command', 'name': 'Gorename', 'sync': 0, 'opts': {'bang': '', 'eval': '[getcwd(), expand(''%:p:h''), expand(''%:p''), expand(''<cword>'')]', 'nargs': '?'}},
 \ {'type': 'command', 'name': 'Gorun', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'Gotest', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')', 'nargs': '*'}},
 \ {'type': 'function', 'name': 'DlvListFunctions', 'sync': 1, 'opts': {}},
-\ {'type': 'function', 'name': 'GoDef', 'sync': 0, 'opts': {}},
 \ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p''), &modified, line2byte(line(''.'')) + (col(''.'')-2)]'}},
 \ ]
 
