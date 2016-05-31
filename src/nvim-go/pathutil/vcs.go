@@ -28,7 +28,7 @@ func FindVcsRoot(basedir string) string {
 		}
 	}
 
-	return basedir
+	return filepath.Clean(basedir)
 }
 
 func findvcsDirWalkFunc(path string, fileInfo os.FileInfo, err error) error {
