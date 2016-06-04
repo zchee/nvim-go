@@ -183,6 +183,10 @@ func (b *Buffer) SetMapping(v *vim.Vim, mode string, mapping map[string]string) 
 	return p.Wait()
 }
 
+func ToByteSlice(v *vim.Vim, byt [][]byte) []byte {
+	return bytes.Join(byt, []byte{'\n'})
+}
+
 func ToBufferLines(v *vim.Vim, byt []byte) [][]byte {
 	return bytes.Split(byt, []byte{'\n'})
 }
