@@ -5,15 +5,19 @@
 package commands
 
 import (
+	"path/filepath"
 	"time"
 
 	"nvim-go/config"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/terminal"
+	"nvim-go/pathutil"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
 )
+
+var runTerm *terminal.Terminal
 
 func init() {
 	plugin.HandleCommand("Gorun",
@@ -22,11 +26,17 @@ func init() {
 }
 
 // Run runs the go run command for current buffer's packages.
-func Run(v *vim.Vim, cmd []string) error {
+func Run(v *vim.Vim, cmd []string, file string) error {
 	defer profile.Start(time.Now(), "GoRun")
-	term := terminal.NewTerminal(v, "__GO_RUN__", cmd, config.TerminalMode)
 
-	if err := term.Run(cmd); err != nil {
+	if runTerm == nil {
+		runTerm = terminal.NewTerminal(v, "__GO_TEST__", cmd, config.TerminalMode)
+	}
+	dir, _ := filepath.Split(file)
+	rootDir := pathutil.FindVcsRoot(dir)
+	runTerm.Dir = rootDir
+
+	if err := runTerm.Run(cmd); err != nil {
 		return err
 	}
 
@@ -39,5 +49,5 @@ func cmdRun(v *vim.Vim, args []string, file string) {
 		cmd = append(cmd, args...)
 	}
 
-	go Run(v, cmd)
+	go Run(v, cmd, file)
 }
