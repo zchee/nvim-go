@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"time"
 
+	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
@@ -84,6 +85,9 @@ func compileCmd(ctxt *context.Build, bang bool, eval CmdBuildEval) (*exec.Cmd, e
 		args     = []string{"build"}
 		buildDir string
 	)
+	if config.BuildForce {
+		bang = true
+	}
 	if compiler == "go" {
 		buildDir = eval.Dir
 		if !bang {
