@@ -69,7 +69,7 @@ docker/build-nocache:
 	${DOCKER_CMD} build --rm --no-cache -t ${GITHUB_USER}/${PACKAGE_NAME} .
 
 clean:
-	@${RM} -r ./bin ./pkg
+	${RM} -r ./bin ./pkg
 
 todo: 
 	@ag 'TODO(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal --ignore Makefile || true
