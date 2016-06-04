@@ -34,6 +34,7 @@ type AstViewVars struct {
 // BuildVars GoBuild command config variable.
 type BuildVars struct {
 	Autosave int64 `eval:"g:go#build#autosave"`
+	Force    int64 `eval:"g:go#build#force"`
 }
 
 // FmtVars GoFmt command config variable.
@@ -43,9 +44,9 @@ type FmtVars struct {
 
 // GuruVars GoGuru command config variable.
 type GuruVars struct {
-	Reflection int64 `eval:"g:go#guru#reflection"`
-	KeepCursor int64 `eval:"g:go#guru#keep_cursor"`
-	JumpFirst  int64 `eval:"g:go#guru#jump_first"`
+	Reflection int64            `eval:"g:go#guru#reflection"`
+	KeepCursor map[string]int64 `eval:"g:go#guru#keep_cursor"`
+	JumpFirst  int64            `eval:"g:go#guru#jump_first"`
 }
 
 // IferrVars GoIferr command config variable.
@@ -94,12 +95,14 @@ var (
 	AstFoldIcon string
 	// BuildAutosave call the GoBuild command automatically at during the BufWritePost.
 	BuildAutosave bool
+	// BuildForce builds the binary instead of fake(use ioutil.TempFiile) build.
+	BuildForce bool
 	// FmtAsync asynchronous call the GoFmt command at during the BufWritePre.
 	FmtAsync bool
 	// GuruReflection use the type reflection on GoGuru commmands.
 	GuruReflection bool
 	// GuruKeepCursor keep the cursor focus to source buffer instead of quickfix or locationlist.
-	GuruKeepCursor bool
+	GuruKeepCursor map[string]int64
 	// GuruJumpFirst jump the first error position on GoGuru commands.
 	GuruJumpFirst bool
 	// IferrAutosave call the GoIferr command automatically at during the BufWritePre.
@@ -144,13 +147,14 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 
 	// Build
 	BuildAutosave = itob(cfg.Build.Autosave)
+	BuildForce = itob(cfg.Build.Force)
 
 	// Fmt
 	FmtAsync = itob(cfg.Fmt.Async)
 
 	// Guru
 	GuruReflection = itob(cfg.Guru.Reflection)
-	GuruKeepCursor = itob(cfg.Guru.KeepCursor)
+	GuruKeepCursor = cfg.Guru.KeepCursor
 	GuruJumpFirst = itob(cfg.Guru.JumpFirst)
 
 	// Iferr

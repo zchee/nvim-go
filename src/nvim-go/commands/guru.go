@@ -135,7 +135,11 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	var scopeDir string
 	switch ctxt.Tool {
 	case "go":
-		scopeDir = strings.TrimPrefix(pathutil.PackagePath(dir), "src"+string(filepath.Separator))
+		pkgDir, err := ctxt.PackageDir(dir)
+		if err != nil {
+			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		}
+		scopeDir = strings.TrimPrefix(pkgDir, "src"+string(filepath.Separator))
 	case "gb":
 		scopeDir = pathutil.GbProjectName(dir, ctxt.GbProjectDir)
 	}
@@ -152,11 +156,11 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	}
 	query.Output = output
 
-	nvim.EchoProgress(v, pkgGuru, "analysing")
+	nvim.EchoProgress(v, pkgGuru, fmt.Sprintf("analysing %s", mode))
 	if err := guru.Run(mode, &query); err != nil {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
-
+	defer nvim.ClearMsg(v)
 	if len(loclist) == 0 {
 		return fmt.Errorf("%s not fount", mode)
 	}
@@ -171,7 +175,11 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		return p.Wait()
 	}
 
-	return quickfix.OpenLoclist(v, w, loclist, config.GuruKeepCursor)
+	var keepCursor bool
+	if int64(1) == config.GuruKeepCursor[mode] {
+		keepCursor = true
+	}
+	return quickfix.OpenLoclist(v, w, loclist, keepCursor)
 }
 
 type fallback struct {
@@ -314,8 +322,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 	var (
 		jh codec.JsonHandle
 	)
-
-	log.Printf("string(data): %+v\n", string(data))
 
 	switch mode {
 
