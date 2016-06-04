@@ -136,41 +136,6 @@
 			"path": "/codec"
 		},
 		{
-			"importpath": "golang.org/x/debug/dwarf",
-			"repository": "https://go.googlesource.com/debug",
-			"revision": "846e2cd1687172d7ce8b1bb507504ac63765ab45",
-			"branch": "master",
-			"path": "/dwarf"
-		},
-		{
-			"importpath": "golang.org/x/debug/macho",
-			"repository": "https://go.googlesource.com/debug",
-			"revision": "846e2cd1687172d7ce8b1bb507504ac63765ab45",
-			"branch": "master",
-			"path": "/macho"
-		},
-		{
-			"importpath": "golang.org/x/net/http2/hpack",
-			"repository": "https://go.googlesource.com/net",
-			"revision": "30db96677b74e24b967e23f911eb3364fc61a011",
-			"branch": "master",
-			"path": "/http2/hpack"
-		},
-		{
-			"importpath": "golang.org/x/net/lex/httplex",
-			"repository": "https://go.googlesource.com/net",
-			"revision": "30db96677b74e24b967e23f911eb3364fc61a011",
-			"branch": "master",
-			"path": "/lex/httplex"
-		},
-		{
-			"importpath": "golang.org/x/net/route",
-			"repository": "https://go.googlesource.com/net",
-			"revision": "30db96677b74e24b967e23f911eb3364fc61a011",
-			"branch": "master",
-			"path": "/route"
-		},
-		{
 			"importpath": "golang.org/x/sys/unix",
 			"repository": "https://go.googlesource.com/sys",
 			"revision": "d4feaf1a7e61e1d9e79e6c4e76c6349e9cab0a03",
