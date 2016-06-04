@@ -1,7 +1,6 @@
 package pathutil
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -38,11 +37,4 @@ func RelPath(f, cwd string) string {
 	}
 	rel, _ := filepath.Rel(cwd, f)
 	return rel
-}
-
-func PackagePath(p string) string {
-	goPath := os.Getenv("GOPATH")
-	p = FindVcsRoot(p)
-
-	return strings.Replace(p, goPath+string(filepath.Separator), "", 1)
 }

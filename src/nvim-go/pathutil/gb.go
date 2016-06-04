@@ -1,7 +1,6 @@
 package pathutil
 
 import (
-	"fmt"
 	"go/build"
 	"io/ioutil"
 	"os"
@@ -11,31 +10,8 @@ import (
 	"github.com/juju/errors"
 )
 
-// FindGbProjectRoot works upwards from path seaching for the
-// src/ directory which identifies the project root.
-// Code taken directly from gb.
-//  github.com/constabulary/gb/cmd/path.go
-func FindGbProjectRoot(path string) (string, error) {
-	if path == "" {
-		return "", fmt.Errorf("project root is blank")
-	}
-	start := path
-	for path != filepath.Dir(path) {
-		root := filepath.Join(path, "src")
-		if _, err := os.Stat(root); err != nil {
-			if os.IsNotExist(err) {
-				path = filepath.Dir(path)
-				continue
-			}
-			return "", err
-		}
-		return path, nil
-	}
-	return "", fmt.Errorf(`could not find project root in "%s" or its parents`, start)
-}
-
-func GbProjectName(p, projectDir string) string {
-	pkgPath := strings.Replace(p, filepath.Join(projectDir, "src")+string(filepath.Separator), "", 1)
+func GbProjectName(p, gbProjectDir string) string {
+	pkgPath := strings.Replace(p, filepath.Join(gbProjectDir, "src")+string(filepath.Separator), "", 1)
 	return strings.Split(pkgPath, string(filepath.Separator))[0]
 }
 
