@@ -29,16 +29,13 @@ func Definition(q *guru.Query) (*serial.Definition, error) {
 	{
 		qpos, err := fastQueryPos(q.Build, q.Pos)
 		if err != nil {
-			// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 			return nil, err
 		}
 
 		id, _ := qpos.path[0].(*ast.Ident)
 		if id == nil {
 			err := errors.New("no identifier here")
-			// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 			return nil, err
-			// return nil, nil
 		}
 
 		// Did the parser resolve it to a local object?
@@ -54,7 +51,6 @@ func Definition(q *guru.Query) (*serial.Definition, error) {
 			srcdir := filepath.Dir(qpos.fset.File(qpos.start).Name())
 			tok, pos, err := guru.FindPackageMember(q.Build, qpos.fset, srcdir, pkg, id.Name)
 			if err != nil {
-				// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 				return nil, err
 			}
 			return &serial.Definition{
@@ -71,28 +67,23 @@ func Definition(q *guru.Query) (*serial.Definition, error) {
 	allowErrors(&lconf)
 
 	if _, err := importQueryPackage(q.Pos, &lconf); err != nil {
-		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		return nil, err
 	}
 
 	// Load/parse/type-check the program.
 	lprog, err := lconf.Load()
 	if err != nil {
-		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		return nil, err
 	}
 
 	qpos, err := parseQueryPos(lprog, q.Pos, false)
 	if err != nil {
-		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		return nil, err
 	}
 
 	id, _ := qpos.path[0].(*ast.Ident)
 	if id == nil {
 		err := errors.New("no identifier here")
-		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
-		// return nil, nil
 		return nil, err
 	}
 
@@ -102,15 +93,11 @@ func Definition(q *guru.Query) (*serial.Definition, error) {
 		// and the package declaration,
 		// but I think that's all.
 		err := errors.New("no object for identifier")
-		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
-		// return nil, nil
 		return nil, err
 	}
 
 	if !obj.Pos().IsValid() {
 		err := errors.Errorf("%s is built in", obj.Name())
-		// nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
-		// return nil, nil
 		return nil, err
 	}
 
