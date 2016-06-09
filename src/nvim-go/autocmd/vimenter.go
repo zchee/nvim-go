@@ -28,8 +28,9 @@ func vimEnter(v *vim.Vim, cfg *config.Config) error {
 	config.Getconfig(v, cfg)
 
 	if config.DebugPprof {
-		log.Printf("Start pprof debug\n")
-		log.Println(http.ListenAndServe("0.0.0.0:6060", http.DefaultServeMux))
+		addr := "127.0.0.1:6060"
+		log.Printf("Start pprof debug listen %s\n", addr)
+		log.Println(http.ListenAndServe(addr, http.DefaultServeMux))
 	}
 	return nil
 }
