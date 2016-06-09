@@ -56,7 +56,7 @@ func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
 
 	err = cmd.Run()
 	if err == nil {
-		return nvim.EchoSuccess(v, "GoBuild", fmt.Sprintf("tool: %s", ctxt.Tool))
+		return nvim.EchoSuccess(v, "GoBuild", fmt.Sprintf("compiler: %s", ctxt.Tool))
 	}
 
 	if _, ok := err.(*exec.ExitError); ok {
