@@ -12,6 +12,7 @@ type Config struct {
 	AstView    AstViewVars
 	Build      BuildVars
 	Fmt        FmtVars
+	Generate   GenerateVars
 	Guru       GuruVars
 	Iferr      IferrVars
 	Metalinter MetalinterVars
@@ -40,6 +41,11 @@ type BuildVars struct {
 // FmtVars GoFmt command config variable.
 type FmtVars struct {
 	Async int64 `eval:"g:go#fmt#async"`
+}
+
+// GenerateVars GoGenerate command config variables.
+type GenerateVars struct {
+	ExclFuncs string `eval:"g:go#generate#exclude"`
 }
 
 // GuruVars GoGuru command config variable.
@@ -99,6 +105,8 @@ var (
 	BuildForce bool
 	// FmtAsync asynchronous call the GoFmt command at during the BufWritePre.
 	FmtAsync bool
+	// GenerateExclFuncs exclude function of generate test.
+	GenerateExclFuncs string
 	// GuruReflection use the type reflection on GoGuru commmands.
 	GuruReflection bool
 	// GuruKeepCursor keep the cursor focus to source buffer instead of quickfix or locationlist.
@@ -151,6 +159,9 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 
 	// Fmt
 	FmtAsync = itob(cfg.Fmt.Async)
+
+	// Generate
+	GenerateExclFuncs = cfg.Generate.ExclFuncs
 
 	// Guru
 	GuruReflection = itob(cfg.Guru.Reflection)

@@ -20,6 +20,8 @@ let go#build#force = get(g:, 'go#build#force', 0)
 " GoFmt
 let g:go#fmt#async = get(g:, 'go#fmt#async', 0)
 
+let g:go#generate#exclude = get(g:, 'go#generate#exclude', 'init$')
+
 " GoGuru
 let g:go#guru#reflection  = get(g:, 'go#guru#reflection', 0)
 let g:go#guru#keep_cursor = get(g:, 'go#guru#keep_cursor',
@@ -89,7 +91,7 @@ endfunction
 let s:specs = [
 \ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 1, 'opts': {'eval': '[getcwd(), expand(''%:p:h'')]', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 1, 'opts': {'eval': '[getcwd(), expand(''%:p'')]', 'group': 'nvim-go', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': '{''Remote'': {}, ''AstView'': {''FoldIcon'': g:go#ast#foldicon}, ''Build'': {''Autosave'': g:go#build#autosave, ''Force'': g:go#build#force}, ''Fmt'': {''Async'': g:go#fmt#async}, ''Guru'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}, ''Iferr'': {''IferrAutosave'': g:go#iferr#autosave}, ''Metalinter'': {''Autosave'': g:go#lint#metalinter#autosave, ''AutosaveTools'': g:go#lint#metalinter#autosave#tools, ''Tools'': g:go#lint#metalinter#tools, ''Deadline'': g:go#lint#metalinter#deadline, ''SkipDir'': g:go#lint#metalinter#skip_dir}, ''Rename'': {''Prefill'': g:go#rename#prefill}, ''Terminal'': {''Mode'': g:go#terminal#mode, ''Position'': g:go#terminal#position, ''Height'': g:go#terminal#height, ''Width'': g:go#terminal#width, ''StartInsetrt'': g:go#terminal#start_insert}, ''Test'': {''TestAutosave'': g:go#test#autosave, ''TestArgs'': g:go#test#args}, ''Debug'': {''Pprof'': g:go#debug#pprof}}', 'group': 'nvim-go', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': '{''Remote'': {}, ''AstView'': {''FoldIcon'': g:go#ast#foldicon}, ''Build'': {''Autosave'': g:go#build#autosave, ''After'': g:go#build#after, ''Force'': g:go#build#force}, ''Fmt'': {''Async'': g:go#fmt#async}, ''Generate'': {''ExclFuncs'': g:go#generate#exclude}, ''Guru'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}, ''Iferr'': {''IferrAutosave'': g:go#iferr#autosave}, ''Metalinter'': {''Autosave'': g:go#lint#metalinter#autosave, ''AutosaveTools'': g:go#lint#metalinter#autosave#tools, ''Tools'': g:go#lint#metalinter#tools, ''Deadline'': g:go#lint#metalinter#deadline, ''SkipDir'': g:go#lint#metalinter#skip_dir}, ''Rename'': {''Prefill'': g:go#rename#prefill}, ''Terminal'': {''Mode'': g:go#terminal#mode, ''Position'': g:go#terminal#position, ''Height'': g:go#terminal#height, ''Width'': g:go#terminal#width, ''StartInsetrt'': g:go#terminal#start_insert}, ''Test'': {''TestAutosave'': g:go#test#autosave, ''TestArgs'': g:go#test#args}, ''Debug'': {''Pprof'': g:go#debug#pprof}}', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'VimLeavePre', 'sync': 0, 'opts': {'group': 'nvim-go', 'pattern': '*.go,terminal,context,thread'}},
 \ {'type': 'command', 'name': 'DlvBreakpoint', 'sync': 0, 'opts': {'complete': 'customlist,DlvListFunctions', 'eval': '[expand(''%:p'')]', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'DlvContinue', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h'')]'}},

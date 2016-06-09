@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
@@ -32,9 +33,10 @@ func cmdGenerateTest(v *vim.Vim, files []string, dir string) {
 // GenerateTest generates the test files based by current buffer or args files
 // functions.
 // TODO(zchee): Currently Support '-all' flag only.
-// Needs support -excl, -exported, -i, -only flags.
+// Needs support -exported, -i, -only flags.
 func GenerateTest(v *vim.Vim, files []string, dir string) error {
 	defer profile.Start(time.Now(), "GenerateTest")
+
 	var ctxt = context.Build{}
 	defer ctxt.SetContext(filepath.Dir(dir))()
 
@@ -48,12 +50,12 @@ func GenerateTest(v *vim.Vim, files []string, dir string) error {
 		if err != nil {
 			return nvim.Echoerr(v, "GoGenerateTest: %v", err)
 		}
-		files = append(files, f)
+		files = []string{f}
 	}
 
 	var opt = process.Options{
 		AllFuncs:    true,
-		ExclFuncs:   "init",
+		ExclFuncs:   config.GenerateExclFuncs,
 		WriteOutput: true,
 		PrintInputs: true,
 	}
