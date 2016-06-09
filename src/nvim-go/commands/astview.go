@@ -15,11 +15,15 @@ import (
 	"unsafe"
 
 	"nvim-go/config"
+	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/juju/errors"
 )
+
+const pkgAstView = "AstView"
 
 var (
 	astInfo []byte
@@ -35,28 +39,32 @@ type cmdAstEval struct {
 }
 
 func cmdAstView(v *vim.Vim, eval *cmdAstEval) {
-	go AstView(v, eval)
+	go astView(v, eval)
 }
 
 // AstView gets the Go AST informations of current buffer.
-func AstView(v *vim.Vim, eval *cmdAstEval) error {
+func astView(v *vim.Vim, eval *cmdAstEval) error {
 	defer profile.Start(time.Now(), "AstView")
 
 	var (
-		b vim.Buffer
-		w vim.Window
+		b   vim.Buffer
+		w   vim.Window
+		blc int
 	)
 
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
-	if err := p.Wait(); err != nil {
-		return err
+	p.CurrentWindow(&w)
+	err := p.Wait()
+	if err != nil {
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgAstView))
 	}
 
-	var sources [][]byte
-	p.BufferLines(b, 0, -1, false, &sources)
+	sources := make([][]byte, blc)
+	p.BufferLines(b, 0, -1, true, &sources)
+	p.BufferLineCount(b, &blc)
 	if err := p.Wait(); err != nil {
-		return err
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgAstView))
 	}
 
 	var buf []byte
@@ -68,7 +76,7 @@ func AstView(v *vim.Vim, eval *cmdAstEval) error {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, eval.File, buf, parser.AllErrors|parser.ParseComments)
 	if err != nil {
-		return err
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgAstView))
 	}
 
 	_, file := filepath.Split(eval.File)
@@ -77,30 +85,40 @@ func AstView(v *vim.Vim, eval *cmdAstEval) error {
 
 	astinfo := bytes.Split(bytes.TrimSuffix(astInfo, []byte{'\n'}), []byte{'\n'})
 	if err := p.Wait(); err != nil {
-		return err
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgAstView))
 	}
+
+	var (
+		astBuf vim.Buffer
+		astWin vim.Window
+	)
 
 	p.Command("vertical botright 80 new")
-	p.CurrentBuffer(&b)
-	p.CurrentWindow(&w)
+	p.CurrentBuffer(&astBuf)
+	p.CurrentWindow(&astWin)
 	if err := p.Wait(); err != nil {
-		return err
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgAstView))
 	}
 
-	p.SetWindowOption(w, "number", false)
-	p.SetWindowOption(w, "list", false)
-	p.SetWindowOption(w, "colorcolumn", "")
+	p.SetWindowOption(astWin, "number", false)
+	p.SetWindowOption(astWin, "list", false)
+	p.SetWindowOption(astWin, "colorcolumn", "")
 
-	p.SetBufferName(b, "__GoAstView__")
-	p.SetBufferOption(b, "modifiable", true)
-	p.SetBufferLines(b, 0, -1, true, astinfo)
-	p.SetBufferOption(b, "buftype", "nofile")
-	p.SetBufferOption(b, "bufhidden", "delete")
-	p.SetBufferOption(b, "buflisted", false)
-	p.SetBufferOption(b, "swapfile", false)
-	p.SetBufferOption(b, "modifiable", false)
-	p.SetBufferOption(b, "filetype", "goastview")
+	p.SetBufferName(astBuf, "__GoAstView__")
+	p.SetBufferOption(astBuf, "modifiable", true)
+	p.SetBufferLines(astBuf, 0, -1, true, astinfo)
+	p.SetBufferOption(astBuf, "buftype", "nofile")
+	p.SetBufferOption(astBuf, "bufhidden", "delete")
+	p.SetBufferOption(astBuf, "buflisted", false)
+	p.SetBufferOption(astBuf, "swapfile", false)
+	p.SetBufferOption(astBuf, "modifiable", false)
+	p.SetBufferOption(astBuf, "filetype", "goastview")
 	p.Command("runtime! syntax/goastview.vim")
+	if err := p.Wait(); err != nil {
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgAstView))
+	}
+
+	p.SetCurrentWindow(w)
 
 	return p.Wait()
 }
