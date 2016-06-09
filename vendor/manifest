@@ -94,7 +94,7 @@
 		{
 			"importpath": "github.com/garyburd/neovim-go",
 			"repository": "https://github.com/garyburd/neovim-go",
-			"revision": "6d2309128163fe8e035fbc2cc8fa6ca5b8ae6a63",
+			"revision": "541e248d530885213fa63c3ce2aa74acce56c692",
 			"branch": "master"
 		},
 		{
