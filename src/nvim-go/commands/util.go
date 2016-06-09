@@ -5,6 +5,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"nvim-go/nvim"
 	"nvim-go/nvim/buffer"
 
@@ -25,7 +27,8 @@ func cmdBuffers(v *vim.Vim) error {
 	bufs, _ := v.Buffers()
 	var b []string
 	for _, buf := range bufs {
-		b = append(b, buf.String())
+		nr, _ := v.BufferNumber(buf)
+		b = append(b, fmt.Sprintf("%d", nr))
 	}
 	return nvim.Echomsg(v, "Buffers:", b)
 }
