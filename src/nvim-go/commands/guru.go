@@ -57,7 +57,7 @@ func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
 }
 
 // Guru go source analysis and output result to the quickfix or locationlist.
-func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
+func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 	defer profile.Start(time.Now(), "Guru")
 	mode := args[0]
 	if len(args) > 1 {
@@ -67,6 +67,13 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 	ctxt := new(context.Build)
 	dir, _ := filepath.Split(eval.File)
 	defer ctxt.SetContext(dir)()
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.Errorf("guru internal panic.\nMaybe your set 'g:go#guru#reflection' to 1. Please retry with disable it option.\nOriginal panic message:\n\t%v", r.(error))
+			nvim.ErrorWrap(v, err)
+		}
+	}()
 
 	var (
 		b vim.Buffer
@@ -132,18 +139,16 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) error {
 		return nil
 	}
 
-	var scopeDir string
 	switch ctxt.Tool {
 	case "go":
 		pkgDir, err := ctxt.PackageDir(dir)
 		if err != nil {
 			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		}
-		scopeDir = strings.TrimPrefix(pkgDir, "src"+string(filepath.Separator))
+		query.Scope = []string{strings.TrimPrefix(pkgDir, "src"+string(filepath.Separator))}
 	case "gb":
-		scopeDir = pathutil.GbProjectName(dir, ctxt.GbProjectDir)
+		query.Scope = []string{pathutil.GbProjectName(dir, ctxt.GbProjectDir) + string(filepath.Separator) + "..."}
 	}
-	query.Scope = []string{scopeDir + string(filepath.Separator) + "..."}
 
 	var outputMu sync.Mutex
 	output := func(fset *token.FileSet, qr guru.QueryResult) {
@@ -320,14 +325,14 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		text    string
 	)
 	var (
-		jh codec.JsonHandle
+		jh  codec.JsonHandle
+		dec = codec.NewDecoderBytes(data, &jh)
 	)
 
 	switch mode {
 
 	case "callees":
 		var value = serial.Callees{}
-		dec := codec.NewDecoderBytes(data, &jh)
 		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
@@ -345,7 +350,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "callers":
 		var value = []serial.Caller{}
-		dec := codec.NewDecoderBytes(data, &jh)
 		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
@@ -363,7 +367,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "callstack":
 		var value = serial.CallStack{}
-		dec := codec.NewDecoderBytes(data, &jh)
 		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
@@ -381,7 +384,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "describe":
 		var value = serial.Describe{}
-		dec := codec.NewDecoderBytes(data, &jh)
 		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
@@ -397,7 +399,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "freevars":
 		var value = serial.FreeVar{}
-		dec := codec.NewDecoderBytes(data, &jh)
 		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
@@ -413,7 +414,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "implements":
 		var value = serial.Implements{}
-		dec := codec.NewDecoderBytes(data, &jh)
 		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
@@ -429,7 +429,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "peers":
 		var value = serial.Peers{}
-		dec := codec.NewDecoderBytes(data, &jh)
 		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
@@ -480,7 +479,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "pointsto":
 		var value = []serial.PointsTo{}
-		dec := codec.NewDecoderBytes(data, &jh)
 		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
@@ -508,7 +506,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "referrers":
 		var packages = serial.ReferrersPackage{}
-		dec := codec.NewDecoderBytes(data, &jh)
 		if err := dec.Decode(&packages); err != nil {
 			return loclist, err
 		}
@@ -524,7 +521,6 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 
 	case "whicherrs":
 		var value = serial.WhichErrs{}
-		dec := codec.NewDecoderBytes(data, &jh)
 		err := dec.Decode(&value)
 		if err != nil {
 			return loclist, err
