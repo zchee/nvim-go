@@ -35,8 +35,8 @@ func TestBuildContext(t *testing.T) {
 	}
 	for _, tt := range tests {
 		ctxt := &Build{
-			Tool:    tt.rTool,
-			Context: tt.rContext,
+			Tool:         tt.rTool,
+			BuildContext: tt.rContext,
 		}
 		got, got1 := ctxt.buildContext(tt.p)
 		if got != tt.want {
@@ -104,8 +104,8 @@ func TestIsGb(t *testing.T) {
 	}
 	for _, tt := range tests {
 		ctxt := &Build{
-			Tool:    tt.rTool,
-			Context: tt.rContext,
+			Tool:         tt.rTool,
+			BuildContext: tt.rContext,
 		}
 		got, got1 := ctxt.isGb(tt.p) // projDir string, isGb bool
 		if got1 != tt.want1 {        // Check the isGb package
@@ -134,8 +134,8 @@ func TestSetContext(t *testing.T) {
 	}
 	for _, tt := range tests {
 		c := &Build{
-			Tool:    tt.rTool,
-			Context: tt.rContext,
+			Tool:         tt.rTool,
+			BuildContext: tt.rContext,
 		}
 		if got := c.SetContext(tt.p); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("Build.SetContext(%v) = %v, want %v", tt.p, got, tt.want)

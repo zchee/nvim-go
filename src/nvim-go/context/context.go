@@ -16,12 +16,12 @@ import (
 
 const pkgContext = "context"
 
-// Build specifies the supporting context for a build and embedded
-// build.Context type struct.
+// Build specifies the supporting context for a build and embedded build.Context type struct.
 type Build struct {
 	Tool         string
 	GbProjectDir string
-	build.Context
+	BuildContext build.Context
+	BuildDefault build.Context
 }
 
 // GoPath return the new GOPATH estimated from the path p directory structure.
@@ -55,15 +55,16 @@ func (ctxt *Build) SetContext(p string) func() {
 	contextMu.Lock()
 	original := build.Default.GOPATH
 
-	ctxt.Context = build.Default
+	ctxt.BuildDefault = build.Default
+	ctxt.BuildContext = ctxt.BuildDefault
 
 	build.Default.GOPATH, ctxt.Tool = ctxt.buildContext(p)
-	ctxt.Context.GOPATH = build.Default.GOPATH
+	ctxt.BuildContext.GOPATH = build.Default.GOPATH
 	os.Setenv("GOPATH", build.Default.GOPATH)
 
 	return func() {
 		build.Default.GOPATH = original
-		ctxt.Context.GOPATH = build.Default.GOPATH
+		ctxt.BuildContext.GOPATH = build.Default.GOPATH
 		os.Setenv("GOPATH", build.Default.GOPATH)
 		contextMu.Unlock()
 	}
@@ -75,7 +76,7 @@ func (ctxt *Build) PackageDir(dir string) (string, error) {
 	savePkg := new(build.Package)
 	for {
 		// Get the current files package information
-		pkg, err := ctxt.ImportDir(dir, build.IgnoreVendor)
+		pkg, err := ctxt.BuildContext.ImportDir(dir, build.IgnoreVendor)
 		// noGoError := &build.NoGoError{Dir: dir}
 		if _, ok := err.(*build.NoGoError); ok {
 			// if err == noGoError {
@@ -118,9 +119,9 @@ func (ctxt *Build) isGb(dir string) (string, bool) {
 	return root, true
 }
 
-// FindGbProjectRoot works upwards from path seaching for the
-// src/ directory which identifies the project root.
-// Code taken directly from gb.
+// FindGbProjectRoot works upwards from path seaching for the src/ directory
+// which identifies the project root.
+// Code taken directly from constabulary/gb.
 //  github.com/constabulary/gb/cmd/path.go
 func FindGbProjectRoot(path string) (string, error) {
 	if path == "" {

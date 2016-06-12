@@ -105,7 +105,7 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 		os.Stderr = saveStdout
 	}()
 
-	if err := rename.Main(&ctxt.Context, pos, "", to); err != nil {
+	if err := rename.Main(&ctxt.BuildContext, pos, "", to); err != nil {
 		write.Close()
 		er, _ := ioutil.ReadAll(read)
 		go func() {

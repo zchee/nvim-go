@@ -86,7 +86,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
 
-	guruContext := &ctxt.Context
+	guruContext := &ctxt.BuildContext
 
 	// https://github.com/golang/tools/blob/master/cmd/guru/main.go
 	if eval.Modified != 0 {

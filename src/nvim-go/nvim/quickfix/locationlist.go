@@ -152,7 +152,7 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistDat
 
 			switch ctxt.Tool {
 			case "go":
-				sep := filepath.Join(ctxt.GOPATH, "src")
+				sep := filepath.Join(ctxt.BuildContext.GOPATH, "src")
 				c := strings.TrimPrefix(cwd, sep+string(filepath.Separator))
 				fname = strings.TrimPrefix(filepath.Clean(fpath), c+string(filepath.Separator))
 
