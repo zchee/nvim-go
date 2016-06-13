@@ -15,6 +15,12 @@
 			"path": "/gotests/process"
 		},
 		{
+			"importpath": "github.com/davecgh/go-spew",
+			"repository": "https://github.com/davecgh/go-spew",
+			"revision": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/derekparker/delve/config",
 			"repository": "https://github.com/derekparker/delve",
 			"revision": "a620c04f8dd214199f60bc148c76744c3904fc78",
@@ -101,6 +107,18 @@
 			"importpath": "github.com/juju/errors",
 			"repository": "https://github.com/juju/errors",
 			"revision": "b2c7a7da5b2995941048f60146e67702a292e468",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/k0kubun/pp",
+			"repository": "https://github.com/k0kubun/pp",
+			"revision": "f5dce6ed0ccf6c350f1679964ff6b61f3d6d2033",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/mattn/go-colorable",
+			"repository": "https://github.com/mattn/go-colorable",
+			"revision": "9056b7a9f2d1f2d96498d6d146acd1f9d5ed3d59",
 			"branch": "master"
 		},
 		{
