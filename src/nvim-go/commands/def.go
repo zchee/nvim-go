@@ -97,7 +97,7 @@ func Def(v *vim.Vim, file string) error {
 			}
 
 			p.Command(fmt.Sprintf("edit %s", pos.Filename))
-			p.SetWindowCursor(w, [2]int{pos.Line, pos.Column})
+			p.SetWindowCursor(w, [2]int{pos.Line, pos.Column - 1})
 			p.Command("normal zz")
 
 			return nil
