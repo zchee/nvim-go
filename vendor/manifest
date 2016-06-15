@@ -35,6 +35,13 @@
 			"path": "/dwarf/debug/dwarf"
 		},
 		{
+			"importpath": "github.com/derekparker/delve/dwarf/debug/elf",
+			"repository": "https://github.com/derekparker/delve",
+			"revision": "ede880134c0997ee18355cc20d85a8ca96512356",
+			"branch": "master",
+			"path": "/dwarf/debug/elf"
+		},
+		{
 			"importpath": "github.com/derekparker/delve/dwarf/debug/macho",
 			"repository": "https://github.com/derekparker/delve",
 			"revision": "a620c04f8dd214199f60bc148c76744c3904fc78",
