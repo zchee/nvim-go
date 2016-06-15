@@ -141,11 +141,11 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 
 	switch ctxt.Tool {
 	case "go":
-		pkgDir, err := ctxt.PackageDir(dir)
+		pkgPath, err := ctxt.PackagePath(dir)
 		if err != nil {
 			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		}
-		query.Scope = []string{strings.TrimPrefix(pkgDir, "src"+string(filepath.Separator))}
+		query.Scope = []string{strings.TrimPrefix(pkgPath, "src"+string(filepath.Separator))}
 	case "gb":
 		query.Scope = []string{pathutil.GbProjectName(dir, ctxt.GbProjectDir) + string(filepath.Separator) + "..."}
 	}

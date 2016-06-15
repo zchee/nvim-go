@@ -69,7 +69,7 @@ func (ctxt *Build) SetContext(p string) func() {
 	}
 }
 
-func (ctxt *Build) PackageDir(dir string) (string, error) {
+func (ctxt *Build) PackagePath(dir string) (string, error) {
 	dir = filepath.Clean(dir)
 
 	savePkg := new(build.Package)
