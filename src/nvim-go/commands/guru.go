@@ -262,6 +262,7 @@ func definitionFallback(q *guru.Query, c chan fallback) {
 		ParserMode: parser.ImportsOnly,
 		TypeChecker: types.Config{
 			IgnoreFuncBodies:         true,
+			FakeImportC:              true,
 			DisableUnusedImportCheck: true,
 		},
 		Build: q.Build,
@@ -315,7 +316,7 @@ func definitionFallback(q *guru.Query, c chan fallback) {
 	return
 }
 
-// TODO(zchee): Should not use json.Unmarshal(Fast).
+// TODO(zchee): Should not use json.
 func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*quickfix.ErrorlistData, error) {
 	var (
 		loclist []*quickfix.ErrorlistData
