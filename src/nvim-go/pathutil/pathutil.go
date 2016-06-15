@@ -1,7 +1,6 @@
 package pathutil
 
 import (
-	"go/build"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -45,8 +44,6 @@ func Expand(p string) string {
 	switch {
 	case strings.Index(p, "$GOROOT") != 1:
 		return strings.Replace(p, "$GOROOT", runtime.GOROOT(), 1)
-	case strings.Index(p, "$GOPATH") != 1:
-		return strings.Replace(p, "$GOPATH", build.Default.GOPATH, 1)
 	}
 
 	return p // Not hit
