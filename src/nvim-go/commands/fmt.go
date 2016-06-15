@@ -11,6 +11,7 @@ import (
 
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/buffer"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
@@ -89,11 +90,13 @@ func Fmt(v *vim.Vim, dir string) error {
 		return errors.Annotate(err, "GoFmt")
 	}
 
-	quickfix.CloseLoclist(v)
+	defer quickfix.CloseLoclist(v)
+	out := buffer.ToBufferLines(v, bytes.TrimSuffix(buf, []byte{'\n'}))
 
-	out := bytes.Split(bytes.TrimSuffix(buf, []byte{'\n'}), []byte{'\n'})
-
-	return minUpdate(v, b, in, out)
+	var cpos interface{}
+	v.Call("winsaveview", cpos)
+	minUpdate(v, b, in, out)
+	return v.Call("winrestview", nil, cpos)
 }
 
 func minUpdate(v *vim.Vim, b vim.Buffer, in [][]byte, out [][]byte) error {
