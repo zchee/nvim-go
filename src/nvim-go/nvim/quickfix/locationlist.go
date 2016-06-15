@@ -6,12 +6,15 @@ package quickfix
 
 import (
 	"bytes"
+	"fmt"
+	"go/token"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"nvim-go/context"
+	"nvim-go/pathutil"
 
 	"github.com/garyburd/neovim-go/vim"
 )
@@ -103,6 +106,16 @@ func OpenOuickfix(p *vim.Pipeline, w vim.Window, keep bool) error {
 // CloseQuickfix close the quickfix list window.
 func CloseQuickfix(v *vim.Vim) error {
 	return v.Command("cclose")
+}
+
+func GotoPos(v *vim.Vim, w vim.Window, pos token.Position, cwd string) error {
+	fname, line, col := SplitPos(pos.String(), cwd)
+
+	v.Command(fmt.Sprintf("silent edit %s", pathutil.Expand(fname)))
+	v.SetWindowCursor(w, [2]int{line, col - 1})
+	defer v.Command(`lclose`)
+
+	return v.Command(`normal zz`)
 }
 
 // SplitPos parses a string of form 'token.Pos', and return the relative
