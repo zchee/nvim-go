@@ -15,6 +15,10 @@ func (ctxt *Build) isGb(dir string) (string, bool) {
 		return "", false
 	}
 
+	// Check current directory whether "vendor", and overwrite root path
+	if filepath.Base(root) == "vendor" {
+		root = filepath.Dir(root)
+	}
 	// FindGbProjectRoot Gets the GOPATH root if go directory structure.
 	// Recheck use vendor directory.
 	vendor := filepath.Join(root, "vendor")
