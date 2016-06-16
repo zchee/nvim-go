@@ -30,38 +30,6 @@ func TestGuru(t *testing.T) {
 	}
 }
 
-func BenchmarkGuruCallees(b *testing.B) {
-	v := benchVim(b, gsftpMain)
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		if err := Guru(v, []string{"callees"}, &funcGuruEval{
-			Cwd:      gsftp,
-			File:     gsftpMain,
-			Modified: 0,
-			Offset:   2027, // client, err := sftp.|N|ewClient(conn)
-		}); err != nil {
-			b.Errorf(":BenchmarkGuruCallees %v", err)
-		}
-	}
-}
-
-func BenchmarkGuruCallers(b *testing.B) {
-	v := benchVim(b, gsftpMain)
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		if err := Guru(v, []string{"callers"}, &funcGuruEval{
-			Cwd:      gsftp,
-			File:     gsftpMain,
-			Modified: 0,
-			Offset:   2027, // client, err := sftp.|N|ewClient(conn)
-		}); err != nil {
-			b.Errorf("BenchmarkGuruCallers: %v", err)
-		}
-	}
-}
-
 func TestDefinition(t *testing.T) {
 	tests := []struct {
 		// Parameters.
@@ -76,26 +44,9 @@ func TestDefinition(t *testing.T) {
 		got, err := definition(tt.q)
 		if (err != nil) != tt.wantErr {
 			t.Errorf("definition(%v) error = %v, wantErr %v", tt.q, err, tt.wantErr)
-			continue
 		}
 		if !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("definition(%v) = %v, want %v", tt.q, got, tt.want)
-		}
-	}
-}
-
-func BenchmarkGuruDefinition(b *testing.B) {
-	v := benchVim(b, gsftpMain)
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		if err := Guru(v, []string{"definition"}, &funcGuruEval{
-			Cwd:      gsftp,
-			File:     gsftpMain,
-			Modified: 0,
-			Offset:   2027, // client, err := sftp.|N|ewClient(conn)
-		}); err != nil {
-			b.Errorf("BenchmarkGuruDefinition: %v", err)
 		}
 	}
 }
@@ -127,22 +78,6 @@ func TestDefinitionFallback(t *testing.T) {
 	}
 	for _, tt := range tests {
 		definitionFallback(tt.q, tt.c)
-	}
-}
-
-func BenchmarkGuruDefinitionFallback(b *testing.B) {
-	v := benchVim(b, gsftpMain)
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		if err := Guru(v, []string{"definition"}, &funcGuruEval{
-			Cwd:      gsftp,
-			File:     gsftpMain,
-			Modified: 0,
-			Offset:   2132, // defer conn.|C|lose()
-		}); err != nil {
-			b.Errorf("BenchmarkGuruDefinitionFallback: %v", err)
-		}
 	}
 }
 
@@ -187,3 +122,67 @@ func TestGuruHelp(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkGuruDefinition(b *testing.B) {
+	v := benchVim(b, gsftpMain)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		if err := Guru(v, []string{"definition"}, &funcGuruEval{
+			Cwd:      gsftp,
+			File:     gsftpMain,
+			Modified: 0,
+			Offset:   2027, // client, err := sftp.|N|ewClient(conn)
+		}); err != nil {
+			b.Errorf("BenchmarkGuruDefinition: %v", err)
+		}
+	}
+}
+
+func BenchmarkGuruDefinitionFallback(b *testing.B) {
+	v := benchVim(b, gsftpMain)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		if err := Guru(v, []string{"definition"}, &funcGuruEval{
+			Cwd:      gsftp,
+			File:     gsftpMain,
+			Modified: 0,
+			Offset:   2132, // defer conn.|C|lose()
+		}); err != nil {
+			b.Errorf("BenchmarkGuruDefinitionFallback: %v", err)
+		}
+	}
+}
+
+// func BenchmarkGuruCallees(b *testing.B) {
+// 	v := benchVim(b, gsftpMain)
+// 	b.ResetTimer()
+//
+// 	for i := 0; i < b.N; i++ {
+// 		if err := Guru(v, []string{"callees"}, &funcGuruEval{
+// 			Cwd:      gsftp,
+// 			File:     gsftpMain,
+// 			Modified: 0,
+// 			Offset:   2027, // client, err := sftp.|N|ewClient(conn)
+// 		}); err != nil {
+// 			b.Errorf(":BenchmarkGuruCallees %v", err)
+// 		}
+// 	}
+// }
+
+// func BenchmarkGuruCallers(b *testing.B) {
+// 	v := benchVim(b, gsftpMain)
+// 	b.ResetTimer()
+//
+// 	for i := 0; i < b.N; i++ {
+// 		if err := Guru(v, []string{"callers"}, &funcGuruEval{
+// 			Cwd:      gsftp,
+// 			File:     gsftpMain,
+// 			Modified: 0,
+// 			Offset:   2027, // client, err := sftp.|N|ewClient(conn)
+// 		}); err != nil {
+// 			b.Errorf("BenchmarkGuruCallers: %v", err)
+// 		}
+// 	}
+// }
