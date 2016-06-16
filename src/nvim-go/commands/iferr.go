@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"go/format"
 	"go/parser"
+	"go/types"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -54,8 +55,11 @@ func Iferr(v *vim.Vim, file string) error {
 	}
 
 	conf := loader.Config{
-		AllowErrors: false,
 		ParserMode:  parser.ParseComments,
+		TypeChecker: types.Config{FakeImportC: true, DisableUnusedImportCheck: false},
+		Build:       &ctxt.BuildContext,
+		Cwd:         dir,
+		AllowErrors: true,
 	}
 
 	f, err := conf.ParseFile(file, buf)
