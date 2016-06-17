@@ -63,8 +63,19 @@ func Definition(q *guru.Query) (*serial.Definition, error) {
 	}
 
 	// Run the type checker.
-	lconf := loader.Config{Build: q.Build}
-	allowErrors(&lconf)
+	lconf := loader.Config{
+		AllowErrors: true,
+		Build:       q.Build,
+		ParserMode:  parser.AllErrors,
+		TypeChecker: types.Config{
+			IgnoreFuncBodies:         true,
+			FakeImportC:              true,
+			DisableUnusedImportCheck: true,
+			// AllErrors makes the parser always return an AST instead of
+			// bailing out after 10 errors and returning an empty ast.File.
+			Error: func(err error) {},
+		},
+	}
 
 	if _, err := importQueryPackage(q.Pos, &lconf); err != nil {
 		return nil, err
@@ -132,19 +143,6 @@ func (qpos *queryPos) ObjectString(obj types.Object) string {
 // SelectionString prints selection sel relative to the query position.
 func (qpos *queryPos) selectionString(sel *types.Selection) string {
 	return types.SelectionString(sel, types.RelativeTo(qpos.info.Pkg))
-}
-
-// allowErrors causes type errors to be silently ignored.
-// (Not suitable if SSA construction follows.)
-func allowErrors(lconf *loader.Config) {
-	ctxt := *lconf.Build // copy
-	ctxt.CgoEnabled = false
-	lconf.Build = &ctxt
-	lconf.AllowErrors = true
-	// AllErrors makes the parser always return an AST instead of
-	// bailing out after 10 errors and returning an empty ast.File.
-	lconf.ParserMode = parser.AllErrors
-	lconf.TypeChecker.Error = func(err error) {}
 }
 
 // parseOctothorpDecimal returns the numeric value if s matches "#%d",

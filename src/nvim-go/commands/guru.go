@@ -259,15 +259,18 @@ func definitionFallback(q *guru.Query, c chan fallback) {
 
 	// Run the type checker.
 	lconf := loader.Config{
-		ParserMode: parser.ImportsOnly,
+		AllowErrors: true,
+		Build:       q.Build,
+		ParserMode:  parser.AllErrors,
 		TypeChecker: types.Config{
 			IgnoreFuncBodies:         true,
 			FakeImportC:              true,
 			DisableUnusedImportCheck: true,
+			// AllErrors makes the parser always return an AST instead of
+			// bailing out after 10 errors and returning an empty ast.File.
+			Error: func(err error) {},
 		},
-		Build: q.Build,
 	}
-	allowErrors(&lconf)
 
 	if _, err := importQueryPackage(q.Pos, &lconf); err != nil {
 		c <- fallbackChan(nil, err)
