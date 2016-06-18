@@ -111,7 +111,7 @@ func CloseQuickfix(v *vim.Vim) error {
 func GotoPos(v *vim.Vim, w vim.Window, pos token.Position, cwd string) error {
 	fname, line, col := SplitPos(pos.String(), cwd)
 
-	v.Command(fmt.Sprintf("silent edit %s", pathutil.Expand(fname)))
+	v.Command(fmt.Sprintf("edit %s", pathutil.Expand(fname)))
 	v.SetWindowCursor(w, [2]int{line, col - 1})
 	defer v.Command(`lclose`)
 
@@ -132,12 +132,14 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 	}
 
 	fname := slc[0]
-	frel := strings.TrimPrefix(fname, cwd+string(filepath.Separator))
-	if fname == frel {
-		return fname, int(line), int(col)
+	if strings.HasPrefix(fname, cwd) {
+		frel := strings.TrimPrefix(fname, cwd+string(filepath.Separator))
+		if fname != frel {
+			return frel, int(line), int(col)
+		}
 	}
 
-	return frel, int(line), int(col)
+	return fname, int(line), int(col)
 }
 
 // ParseError parses a typical error message of Go compile tools.
