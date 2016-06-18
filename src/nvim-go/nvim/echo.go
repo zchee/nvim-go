@@ -52,7 +52,7 @@ func ErrorWrap(v *vim.Vim, err error) error {
 	if os.Getenv("NVIM_GO_DEBUG") != "" {
 		log.Printf("Error stack\n%s", errors.ErrorStack(err))
 	}
-	return v.Command("echon \"" + er[0] + "\" | echohl " + ErrorColor + " | echo \"" + er[1] + "\" | echohl None")
+	return v.Command("echo \"" + er[0] + "\" | echohl " + ErrorColor + " | echon \"" + er[1] + "\" | echohl None")
 }
 
 // EchohlErr provide the vim 'echo' command with the 'echohl' highlighting prefix text.
