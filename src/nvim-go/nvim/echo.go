@@ -49,6 +49,9 @@ func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
 func ErrorWrap(v *vim.Vim, err error) error {
 	v.Command("redraw")
 	er := strings.SplitAfterN(fmt.Sprintf("%s", err), ": ", 2)
+	if strings.Contains(er[1], `"`) {
+		er[1] = strings.Replace(er[1], `"`, "", -1)
+	}
 	if os.Getenv("NVIM_GO_DEBUG") != "" {
 		log.Printf("Error stack\n%s", errors.ErrorStack(err))
 	}
