@@ -6,6 +6,7 @@ package commands
 
 import (
 	"fmt"
+	"unsafe"
 
 	"nvim-go/nvim"
 	"nvim-go/nvim/buffer"
@@ -56,4 +57,8 @@ func cmdByteOffset(v *vim.Vim) error {
 	w, _ := v.CurrentWindow()
 	offset, _ := buffer.ByteOffset(v, b, w)
 	return nvim.Echomsg(v, offset)
+}
+
+func stringtoslicebyte(s string) []byte {
+	return *(*[]byte)(unsafe.Pointer(&s))
 }
