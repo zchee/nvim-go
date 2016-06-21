@@ -54,6 +54,7 @@ const (
 	FiletypeGas      = "gas"
 	FiletypeGo       = "go"
 	FiletypeTerminal = "terminal"
+	FiletypeAST      = "goast"
 )
 
 type Buffer struct {
@@ -62,7 +63,7 @@ type Buffer struct {
 	Tabpage vim.Tabpage
 
 	Name  string
-	Bufnr interface{}
+	Bufnr int
 	Mode  string
 	Size  int
 }
@@ -103,10 +104,11 @@ func (b *Buffer) Create(v *vim.Vim, bufOption, bufVar, winOption, winVar map[str
 	p.CurrentBuffer(&b.Buffer)
 	p.CurrentWindow(&b.Window)
 	p.CurrentTabpage(&b.Tabpage)
-	p.Eval("bufnr('%')", &b.Bufnr)
 	if err := p.Wait(); err != nil {
 		return errors.Annotate(err, "nvim/buffer.Create")
 	}
+
+	p.BufferNumber(b.Buffer, &b.Bufnr)
 
 	if bufOption != nil {
 		for k, op := range bufOption {
