@@ -39,10 +39,10 @@ type analyzeViewer struct {
 	data []byte
 }
 
-// viewBuffer global variable with cache buffer.
+// viewBuffer in-memory cache use global variable.
 var viewBuffer *buffer.Buffer
 
-// analyzeView gets the Go AST informations of current buffer.
+// analyzeView displays the abstract syntax tree of Go source in current buffer.
 func analyzeView(v *vim.Vim, eval *cmdAnalyzeViewEval) error {
 	defer profile.Start(time.Now(), pkgAnalyzeView)
 
@@ -94,9 +94,9 @@ func analyzeView(v *vim.Vim, eval *cmdAnalyzeViewEval) error {
 		bufOption := viewOption("buffer")
 		bufVar := viewVar("buffer")
 		winOption := viewOption("window")
-		viewBuffer = buffer.NewBuffer("__GoASTView__", fmt.Sprintf("silent belowright %d vsplit", config.TerminalWidth), int(config.TerminalWidth))
+		viewBuffer = buffer.NewBuffer("__GoAnalyzeView__", fmt.Sprintf("silent belowright %d vsplit", config.TerminalWidth), int(config.TerminalWidth))
 		viewBuffer.Create(v, bufOption, bufVar, winOption, nil)
-		viewBuffer.UpdateSyntax(v, "goastview")
+		viewBuffer.UpdateSyntax(v, "goanalyze")
 
 		nnoremap := make(map[string]string)
 		nnoremap["q"] = ":<C-u>quit<CR>"
