@@ -27,5 +27,6 @@ _testmain.go
 bin
 pkg
 !vendor/src/github.com/pkg
+vendor/src
 
 plugin/specs
