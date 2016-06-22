@@ -38,11 +38,12 @@ build: $(PACKAGE_DIR)/plugin/specs
 	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
 	$(PACKAGE_DIR)/plugin/specs -w $(PACKAGE_NAME)
 
+rebuild: clean $(PACKAGE_DIR)/plugin/specs
+	${GO_BUILD} -f $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
+	$(PACKAGE_DIR)/plugin/specs -w $(PACKAGE_NAME)
+
 $(PACKAGE_DIR)/plugin/specs:
 	$(GO_CMD) build -o $(PACKAGE_DIR)/plugin/specs $(PACKAGE_DIR)/plugin/specs.go
-
-rebuild: clean
-	${GO_BUILD} -f $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
 
 test:
 	${GO_TEST} || exit 1
