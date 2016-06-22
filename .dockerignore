@@ -1,0 +1,8 @@
+LICENSE
+*.md
+doc
+
+bin
+pkg
+vendor/src
+bitbucket-pipelines.yml

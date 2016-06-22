@@ -12,7 +12,8 @@ RUN set -ux \
 	&& go get -u -v -x github.com/constabulary/gb/...
 
 COPY . /nvim-go
-
 WORKDIR /nvim-go
+
+RUN gb vendor restore
 
 CMD ["gb", "test", "-v", "-race", "-bench=.", "-benchmem"]
