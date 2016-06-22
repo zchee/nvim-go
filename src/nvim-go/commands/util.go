@@ -59,6 +59,6 @@ func cmdByteOffset(v *vim.Vim) error {
 	return nvim.Echomsg(v, offset)
 }
 
-func stringtoslicebyte(s string) []byte {
+func Stringtoslicebyte(s string) []byte {
 	return *(*[]byte)(unsafe.Pointer(&s))
 }

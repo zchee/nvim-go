@@ -1,5 +1,5 @@
-" GoAstView
-nnoremap <silent><Plug>(nvim-go-astview)  :<C-u>GoAstView<CR>
+"GoAnalyze
+nnoremap <silent><Plug>(nvim-go-analyzeview)  :<C-u>GoAnalyzeView<CR>
 
 " GoBuild
 nnoremap <silent><Plug>(nvim-go-build)  :<C-u>Gobuild<CR>
