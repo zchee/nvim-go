@@ -14,13 +14,14 @@ import (
 const pkgNvimSign = "nvim/sign"
 
 var (
-	BreakpointSymbol       = "\u25cf" // ●  BLACK CIRCLE       (U+25CF)
-	BreakpointSymbolLarge  = "\u2b24" // ⬤  BLACK LARGE CIRCLE (U+2B24)
-	TracepointSymbol       = "\u25c6" // ◆  BLACK DIAMOND      (U+25C6)
-	TracepointSymbolMidium = "\u2b25" // ⬥  BLACK DIAMOND SUIT (U+2B25)
-	ProgramCounterSymbol   = "\u25ce" // ◎  BULLSEYE (U+25CE) or ⏣  BENZENE RING WITH CIRCLE (U+23e3)
-	ErrorSymbol            = "\u20e0" //  ⃠  COMBINING ENCLOSING CIRCLE BACKSLASH (U+20E0)
-	RestartSymbol          = "\u27f2" // ⟲  ANTICLOCKWISE GAPPED CIRCLE ARROW (U+27F2)
+	BreakpointSymbol         = "\u25cf" // ●  BLACK CIRCLE                         (U+25CF)
+	BreakpointSymbolLarge    = "\u2b24" // ⬤  BLACK LARGE CIRCLE                   (U+2B24)
+	TracepointSymbol         = "\u25c6" // ◆  BLACK DIAMOND                        (U+25C6)
+	TracepointSymbolMidium   = "\u2b25" // ⬥  BLACK DIAMOND SUIT                   (U+2B25)
+	ProgramCounterSymbol     = "\u25ce" // ◎  BULLSEYE                             (U+25CE)
+	ProgramCounterSymbolRing = "\u23e3" // ⏣  BENZENE RING WITH CIRCLE             (U+23e3)
+	ErrorSymbol              = "\u20e0" //  ⃠  COMBINING ENCLOSING CIRCLE BACKSLASH (U+20E0)
+	RestartSymbol            = "\u27f2" // ⟲  ANTICLOCKWISE GAPPED CIRCLE ARROW    (U+27F2)
 )
 
 type Sign struct {
