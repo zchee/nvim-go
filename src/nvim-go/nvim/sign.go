@@ -11,7 +11,7 @@ import (
 	"github.com/juju/errors"
 )
 
-const pkgNvimSign = "nvim/sign"
+const pkgNvimSign = "nvim.sign"
 
 var (
 	BreakpointSymbol         = "\u25cf" // ●  BLACK CIRCLE                         (U+25CF)
@@ -24,6 +24,7 @@ var (
 	RestartSymbol            = "\u27f2" // ⟲  ANTICLOCKWISE GAPPED CIRCLE ARROW    (U+27F2)
 )
 
+// Sign represents a Neovim sign.
 type Sign struct {
 	Name   string
 	Text   string
@@ -35,6 +36,7 @@ type Sign struct {
 	LastFile string
 }
 
+// NewSign define new sign and return the Sign type structure.
 func NewSign(v *vim.Vim, name, text, texthl, linehl string) (*Sign, error) {
 	cmd := fmt.Sprintf("sign define %s", name)
 	switch {
@@ -60,6 +62,7 @@ func NewSign(v *vim.Vim, name, text, texthl, linehl string) (*Sign, error) {
 	}, nil
 }
 
+// Place places the sign to any file.
 func (s *Sign) Place(v *vim.Vim, id, line int, file string, clearLastSign bool) error {
 	if clearLastSign && s.LastID != 0 {
 		place := fmt.Sprintf("sign unplace %d file=%s", s.LastID, file)
@@ -80,24 +83,7 @@ func (s *Sign) Place(v *vim.Vim, id, line int, file string, clearLastSign bool) 
 	return nil
 }
 
-func (s *Sign) PlacePipe(p *vim.Pipeline, id, line int, file string, clearLastSign bool) error {
-	if clearLastSign && s.LastID != 0 {
-		cmd := fmt.Sprintf("sign unplace %d file=%s", s.LastID, file)
-		p.Command(cmd)
-	}
-
-	// TODO(zchee): workaroud for "unrecovered-panic" default breakpoint.
-	if id < 0 {
-		id = 99
-	}
-	cmd := fmt.Sprintf("sign place %d name=%s line=%d file=%s", id, s.Name, line, file)
-	p.Command(cmd)
-	s.LastID = id
-	s.LastFile = file
-
-	return nil
-}
-
+// Unplace unplace the sign.
 func (s *Sign) Unplace(v *vim.Vim, id int, file string) error {
 	place := fmt.Sprintf("sign unplace %d file=%s", id, file)
 	if err := v.Command(place); err != nil {
@@ -107,32 +93,12 @@ func (s *Sign) Unplace(v *vim.Vim, id int, file string) error {
 	return nil
 }
 
-func (s *Sign) UnplacePipe(p *vim.Pipeline, id int, file string) error {
-	cmd := fmt.Sprintf("sign unplace %d file=%s", id, file)
-	p.Command(cmd)
-
-	return nil
-}
-
+// UnplaceAll unplace all sign on any file.
 func (s *Sign) UnplaceAll(v *vim.Vim, file string) error {
 	place := fmt.Sprintf("sign unplace * file=%s", file)
 	if err := v.Command(place); err != nil {
 		return errors.Annotate(err, pkgNvimSign)
 	}
-
-	return nil
-}
-
-func (s *Sign) UnplaceAllPipe(p *vim.Pipeline, file string) error {
-	cmd := fmt.Sprintf("sign unplace * file=%s", file)
-	p.Command(cmd)
-
-	return nil
-}
-
-func (s *Sign) UnplaceAllPcPipe(p *vim.Pipeline) error {
-	cmd := fmt.Sprintf("sign unplace %d", s.LastID)
-	p.Command(cmd)
 
 	return nil
 }

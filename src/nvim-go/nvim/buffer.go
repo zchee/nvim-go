@@ -16,6 +16,7 @@ import (
 
 const pkgBuffer = "nvim.buffer"
 
+// Buffer represents a Neovim buffer.
 type Buffer struct {
 	v *vim.Vim
 	p *vim.Pipeline
@@ -25,6 +26,7 @@ type Buffer struct {
 	TabpageContext
 }
 
+// BufferContext represents a Neovim buffer context.
 type BufferContext struct {
 	Buffer vim.Buffer
 
@@ -34,23 +36,31 @@ type BufferContext struct {
 	Mode     string
 }
 
+// WindowContext represents a Neovim window context.
 type WindowContext struct {
 	Window vim.Window
 }
 
+// TabpageContext represents a Neovim tabpage context.
 type TabpageContext struct {
 	Tabpage vim.Tabpage
 }
 
+// VimOption represents a Neovim buffer, window and tabpage options.
 type VimOption int
 
 const (
+	// BufferOption buffer option type.
 	BufferOption VimOption = iota
+	// BufferVar buffer var type.
 	BufferVar
+	// WindowOption window option type.
 	WindowOption
+	// WindowVar window var type.
 	WindowVar
 )
 
+// NewBuffer creates the new buffer and return the Buffer structure type.
 func NewBuffer(v *vim.Vim, name, filetype, mode string, option map[VimOption]map[string]interface{}) *Buffer {
 	b := &Buffer{
 		v: v,
@@ -124,7 +134,7 @@ func (b *Buffer) UpdateSyntax(syntax string) {
 	b.v.Command(fmt.Sprintf("runtime! syntax/%s.vim", syntax))
 }
 
-// SetBufferMapping sets buffer local mapping.
+// SetLocalMapping sets buffer local mapping.
 // 'mapping' arg: [key]{destination}
 func (b *Buffer) SetLocalMapping(mode string, mapping map[string]string) error {
 	if mapping != nil {
@@ -201,7 +211,7 @@ func (b *Buffer) Truncate(n int) {
 // Reset is the same as Truncate(0).
 func (b *Buffer) Reset() { b.Truncate(0) }
 
-// Contains reports whether buffer list is within b.
+// BufContains reports whether buffer list is within b.
 func BufContains(v *vim.Vim, b vim.Buffer) bool {
 	bufs, _ := v.Buffers()
 	for _, buf := range bufs {

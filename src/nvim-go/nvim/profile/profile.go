@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// Profile measurement of the time it took to any func and output log file.
+// Start measurement of the time it took to any func and output log file.
 // Usage: defer nvim.Profile(time.Now(), "func name")
 func Start(start time.Time, name string) {
 	elapsed := time.Since(start).Seconds()

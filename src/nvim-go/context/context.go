@@ -14,13 +14,14 @@ import (
 
 const pkgContext = "context"
 
+// Context represents a build context.
 type Context struct {
 	context.Context
 
 	Build BuildContext
 }
 
-// Build specifies the supporting context for a build and embedded build.Context type struct.
+// BuildContext represents a compile tool information.
 type BuildContext struct {
 	Tool         string
 	GbProjectDir string

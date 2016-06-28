@@ -27,7 +27,7 @@ type RemoteVars struct {
 	ChannelID int
 }
 
-// AstViewVars GoAstView command config variable.
+// AnalyzeVars GoAstView command config variable.
 type AnalyzeVars struct {
 	FoldIcon string `eval:"g:go#analyze#foldicon"`
 }

@@ -49,6 +49,7 @@ func NewTerminal(vim *vim.Vim, name string, command []string, mode string) *Term
 	}
 }
 
+// Create creats the new Neovim terminal buffer.
 func (t *Terminal) Create() error {
 	p := t.v.NewPipeline()
 	p.CurrentBuffer(&t.cb)
@@ -119,12 +120,6 @@ func (t *Terminal) Run(cmd []string) error {
 	}
 
 	return nil
-}
-
-func (t *Terminal) Command(command string) error {
-	defer t.switchFocus()()
-	t.v.FeedKeys("i"+command+"\r", "n", true)
-	return t.v.Command("stopinsert")
 }
 
 func (t *Terminal) setTerminalOption() map[nvim.VimOption]map[string]interface{} {

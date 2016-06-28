@@ -11,6 +11,7 @@ import (
 	"github.com/juju/errors"
 )
 
+// PackagePath returns the import path of the current file of the package.
 func (ctxt *BuildContext) PackagePath(dir string) (string, error) {
 	dir = filepath.Clean(dir)
 
@@ -32,11 +33,12 @@ func (ctxt *BuildContext) PackagePath(dir string) (string, error) {
 			return savePkg.ImportPath, nil
 		}
 
+		if dir == "/" {
+			return "", errors.Errorf("cannot find the package path from %s", dir)
+		}
+
 		// Save the current package name
 		savePkg = pkg
 		dir = filepath.Dir(dir)
 	}
-
-	err := errors.Errorf("cannot find the package path from %s", dir)
-	return "", err
 }

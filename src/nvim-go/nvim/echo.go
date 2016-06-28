@@ -15,9 +15,12 @@ import (
 )
 
 var (
-	ErrorColor    = "Identifier"
+	// ErrorColor highlight error message use Identifier syntax color.
+	ErrorColor = "Identifier"
+	// ProgressColor highlight progress message use Identifier syntax color.
 	ProgressColor = "Identifier"
-	SuccessColor  = "Function"
+	// SuccessColor highlight success message use Identifier syntax color.
+	SuccessColor = "Function"
 )
 
 // Echo provide the vim 'echo' command.
