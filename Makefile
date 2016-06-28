@@ -9,7 +9,7 @@ endif
 
 TOP_PACKAGE_DIR := github.com/${GITHUB_USER}
 PACKAGE_NAME := nvim-go
-PACKAGE_DIR := ${HOME}/src/${TOP_PACKAGE_DIR}/${PACKAGE_NAME}
+PACKAGE_DIR := ${GOPATH}/src/${TOP_PACKAGE_DIR}/${PACKAGE_NAME}
 BINARY_NAME := bin/nvim
 
 CC := clang
