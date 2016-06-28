@@ -9,7 +9,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvim"
-	"nvim-go/nvim/buffer"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
@@ -40,27 +39,18 @@ func (d *Delve) createDebugBuffer(v *vim.Vim) error {
 		return errors.Annotate(err, "delve/createDebugBuffer")
 	}
 
-	bufOption := d.setNvimOption("buffer")
-	bufVar := d.setNvimVar("buffer")
-	winOption := d.setNvimOption("window")
-
 	go func() {
-		d.buffer = make(map[string]*buffer.Buffer)
+		option := d.setTerminalOption()
+		d.buffer = make(map[string]*nvim.Buffer)
 		nnoremap := make(map[string]string)
 
-		d.buffer[Terminal] = buffer.NewBuffer(Terminal, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), 0)
-		d.buffer[Terminal].Create(v, bufOption, bufVar, winOption, nil)
-		d.buffer[Terminal].UpdateSyntax(v, "delve")
+		d.buffer[Terminal] = nvim.NewBuffer(v, Terminal, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
 		nnoremap["i"] = fmt.Sprintf(":<C-u>call rpcrequest(%d, 'DlvStdin')<CR>", config.ChannelID)
-		d.buffer[Terminal].SetMapping(v, buffer.NoremapNormal, nnoremap)
+		d.buffer[Terminal].SetLocalMapping(nvim.NoremapNormal, nnoremap)
 
-		d.buffer[Context] = buffer.NewBuffer(Context, fmt.Sprintf("silent belowright %d split", (height*2/3)), 0)
-		d.buffer[Context].Create(v, bufOption, bufVar, winOption, nil)
-		d.buffer[Context].UpdateSyntax(v, "delve")
+		d.buffer[Context] = nvim.NewBuffer(v, Context, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*2/3)), option)
 
-		d.buffer[Threads] = buffer.NewBuffer(Threads, fmt.Sprintf("silent belowright %d split", (height*1/5)), 0)
-		d.buffer[Threads].Create(v, bufOption, bufVar, winOption, nil)
-		d.buffer[Threads].UpdateSyntax(v, "delve")
+		d.buffer[Threads] = nvim.NewBuffer(v, Threads, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*1/5)), option)
 
 		v.SetWindowOption(d.buffer[Threads].Window, "winfixheight", true)
 
@@ -76,34 +66,29 @@ func (d *Delve) createDebugBuffer(v *vim.Vim) error {
 	return p.Wait()
 }
 
-func (d *Delve) setNvimOption(scope string) map[string]interface{} {
-	options := make(map[string]interface{})
+func (d *Delve) setTerminalOption() map[nvim.VimOption]map[string]interface{} {
+	option := make(map[nvim.VimOption]map[string]interface{})
+	bufoption := make(map[string]interface{})
+	bufvar := make(map[string]interface{})
+	windowoption := make(map[string]interface{})
 
-	switch scope {
-	case "buffer":
-		options[buffer.Bufhidden] = buffer.BufhiddenDelete
-		options[buffer.Buflisted] = false
-		options[buffer.Buftype] = buffer.BuftypeNofile
-		options[buffer.Filetype] = buffer.FiletypeDelve
-		options[buffer.OpModifiable] = false
-		options[buffer.Swapfile] = false
-	case "window":
-		options[buffer.List] = false
-		options[buffer.Number] = false
-		options[buffer.Relativenumber] = false
-		options[buffer.Winfixheight] = false
-	}
+	bufoption[nvim.BufOptionBufhidden] = nvim.BufhiddenDelete
+	bufoption[nvim.BufOptionBuflisted] = false
+	bufoption[nvim.BufOptionBuftype] = nvim.BuftypeNofile
+	bufoption[nvim.BufOptionFiletype] = nvim.FiletypeDelve
+	bufoption[nvim.BufOptionModifiable] = false
+	bufoption[nvim.BufOptionSwapfile] = false
 
-	return options
-}
+	bufvar[nvim.BufVarColorcolumn] = ""
 
-func (d *Delve) setNvimVar(scope string) map[string]interface{} {
-	vars := make(map[string]interface{})
+	windowoption[nvim.WinOptionList] = false
+	windowoption[nvim.WinOptionNumber] = false
+	windowoption[nvim.WinOptionRelativenumber] = false
+	windowoption[nvim.WinOptionWinfixheight] = false
 
-	switch scope {
-	case "buffer":
-		vars[buffer.Colorcolumn] = ""
-	}
+	option[nvim.BufferOption] = bufoption
+	option[nvim.BufferVar] = bufvar
+	option[nvim.WindowOption] = windowoption
 
-	return vars
+	return option
 }

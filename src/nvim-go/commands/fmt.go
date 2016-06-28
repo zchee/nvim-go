@@ -1,18 +1,11 @@
-// Copyright 2015 Gary Burd. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package commands
 
 import (
 	"bytes"
 	"go/scanner"
-	"time"
 
 	"nvim-go/context"
 	"nvim-go/nvim"
-	"nvim-go/nvim/buffer"
-	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
 	"github.com/garyburd/neovim-go/vim"
@@ -41,7 +34,6 @@ func Fmt(v *vim.Vim, dir string) error {
 		b vim.Buffer
 		w vim.Window
 	)
-
 	p := v.NewPipeline()
 	p.CurrentBuffer(&b)
 	p.CurrentWindow(&w)
@@ -59,7 +51,7 @@ func Fmt(v *vim.Vim, dir string) error {
 		return err
 	}
 
-	buf, err := imports.Process("", bytes.Join(in, []byte{'\n'}), &options)
+	buf, err := imports.Process("", nvim.ToByteSlice(in), &options)
 	if err != nil {
 		var loclist []*quickfix.ErrorlistData
 
@@ -89,8 +81,7 @@ func Fmt(v *vim.Vim, dir string) error {
 		return errors.Annotate(err, "GoFmt")
 	}
 
-	defer quickfix.CloseLoclist(v)
-	out := buffer.ToBufferLines(v, bytes.TrimSuffix(buf, []byte{'\n'}))
+	out := nvim.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
 
 	var cpos interface{}
 	v.Call("winsaveview", cpos)

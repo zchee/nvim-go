@@ -11,7 +11,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvim"
-	"nvim-go/nvim/buffer"
 	"nvim-go/pathutil"
 
 	"github.com/garyburd/neovim-go/vim"
@@ -37,7 +36,7 @@ type Terminal struct {
 
 	cb     vim.Buffer
 	cw     vim.Window
-	Buffer *buffer.Buffer
+	Buffer *nvim.Buffer
 }
 
 // NewTerminal return the initialize Neovim terminal config.
@@ -70,10 +69,12 @@ func (t *Terminal) Create() error {
 		return fmt.Errorf("%s mode is not supported", t.mode)
 	}
 
-	t.Buffer = buffer.NewBuffer(fmt.Sprintf("| terminal %s", strings.Join(t.cmd, " ")), fmt.Sprintf("%s %d%s", config.TerminalPosition, t.Size, t.mode), t.Size)
-	t.Buffer.Create(t.v, t.setTerminalOption("buffer"), t.setTerminalVar("buffer"), t.setTerminalOption("window"), t.setTerminalVar("window"))
+	option := t.setTerminalOption()
+	name := fmt.Sprintf("| terminal %s", strings.Join(t.cmd, " "))
+	mode := fmt.Sprintf("%s %d%s", config.TerminalPosition, t.Size, t.mode)
+	t.Buffer = nvim.NewBuffer(t.v, name, nvim.FiletypeTerminal, mode, option)
 	t.Buffer.Name = t.Name
-	t.Buffer.UpdateSyntax(t.v, "")
+	t.Buffer.UpdateSyntax("")
 
 	// Get terminal buffer and windows information.
 	p.CurrentBuffer(&t.Buffer.Buffer)
@@ -103,10 +104,10 @@ func (t *Terminal) Run(cmd []string) error {
 		defer pathutil.Chdir(t.v, t.Dir)()
 	}
 
-	if t.Buffer != nil && buffer.Contains(t.v, t.Buffer.Buffer) {
+	if t.Buffer != nil && nvim.BufContains(t.v, t.Buffer.Buffer) {
 		defer t.switchFocus()()
 
-		t.v.SetBufferOption(t.Buffer.Buffer, buffer.OpModified, false)
+		t.v.SetBufferOption(t.Buffer.Buffer, nvim.BufOptionModified, false)
 		t.v.Call("termopen", nil, cmd)
 	} else {
 		t.Create()
@@ -126,36 +127,31 @@ func (t *Terminal) Command(command string) error {
 	return t.v.Command("stopinsert")
 }
 
-func (t *Terminal) setTerminalOption(scope string) map[string]interface{} {
-	options := make(map[string]interface{})
+func (t *Terminal) setTerminalOption() map[nvim.VimOption]map[string]interface{} {
+	option := make(map[nvim.VimOption]map[string]interface{})
+	bufoption := make(map[string]interface{})
+	bufvar := make(map[string]interface{})
+	windowoption := make(map[string]interface{})
 
-	switch scope {
-	case "buffer":
-		options[buffer.Bufhidden] = buffer.BufhiddenDelete
-		options[buffer.Buflisted] = false
-		options[buffer.Buftype] = buffer.BuftypeNofile
-		options[buffer.Filetype] = buffer.FiletypeTerminal
-		options[buffer.OpModifiable] = false
-		options[buffer.Swapfile] = false
-	case "window":
-		options[buffer.List] = false
-		options[buffer.Number] = false
-		options[buffer.Relativenumber] = false
-		options[buffer.Winfixheight] = true
-	}
+	bufoption[nvim.BufOptionBufhidden] = nvim.BufhiddenDelete
+	bufoption[nvim.BufOptionBuflisted] = false
+	bufoption[nvim.BufOptionBuftype] = nvim.BuftypeNofile
+	bufoption[nvim.BufOptionFiletype] = nvim.FiletypeTerminal
+	bufoption[nvim.BufOptionModifiable] = false
+	bufoption[nvim.BufOptionSwapfile] = false
 
-	return options
-}
+	bufvar[nvim.BufVarColorcolumn] = ""
 
-func (t *Terminal) setTerminalVar(scope string) map[string]interface{} {
-	vars := make(map[string]interface{})
+	windowoption[nvim.WinOptionList] = false
+	windowoption[nvim.WinOptionNumber] = false
+	windowoption[nvim.WinOptionRelativenumber] = false
+	windowoption[nvim.WinOptionWinfixheight] = true
 
-	switch scope {
-	case "buffer":
-		vars[buffer.Colorcolumn] = ""
-	}
+	option[nvim.BufferOption] = bufoption
+	option[nvim.BufferVar] = bufvar
+	option[nvim.WindowOption] = windowoption
 
-	return vars
+	return option
 }
 
 // TODO(zchee): flashing when switch the window.

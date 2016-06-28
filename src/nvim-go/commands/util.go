@@ -9,7 +9,6 @@ import (
 	"unsafe"
 
 	"nvim-go/nvim"
-	"nvim-go/nvim/buffer"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -55,7 +54,7 @@ func cmdTabpagas(v *vim.Vim) error {
 func cmdByteOffset(v *vim.Vim) error {
 	b, _ := v.CurrentBuffer()
 	w, _ := v.CurrentWindow()
-	offset, _ := buffer.ByteOffset(v, b, w)
+	offset, _ := nvim.ByteOffset(v, b, w)
 	return nvim.Echomsg(v, offset)
 }
 

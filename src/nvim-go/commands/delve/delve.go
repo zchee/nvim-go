@@ -16,7 +16,6 @@ import (
 
 	"nvim-go/context"
 	"nvim-go/nvim"
-	"nvim-go/nvim/buffer"
 	"nvim-go/pathutil"
 
 	delveapi "github.com/derekparker/delve/service/api"
@@ -90,7 +89,7 @@ type Delve struct {
 type BufferContext struct {
 	cb     vim.Buffer
 	cw     vim.Window
-	buffer map[string]*buffer.Buffer
+	buffer map[string]*nvim.Buffer
 }
 
 // SignContext represents a breakpoint and program counter sign.

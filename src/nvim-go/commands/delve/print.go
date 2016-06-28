@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"nvim-go/nvim"
-	"nvim-go/nvim/buffer"
 	"nvim-go/nvim/highlight"
 	"sort"
 
@@ -92,7 +91,7 @@ func (d *Delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Fu
 		// Get the each threads function name.
 		if g.CurrentLoc.Function.Name == currentFunc.Name {
 			stacksMsg = append(stacksMsg, byte('*'))
-			hlLine := len(buffer.ToBufferLines(v, stacksMsg))
+			hlLine := len(nvim.ToBufferLines(stacksMsg))
 			fade = highlight.NewFader(v, d.buffer[Context].Buffer, "delveFade", hlLine, hlLine, 3, -1, 80)
 		} else {
 			stacksMsg = append(stacksMsg, []byte(fmt.Sprintf("\t\u25B6 %s\n", g.CurrentLoc.Function.Name))...) // \u25B6: ▶
@@ -118,7 +117,7 @@ func (d *Delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Fu
 		}
 	}
 
-	stackData := buffer.ToBufferLines(v, stacksMsg)
+	stackData := nvim.ToBufferLines(stacksMsg)
 
 	// Saves and calculates the last stacktrace message height, and check the whether the first appned to buffer.
 	if end == 1 {

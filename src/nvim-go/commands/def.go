@@ -16,7 +16,6 @@ import (
 
 	"nvim-go/context"
 	"nvim-go/nvim"
-	"nvim-go/nvim/buffer"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
@@ -63,7 +62,7 @@ func Def(v *vim.Vim, file string) error {
 	}
 	src := bytes.Join(buf, []byte{'\n'})
 
-	searchpos, err := buffer.ByteOffsetPipe(p, b, w)
+	searchpos, err := nvim.ByteOffsetPipe(p, b, w)
 	if err != nil {
 		return v.WriteErr("cannot get current buffer byte offset")
 	}

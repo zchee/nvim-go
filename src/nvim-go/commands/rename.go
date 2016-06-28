@@ -14,7 +14,6 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
-	"nvim-go/nvim/buffer"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
@@ -58,7 +57,7 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 		return err
 	}
 
-	offset, err := buffer.ByteOffsetPipe(p, b, w)
+	offset, err := nvim.ByteOffsetPipe(p, b, w)
 	if err != nil {
 		return err
 	}

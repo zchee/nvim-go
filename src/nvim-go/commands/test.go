@@ -18,7 +18,6 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
-	"nvim-go/nvim/buffer"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 	"nvim-go/nvim/terminal"
@@ -131,7 +130,7 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 
 	// Get the byte offset of current cursor position from buffer.
 	// TODO(zchee): Eval 'line2byte(line('.'))+(col('.')-2)' is faster and safer?
-	byteOffset, err := buffer.ByteOffsetPipe(p, b, w)
+	byteOffset, err := nvim.ByteOffsetPipe(p, b, w)
 	if err != nil {
 		return err
 	}
