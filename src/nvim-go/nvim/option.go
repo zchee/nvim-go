@@ -38,5 +38,5 @@ const (
 	FiletypeGas      = "gas"
 	FiletypeGo       = "go"
 	FiletypeTerminal = "terminal"
-	FiletypeAST      = "goast"
+	FiletypeAnalyze  = "goanalyze"
 )
