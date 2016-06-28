@@ -1,10 +1,10 @@
 GITHUB_USER := zchee
 
 VERBOSE := -v
-ifeq ($(RELEASE),true)
-	GO_LDFLAGS += -ldflags "-w -s"
-else
+ifeq ($(DEBUG),true)
 	GO_GCFLAGS += -gcflags "-N -l"
+else
+	GO_LDFLAGS += -ldflags "-w -s"
 endif
 
 TOP_PACKAGE_DIR := github.com/${GITHUB_USER}
