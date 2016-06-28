@@ -6,6 +6,7 @@ package commands
 
 import (
 	"bytes"
+	"go/build"
 	"go/format"
 	"go/parser"
 	"go/types"
@@ -35,9 +36,9 @@ func cmdIferr(v *vim.Vim, file string) {
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func Iferr(v *vim.Vim, file string) error {
 	defer profile.Start(time.Now(), "GoIferr")
-	var ctxt = context.Build{}
+	ctxt := new(context.Context)
 	dir, _ := filepath.Split(file)
-	defer ctxt.SetContext(dir)()
+	defer ctxt.Build.SetContext(dir)()
 
 	b, err := v.CurrentBuffer()
 	if err != nil {
@@ -57,7 +58,7 @@ func Iferr(v *vim.Vim, file string) error {
 	conf := loader.Config{
 		ParserMode:  parser.ParseComments,
 		TypeChecker: types.Config{FakeImportC: true, DisableUnusedImportCheck: false},
-		Build:       &ctxt.BuildContext,
+		Build:       &build.Default,
 		Cwd:         dir,
 		AllowErrors: true,
 	}

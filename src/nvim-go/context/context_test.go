@@ -10,53 +10,56 @@ import (
 	"testing"
 )
 
-func TestBuildContext(t *testing.T) {
-	tests := []struct {
-		// Receiver fields.
-		rTool    string
-		rContext build.Context
-		// Parameters.
+func TestBuildContext_buildContext(t *testing.T) {
+	type fields struct {
+		Tool         string
+		GbProjectDir string
+	}
+	type args struct {
 		p string
-		// Expected results.
-		want  string
-		want1 string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   build.Context
 	}{
 	// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		ctxt := &Build{
-			Tool:         tt.rTool,
-			BuildContext: tt.rContext,
+		ctxt := &BuildContext{
+			Tool:         tt.fields.Tool,
+			GbProjectDir: tt.fields.GbProjectDir,
 		}
-		got, got1 := ctxt.buildContext(tt.p)
-		if got != tt.want {
-			t.Errorf("Build.buildContext(%v) got = %v, want %v", tt.p, got, tt.want)
-		}
-		if got1 != tt.want1 {
-			t.Errorf("Build.buildContext(%v) got1 = %v, want %v", tt.p, got1, tt.want1)
+		if got := ctxt.buildContext(tt.args.p); !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("%q. BuildContext.buildContext(%v) = %v, want %v", tt.name, tt.args.p, got, tt.want)
 		}
 	}
 }
 
-func TestSetContext(t *testing.T) {
-	tests := []struct {
-		// Receiver fields.
-		rTool    string
-		rContext build.Context
-		// Parameters.
+func TestBuildContext_SetContext(t *testing.T) {
+	type fields struct {
+		Tool         string
+		GbProjectDir string
+	}
+	type args struct {
 		p string
-		// Expected results.
-		want func()
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   func()
 	}{
 	// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		c := &Build{
-			Tool:         tt.rTool,
-			BuildContext: tt.rContext,
+		ctxt := &BuildContext{
+			Tool:         tt.fields.Tool,
+			GbProjectDir: tt.fields.GbProjectDir,
 		}
-		if got := c.SetContext(tt.p); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("Build.SetContext(%v) = %v, want %v", tt.p, got, tt.want)
+		if got := ctxt.SetContext(tt.args.p); !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("%q. BuildContext.SetContext(%v) = %v, want %v", tt.name, tt.args.p, got, tt.want)
 		}
 	}
 }

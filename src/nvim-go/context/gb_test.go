@@ -29,52 +29,45 @@ func TestIsGb(t *testing.T) {
 		want1 bool
 	}{
 		{
-			rTool:    "go",
-			rContext: build.Default,
-			p:        filepath.Join(gopath, "/src/github.com/constabulary/gb"), // On the  $GOPATH package
-			want:     filepath.Join(gopath, "/src/github.com/constabulary/gb"),
-			want1:    false,
+			rTool: "go",
+			p:     filepath.Join(gopath, "/src/github.com/constabulary/gb"), // On the  $GOPATH package
+			want:  filepath.Join(gopath, "/src/github.com/constabulary/gb"),
+			want1: false,
 		},
 		{
-			rTool:    "go",
-			rContext: build.Default,
-			p:        filepath.Join(gopath, "/src/github.com/constabulary/gb/cmd/gb"), // On the  $GOPATH package
-			want:     filepath.Join(gopath, "/src/github.com/constabulary/gb"),
-			want1:    false,
+			rTool: "go",
+			p:     filepath.Join(gopath, "/src/github.com/constabulary/gb/cmd/gb"), // On the  $GOPATH package
+			want:  filepath.Join(gopath, "/src/github.com/constabulary/gb"),
+			want1: false,
 		},
 		{
-			rTool:    "gb",
-			rContext: build.Default,
-			p:        gbroot, //gb procject root directory
-			want:     gbroot, // nvim-go/src/nvim-go/context
-			want1:    true,
+			rTool: "gb",
+			p:     gbroot, //gb procject root directory
+			want:  gbroot, // nvim-go/src/nvim-go/context
+			want1: true,
 		},
 		{
-			rTool:    "gb",
-			rContext: build.Default,
-			p:        filepath.Join(gbroot, "/src/nvim-go"), // gb source root directory
-			want:     gbroot,
-			want1:    true,
+			rTool: "gb",
+			p:     filepath.Join(gbroot, "/src/nvim-go"), // gb source root directory
+			want:  gbroot,
+			want1: true,
 		},
 		{
-			rTool:    "gb",
-			rContext: build.Default,
-			p:        filepath.Join(gbroot, "/src/nvim-go/src/nvim-go/commands"), // commands directory
-			want:     gbroot,
-			want1:    true,
+			rTool: "gb",
+			p:     filepath.Join(gbroot, "/src/nvim-go/src/nvim-go/commands"), // commands directory
+			want:  gbroot,
+			want1: true,
 		},
 		{
-			rTool:    "gb",
-			rContext: build.Default,
-			p:        filepath.Join(gbroot, "/src/nvim-go/src/nvim-go/internel/guru"), // internal directory
-			want:     gbroot,
-			want1:    true,
+			rTool: "gb",
+			p:     filepath.Join(gbroot, "/src/nvim-go/src/nvim-go/internel/guru"), // internal directory
+			want:  gbroot,
+			want1: true,
 		},
 	}
 	for _, tt := range tests {
-		ctxt := &Build{
-			Tool:         tt.rTool,
-			BuildContext: tt.rContext,
+		ctxt := &BuildContext{
+			Tool: tt.rTool,
 		}
 		got, got1 := ctxt.isGb(tt.p) // projDir string, isGb bool
 		if got1 != tt.want1 {        // Check the isGb package

@@ -37,8 +37,8 @@ func cmdGenerateTest(v *vim.Vim, files []string, dir string) {
 func GenerateTest(v *vim.Vim, files []string, dir string) error {
 	defer profile.Start(time.Now(), "GenerateTest")
 
-	var ctxt = context.Build{}
-	defer ctxt.SetContext(filepath.Dir(dir))()
+	ctxt := new(context.Context)
+	defer ctxt.Build.SetContext(filepath.Dir(dir))()
 
 	b, err := v.CurrentBuffer()
 	if err != nil {

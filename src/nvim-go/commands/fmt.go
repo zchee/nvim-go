@@ -34,9 +34,8 @@ func init() {
 
 // Fmt format to the current buffer source uses gofmt behavior.
 func Fmt(v *vim.Vim, dir string) error {
-	defer profile.Start(time.Now(), "GoFmt")
-	var ctxt = context.Build{}
-	defer ctxt.SetContext(dir)()
+	ctxt := new(context.Context)
+	defer ctxt.Build.SetContext(dir)()
 
 	var (
 		b vim.Buffer

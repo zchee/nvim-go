@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/parser"
 	"go/token"
 	"go/types"
@@ -64,9 +65,9 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 		return guruHelp(v, mode)
 	}
 
-	ctxt := new(context.Build)
+	ctxt := new(context.Context)
 	dir, _ := filepath.Split(eval.File)
-	defer ctxt.SetContext(dir)()
+	defer ctxt.Build.SetContext(dir)()
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -86,7 +87,7 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 	}
 
-	guruContext := &ctxt.BuildContext
+	guruContext := &build.Default
 
 	// https://github.com/golang/tools/blob/master/cmd/guru/main.go
 	if eval.Modified != 0 {
@@ -139,15 +140,15 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 		return nil
 	}
 
-	switch ctxt.Tool {
+	switch ctxt.Build.Tool {
 	case "go":
-		pkgPath, err := ctxt.PackagePath(dir)
+		pkgPath, err := ctxt.Build.PackagePath(dir)
 		if err != nil {
 			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
 		}
 		query.Scope = []string{strings.TrimPrefix(pkgPath, "src"+string(filepath.Separator))}
 	case "gb":
-		query.Scope = []string{pathutil.GbProjectName(dir, ctxt.GbProjectDir) + string(filepath.Separator) + "..."}
+		query.Scope = []string{pathutil.GbProjectName(dir, ctxt.Build.GbProjectDir) + string(filepath.Separator) + "..."}
 	}
 
 	var outputMu sync.Mutex

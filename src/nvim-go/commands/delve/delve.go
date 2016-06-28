@@ -83,7 +83,7 @@ type Delve struct {
 	BufferContext
 	SignContext
 
-	ctxt *context.Build
+	ctxt *context.Context
 }
 
 // BufferContext represents a each debug information buffers.
@@ -127,8 +127,8 @@ func (d *Delve) cmdDebug(v *vim.Vim, eval debugEval) {
 
 // TODO(zchee): If failed debug(build), even create each buffers.
 func (d *Delve) debug(v *vim.Vim, eval debugEval) error {
-	d.ctxt = new(context.Build)
-	defer d.ctxt.SetContext(eval.Cwd)()
+	d.ctxt = new(context.Context)
+	defer d.ctxt.Build.SetContext(eval.Cwd)()
 
 	rootDir := pathutil.FindVcsRoot(eval.Dir)
 	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)

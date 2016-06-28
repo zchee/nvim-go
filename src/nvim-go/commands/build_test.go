@@ -96,15 +96,15 @@ func TestCompileCmd(t *testing.T) {
 
 	tests := []struct {
 		// Parameters.
-		ctxt *context.Build
+		ctxt *context.Context
 		eval CmdBuildEval
 		// Expected results.
 		want    []string
 		wantErr bool
 	}{
 		{
-			ctxt: &context.Build{
-				Tool: "go",
+			ctxt: &context.Context{
+				Build: context.BuildContext{Tool: "go"},
 			},
 			eval: CmdBuildEval{
 				Cwd: astdump,
@@ -114,9 +114,11 @@ func TestCompileCmd(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			ctxt: &context.Build{
-				Tool:         "gb",
-				GbProjectDir: projectRoot,
+			ctxt: &context.Context{
+				Build: context.BuildContext{
+					Tool:         "gb",
+					GbProjectDir: projectRoot,
+				},
 			},
 			eval: CmdBuildEval{
 				Cwd: projectRoot,
@@ -126,9 +128,11 @@ func TestCompileCmd(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			ctxt: &context.Build{
-				Tool:         "gb",
-				GbProjectDir: gsftpRoot,
+			ctxt: &context.Context{
+				Build: context.BuildContext{
+					Tool:         "gb",
+					GbProjectDir: gsftpRoot,
+				},
 			},
 			eval: CmdBuildEval{
 				Cwd: gsftpRoot,

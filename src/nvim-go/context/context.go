@@ -5,40 +5,48 @@
 package context
 
 import (
+	"context"
 	"go/build"
 	"os"
 	"path/filepath"
 	"sync"
-
-	"github.com/juju/errors"
 )
 
 const pkgContext = "context"
 
+type Context struct {
+	context.Context
+
+	Build BuildContext
+}
+
 // Build specifies the supporting context for a build and embedded build.Context type struct.
-type Build struct {
+type BuildContext struct {
 	Tool         string
 	GbProjectDir string
-	BuildContext build.Context
-	BuildDefault build.Context
 }
 
 // GoPath return the new GOPATH estimated from the path p directory structure.
-func (ctxt *Build) buildContext(p string) (string, string) {
-	tool := "go"
+func (ctxt *BuildContext) buildContext(p string) build.Context {
+	buildDefault := build.Default
 
+	ctxt.Tool = "go"
 	// Get original $GOPATH path.
 	goPath := os.Getenv("GOPATH")
 
 	// Check the path p are Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
-	if gbpath, ok := ctxt.isGb(p); ok {
+	if gbpath, ok := ctxt.isGb(filepath.Clean(p)); ok {
 		ctxt.GbProjectDir = gbpath
+		ctxt.Tool = "gb"
+		buildDefault.JoinPath = ctxt.GbJoinPath
+
 		goPath = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")
-		tool = "gb"
 	}
 
-	return goPath, tool
+	buildDefault.GOPATH = goPath
+
+	return buildDefault
 }
 
 // contextMu Mutex lock for SetContext.
@@ -50,51 +58,16 @@ var contextMu sync.Mutex
 // unlocks the mutex.
 //
 // This function intended to be used to the go/build Default.
-func (ctxt *Build) SetContext(p string) func() {
+func (ctxt *BuildContext) SetContext(p string) func() {
 	contextMu.Lock()
-	original := build.Default.GOPATH
+	original := build.Default
 
-	ctxt.BuildDefault = build.Default
-	ctxt.BuildContext = ctxt.BuildDefault
-
-	build.Default.GOPATH, ctxt.Tool = ctxt.buildContext(p)
-	ctxt.BuildContext.GOPATH = build.Default.GOPATH
+	build.Default = ctxt.buildContext(p)
 	os.Setenv("GOPATH", build.Default.GOPATH)
 
 	return func() {
-		build.Default.GOPATH = original
-		ctxt.BuildContext.GOPATH = build.Default.GOPATH
+		build.Default = original
 		os.Setenv("GOPATH", build.Default.GOPATH)
 		contextMu.Unlock()
 	}
-}
-
-func (ctxt *Build) PackagePath(dir string) (string, error) {
-	dir = filepath.Clean(dir)
-
-	savePkg := new(build.Package)
-	for {
-		// Get the current files package information
-		pkg, err := ctxt.BuildContext.ImportDir(dir, build.IgnoreVendor)
-		// noGoError := &build.NoGoError{Dir: dir}
-		if _, ok := err.(*build.NoGoError); ok {
-			// if err == noGoError {
-			return savePkg.ImportPath, nil
-		} else if err != nil {
-			return "", errors.Annotate(err, pkgContext)
-		}
-
-		if pkg.IsCommand() {
-			return pkg.ImportPath, nil
-		} else if savePkg.Name != "" && pkg.Name != savePkg.Name {
-			return savePkg.ImportPath, nil
-		}
-
-		// Save the current package name
-		savePkg = pkg
-		dir = filepath.Dir(dir)
-	}
-
-	err := errors.Errorf("cannot find the package path from %s", dir)
-	return "", err
 }

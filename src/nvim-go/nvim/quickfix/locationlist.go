@@ -7,6 +7,7 @@ package quickfix
 import (
 	"bytes"
 	"fmt"
+	"go/build"
 	"go/token"
 	"path/filepath"
 	"regexp"
@@ -150,7 +151,7 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 //  locationlist.go:152: syntax error: unexpected case, expecting }
 //  locationlist.go:160: syntax error: non-declaration statement outside function body
 // TODO(zchee): More better regexp pattern and single for loop if possible.
-func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistData, error) {
+func ParseError(errors []byte, cwd string, ctxt *context.BuildContext) ([]*ErrorlistData, error) {
 	var (
 		errlist      []*ErrorlistData
 		reErrPattern = regexp.MustCompile(`(?m)^#\s([-_./\w]+)\n([\s\w!"#$%&'()*+,\-./:;<=>?@[\\\]^_{|}~]+)`)
@@ -167,7 +168,7 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*ErrorlistDat
 
 			switch ctxt.Tool {
 			case "go":
-				sep := filepath.Join(ctxt.BuildContext.GOPATH, "src")
+				sep := filepath.Join(build.Default.GOPATH, "src")
 				c := strings.TrimPrefix(cwd, sep+string(filepath.Separator))
 				fname = strings.TrimPrefix(filepath.Clean(fpath), c+string(filepath.Separator))
 

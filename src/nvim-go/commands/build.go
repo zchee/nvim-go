@@ -36,12 +36,12 @@ func cmdBuild(v *vim.Vim, bang bool, eval CmdBuildEval) {
 	go Build(v, bang, eval)
 }
 
-// Build building the current buffer's package use compile tool of determined
-// from the directory structure.
+// Build builds the current buffer's package use compile tool that
+// determined from the directory structure.
 func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
 	defer profile.Start(time.Now(), "GoBuild")
-	ctxt := new(context.Build)
-	defer ctxt.SetContext(eval.Dir)()
+	ctxt := new(context.Context)
+	defer ctxt.Build.SetContext(eval.Dir)()
 
 	cmd, err := compileCmd(ctxt, bang, eval)
 	if err != nil {
@@ -50,13 +50,13 @@ func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	if ctxt.Tool == "gb" {
-		cmd.Dir = ctxt.GbProjectDir
+	if ctxt.Build.Tool == "gb" {
+		cmd.Dir = ctxt.Build.GbProjectDir
 	}
 
 	err = cmd.Run()
 	if err == nil {
-		return nvim.EchoSuccess(v, "GoBuild", fmt.Sprintf("compiler: %s", ctxt.Tool))
+		return nvim.EchoSuccess(v, "GoBuild", fmt.Sprintf("compiler: %s", ctxt.Build.Tool))
 	}
 
 	if _, ok := err.(*exec.ExitError); ok {
@@ -65,7 +65,7 @@ func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
 			return err
 		}
 
-		loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, ctxt)
+		loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &ctxt.Build)
 		if err != nil {
 			return err
 		}
@@ -79,9 +79,9 @@ func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
 	return err
 }
 
-func compileCmd(ctxt *context.Build, bang bool, eval CmdBuildEval) (*exec.Cmd, error) {
+func compileCmd(ctxt *context.Context, bang bool, eval CmdBuildEval) (*exec.Cmd, error) {
 	var (
-		compiler = ctxt.Tool
+		compiler = ctxt.Build.Tool
 		args     = []string{"build"}
 		buildDir string
 	)
@@ -99,7 +99,7 @@ func compileCmd(ctxt *context.Build, bang bool, eval CmdBuildEval) (*exec.Cmd, e
 			args = append(args, "-o", tmpfile.Name())
 		}
 	} else if compiler == "gb" {
-		buildDir = ctxt.GbProjectDir
+		buildDir = ctxt.Build.GbProjectDir
 	}
 
 	cmd := exec.Command(compiler, args...)

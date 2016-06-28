@@ -43,8 +43,8 @@ func Def(v *vim.Vim, file string) error {
 	defer profile.Start(time.Now(), "GoDef")
 
 	dir, _ := filepath.Split(file)
-	ctxt := new(context.Build)
-	defer ctxt.SetContext(dir)()
+	ctxt := new(context.Context)
+	defer ctxt.Build.SetContext(dir)()
 
 	var (
 		b vim.Buffer

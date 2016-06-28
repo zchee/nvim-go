@@ -1,3 +1,7 @@
+// Copyright 2016 Koichi Shiraishi. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package context
 
 import (
@@ -9,7 +13,7 @@ import (
 
 // isGb check the current buffer directory whether gb directory structure.
 // Return the gb project root path and boolean, and sets the context.GbProjectDir.
-func (ctxt *Build) isGb(dir string) (string, bool) {
+func (ctxt *BuildContext) isGb(dir string) (string, bool) {
 	root, err := FindGbProjectRoot(dir)
 	if err != nil {
 		return "", false

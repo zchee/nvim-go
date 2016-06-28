@@ -45,15 +45,15 @@ var term *terminal.Terminal
 func Test(v *vim.Vim, args []string, dir string) error {
 	defer profile.Start(time.Now(), "GoTest")
 
-	ctxt := new(context.Build)
-	defer ctxt.SetContext(dir)()
+	ctxt := new(context.Context)
+	defer ctxt.Build.SetContext(dir)()
 
-	cmd := []string{ctxt.Tool, "test"}
+	cmd := []string{ctxt.Build.Tool, "test"}
 	args = append(args, config.TestArgs...)
 	if len(args) > 0 {
 		cmd = append(cmd, args...)
 	}
-	if ctxt.Tool == "go" {
+	if ctxt.Build.Tool == "go" {
 		cmd = append(cmd, string("./..."))
 	}
 
@@ -112,9 +112,9 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 		return nvim.EchohlErr(v, "GoTestSwitch", "Switch destination file does not exist")
 	}
 
-	var ctxt = context.Build{}
+	ctxt := new(context.Context)
 	dir, _ := filepath.Split(fname)
-	defer ctxt.SetContext(filepath.Dir(dir))()
+	defer ctxt.Build.SetContext(filepath.Dir(dir))()
 
 	var (
 		b vim.Buffer

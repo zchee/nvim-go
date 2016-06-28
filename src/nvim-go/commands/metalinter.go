@@ -42,8 +42,8 @@ type metalinterResult struct {
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
 func Metalinter(v *vim.Vim, cwd string) error {
 	defer profile.Start(time.Now(), "GoMetaLinter")
-	var ctxt = context.Build{}
-	defer ctxt.SetContext(cwd)()
+	ctxt := new(context.Context)
+	defer ctxt.Build.SetContext(cwd)()
 
 	var (
 		loclist []*quickfix.ErrorlistData
@@ -59,11 +59,11 @@ func Metalinter(v *vim.Vim, cwd string) error {
 	}
 
 	var args []string
-	switch ctxt.Tool {
+	switch ctxt.Build.Tool {
 	case "go":
 		args = append(args, cwd+"/...")
 	case "gb":
-		args = append(args, ctxt.GbProjectDir+"/...")
+		args = append(args, ctxt.Build.GbProjectDir+"/...")
 	}
 	args = append(args, []string{"--json", "--disable-all", "--deadline", config.MetalinterDeadline}...)
 
