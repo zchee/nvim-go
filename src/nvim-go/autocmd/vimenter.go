@@ -7,6 +7,7 @@ package autocmd
 import (
 	"log"
 	"net/http"
+	"runtime"
 
 	"nvim-go/config"
 
@@ -19,18 +20,30 @@ func init() {
 		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmdVimEnter)
 }
 
+// autocmdVimEnter wrapper vimEnter function use goroutine.
 func autocmdVimEnter(v *vim.Vim, cfg *config.Config) {
 	go vimEnter(v, cfg)
 }
 
-func vimEnter(v *vim.Vim, cfg *config.Config) error {
-	cfg.Client.ChannelID, _ = v.ChannelID()
-	config.Getconfig(v, cfg)
+// vimEnter gets user config variables and assign to global variable when autocmd VimEnter.
+// If config.DebugPprof is true, start net/pprof debugging.
+func vimEnter(v *vim.Vim, cfg *config.Config) (err error) {
+	cfg.Client.ChannelID, err = v.ChannelID()
+	if err != nil {
+		return err
+	}
+
+	config.GetConfig(v, cfg)
 
 	if config.DebugPprof {
 		addr := "127.0.0.1:6060"
 		log.Printf("Start pprof debug listen %s\n", addr)
-		log.Println(http.ListenAndServe(addr, http.DefaultServeMux))
+
+		runtime.SetBlockProfileRate(1)
+		go func() {
+			log.Println(http.ListenAndServe(addr, nil))
+		}()
 	}
+
 	return nil
 }

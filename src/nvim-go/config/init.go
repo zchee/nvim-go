@@ -6,63 +6,65 @@ package config
 
 import "github.com/garyburd/neovim-go/vim"
 
-// Config struct of config variable for nvim-go commands.
+// Config represents a config variable for nvim-go.
+// Each type must be exported for plugin.HandleAutocmd Eval option.
+// Also it does not support embeded type.
 type Config struct {
-	Client     ClientVars
-	Analyze    AnalyzeVars
-	Build      BuildVars
-	Fmt        FmtVars
-	Generate   GenerateVars
-	Guru       GuruVars
-	Iferr      IferrVars
-	Metalinter MetalinterVars
-	Rename     RenameVars
-	Terminal   TerminalVars
-	Test       TestVars
-	Debug      DebugVars
+	Client     Client
+	Analyze    analyze
+	Build      build
+	Fmt        fmt
+	Generate   generate
+	Guru       guru
+	Iferr      iferr
+	Metalinter metalinter
+	Rename     rename
+	Terminal   terminal
+	Test       test
+	Debug      debug
 }
 
-// RemoteVars represents a remote plugin information.
-type ClientVars struct {
+// Client represents a Neovim remote client information.
+type Client struct {
 	ChannelID  int
 	ServerName string `eval:"v:servername"`
 }
 
-// AnalyzeVars GoAstView command config variable.
-type AnalyzeVars struct {
+// analyze represents a GoAnalyze command config variable.
+type analyze struct {
 	FoldIcon string `eval:"g:go#analyze#foldicon"`
 }
 
-// BuildVars GoBuild command config variable.
-type BuildVars struct {
+// build GoBuild command config variable.
+type build struct {
 	Autosave int64 `eval:"g:go#build#autosave"`
 	Force    int64 `eval:"g:go#build#force"`
 }
 
-// FmtVars GoFmt command config variable.
-type FmtVars struct {
+// fmt represents a GoFmt command config variable.
+type fmt struct {
 	Async int64 `eval:"g:go#fmt#async"`
 }
 
-// GenerateVars GoGenerate command config variables.
-type GenerateVars struct {
+// generate represents a GoGenerate command config variables.
+type generate struct {
 	ExclFuncs string `eval:"g:go#generate#exclude"`
 }
 
-// GuruVars GoGuru command config variable.
-type GuruVars struct {
+// guru represents a GoGuru command config variable.
+type guru struct {
 	Reflection int64            `eval:"g:go#guru#reflection"`
 	KeepCursor map[string]int64 `eval:"g:go#guru#keep_cursor"`
 	JumpFirst  int64            `eval:"g:go#guru#jump_first"`
 }
 
-// IferrVars GoIferr command config variable.
-type IferrVars struct {
-	IferrAutosave int64 `eval:"g:go#iferr#autosave"`
+// iferr represents a GoIferr command config variable.
+type iferr struct {
+	Autosave int64 `eval:"g:go#iferr#autosave"`
 }
 
-// MetalinterVars GoMetaLinter command config variable.
-type MetalinterVars struct {
+// metalinter represents a GoMetaLinter command config variable.
+type metalinter struct {
 	Autosave      int64    `eval:"g:go#lint#metalinter#autosave"`
 	AutosaveTools []string `eval:"g:go#lint#metalinter#autosave#tools"`
 	Tools         []string `eval:"g:go#lint#metalinter#tools"`
@@ -70,13 +72,13 @@ type MetalinterVars struct {
 	SkipDir       []string `eval:"g:go#lint#metalinter#skip_dir"`
 }
 
-// RenameVars GoRename command config variable.
-type RenameVars struct {
+// rename represents a GoRename command config variable.
+type rename struct {
 	Prefill int64 `eval:"g:go#rename#prefill"`
 }
 
-// TerminalVars configure of open the terminal window
-type TerminalVars struct {
+// terminal represents a configure of Neovim terminal buffer.
+type terminal struct {
 	Mode         string `eval:"g:go#terminal#mode"`
 	Position     string `eval:"g:go#terminal#position"`
 	Height       int64  `eval:"g:go#terminal#height"`
@@ -84,40 +86,47 @@ type TerminalVars struct {
 	StartInsetrt int64  `eval:"g:go#terminal#start_insert"`
 }
 
-// TestVars GoTest command config variables.
-type TestVars struct {
-	TestAutosave int64    `eval:"g:go#test#autosave"`
-	TestArgs     []string `eval:"g:go#test#args"`
+// Test represents a GoTest command config variables.
+type test struct {
+	Autosave int64    `eval:"g:go#test#autosave"`
+	Args     []string `eval:"g:go#test#args"`
 }
 
-// DebugVars debug of nvim-go config variable.
-type DebugVars struct {
+// Debug represents a debug of nvim-go config variable.
+type debug struct {
 	Pprof int64 `eval:"g:go#debug#pprof"`
 }
 
 var (
-	// ChannelID remote plugins channel id.
-	ChannelID int
-	// ServerName Neovim socket listen location.
-	ServerName string
+	// ClientChannelID remote plugins channel id.
+	ClientChannelID int
+	// ClientServerName Neovim socket listen location.
+	ClientServerName string
+
 	// AnalyzeFoldIcon define default astview tree fold icon.
 	AnalyzeFoldIcon string
+
 	// BuildAutosave call the GoBuild command automatically at during the BufWritePost.
 	BuildAutosave bool
 	// BuildForce builds the binary instead of fake(use ioutil.TempFiile) build.
 	BuildForce bool
+
 	// FmtAsync asynchronous call the GoFmt command at during the BufWritePre.
 	FmtAsync bool
+
 	// GenerateExclFuncs exclude function of generate test.
 	GenerateExclFuncs string
+
 	// GuruReflection use the type reflection on GoGuru commmands.
 	GuruReflection bool
 	// GuruKeepCursor keep the cursor focus to source buffer instead of quickfix or locationlist.
 	GuruKeepCursor map[string]int64
 	// GuruJumpFirst jump the first error position on GoGuru commands.
 	GuruJumpFirst bool
+
 	// IferrAutosave call the GoIferr command automatically at during the BufWritePre.
 	IferrAutosave bool
+
 	// MetalinterAutosave call the GoMetaLinter command automatically at during the BufWritePre.
 	MetalinterAutosave bool
 	// MetalinterAutosaveTools lint tool list for MetalinterAutosave.
@@ -128,8 +137,10 @@ var (
 	MetalinterDeadline string
 	// MetalinterSkipDir skips of lint of the directory.
 	MetalinterSkipDir []string
-	// RenamePrefill Enable naming prefill
+
+	// RenamePrefill Enable naming prefill.
 	RenamePrefill bool
+
 	// TerminalMode open the terminal window mode.
 	TerminalMode string
 	// TerminalPosition open the terminal window position.
@@ -138,23 +149,25 @@ var (
 	TerminalHeight int64
 	// TerminalWidth open the terminal window width.
 	TerminalWidth int64
-	// TerminalStartInsert workaround if users set "autocmd BufEnter term://* startinsert"
+	// TerminalStartInsert workaround if users set "autocmd BufEnter term://* startinsert".
 	TerminalStartInsert bool
+
 	// TestAutosave call the GoBuild command automatically at during the BufWritePost.
 	TestAutosave bool
 	// TestArgs test command default args.
 	TestArgs []string
+
 	// DebugPprof Enable net/http/pprof debugging.
 	DebugPprof bool
 )
 
-// Getconfig define the user config variables to Go global varialble.
-func Getconfig(v *vim.Vim, cfg *Config) {
+// GetConfig gets the user config variables and convert to global varialble.
+func GetConfig(v *vim.Vim, cfg *Config) {
 	// Client
-	ChannelID = cfg.Client.ChannelID
-	ServerName = cfg.Client.ServerName
+	ClientChannelID = cfg.Client.ChannelID
+	ClientServerName = cfg.Client.ServerName
 
-	// AstView
+	// Analyze
 	AnalyzeFoldIcon = cfg.Analyze.FoldIcon
 
 	// Build
@@ -173,7 +186,7 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 	GuruJumpFirst = itob(cfg.Guru.JumpFirst)
 
 	// Iferr
-	IferrAutosave = itob(cfg.Iferr.IferrAutosave)
+	IferrAutosave = itob(cfg.Iferr.Autosave)
 
 	// Metalinter
 	MetalinterAutosave = itob(cfg.Metalinter.Autosave)
@@ -193,8 +206,8 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 	TerminalStartInsert = itob(cfg.Terminal.StartInsetrt)
 
 	// Test
-	TestAutosave = itob(cfg.Test.TestAutosave)
-	TestArgs = cfg.Test.TestArgs
+	TestAutosave = itob(cfg.Test.Autosave)
+	TestArgs = cfg.Test.Args
 
 	// Debug
 	DebugPprof = itob(cfg.Debug.Pprof)

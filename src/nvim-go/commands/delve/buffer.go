@@ -45,7 +45,7 @@ func (d *Delve) createDebugBuffer(v *vim.Vim) error {
 		nnoremap := make(map[string]string)
 
 		d.buffer[Terminal] = nvim.NewBuffer(v, Terminal, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
-		nnoremap["i"] = fmt.Sprintf(":<C-u>call rpcrequest(%d, 'DlvStdin')<CR>", config.ChannelID)
+		nnoremap["i"] = fmt.Sprintf(":<C-u>call rpcrequest(%d, 'DlvStdin')<CR>", config.ClientChannelID)
 		d.buffer[Terminal].SetLocalMapping(nvim.NoremapNormal, nnoremap)
 
 		d.buffer[Context] = nvim.NewBuffer(v, Context, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*2/3)), option)
