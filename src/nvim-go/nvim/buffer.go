@@ -178,15 +178,16 @@ func (b *Buf) lineCount() (int, error) {
 }
 
 // Write appends the contents of p to the Neovim buffer.
-func (b *Buf) Write(p []byte) error {
+func (b *Buf) Write(p []byte) (int, error) {
 	lineCount, err := b.lineCount()
 	if err != nil {
-		return errors.Annotate(err, pkgBuffer)
+		return 0, errors.Annotate(err, pkgBuffer)
 	}
 
 	buf := bytes.NewBuffer(p)
+	b.v.SetBufferLines(b.Buffer, lineCount, -1, true, ToBufferLines(buf.Bytes()))
 
-	return b.v.SetBufferLines(b.Buffer, lineCount, -1, true, ToBufferLines(buf.Bytes()))
+	return len(p), nil
 }
 
 // WriteString appends the contents of s to the Neovim buffer.
