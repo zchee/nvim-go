@@ -12,9 +12,6 @@ import (
 	_ "nvim-go/commands"
 	_ "nvim-go/commands/analyze"
 	_ "nvim-go/commands/delve"
-	_ "nvim-go/config"
-	_ "nvim-go/context"
-	_ "nvim-go/nvim"
 
 	"github.com/garyburd/neovim-go/vim/plugin"
 )
