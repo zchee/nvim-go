@@ -13,12 +13,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 	"nvim-go/nvim/terminal"
 	"nvim-go/pathutil"
@@ -42,8 +40,6 @@ var term *terminal.Terminal
 // Test run the package test command use compile tool that determined from
 // the directory structure.
 func Test(v *vim.Vim, args []string, dir string) error {
-	defer profile.Start(time.Now(), "GoTest")
-
 	ctxt := new(context.Context)
 	defer ctxt.Build.SetContext(dir)()
 
@@ -52,15 +48,15 @@ func Test(v *vim.Vim, args []string, dir string) error {
 	if len(args) > 0 {
 		cmd = append(cmd, args...)
 	}
+
 	if ctxt.Build.Tool == "go" {
 		cmd = append(cmd, string("./..."))
 	}
 
 	if term == nil {
 		term = terminal.NewTerminal(v, "__GO_TEST__", cmd, config.TerminalMode)
+		term.Dir = pathutil.FindVcsRoot(dir)
 	}
-	rootDir := pathutil.FindVcsRoot(dir)
-	term.Dir = rootDir
 
 	if err := term.Run(cmd); err != nil {
 		return err
@@ -92,8 +88,6 @@ func cmdTestSwitch(v *vim.Vim, eval cmdTestSwitchEval) {
 
 // TestSwitch switch to corresponds current cursor (test)function.
 func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
-	defer profile.Start(time.Now(), "TestSwitch")
-
 	// Check the current buffer name whether '*_test.go'.
 	fname := eval.File
 	exp := filepath.Ext(fname)
