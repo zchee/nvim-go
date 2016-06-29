@@ -8,7 +8,7 @@ import "github.com/garyburd/neovim-go/vim"
 
 // Config struct of config variable for nvim-go commands.
 type Config struct {
-	Remote     RemoteVars
+	Client     ClientVars
 	Analyze    AnalyzeVars
 	Build      BuildVars
 	Fmt        FmtVars
@@ -23,8 +23,9 @@ type Config struct {
 }
 
 // RemoteVars represents a remote plugin information.
-type RemoteVars struct {
-	ChannelID int
+type ClientVars struct {
+	ChannelID  int
+	ServerName string `eval:"v:servername"`
 }
 
 // AnalyzeVars GoAstView command config variable.
@@ -95,8 +96,10 @@ type DebugVars struct {
 }
 
 var (
-	// ChannelID remote plugin itself msgpack channel id.
+	// ChannelID remote plugins channel id.
 	ChannelID int
+	// ServerName Neovim socket listen location.
+	ServerName string
 	// AnalyzeFoldIcon define default astview tree fold icon.
 	AnalyzeFoldIcon string
 	// BuildAutosave call the GoBuild command automatically at during the BufWritePost.
@@ -147,8 +150,9 @@ var (
 
 // Getconfig define the user config variables to Go global varialble.
 func Getconfig(v *vim.Vim, cfg *Config) {
-	// remote channelID
-	ChannelID = cfg.Remote.ChannelID
+	// Client
+	ChannelID = cfg.Client.ChannelID
+	ServerName = cfg.Client.ServerName
 
 	// AstView
 	AnalyzeFoldIcon = cfg.Analyze.FoldIcon
@@ -196,9 +200,4 @@ func Getconfig(v *vim.Vim, cfg *Config) {
 	DebugPprof = itob(cfg.Debug.Pprof)
 }
 
-func itob(i int64) bool {
-	if i == int64(0) {
-		return false
-	}
-	return true
-}
+func itob(i int64) bool { return i != int64(0) }

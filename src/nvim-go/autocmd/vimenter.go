@@ -24,7 +24,7 @@ func autocmdVimEnter(v *vim.Vim, cfg *config.Config) {
 }
 
 func vimEnter(v *vim.Vim, cfg *config.Config) error {
-	cfg.Remote.ChannelID, _ = v.ChannelID()
+	cfg.Client.ChannelID, _ = v.ChannelID()
 	config.Getconfig(v, cfg)
 
 	if config.DebugPprof {
