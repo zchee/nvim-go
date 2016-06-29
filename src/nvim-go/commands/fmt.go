@@ -1,3 +1,7 @@
+// Copyright 2016 Koichi Shiraishi. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package commands
 
 import (
@@ -13,6 +17,8 @@ import (
 	"github.com/juju/errors"
 	"golang.org/x/tools/imports"
 )
+
+const pkgFmt = "GoFmt"
 
 var options = imports.Options{
 	AllErrors: true,
@@ -78,7 +84,7 @@ func Fmt(v *vim.Vim, dir string) error {
 		}
 
 		quickfix.OpenLoclist(v, w, loclist, true)
-		return errors.Annotate(err, "GoFmt")
+		return errors.Annotate(err, pkgFmt)
 	}
 
 	out := nvim.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
