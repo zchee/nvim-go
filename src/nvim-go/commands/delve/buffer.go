@@ -41,7 +41,7 @@ func (d *Delve) createDebugBuffer(v *vim.Vim) error {
 
 	go func() {
 		option := d.setTerminalOption()
-		d.buffer = make(map[string]*nvim.Buffer)
+		d.buffer = make(map[string]*nvim.Buf)
 		nnoremap := make(map[string]string)
 
 		d.buffer[Terminal] = nvim.NewBuffer(v, Terminal, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
@@ -66,8 +66,8 @@ func (d *Delve) createDebugBuffer(v *vim.Vim) error {
 	return p.Wait()
 }
 
-func (d *Delve) setTerminalOption() map[nvim.VimOption]map[string]interface{} {
-	option := make(map[nvim.VimOption]map[string]interface{})
+func (d *Delve) setTerminalOption() map[nvim.NvimOption]map[string]interface{} {
+	option := make(map[nvim.NvimOption]map[string]interface{})
 	bufoption := make(map[string]interface{})
 	bufvar := make(map[string]interface{})
 	windowoption := make(map[string]interface{})

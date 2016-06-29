@@ -16,60 +16,56 @@ import (
 
 const pkgBuffer = "nvim.buffer"
 
-// Buffer represents a Neovim buffer.
-type Buffer struct {
+// Buf represents a Neovim buffer.
+// TODO(zchee): Ugly type name because of a conflict in vim.Buffer.
+type Buf struct {
 	v *vim.Vim
 	p *vim.Pipeline
 
-	BufferContext
-	WindowContext
-	TabpageContext
-}
-
-// BufferContext represents a Neovim buffer context.
-type BufferContext struct {
-	Buffer vim.Buffer
-
+	vim.Buffer
 	Name     string
 	Filetype string
 	Bufnr    int
 	Mode     string
+
+	WindowContext
+	TabpageContext
 }
 
 // WindowContext represents a Neovim window context.
 type WindowContext struct {
-	Window vim.Window
+	vim.Window
 }
 
 // TabpageContext represents a Neovim tabpage context.
 type TabpageContext struct {
-	Tabpage vim.Tabpage
+	vim.Tabpage
 }
 
 // VimOption represents a Neovim buffer, window and tabpage options.
-type VimOption int
+type NvimOption int
 
 const (
 	// BufferOption buffer option type.
-	BufferOption VimOption = iota
+	BufferOption NvimOption = iota
 	// BufferVar buffer var type.
 	BufferVar
 	// WindowOption window option type.
 	WindowOption
 	// WindowVar window var type.
 	WindowVar
+	// TabpageVar tabpage var type.
+	TabpageVar
 )
 
 // NewBuffer creates the new buffer and return the Buffer structure type.
-func NewBuffer(v *vim.Vim, name, filetype, mode string, option map[VimOption]map[string]interface{}) *Buffer {
-	b := &Buffer{
-		v: v,
-		p: v.NewPipeline(),
-		BufferContext: BufferContext{
-			Name:     name,
-			Filetype: filetype,
-			Mode:     mode,
-		},
+func NewBuffer(v *vim.Vim, name, filetype, mode string, option map[NvimOption]map[string]interface{}) *Buf {
+	b := &Buf{
+		v:        v,
+		p:        v.NewPipeline(),
+		Name:     name,
+		Filetype: filetype,
+		Mode:     mode,
 	}
 
 	err := b.v.Command(fmt.Sprintf("silent %s %s", b.Mode, b.Name))
@@ -101,12 +97,17 @@ func NewBuffer(v *vim.Vim, name, filetype, mode string, option map[VimOption]map
 		}
 		if option[WindowOption] != nil {
 			for k, op := range option[WindowOption] {
-				b.p.SetBufferOption(b.Buffer, k, op)
+				b.p.SetWindowOption(b.Window, k, op)
 			}
 		}
 		if option[WindowVar] != nil {
 			for k, op := range option[WindowVar] {
 				b.p.SetWindowVar(b.Window, k, op, nil)
+			}
+		}
+		if option[TabpageVar] != nil {
+			for k, op := range option[TabpageVar] {
+				b.p.SetTabpageVar(b.Tabpage, k, op, nil)
 			}
 		}
 	}
@@ -120,7 +121,7 @@ func NewBuffer(v *vim.Vim, name, filetype, mode string, option map[VimOption]map
 }
 
 // UpdateSyntax updates the syntax highlight of the buffer.
-func (b *Buffer) UpdateSyntax(syntax string) {
+func (b *Buf) UpdateSyntax(syntax string) {
 	if b.Name != "" {
 		b.v.SetBufferName(b.Buffer, b.Name)
 	}
@@ -136,7 +137,7 @@ func (b *Buffer) UpdateSyntax(syntax string) {
 
 // SetLocalMapping sets buffer local mapping.
 // 'mapping' arg: [key]{destination}
-func (b *Buffer) SetLocalMapping(mode string, mapping map[string]string) error {
+func (b *Buf) SetLocalMapping(mode string, mapping map[string]string) error {
 	if mapping != nil {
 		cwin, err := b.v.CurrentWindow()
 		if err != nil {
@@ -156,7 +157,7 @@ func (b *Buffer) SetLocalMapping(mode string, mapping map[string]string) error {
 
 // lineCount counts the Neovim buffer line count and check whether 1 count,
 // Because new(empty) buffer and one line buffer are both 1 count.
-func (b *Buffer) lineCount() (int, error) {
+func (b *Buf) lineCount() (int, error) {
 	lineCount, err := b.v.BufferLineCount(b.Buffer)
 	if err != nil {
 		return 0, errors.Annotate(err, pkgBuffer)
@@ -177,7 +178,7 @@ func (b *Buffer) lineCount() (int, error) {
 }
 
 // Write appends the contents of p to the Neovim buffer.
-func (b *Buffer) Write(p []byte) error {
+func (b *Buf) Write(p []byte) error {
 	lineCount, err := b.lineCount()
 	if err != nil {
 		return errors.Annotate(err, pkgBuffer)
@@ -189,7 +190,7 @@ func (b *Buffer) Write(p []byte) error {
 }
 
 // WriteString appends the contents of s to the Neovim buffer.
-func (b *Buffer) WriteString(s string) error {
+func (b *Buf) WriteString(s string) error {
 	lineCount, err := b.lineCount()
 	if err != nil {
 		return errors.Annotate(err, pkgBuffer)
@@ -202,14 +203,22 @@ func (b *Buffer) WriteString(s string) error {
 
 // Truncate discards all but the first n unread bytes from the
 // Neovim buffer but continues to use the same allocated storage.
-func (b *Buffer) Truncate(n int) {
+func (b *Buf) Truncate(n int) {
 	b.v.SetBufferLines(b.Buffer, n, -1, true, [][]byte{})
 }
 
 // Reset resets the Neovim buffer to be empty,
 // but it retains the underlying storage for use by future writes.
 // Reset is the same as Truncate(0).
-func (b *Buffer) Reset() { b.Truncate(0) }
+func (b *Buf) Reset() { b.Truncate(0) }
+
+// IsBufferValid wrapper of v.IsBufferValid function.
+func IsBufferValid(v *vim.Vim, b vim.Buffer) bool {
+	if ok, err := v.IsBufferValid(b); ok && err != nil {
+		return true
+	}
+	return false
+}
 
 // BufContains reports whether buffer list is within b.
 func BufContains(v *vim.Vim, b vim.Buffer) bool {
