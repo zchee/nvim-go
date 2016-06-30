@@ -6,6 +6,7 @@ package context
 
 import (
 	"fmt"
+	"go/build"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,11 +20,11 @@ func (ctxt *BuildContext) isGb(dir string) (string, bool) {
 		return "", false
 	}
 
-	// Check current directory whether "vendor", and overwrite root path
+	// Check root directory whether "vendor", and overwrite root path to parent of vendor directory.
 	if filepath.Base(root) == "vendor" {
 		root = filepath.Dir(root)
 	}
-	// FindGbProjectRoot Gets the GOPATH root if go directory structure.
+	// FindGbProjectRoot gets the GOPATH root if go directory structure.
 	// Recheck use vendor directory.
 	vendor := filepath.Join(root, "vendor")
 	if _, err := os.Stat(vendor); err != nil {
@@ -57,19 +58,19 @@ func FindGbProjectRoot(path string) (string, error) {
 	return "", fmt.Errorf(`could not find project root in "%s" or its parents`, start)
 }
 
-func (ctxt *Build) GbJoinPath(elem ...string) string {
+func (ctxt *BuildContext) GbJoinPath(elem ...string) string {
 	res := filepath.Join(elem...)
 
 	if gbrel, err := filepath.Rel(ctxt.GbProjectDir, res); err == nil {
 		gbrel = filepath.ToSlash(gbrel)
 		gbrel, _ = match(gbrel, "vendor/")
-		if gbrel, ok := match(gbrel, fmt.Sprintf("pkg/%s_%s", ctxt.BuildContext.GOOS, ctxt.BuildContext.GOARCH)); ok {
+		if gbrel, ok := match(gbrel, fmt.Sprintf("pkg/%s_%s", build.Default.GOOS, build.Default.GOARCH)); ok {
 			gbrel, hasSuffix := match(gbrel, "_")
 
 			if hasSuffix {
 				gbrel = "-" + gbrel
 			}
-			gbrel = fmt.Sprintf("pkg/%s-%s/", ctxt.BuildContext.GOOS, ctxt.BuildContext.GOARCH) + gbrel
+			gbrel = fmt.Sprintf("pkg/%s-%s/", build.Default.GOOS, build.Default.GOARCH) + gbrel
 			gbrel = filepath.FromSlash(gbrel)
 			res = filepath.Join(ctxt.GbProjectDir, gbrel)
 		}
