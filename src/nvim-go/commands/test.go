@@ -5,7 +5,6 @@
 package commands
 
 import (
-	"bytes"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -70,11 +69,11 @@ var (
 	parserMode parser.Mode          // uint
 	pos        token.Pos
 
-	testPrefix     = "Test"
-	testSuffix     = "_test"
-	isTest         bool
-	fnName         string
-	fnNameNoExport string
+	testPrefix       = "Test"
+	testSuffix       = "_test"
+	isTest           bool
+	funcName         string
+	funcNameNoExport string
 )
 
 type cmdTestSwitchEval struct {
@@ -124,7 +123,7 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 
 	// Get the byte offset of current cursor position from buffer.
 	// TODO(zchee): Eval 'line2byte(line('.'))+(col('.')-2)' is faster and safer?
-	byteOffset, err := nvim.ByteOffsetPipe(p, b, w)
+	byteOffset, err := nvim.ByteOffset(v, b, w)
 	if err != nil {
 		return err
 	}
@@ -147,16 +146,15 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 		switch x := q.(type) {
 		case *ast.FuncDecl:
 			if x.Name != nil { // *ast.Ident
-				name := fmt.Sprintf("%s", x.Name)
 				// TODO(zchee): Support parses the function struct name.
 				// If the function has a struct, gotests will be generated the
 				// mixed camel case test function name include struct name for prefix.
 				if !isTest {
-					fnName = fmt.Sprintf("%s%s%s", testPrefix, bytes.ToUpper([]byte{name[0]}), name[1:])
+					funcName = fmt.Sprintf("%s%s", testPrefix, ToPascalCase(x.Name.Name))
 				} else {
-					fnName = strings.Replace(name, testPrefix, "", 1)
+					funcName = strings.Replace(x.Name.Name, testPrefix, "", 1)
 				}
-				fnNameNoExport = fmt.Sprintf("%s%s", bytes.ToLower([]byte{fnName[0]}), fnName[1:])
+				funcNameNoExport = ToMixedCase(funcName)
 			}
 		}
 	}
@@ -167,6 +165,7 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 		return err
 	}
 
+	// Reset pos value.
 	if pos != token.NoPos {
 		pos = 0
 	}
@@ -202,16 +201,14 @@ func (f visitorFunc) Visit(n ast.Node) ast.Visitor {
 // Core of the parser of the ast node.
 func parseFunc(node ast.Node) ast.Visitor {
 	switch x := node.(type) {
-	default:
-		return visitorFunc(parseFunc)
 	case *ast.FuncDecl:
-		if x.Name.Name == fnName || x.Name.Name == fnNameNoExport || indexFuncName(x.Name.Name, fnName, fnNameNoExport) { // x.Name.Name: *ast.Ident.string
+		if x.Name.Name == funcName || x.Name.Name == funcNameNoExport || indexFuncName(x.Name.Name, funcName, funcNameNoExport) { // x.Name.Name: *ast.Ident.string
 			pos = x.Name.NamePos
 			return nil
 		}
 	}
 
-	return nil
+	return visitorFunc(parseFunc)
 }
 
 func indexFuncName(s string, sep ...string) bool {
