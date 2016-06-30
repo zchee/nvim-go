@@ -10,7 +10,6 @@ import (
 
 	_ "nvim-go/autocmd"
 	_ "nvim-go/commands"
-	_ "nvim-go/commands/analyze"
 	_ "nvim-go/commands/delve"
 
 	"github.com/garyburd/neovim-go/vim/plugin"
