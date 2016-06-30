@@ -135,7 +135,7 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 		return err
 	}
 
-	f, err := parse(fname, fset, bytes.Join(buf, []byte{'\n'})) // *ast.File
+	f, err := parse(fname, fset, nvim.ToByteSlice(buf)) // *ast.File
 	if err != nil {
 		return err
 	}
@@ -177,21 +177,8 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 		return nvim.EchohlErr(v, "GoTestSwitch", "Not found the switch destination function")
 	}
 
-	filename, line, col := quickfix.SplitPos(fset.Position(pos).String(), eval.Cwd)
-	loclist := append([]*quickfix.ErrorlistData{}, &quickfix.ErrorlistData{
-		FileName: filename,
-		LNum:     line,
-		Col:      col,
-	})
-	if err := quickfix.SetLoclist(v, loclist); err != nil {
-		return err
-	}
-
 	// Jump to the corresponds function.
-	p.Command(fmt.Sprintf("edit %s", filename))
-	p.Command("normal! zz")
-
-	return p.Wait()
+	return quickfix.GotoPos(v, w, fset.Position(pos), eval.Cwd)
 }
 
 // Wrapper of the parser.ParseFile()
