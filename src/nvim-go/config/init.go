@@ -37,8 +37,9 @@ type analyze struct {
 
 // build GoBuild command config variable.
 type build struct {
-	Autosave int64 `eval:"g:go#build#autosave"`
-	Force    int64 `eval:"g:go#build#force"`
+	Autosave int64    `eval:"g:go#build#autosave"`
+	Force    int64    `eval:"g:go#build#force"`
+	Args     []string `eval:"g:go#build#args"`
 }
 
 // fmt represents a GoFmt command config variable.
@@ -110,6 +111,8 @@ var (
 	BuildAutosave bool
 	// BuildForce builds the binary instead of fake(use ioutil.TempFiile) build.
 	BuildForce bool
+	// BuildArgs force build args.
+	BuildArgs []string
 
 	// FmtAsync asynchronous call the GoFmt command at during the BufWritePre.
 	FmtAsync bool
@@ -173,6 +176,7 @@ func GetConfig(v *vim.Vim, cfg *Config) {
 	// Build
 	BuildAutosave = itob(cfg.Build.Autosave)
 	BuildForce = itob(cfg.Build.Force)
+	BuildArgs = cfg.Build.Args
 
 	// Fmt
 	FmtAsync = itob(cfg.Fmt.Async)

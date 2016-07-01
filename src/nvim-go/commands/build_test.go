@@ -97,7 +97,7 @@ func TestCompileCmd(t *testing.T) {
 	tests := []struct {
 		// Parameters.
 		ctxt *context.Context
-		eval CmdBuildEval
+		dir  string
 		// Expected results.
 		want    []string
 		wantErr bool
@@ -106,10 +106,7 @@ func TestCompileCmd(t *testing.T) {
 			ctxt: &context.Context{
 				Build: context.BuildContext{Tool: "go"},
 			},
-			eval: CmdBuildEval{
-				Cwd: astdump,
-				Dir: astdump,
-			},
+			dir:     astdump,
 			want:    goCompiler,
 			wantErr: false,
 		},
@@ -120,10 +117,7 @@ func TestCompileCmd(t *testing.T) {
 					GbProjectDir: projectRoot,
 				},
 			},
-			eval: CmdBuildEval{
-				Cwd: projectRoot,
-				Dir: projectRoot,
-			},
+			dir:     projectRoot,
 			want:    gbCompiler,
 			wantErr: false,
 		},
@@ -134,24 +128,21 @@ func TestCompileCmd(t *testing.T) {
 					GbProjectDir: gsftpRoot,
 				},
 			},
-			eval: CmdBuildEval{
-				Cwd: gsftpRoot,
-				Dir: gsftpRoot,
-			},
+			dir:  gsftpRoot,
 			want: gbCompiler,
 		},
 	}
 	for _, tt := range tests {
 		os.Setenv("GOPATH", testGoPath)
 
-		got, err := compileCmd(tt.ctxt, false, tt.eval)
+		got, err := compileCmd(tt.ctxt, false, tt.dir)
 		if (err != nil) != tt.wantErr {
-			t.Errorf("compileCmd(%v, %v) error = %v, wantErr %v", tt.ctxt, tt.eval, err, tt.wantErr)
+			t.Errorf("compileCmd(%v, %v) error = %v, wantErr %v", tt.ctxt, tt.dir, err, tt.wantErr)
 			continue
 		}
 		cmdArgs := got.Args[:1]
 		if !reflect.DeepEqual(cmdArgs, tt.want) {
-			t.Errorf("compileCmd\n%v\n%v\n\nActual %v\nwant1 %v", tt.ctxt, tt.eval, cmdArgs, tt.want)
+			t.Errorf("compileCmd\n%v\n%v\n\nActual %v\nwant1 %v", tt.ctxt, tt.dir, cmdArgs, tt.want)
 		}
 	}
 }

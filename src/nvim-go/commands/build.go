@@ -43,16 +43,16 @@ func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
 	ctxt := new(context.Context)
 	defer ctxt.Build.SetContext(eval.Dir)()
 
-	cmd, err := compileCmd(ctxt, bang, eval)
+	if !bang {
+		bang = config.BuildForce
+	}
+
+	cmd, err := compileCmd(ctxt, bang, eval.Dir)
 	if err != nil {
 		return err
 	}
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
+	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
-	if ctxt.Build.Tool == "gb" {
-		cmd.Dir = ctxt.Build.GbProjectDir
-	}
 
 	err = cmd.Run()
 	if err == nil {
@@ -79,17 +79,17 @@ func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
 	return err
 }
 
-func compileCmd(ctxt *context.Context, bang bool, eval CmdBuildEval) (*exec.Cmd, error) {
-	var (
-		compiler = ctxt.Build.Tool
-		args     = []string{"build"}
-		buildDir string
-	)
-	if config.BuildForce {
-		bang = true
+func compileCmd(ctxt *context.Context, bang bool, dir string) (*exec.Cmd, error) {
+	cmd := exec.Command(ctxt.Build.Tool)
+	args := []string{"build"}
+
+	if len(config.BuildArgs) > 0 {
+		args = append(args, config.BuildArgs...)
 	}
-	if compiler == "go" {
-		buildDir = eval.Dir
+
+	switch ctxt.Build.Tool {
+	case "go":
+		cmd.Dir = dir
 		if !bang {
 			tmpfile, err := ioutil.TempFile(os.TempDir(), "nvim-go")
 			if err != nil {
@@ -98,12 +98,10 @@ func compileCmd(ctxt *context.Context, bang bool, eval CmdBuildEval) (*exec.Cmd,
 			defer os.Remove(tmpfile.Name())
 			args = append(args, "-o", tmpfile.Name())
 		}
-	} else if compiler == "gb" {
-		buildDir = ctxt.Build.GbProjectDir
+	case "gb":
+		cmd.Dir = ctxt.Build.GbProjectDir
 	}
-
-	cmd := exec.Command(compiler, args...)
-	cmd.Dir = buildDir
+	cmd.Args = append(cmd.Args, args...)
 
 	return cmd, nil
 }
