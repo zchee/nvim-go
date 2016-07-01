@@ -120,12 +120,12 @@ type debugEval struct {
 	Dir string
 }
 
-func (d *Delve) cmdDebug(v *vim.Vim, eval debugEval) {
+func (d *Delve) cmdDebug(v *vim.Vim, eval *debugEval) {
 	d.debug(v, eval)
 }
 
 // TODO(zchee): If failed debug(build), even create each buffers.
-func (d *Delve) debug(v *vim.Vim, eval debugEval) error {
+func (d *Delve) debug(v *vim.Vim, eval *debugEval) error {
 	d.ctxt = new(context.Context)
 	defer d.ctxt.Build.SetContext(eval.Cwd)()
 
@@ -141,7 +141,7 @@ func (d *Delve) debug(v *vim.Vim, eval debugEval) error {
 	return d.createDebugBuffer(v)
 }
 
-func (d *Delve) parseArgs(v *vim.Vim, args []string, eval createBreakpointEval) (*delveapi.Breakpoint, error) {
+func (d *Delve) parseArgs(v *vim.Vim, args []string, eval *createBreakpointEval) (*delveapi.Breakpoint, error) {
 	var bpInfo *delveapi.Breakpoint
 
 	// TODO(zchee): Now support function only.
@@ -179,11 +179,11 @@ type createBreakpointEval struct {
 	File string `msgpack:",array"`
 }
 
-func (d *Delve) cmdCreateBreakpoint(v *vim.Vim, args []string, eval createBreakpointEval) {
+func (d *Delve) cmdCreateBreakpoint(v *vim.Vim, args []string, eval *createBreakpointEval) {
 	go d.createBreakpoint(v, args, eval)
 }
 
-func (d *Delve) createBreakpoint(v *vim.Vim, args []string, eval createBreakpointEval) error {
+func (d *Delve) createBreakpoint(v *vim.Vim, args []string, eval *createBreakpointEval) error {
 	bpInfo, err := d.parseArgs(v, args, eval)
 	if err != nil {
 		nvim.ErrorWrap(v, err)
@@ -216,12 +216,12 @@ type continueEval struct {
 	Dir string `msgpack:",array"`
 }
 
-func (d *Delve) cmdContinue(v *vim.Vim, eval continueEval) {
+func (d *Delve) cmdContinue(v *vim.Vim, eval *continueEval) {
 	go d.cont(v, eval)
 }
 
 // cont sends the 'continue' signals to the delve headless server over the client use json-rpc2 protocol.
-func (d *Delve) cont(v *vim.Vim, eval continueEval) error {
+func (d *Delve) cont(v *vim.Vim, eval *continueEval) error {
 	stateCh := d.client.Continue()
 	state := <-stateCh
 	if state == nil || state.Exited {
@@ -280,11 +280,11 @@ type nextEval struct {
 	Dir string `msgpack:",array"`
 }
 
-func (d *Delve) cmdNext(v *vim.Vim, eval nextEval) {
+func (d *Delve) cmdNext(v *vim.Vim, eval *nextEval) {
 	go d.next(v, eval)
 }
 
-func (d *Delve) next(v *vim.Vim, eval nextEval) error {
+func (d *Delve) next(v *vim.Vim, eval *nextEval) error {
 	state, err := d.client.Next()
 	if err != nil {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))

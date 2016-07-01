@@ -32,13 +32,13 @@ type CmdBuildEval struct {
 	Dir string
 }
 
-func cmdBuild(v *vim.Vim, bang bool, eval CmdBuildEval) {
+func cmdBuild(v *vim.Vim, bang bool, eval *CmdBuildEval) {
 	go Build(v, bang, eval)
 }
 
 // Build builds the current buffer's package use compile tool that
 // determined from the directory structure.
-func Build(v *vim.Vim, bang bool, eval CmdBuildEval) error {
+func Build(v *vim.Vim, bang bool, eval *CmdBuildEval) error {
 	defer profile.Start(time.Now(), "GoBuild")
 	ctxt := new(context.Context)
 	defer ctxt.Build.SetContext(eval.Dir)()
