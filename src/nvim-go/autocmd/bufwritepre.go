@@ -5,9 +5,10 @@
 package autocmd
 
 import (
+	"path/filepath"
+
 	"nvim-go/commands"
 	"nvim-go/config"
-	"path/filepath"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
@@ -23,11 +24,20 @@ type bufwritepreEval struct {
 	File string
 }
 
-func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
+func autocmdBufWritePre(v *vim.Vim, eval *bufwritepreEval) {
 	dir, _ := filepath.Split(eval.File)
 
 	if config.FmtAsync {
-		go commands.Fmt(v, dir)
+		go func() {
+			commands.Fmt(v, dir)
+			v.Command("noautocmd write")
+			if config.BuildAutosave {
+				commands.Build(v, config.BuildForce, &commands.CmdBuildEval{
+					Cwd: eval.Cwd,
+					Dir: dir,
+				})
+			}
+		}()
 	} else {
 		commands.Fmt(v, dir)
 	}
@@ -39,6 +49,4 @@ func autocmdBufWritePre(v *vim.Vim, eval bufwritepreEval) error {
 	if config.MetalinterAutosave {
 		go commands.Metalinter(v, eval.Cwd)
 	}
-
-	return nil
 }

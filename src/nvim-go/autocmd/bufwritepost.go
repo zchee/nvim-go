@@ -13,7 +13,8 @@ import (
 )
 
 func init() {
-	plugin.HandleAutocmd("BufWritePost", &plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h')]"}, autocmdBufWritePost)
+	plugin.HandleAutocmd("BufWritePost",
+		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h')]"}, autocmdBufWritePost)
 }
 
 type bufwritepostEval struct {
@@ -21,9 +22,9 @@ type bufwritepostEval struct {
 	Dir string
 }
 
-func autocmdBufWritePost(v *vim.Vim, eval bufwritepostEval) error {
-	if config.BuildAutosave {
-		go commands.Build(v, false, commands.CmdBuildEval{
+func autocmdBufWritePost(v *vim.Vim, eval *bufwritepostEval) {
+	if config.BuildAutosave && !config.FmtAsync {
+		go commands.Build(v, false, &commands.CmdBuildEval{
 			Cwd: eval.Cwd,
 			Dir: eval.Dir,
 		})
@@ -32,6 +33,4 @@ func autocmdBufWritePost(v *vim.Vim, eval bufwritepostEval) error {
 	if config.TestAutosave {
 		go commands.Test(v, []string{}, eval.Dir)
 	}
-
-	return nil
 }
