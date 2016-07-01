@@ -43,7 +43,8 @@ import (
 var pkgGuru = "Guru"
 
 func init() {
-	plugin.HandleFunction("GoGuru", &plugin.FunctionOptions{Eval: "[getcwd(), expand('%:p'), &modified, line2byte(line('.')) + (col('.')-2)]"}, funcGuru)
+	plugin.HandleFunction("GoGuru",
+		&plugin.FunctionOptions{Eval: "[getcwd(), expand('%:p'), &modified, line2byte(line('.')) + (col('.')-2)]"}, funcGuru)
 }
 
 type funcGuruEval struct {

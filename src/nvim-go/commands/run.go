@@ -21,8 +21,7 @@ var runTerm *terminal.Terminal
 
 func init() {
 	plugin.HandleCommand("Gorun",
-		&plugin.CommandOptions{NArgs: "*", Eval: "expand('%:p')"},
-		cmdRun)
+		&plugin.CommandOptions{NArgs: "*", Eval: "expand('%:p')"}, cmdRun)
 }
 
 // Run runs the go run command for current buffer's packages.
