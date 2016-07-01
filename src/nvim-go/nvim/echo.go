@@ -101,7 +101,7 @@ func EchoProgress(v *vim.Vim, prefix, format string, a ...interface{}) error {
 func EchoSuccess(v *vim.Vim, prefix string, msg string) error {
 	v.Command("redraw")
 	if msg != "" {
-		msg = " - " + msg
+		msg = " | " + msg
 	}
 	return v.Command(fmt.Sprintf("echo \"%s: \" | echohl %s | echon 'SUCCESS' | echohl None | echon '%s' | echohl None", prefix, SuccessColor, msg))
 }
