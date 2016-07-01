@@ -215,14 +215,15 @@ func (b *Buf) Reset() { b.Truncate(0) }
 
 // IsBufferValid wrapper of v.IsBufferValid function.
 func IsBufferValid(v *vim.Vim, b vim.Buffer) bool {
-	if ok, err := v.IsBufferValid(b); ok && err != nil {
-		return true
+	res, err := v.IsBufferValid(b)
+	if err != nil {
+		return false
 	}
-	return false
+	return res
 }
 
 // BufContains reports whether buffer list is within b.
-func BufContains(v *vim.Vim, b vim.Buffer) bool {
+func IsBufContains(v *vim.Vim, b vim.Buffer) bool {
 	bufs, _ := v.Buffers()
 	for _, buf := range bufs {
 		if buf == b {
@@ -233,11 +234,11 @@ func BufContains(v *vim.Vim, b vim.Buffer) bool {
 }
 
 // BufExists reports whether buffer list is within bufnr use vim bufexists function.
-func BufExists(v *vim.Vim, bufnr int) bool {
+func IsBufExists(v *vim.Vim, bufnr int) bool {
 	var res interface{}
 	v.Call("bufexists", &res, bufnr)
 
-	return res.(int) != 0
+	return res.(int64) != 0
 }
 
 // Modifiable sets modifiable to true,
