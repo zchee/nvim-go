@@ -1,4 +1,4 @@
-FROM golang:1.7beta1
+FROM golang:1.7beta2
 MAINTAINER Koichi Shiraishi <k@zchee.io>
 
 RUN set -ux \
