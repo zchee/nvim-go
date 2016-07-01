@@ -213,6 +213,8 @@ func (b *Buf) Truncate(n int) {
 // Reset is the same as Truncate(0).
 func (b *Buf) Reset() { b.Truncate(0) }
 
+// ---- Utility for buffer -----------------------------------------
+
 // IsBufferValid wrapper of v.IsBufferValid function.
 func IsBufferValid(v *vim.Vim, b vim.Buffer) bool {
 	res, err := v.IsBufferValid(b)
@@ -251,10 +253,10 @@ func Modifiable(v *vim.Vim, b vim.Buffer) func() {
 	}
 }
 
-// ToByteSlice converts the 2D buffer data to sigle byte slice.
+// ToByteSlice converts the 2D buffer byte data to sigle byte slice.
 func ToByteSlice(byt [][]byte) []byte { return bytes.Join(byt, []byte{'\n'}) }
 
-// ToBufferLines converts the byte slice to the 2D slice of Neovim buffer data-type.
+// ToBufferLines converts the byte slice to the 2D byte slice of Neovim buffer data.
 func ToBufferLines(byt []byte) [][]byte { return bytes.Split(byt, []byte{'\n'}) }
 
 // ByteOffset calculates the byte-offset of current cursor position.
