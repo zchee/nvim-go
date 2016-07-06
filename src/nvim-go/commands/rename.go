@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"go/build"
 	"io/ioutil"
+	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"nvim-go/config"
@@ -22,18 +24,19 @@ import (
 	"golang.org/x/tools/refactor/rename"
 )
 
+const pkgRename = "GoRename"
+
 func init() {
 	plugin.HandleCommand("Gorename",
 		&plugin.CommandOptions{
-			NArgs: "?", Bang: true, Eval: "[getcwd(), expand('%:p:h'), expand('%:p'), expand('<cword>')]"},
+			NArgs: "?", Bang: true, Eval: "[getcwd(), expand('%:p'), expand('<cword>')]"},
 		cmdRename)
 }
 
 type cmdRenameEval struct {
-	Cwd  string `msgpack:",array"`
-	Dir  string
-	File string
-	From string
+	Cwd        string `msgpack:",array"`
+	File       string
+	RenameFrom string
 }
 
 func cmdRename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) {
@@ -43,8 +46,9 @@ func cmdRename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) {
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
 func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 	defer profile.Start(time.Now(), "GoRename")
+
 	ctxt := new(context.Context)
-	defer ctxt.Build.SetContext(eval.Dir)()
+	defer ctxt.Build.SetContext(filepath.Dir(eval.File))()
 
 	var (
 		b vim.Buffer
@@ -57,57 +61,55 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 		return err
 	}
 
-	offset, err := nvim.ByteOffsetPipe(p, b, w)
+	offset, err := nvim.ByteOffset(v, b, w)
 	if err != nil {
 		return err
 	}
 	pos := fmt.Sprintf("%s:#%d", eval.File, offset)
 
-	var to string
+	var renameTo string
 	if len(args) > 0 {
-		to = args[0]
+		renameTo = args[0]
 	} else {
-		askMessage := fmt.Sprintf("%s: Rename '%s' to: ", "GoRename", eval.From)
+		askMessage := fmt.Sprintf("%s: Rename '%s' to: ", pkgRename, eval.RenameFrom)
 		var toResult interface{}
 		if config.RenamePrefill {
-			err := v.Call("input", &toResult, askMessage, eval.From)
+			err := v.Call("input", &toResult, askMessage, eval.RenameFrom)
 			if err != nil {
-				return nvim.EchohlErr(v, "GoRename", "Keyboard interrupt")
+				return nvim.EchohlErr(v, pkgRename, "Keyboard interrupt")
 			}
 		} else {
 			err := v.Call("input", &toResult, askMessage)
 			if err != nil {
-				return nvim.EchohlErr(v, "GoRename", "Keyboard interrupt")
+				return nvim.EchohlErr(v, pkgRename, "Keyboard interrupt")
 			}
 		}
 		if toResult.(string) == "" {
-			return nvim.EchohlErr(v, "GoRename", "Not enough arguments for rename destination name")
+			return nvim.EchohlErr(v, pkgRename, "Not enough arguments for rename destination name")
 		}
-		to = fmt.Sprintf("%s", toResult)
+		renameTo = fmt.Sprintf("%s", toResult)
 	}
 
-	prefix := "GoRename"
-	v.Command(fmt.Sprintf("echon '%s: Renaming ' | echohl Identifier | echon '%s' | echohl None | echon ' to ' | echohl Identifier | echon '%s' | echohl None | echon ' ...'", prefix, eval.From, to))
+	v.Command(fmt.Sprintf("echo '%s: Renaming ' | echohl Identifier | echon '%s' | echohl None | echon ' to ' | echohl Identifier | echon '%s' | echohl None | echon ' ...'", pkgRename, eval.RenameFrom, renameTo))
 
 	if bang {
 		rename.Force = true
 	}
 
 	// TODO(zchee): More elegant way
-	saveStdout := os.Stdout
-	saveStderr := os.Stderr
+	saveStdout, saveStderr := os.Stdout, os.Stderr
 	os.Stderr = os.Stdout
 	read, write, _ := os.Pipe()
-	os.Stderr = write
-	os.Stdout = write
+	os.Stdout, os.Stderr = write, write
 	defer func() {
-		os.Stderr = saveStderr
 		os.Stderr = saveStdout
+		os.Stderr = saveStderr
 	}()
 
-	if err := rename.Main(&build.Default, pos, "", to); err != nil {
+	if err := rename.Main(&build.Default, pos, "", renameTo); err != nil {
 		write.Close()
 		er, _ := ioutil.ReadAll(read)
+		log.Printf("er: %+v\n", string(er))
 		go func() {
 			loclist, _ := quickfix.ParseError(er, eval.Cwd, &ctxt.Build)
 			quickfix.SetLoclist(v, loclist)
@@ -119,7 +121,7 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 
 	write.Close()
 	out, _ := ioutil.ReadAll(read)
-	defer nvim.EchoSuccess(v, prefix, fmt.Sprintf("%s", out))
+	defer nvim.EchoSuccess(v, pkgRename, fmt.Sprintf("%s", out))
 
 	// TODO(zchee): 'edit' command is ugly.
 	// Should create tempfile and use SetBufferLines.
