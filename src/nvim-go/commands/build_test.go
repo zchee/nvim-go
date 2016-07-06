@@ -14,34 +14,34 @@ func TestBuild(t *testing.T) {
 	tests := []struct {
 		// Parameters.
 		v    *vim.Vim
-		eval CmdBuildEval
+		eval *CmdBuildEval
 		// Expected results.
 		wantErr bool
 	}{
 		{
 			v: testVim(t, projectRoot),
-			eval: CmdBuildEval{
+			eval: &CmdBuildEval{
 				Cwd: projectRoot,
 				Dir: projectRoot,
 			},
 		},
 		{
 			v: testVim(t, projectRoot),
-			eval: CmdBuildEval{
+			eval: &CmdBuildEval{
 				Cwd: projectRoot,
 				Dir: filepath.Join(projectRoot, "src/nvim-go/commands"),
 			},
 		},
 		{
 			v: testVim(t, gsftpRoot),
-			eval: CmdBuildEval{
+			eval: &CmdBuildEval{
 				Cwd: gsftpRoot,
 				Dir: gsftpRoot,
 			},
 		},
 		{
 			v: testVim(t, filepath.Join(astdump, "astdump.go")),
-			eval: CmdBuildEval{
+			eval: &CmdBuildEval{
 				Cwd: astdump,
 				Dir: astdump,
 			},
@@ -65,7 +65,7 @@ func BenchmarkBuildGo(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if err := Build(benchVim(b, astdumpMain), false, CmdBuildEval{
+		if err := Build(benchVim(b, astdumpMain), false, &CmdBuildEval{
 			Cwd: astdump,
 			Dir: astdump,
 		}); err != nil {
@@ -81,7 +81,7 @@ func BenchmarkBuildGb(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if err := Build(benchVim(b, gsftpMain), false, CmdBuildEval{
+		if err := Build(benchVim(b, gsftpMain), false, &CmdBuildEval{
 			Cwd: gsftpRoot,
 			Dir: gsftpRoot,
 		}); err != nil {
