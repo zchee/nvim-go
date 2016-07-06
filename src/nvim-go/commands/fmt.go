@@ -89,10 +89,8 @@ func Fmt(v *vim.Vim, dir string) error {
 
 	out := nvim.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
 
-	var cpos interface{}
-	v.Call("winsaveview", cpos)
 	minUpdate(v, b, in, out)
-	return v.Call("winrestview", nil, cpos)
+	return v.Command("noautocmd write")
 }
 
 func minUpdate(v *vim.Vim, b vim.Buffer, in [][]byte, out [][]byte) error {
