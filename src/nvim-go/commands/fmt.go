@@ -7,9 +7,11 @@ package commands
 import (
 	"bytes"
 	"go/scanner"
+	"time"
 
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
 	"github.com/garyburd/neovim-go/vim"
@@ -20,7 +22,7 @@ import (
 
 const pkgFmt = "GoFmt"
 
-var options = imports.Options{
+var importsOptions = imports.Options{
 	AllErrors: true,
 	Comments:  true,
 	TabIndent: true,
@@ -33,6 +35,7 @@ func init() {
 
 // Fmt format to the current buffer source uses gofmt behavior.
 func Fmt(v *vim.Vim, dir string) error {
+	defer profile.Start(time.Now(), pkgFmt)
 	ctxt := new(context.Context)
 	defer ctxt.Build.SetContext(dir)()
 
@@ -57,7 +60,7 @@ func Fmt(v *vim.Vim, dir string) error {
 		return err
 	}
 
-	buf, err := imports.Process("", nvim.ToByteSlice(in), &options)
+	buf, err := imports.Process("", nvim.ToByteSlice(in), &importsOptions)
 	if err != nil {
 		var loclist []*quickfix.ErrorlistData
 
