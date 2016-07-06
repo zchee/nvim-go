@@ -47,7 +47,7 @@ func Build(v *vim.Vim, bang bool, eval *CmdBuildEval) error {
 		bang = config.BuildForce
 	}
 
-	cmd, err := compileCmd(ctxt, bang, eval.Dir)
+	cmd, err := compileCmd(ctxt, bang, eval.Cwd)
 	if err != nil {
 		return err
 	}
