@@ -71,7 +71,8 @@ func (t *Terminal) Create() (err error) {
 	option := t.setTerminalOption()
 	name := fmt.Sprintf("| terminal %s", strings.Join(t.cmd, " "))
 	mode := fmt.Sprintf("%s %d%s", config.TerminalPosition, t.Size, t.mode)
-	t.Buf = nvim.NewBuffer(t.v, name, nvim.FiletypeTerminal, mode, option)
+	t.Buf = nvim.NewBuffer(t.v)
+	t.Buf.Create(name, nvim.FiletypeTerminal, mode, option)
 	t.Buf.Name = t.Name
 	t.Buf.UpdateSyntax(nvim.FiletypeTerminal)
 
