@@ -10,8 +10,6 @@ import (
 	"go/format"
 	"go/parser"
 	"go/types"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -36,8 +34,9 @@ func cmdIferr(v *vim.Vim, file string) {
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func Iferr(v *vim.Vim, file string) error {
 	defer profile.Start(time.Now(), "GoIferr")
+
+	dir := filepath.Dir(file)
 	ctxt := new(context.Context)
-	dir, _ := filepath.Split(file)
 	defer ctxt.Build.SetContext(dir)()
 
 	b, err := v.CurrentBuffer()
@@ -45,25 +44,23 @@ func Iferr(v *vim.Vim, file string) error {
 		return err
 	}
 
-	bufline, err := v.BufferLines(b, 0, -1, true)
+	buflines, err := v.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return err
 	}
 
-	var buf string
-	for _, bufstr := range bufline {
-		buf += "\n" + string(bufstr)
-	}
-
 	conf := loader.Config{
 		ParserMode:  parser.ParseComments,
-		TypeChecker: types.Config{FakeImportC: true, DisableUnusedImportCheck: false},
+		TypeChecker: types.Config{FakeImportC: true, DisableUnusedImportCheck: true},
 		Build:       &build.Default,
 		Cwd:         dir,
 		AllowErrors: true,
 	}
 
-	f, err := conf.ParseFile(file, buf)
+	var src bytes.Buffer
+	src.Write(nvim.ToByteSlice(buflines))
+
+	f, err := conf.ParseFile(file, src.Bytes())
 	if err != nil {
 		return nvim.Echoerr(v, "GoIferr: %v", err)
 	}
@@ -74,24 +71,17 @@ func Iferr(v *vim.Vim, file string) error {
 		return err
 	}
 
-	saveStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
+	// Reuse src variable
+	src.Reset()
 
 	for _, pkg := range prog.InitialPackages() {
 		for _, f := range pkg.Files {
 			iferr.RewriteFile(prog.Fset, f, pkg.Info)
-			format.Node(w, prog.Fset, f)
+			format.Node(&src, prog.Fset, f)
 		}
 	}
 
-	w.Close()
-	os.Stdout = saveStdout
-
-	out, err := ioutil.ReadAll(r)
-	if err != nil {
-		return err
-	}
-
-	return v.SetBufferLines(b, 0, -1, true, bytes.Split(out, []byte{'\n'}))
+	// format.Node() will added pointless newline
+	buf := bytes.TrimSuffix(src.Bytes(), []byte{'\n'})
+	return v.SetBufferLines(b, 0, -1, true, nvim.ToBufferLines(buf))
 }
