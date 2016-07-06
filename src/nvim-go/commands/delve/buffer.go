@@ -44,13 +44,16 @@ func (d *Delve) createDebugBuffer(v *vim.Vim) error {
 		d.buffer = make(map[string]*nvim.Buf)
 		nnoremap := make(map[string]string)
 
-		d.buffer[Terminal] = nvim.NewBuffer(v, Terminal, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
+		d.buffer[Terminal] = nvim.NewBuffer(d.v)
+		d.buffer[Terminal].Create(Terminal, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
 		nnoremap["i"] = fmt.Sprintf(":<C-u>call rpcrequest(%d, 'DlvStdin')<CR>", config.ClientChannelID)
 		d.buffer[Terminal].SetLocalMapping(nvim.NoremapNormal, nnoremap)
 
-		d.buffer[Context] = nvim.NewBuffer(v, Context, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*2/3)), option)
+		d.buffer[Context] = nvim.NewBuffer(d.v)
+		d.buffer[Context].Create(Terminal, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
 
-		d.buffer[Threads] = nvim.NewBuffer(v, Threads, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*1/5)), option)
+		d.buffer[Threads] = nvim.NewBuffer(d.v)
+		d.buffer[Threads].Create(Terminal, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
 
 		v.SetWindowOption(d.buffer[Threads].Window, "winfixheight", true)
 

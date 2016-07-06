@@ -67,6 +67,8 @@ func init() {
 
 // Delve represents a delve client.
 type Delve struct {
+	v *vim.Vim
+
 	server     *exec.Cmd
 	client     *delverpc2.RPCClient
 	term       *delveterm.Term
@@ -106,6 +108,8 @@ func NewDelve() *Delve {
 // setupDelveClient setup the delve client. Separate the NewDelveClient() function.
 // caused by neovim-go can't call the rpc2.NewClient?
 func (d *Delve) setupDelve(v *vim.Vim) error {
+	d.v = v
+
 	d.client = delverpc2.NewClient(addr)           // *rpc2.RPCClient
 	d.term = delveterm.New(d.client, nil)          // *terminal.Term
 	d.debugger = delveterm.DebugCommands(d.client) // *terminal.Commands
