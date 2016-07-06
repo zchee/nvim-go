@@ -27,59 +27,36 @@ type Buf struct {
 	Filetype string
 	Bufnr    int
 	Mode     string
+	Data     []byte
 
 	WindowContext
 	TabpageContext
 }
 
-// WindowContext represents a Neovim window context.
-type WindowContext struct {
-	vim.Window
-}
-
-// TabpageContext represents a Neovim tabpage context.
-type TabpageContext struct {
-	vim.Tabpage
-}
-
-// VimOption represents a Neovim buffer, window and tabpage options.
-type NvimOption int
-
-const (
-	// BufferOption buffer option type.
-	BufferOption NvimOption = iota
-	// BufferVar buffer var type.
-	BufferVar
-	// WindowOption window option type.
-	WindowOption
-	// WindowVar window var type.
-	WindowVar
-	// TabpageVar tabpage var type.
-	TabpageVar
-)
-
-// NewBuffer creates the new buffer and return the Buffer structure type.
-func NewBuffer(v *vim.Vim, name, filetype, mode string, option map[NvimOption]map[string]interface{}) *Buf {
-	b := &Buf{
-		v:        v,
-		p:        v.NewPipeline(),
-		Name:     name,
-		Filetype: filetype,
-		Mode:     mode,
+// NewBuffer return the new Buf instance with goroutine pipeline.
+func NewBuffer(v *vim.Vim) *Buf {
+	return &Buf{
+		v: v,
+		p: v.NewPipeline(),
 	}
+}
+
+// Create creates the new buffer and return the Buffer structure type.
+func (b *Buf) Create(name, filetype, mode string, option map[NvimOption]map[string]interface{}) error {
+	b.Name = name
+	b.Filetype = filetype
+	b.Mode = mode
 
 	err := b.v.Command(fmt.Sprintf("silent %s %s", b.Mode, b.Name))
 	if err != nil {
-		errors.Annotate(err, pkgBuffer)
-		return nil
+		return errors.Annotate(err, pkgBuffer)
 	}
 
 	b.p.CurrentBuffer(&b.Buffer)
 	b.p.CurrentWindow(&b.Window)
 	b.p.CurrentTabpage(&b.Tabpage)
 	if err := b.p.Wait(); err != nil {
-		errors.Annotate(err, pkgBuffer)
-		return nil
+		return errors.Annotate(err, pkgBuffer)
 	}
 
 	b.p.BufferNumber(b.Buffer, &b.Bufnr)
@@ -115,9 +92,51 @@ func NewBuffer(v *vim.Vim, name, filetype, mode string, option map[NvimOption]ma
 	if !strings.Contains(b.Name, ".") {
 		b.p.Command(fmt.Sprintf("runtime! syntax/%s.vim", filetype))
 	}
-	b.p.Wait()
 
-	return b
+	return b.p.Wait()
+}
+
+func (b *Buf) GetBufferContext() {
+	b.p.CurrentBuffer(&b.Buffer)
+	b.p.CurrentWindow(&b.Window)
+	b.p.CurrentTabpage(&b.Tabpage)
+
+	b.p.Wait()
+}
+
+func (b *Buf) BufferLines(start, end int, strict bool) {
+	if b.Buffer == 0 {
+		b.GetBufferContext()
+	}
+
+	buf, err := b.v.BufferLines(b.Buffer, start, end, strict)
+	if err != nil {
+		return
+	}
+	b.Data = ToByteSlice(buf)
+}
+
+func (b *Buf) SetBufferLines(start, end int, strict bool, replacement []byte) error {
+	if b.Buffer == 0 {
+		err := errors.New("Does not exist of target buffer")
+		return err
+	}
+
+	b.Data = replacement
+
+	return b.v.SetBufferLines(b.Buffer, start, end, strict, ToBufferLines(replacement))
+}
+
+func (b *Buf) SetBufferLinesAll(replacement []byte) error {
+	if b.Buffer == 0 {
+		err := errors.New("Does not exist of target buffer")
+		return err
+	}
+
+	b.Data = replacement
+	b.Write(b.Data)
+
+	return nil
 }
 
 // UpdateSyntax updates the syntax highlight of the buffer.
@@ -213,7 +232,8 @@ func (b *Buf) Truncate(n int) {
 // Reset is the same as Truncate(0).
 func (b *Buf) Reset() { b.Truncate(0) }
 
-// ---- Utility for buffer -----------------------------------------
+// ----------------------------------------------------------------------------
+// Utility
 
 // IsBufferValid wrapper of v.IsBufferValid function.
 func IsBufferValid(v *vim.Vim, b vim.Buffer) bool {

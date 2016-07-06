@@ -1,5 +1,21 @@
 package nvim
 
+// VimOption represents a Neovim buffer, window and tabpage options.
+type NvimOption int
+
+const (
+	// BufferOption buffer option type.
+	BufferOption NvimOption = iota
+	// BufferVar buffer var type.
+	BufferVar
+	// WindowOption window option type.
+	WindowOption
+	// WindowVar window var type.
+	WindowVar
+	// TabpageVar tabpage var type.
+	TabpageVar
+)
+
 const (
 	// Buffer options
 	BufOptionBufhidden  = "bufhidden"  // string
