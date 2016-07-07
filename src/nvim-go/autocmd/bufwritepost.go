@@ -7,30 +7,48 @@ package autocmd
 import (
 	"nvim-go/commands"
 	"nvim-go/config"
+	"nvim-go/nvim"
 
 	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
 )
 
-func init() {
-	plugin.HandleAutocmd("BufWritePost",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h')]"}, autocmdBufWritePost)
-}
-
-type bufwritepostEval struct {
+type bufWritePostEval struct {
 	Cwd string `msgpack:",array"`
 	Dir string
 }
 
-func autocmdBufWritePost(v *vim.Vim, eval *bufwritepostEval) {
-	if config.BuildAutosave && !config.FmtAsync {
-		go commands.Build(v, false, &commands.CmdBuildEval{
-			Cwd: eval.Cwd,
-			Dir: eval.Dir,
-		})
+func (a *AutocmdContext) autocmdBufWritePost(v *vim.Vim, eval *bufWritePostEval) {
+	switch <-a.bufWritePreChan {
+	default:
+		return
+	case nil:
+		if config.BuildAutosave {
+			go func() {
+				err := commands.Build(v, false, &commands.CmdBuildEval{
+					Cwd: eval.Cwd,
+					Dir: eval.Dir,
+				})
+				a.send(a.bufWritePostChan, err)
+			}()
+		}
+		if config.MetalinterAutosave {
+			go func() {
+				err := commands.Metalinter(v, eval.Cwd)
+				a.send(a.bufWritePostChan, err)
+			}()
+		}
+
+		if config.TestAutosave {
+			go func() {
+				err := commands.Test(v, []string{}, eval.Dir)
+				a.send(a.bufWritePostChan, err)
+			}()
+		}
 	}
 
-	if config.TestAutosave {
-		go commands.Test(v, []string{}, eval.Dir)
+	err := <-a.bufWritePostChan
+	if err != nil {
+		nvim.ErrorWrap(v, err)
+		return
 	}
 }
