@@ -143,52 +143,53 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 	return fname, int(line), int(col)
 }
 
-// ParseError parses a typical error message of Go compile tools.
-// Error sample:
-//  # nvim-go/nvim
-//  echo.go:79: syntax error: non-declaration statement outside function body
-//  # nvim-go/nvim/quickfix
-//  locationlist.go:152: syntax error: unexpected case, expecting }
-//  locationlist.go:160: syntax error: non-declaration statement outside function body
-// TODO(zchee): More better regexp pattern and single for loop if possible.
+var (
+	errRe     = regexp.MustCompile(`(?m)^([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
+	parentDir string
+)
+
 func ParseError(errors []byte, cwd string, ctxt *context.BuildContext) ([]*ErrorlistData, error) {
-	var (
-		errlist      []*ErrorlistData
-		reErrPattern = regexp.MustCompile(`(?m)^#\s([-_./\w]+)\n([\s\w!"#$%&'()*+,\-./:;<=>?@[\\\]^_{|}~]+)`)
-		reFile       = regexp.MustCompile(`([.\w]+):(\d+)(?::(\d+))?:\s(.*)`)
-	)
+	var errlist []*ErrorlistData
 
-	for _, m := range reErrPattern.FindAllSubmatch(errors, -1) {
-		parent := string(m[1])
-		errFile := m[2]
-
-		for _, mm := range reFile.FindAllSubmatch(errFile, -1) {
-			var fname string
-			fpath := filepath.Join(parent, string(mm[1]))
-
-			switch ctxt.Tool {
-			case "go":
-				sep := filepath.Join(build.Default.GOPATH, "src")
-				c := strings.TrimPrefix(cwd, sep+string(filepath.Separator))
-				fname = strings.TrimPrefix(filepath.Clean(fpath), c+string(filepath.Separator))
-
-			case "gb":
-				if !filepath.IsAbs(fpath) {
-					fpath = filepath.Join(ctxt.GbProjectDir, "src", fpath)
-				}
-				fname, _ = filepath.Rel(cwd, fpath)
-			}
-
-			line, _ := strconv.Atoi(string(mm[2]))
-			col, _ := strconv.Atoi(string(mm[3]))
-
-			errlist = append(errlist, &ErrorlistData{
-				FileName: fname,
-				LNum:     line,
-				Col:      col,
-				Text:     string(bytes.TrimSpace(mm[4])),
-			})
+	for _, m := range errRe.FindAllSubmatch(errors, -1) {
+		if bytes.Contains(m[1], []byte{'#'}) {
+			p := string(bytes.Replace(m[1][2:], []byte{'\n'}, []byte{filepath.Separator}, 1))
+			parentDir = filepath.Dir(p)
+			m[1] = []byte(filepath.Base(p))
 		}
+		filename := filepath.Join(parentDir, string(m[1]))
+
+		switch ctxt.Tool {
+		case "go":
+			sep := filepath.Join(build.Default.GOPATH, "src")
+			c := strings.TrimPrefix(cwd, sep+string(filepath.Separator))
+			filename = strings.TrimPrefix(filepath.Clean(filename), c+string(filepath.Separator))
+
+		case "gb":
+			if !filepath.IsAbs(filename) {
+				filename = filepath.Join(ctxt.GbProjectDir, "src", filename)
+			}
+			if frel, err := filepath.Rel(cwd, filename); err == nil {
+				filename = frel
+			}
+		}
+
+		line, err := strconv.Atoi(string(m[2]))
+		if err != nil {
+			line = 0
+		}
+
+		col, err := strconv.Atoi(string(m[3]))
+		if err != nil {
+			col = 0
+		}
+
+		errlist = append(errlist, &ErrorlistData{
+			FileName: filename,
+			LNum:     line,
+			Col:      col,
+			Text:     string(bytes.TrimSpace(m[4])),
+		})
 	}
 
 	return errlist, nil
