@@ -19,9 +19,12 @@ import (
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/juju/errors"
 	"github.com/motemen/go-iferr"
 	"golang.org/x/tools/go/loader"
 )
+
+const pkgIferr = "GoIferr"
 
 func init() {
 	plugin.HandleCommand("GoIferr", &plugin.CommandOptions{Eval: "expand('%:p')"}, cmdIferr)
@@ -41,12 +44,12 @@ func Iferr(v *vim.Vim, file string) error {
 
 	b, err := v.CurrentBuffer()
 	if err != nil {
-		return err
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgIferr))
 	}
 
 	buflines, err := v.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return err
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgIferr))
 	}
 
 	conf := loader.Config{
@@ -62,13 +65,13 @@ func Iferr(v *vim.Vim, file string) error {
 
 	f, err := conf.ParseFile(file, src.Bytes())
 	if err != nil {
-		return nvim.Echoerr(v, "GoIferr: %v", err)
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgIferr))
 	}
 
 	conf.CreateFromFiles(file, f)
 	prog, err := conf.Load()
 	if err != nil {
-		return err
+		return nvim.ErrorWrap(v, errors.Annotate(err, pkgIferr))
 	}
 
 	// Reuse src variable
