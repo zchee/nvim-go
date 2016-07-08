@@ -1,6 +1,4 @@
 // Copyright 2016 Koichi Shiraishi. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
 
 package commands
 
@@ -12,10 +10,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvim"
+	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 	"nvim-go/nvim/terminal"
 	"nvim-go/pathutil"
@@ -39,6 +39,7 @@ var term *terminal.Terminal
 // Test run the package test command use compile tool that determined from
 // the directory structure.
 func Test(v *vim.Vim, args []string, dir string) error {
+	defer profile.Start(time.Now(), "GoTest")
 	ctxt := new(context.Context)
 	defer ctxt.Build.SetContext(dir)()
 
