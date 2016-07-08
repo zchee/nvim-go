@@ -62,9 +62,5 @@ nnoremap <silent><Plug>(nvim-go-delve-stop)             :<C-u>DlvStop<CR>
 " Interactive mode
 nnoremap <silent><Plug>(nvim-go-delve-stdin)  :<C-u>DlvStdin<CR>
 
-" Exit
-nnoremap <silent><Plug>(nvim-go-delve-exit)  :<C-u>Dlv<CR>
-
-" Print
-
-" Information
+" Detach
+nnoremap <silent><Plug>(nvim-go-delve-detach)  :<C-u>DlvDetach<CR>
