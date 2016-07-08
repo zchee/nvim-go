@@ -11,5 +11,4 @@ pipelines:
           - mv /tmp/neovim-linux64/bin/nvim /usr/local/bin
           - mv /tmp/neovim-linux64/share/nvim /usr/local/share
           - go get -u -v -x github.com/constabulary/gb/...
-          - gb vendor restore
           - gb test -v -race -bench=. -benchmem

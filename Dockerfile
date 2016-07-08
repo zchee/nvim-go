@@ -14,6 +14,4 @@ RUN set -ux \
 COPY . /nvim-go
 WORKDIR /nvim-go
 
-RUN gb vendor restore
-
 CMD ["gb", "test", "-v", "-race", "-bench=.", "-benchmem"]

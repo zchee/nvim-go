@@ -26,7 +26,5 @@ _testmain.go
 # neovim go rplugin
 bin
 pkg
-!vendor/src/github.com/pkg
-vendor/src
 
 plugin/specs

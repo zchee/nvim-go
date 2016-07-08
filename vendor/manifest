@@ -113,13 +113,6 @@
 			"path": "/vim"
 		},
 		{
-			"importpath": "github.com/garyburd/neovim-go/vim/plugin",
-			"repository": "https://github.com/garyburd/neovim-go",
-			"revision": "541e248d530885213fa63c3ce2aa74acce56c692",
-			"branch": "master",
-			"path": "/vim/plugin"
-		},
-		{
 			"importpath": "github.com/juju/errors",
 			"repository": "https://github.com/juju/errors",
 			"revision": "b2c7a7da5b2995941048f60146e67702a292e468",
