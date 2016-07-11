@@ -48,10 +48,6 @@ func TestBuild(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		os.Setenv("GOPATH", testGoPath)
-		os.Setenv("NVIM_GO_DEBUG", "")
-		os.Setenv("XDG_DATA_HOME", filepath.Join(testdata, "local", "share"))
-
 		if err := Build(tt.v, false, tt.eval); (err != nil) != tt.wantErr {
 			t.Errorf("Build(%+v, %+v) error = %v, wantErr %v", tt.v, tt.eval, err, tt.wantErr)
 		}
@@ -59,11 +55,6 @@ func TestBuild(t *testing.T) {
 }
 
 func BenchmarkBuildGo(b *testing.B) {
-	xdgDataHome := filepath.Join(testdata, "local", "share")
-	os.Setenv("XDG_DATA_HOME", xdgDataHome)
-	os.Setenv("NVIM_GO_DEBUG", "")
-	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
 		if err := Build(benchVim(b, astdumpMain), false, &CmdBuildEval{
 			Cwd: astdump,
@@ -75,11 +66,6 @@ func BenchmarkBuildGo(b *testing.B) {
 }
 
 func BenchmarkBuildGb(b *testing.B) {
-	xdgDataHome := filepath.Join(testdata, "local", "share")
-	os.Setenv("XDG_DATA_HOME", xdgDataHome)
-	os.Setenv("NVIM_GO_DEBUG", "")
-	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
 		if err := Build(benchVim(b, gsftpMain), false, &CmdBuildEval{
 			Cwd: gsftpRoot,

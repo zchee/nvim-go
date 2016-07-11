@@ -28,6 +28,8 @@ var (
 )
 
 var testVim = func(t *testing.T, file string) *vim.Vim {
+	os.Setenv("NVIM_GO_DEBUG", "")
+
 	v, err := vim.StartEmbeddedVim(&vim.EmbedOptions{
 		Args: []string{"-u", "NONE", "-n", file},
 		Env:  []string{},
