@@ -122,17 +122,18 @@ func GotoPos(v *vim.Vim, w vim.Window, pos token.Position, cwd string) error {
 // SplitPos parses a string of form 'token.Pos', and return the relative
 // filepath from the current working directory path.
 func SplitPos(pos string, cwd string) (string, int, int) {
-	slc := strings.Split(pos, ":")
-	line, err := strconv.ParseInt(slc[1], 10, 64)
+	position := strings.Split(pos, ":")
+
+	fname := position[0]
+	line, err := strconv.ParseInt(position[1], 10, 64)
 	if err != nil {
 		line = 0
 	}
-	col, err := strconv.ParseInt(slc[2], 10, 64)
+	col, err := strconv.ParseInt(position[2], 10, 64)
 	if err != nil {
 		col = 0
 	}
 
-	fname := slc[0]
 	if strings.HasPrefix(fname, cwd) {
 		frel := strings.TrimPrefix(fname, cwd+string(filepath.Separator))
 		if fname != frel {
@@ -143,27 +144,40 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 	return fname, int(line), int(col)
 }
 
-var (
-	errRe     = regexp.MustCompile(`(?m)^([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
-	parentDir string
-)
+var errRe = regexp.MustCompile(`(?m)^([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
 
+// ParseError parses a typical error message of Go compile tools.
+// TODO(zchee): More elegant way
 func ParseError(errors []byte, cwd string, ctxt *context.BuildContext) ([]*ErrorlistData, error) {
-	var errlist []*ErrorlistData
+	var (
+		parentDir string
+		fpath     string
+		errlist   []*ErrorlistData
+	)
 
+	// m[1]: relative file path of error file
+	// m[2]: line number of error point
+	// m[3]: column number of error point
+	// m[4]: error description text
 	for _, m := range errRe.FindAllSubmatch(errors, -1) {
+		fpath = filepath.Base(string(bytes.Replace(m[1], []byte{'\t'}, nil, -1)))
 		if bytes.Contains(m[1], []byte{'#'}) {
-			p := string(bytes.Replace(m[1][2:], []byte{'\n'}, []byte{filepath.Separator}, 1))
-			parentDir = filepath.Dir(p)
-			m[1] = []byte(filepath.Base(p))
+			// m[1][2:] is trim '# ' from errors directory
+			// '# nvim-go/nvim' -> 'nvim-go/nvim'
+			path := bytes.Split(m[1][2:], []byte{'\n'})
+
+			// save the parent directory path for the second and subsequent error description
+			parentDir = string(path[0])
+			fpath = filepath.Base(string(bytes.Replace(path[1], []byte{'\t'}, nil, -1)))
 		}
-		filename := filepath.Join(parentDir, string(m[1]))
+
+		filename := filepath.Join(parentDir, fpath)
 
 		switch ctxt.Tool {
 		case "go":
-			sep := filepath.Join(build.Default.GOPATH, "src")
-			c := strings.TrimPrefix(cwd, sep+string(filepath.Separator))
-			filename = strings.TrimPrefix(filepath.Clean(filename), c+string(filepath.Separator))
+			goSrcPath := filepath.Join(build.Default.GOPATH, "src")
+			currentDir := strings.TrimPrefix(cwd, goSrcPath+string(filepath.Separator))
+			filename = strings.TrimPrefix(filepath.Clean(filename), currentDir+string(filepath.Separator))
 
 		case "gb":
 			if !filepath.IsAbs(filename) {
@@ -176,10 +190,12 @@ func ParseError(errors []byte, cwd string, ctxt *context.BuildContext) ([]*Error
 
 		line, err := strconv.Atoi(string(m[2]))
 		if err != nil {
-			line = 0
+			return nil, err
 		}
 
 		col, err := strconv.Atoi(string(m[3]))
+		// fallback if cannot convert col to type int
+		// Basically, col == ""
 		if err != nil {
 			col = 0
 		}
