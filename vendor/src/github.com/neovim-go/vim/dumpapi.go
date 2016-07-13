@@ -19,7 +19,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/garyburd/neovim-go/msgpack"
+	"github.com/neovim-go/msgpack"
 )
 
 func main() {

@@ -20,8 +20,8 @@ var readerData = []string{
 }
 
 func TestBufferReader(t *testing.T) {
-	v := newEmbeddedVim(t)
-	defer v.Close()
+	v, cleanup := newEmbeddedVim(t)
+	defer cleanup()
 	b, err := v.CurrentBuffer()
 	if err != nil {
 		t.Fatal(err)

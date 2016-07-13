@@ -11,8 +11,8 @@ import (
 	"testing"
 )
 
-func newEmbeddedVim(t *testing.T) *Vim {
-	v, err := StartEmbeddedVim(&EmbedOptions{
+func newEmbeddedVim(t *testing.T) (*Vim, func()) {
+	v, err := NewEmbedded(&EmbedOptions{
 		Args: []string{"-u", "NONE", "-n"},
 		Env:  []string{},
 		Logf: t.Logf,
@@ -20,20 +20,35 @@ func newEmbeddedVim(t *testing.T) *Vim {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return v
+
+	done := make(chan error, 1)
+	go func() {
+		done <- v.Serve()
+	}()
+
+	return v, func() {
+		e1 := v.Close()
+		e2 := <-done
+		if e1 != nil {
+			t.Fatal(e1)
+		}
+		if e2 != nil {
+			t.Fatal(e2)
+		}
+	}
 }
 
-func helloHandler(v *Vim, s string) (string, error) {
+func helloHandler(s string) (string, error) {
 	return "Hello, " + s, nil
 }
 
 func TestAPI(t *testing.T) {
-	v := newEmbeddedVim(t)
-	defer v.Close()
+	v, cleanup := newEmbeddedVim(t)
+	defer cleanup()
 
-	cid, err := v.ChannelID()
-	if err != nil {
-		t.Fatal(err)
+	cid := v.ChannelID()
+	if cid <= 0 {
+		t.Fatal("could not get channel id")
 	}
 
 	// Simple handler.

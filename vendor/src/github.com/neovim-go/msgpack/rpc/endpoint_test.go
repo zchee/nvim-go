@@ -14,22 +14,22 @@ import (
 
 func clientServer(t *testing.T, options ...Option) (*Endpoint, *Endpoint, func()) {
 	var wg sync.WaitGroup
-	wg.Add(2)
 
 	options = append(options, WithLogf(t.Logf))
 
 	serverConn, clientConn := net.Pipe()
 
-	server, err := NewEndpoint(serverConn, options...)
+	server, err := NewEndpoint(serverConn, serverConn, serverConn, options...)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	client, err := NewEndpoint(clientConn, options...)
+	client, err := NewEndpoint(clientConn, clientConn, clientConn, options...)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	wg.Add(1)
 	go func() {
 		err := server.Serve()
 		if err != nil && err != io.ErrClosedPipe {
@@ -38,17 +38,18 @@ func clientServer(t *testing.T, options ...Option) (*Endpoint, *Endpoint, func()
 		wg.Done()
 	}()
 
+	wg.Add(1)
 	go func() {
 		err := client.Serve()
 		if err != nil && err != io.ErrClosedPipe {
-			t.Logf("client: %v", err)
+			t.Logf("server: %v", err)
 		}
 		wg.Done()
 	}()
 
 	cleanup := func() {
-		server.Close()
 		client.Close()
+		server.Close()
 		wg.Wait()
 	}
 
@@ -59,7 +60,7 @@ func TestEndpoint(t *testing.T) {
 	client, server, cleanup := clientServer(t)
 	defer cleanup()
 
-	if err := server.RegisterHandler("add", func(a, b int) (int, error) { return a + b, nil }); err != nil {
+	if err := server.Register("add", func(a, b int) (int, error) { return a + b, nil }); err != nil {
 		t.Fatal(err)
 	}
 
@@ -77,7 +78,7 @@ func TestEndpoint(t *testing.T) {
 	// Notification.
 
 	notifCh := make(chan string, 1)
-	if err := server.RegisterHandler("n1", func(s string) { notifCh <- s }); err != nil {
+	if err := server.Register("n1", func(s string) { notifCh <- s }); err != nil {
 		t.Fatal(err)
 	}
 
@@ -116,19 +117,19 @@ func TestArgs(t *testing.T) {
 	client, server, cleanup := clientServer(t)
 	defer cleanup()
 
-	if err := server.RegisterHandler("n", func(a, b string) ([]string, error) {
+	if err := server.Register("n", func(a, b string) ([]string, error) {
 		return append([]string{a, b}), nil
 	}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := server.RegisterHandler("v", func(a, b string, x ...string) ([]string, error) {
+	if err := server.Register("v", func(a, b string, x ...string) ([]string, error) {
 		return append([]string{a, b}, x...), nil
 	}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := server.RegisterHandler("a", func(x ...string) ([]string, error) {
+	if err := server.Register("a", func(x ...string) ([]string, error) {
 		return x, nil
 	}); err != nil {
 		t.Fatal(err)
@@ -147,21 +148,49 @@ func TestArgs(t *testing.T) {
 	}
 }
 
-func TestFirstArg(t *testing.T) {
-	client, server, cleanup := clientServer(t, WithFirstArg("hello"))
-	defer cleanup()
-
-	err := server.RegisterHandler("f", func(hello string) error {
-		if hello != "hello" {
-			t.Fatal("first arg not equal to 'hello'")
-		}
+func TestCallAfterClose(t *testing.T) {
+	client, server, cleanup := clientServer(t)
+	err := server.Register("a", func() error {
 		return nil
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+	cleanup()
+	if err := client.Call("a", nil); err == nil {
+		t.Fatal("expected error")
+	}
+}
 
-	if err := client.Call("f", nil); err != nil {
+func TestExtraArgs(t *testing.T) {
+	client, server, cleanup := clientServer(t)
+	defer cleanup()
+
+	err := server.Register("a", func(hello string) error {
+		if hello != "hello" {
+			t.Fatal("first arg not equal to 'hello'")
+		}
+		return nil
+	}, "hello")
+	if err != nil {
 		t.Fatal(err)
 	}
+
+	if err := client.Call("a", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	err = server.Register("b", func(hello *string) error {
+		if hello != nil {
+			t.Fatal("first arg not nil")
+		}
+		return nil
+	}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := client.Call("b", nil); err != nil {
+		t.Fatal(err)
+	}
+
 }

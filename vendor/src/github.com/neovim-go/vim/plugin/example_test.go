@@ -7,17 +7,15 @@ package plugin_test
 import (
 	"strings"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/neovim-go/vim/plugin"
 )
-
-func init() {
-	plugin.HandleFunction("Hello", nil, func(v *vim.Vim, args []string) (string, error) {
-		return "Hello, " + strings.Join(args, " "), nil
-	})
-}
 
 // This plugin adds the Hello function to Neovim.
 func Example() {
-	plugin.Main()
+	plugin.Main(func(p *plugin.Plugin) error {
+		p.HandleFunction(&plugin.FunctionOptions{Name: "Hello"}, func(args []string) (string, error) {
+			return "Hello, " + strings.Join(args, " "), nil
+		})
+		return nil
+	})
 }

@@ -2,22 +2,18 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package vim implements a Neovim client.
-//
-// See the ./plugin package for additional functionality required for writing
-// Neovim plugins.
 package vim
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"reflect"
 	"sync"
 	"time"
 
-	"github.com/garyburd/neovim-go/msgpack/rpc"
+	"github.com/neovim-go/msgpack/rpc"
 )
 
 //go:generate go run genapi.go -out api.go
@@ -25,51 +21,36 @@ import (
 // Vim represents a remote instance of Neovim. It is safe to call *Vim methods
 // concurrently.
 type Vim struct {
-	ep        *rpc.Endpoint
+	ep *rpc.Endpoint
+
 	mu        sync.Mutex
 	channelID int
-
-	// close is a hook for closing embedded Neovim process.
-	close func() error
 }
 
-// Serve runs the MessagePack RPC server loop.
+// Serve serves incoming requests. Serve blocks until the Neovim disconnects or
+// there is an error.
 func (v *Vim) Serve() error {
 	return v.ep.Serve()
 }
 
-// Close closes the client.
+// Close releases the resources used the client.
 func (v *Vim) Close() error {
-	err := v.ep.Close()
-	if v.close != nil {
-		errc := v.close()
-		if err == nil {
-			err = errc
-		}
-	}
-	return err
+	return v.ep.Close()
 }
 
-// New create a Neovim client. When connecting to Neovim over stdio, use stdin
-// as r and stdout as wc. When connecting to Neovim over a network connection,
-// use the connection for both r and wc.
+// New creates a Neovim client. When connecting to Neovim over stdio, use stdin
+// as r and stdout as w and c, When connecting to Neovim over a network connection,
+// use the connection for r, w and c.
+//
+// The application must call Serve() to handle RPC requests and responses.
 //
 //  :help msgpack-rpc-connecting
-func New(r io.Reader, wc io.WriteCloser, logf func(string, ...interface{})) (*Vim, error) {
-	v := &Vim{}
-
-	rwc := struct {
-		io.Reader
-		io.WriteCloser
-	}{r, wc}
-
-	var err error
-	v.ep, err = rpc.NewEndpoint(rwc, withExtensions(), rpc.WithLogf(logf), rpc.WithFirstArg(v))
+func New(r io.Reader, w io.Writer, c io.Closer, logf func(string, ...interface{})) (*Vim, error) {
+	ep, err := rpc.NewEndpoint(r, w, c, rpc.WithLogf(logf), withExtensions())
 	if err != nil {
 		return nil, err
 	}
-
-	return v, nil
+	return &Vim{ep: ep}, nil
 }
 
 // EmbedOptions specifies options for starting an embedded instance of Neovim.
@@ -93,16 +74,38 @@ type EmbedOptions struct {
 	Logf func(string, ...interface{})
 }
 
-// StartEmbeddedVim starts an embedded instance of Neovim using the specified
-// arguments.
-func StartEmbeddedVim(options *EmbedOptions) (*Vim, error) {
+type embedCloser struct {
+	w io.WriteCloser
+	p *os.Process
+}
+
+func (c *embedCloser) Close() error {
+	err := c.w.Close()
+
+	t := time.AfterFunc(5*time.Second, func() { c.p.Kill() })
+	defer t.Stop()
+
+	state, e := c.p.Wait()
+	if e != nil {
+		err = e
+	}
+
+	if err != nil || !state.Success() {
+		err = fmt.Errorf("%s", state)
+	}
+
+	return err
+}
+
+// NewEmbedded starts an embedded instance of Neovim using the specified
+// options.
+func NewEmbedded(options *EmbedOptions) (*Vim, error) {
 	var closeOnExit []io.Closer
 	defer func() {
 		for _, c := range closeOnExit {
 			c.Close()
 		}
 	}()
-
 	if options == nil {
 		options = &EmbedOptions{}
 	}
@@ -128,19 +131,17 @@ func StartEmbeddedVim(options *EmbedOptions) (*Vim, error) {
 	}
 	closeOnExit = append(closeOnExit, inr, inw)
 
-	v := &Vim{}
-	rwc := struct {
-		io.Reader
-		io.WriteCloser
-	}{outr, inw}
+	c := &embedCloser{
+		w: inw,
+	}
 
-	v.ep, err = rpc.NewEndpoint(rwc, withExtensions(), rpc.WithLogf(options.Logf), rpc.WithFirstArg(v))
+	v, err := New(outr, inw, c, options.Logf)
 	if err != nil {
 		return nil, err
 	}
 	closeOnExit = append(closeOnExit, v.ep)
 
-	p, err := os.StartProcess(path,
+	c.p, err = os.StartProcess(path,
 		append([]string{path, "--embed"}, options.Args...),
 		&os.ProcAttr{
 			Env:   options.Env,
@@ -150,49 +151,20 @@ func StartEmbeddedVim(options *EmbedOptions) (*Vim, error) {
 		return nil, err
 	}
 
-	closeOnExit = nil
 	outw.Close()
 	inr.Close()
-
-	done := make(chan error, 1)
-	go func() {
-		done <- v.Serve()
-		outr.Close()
-		inw.Close()
-	}()
-
-	v.close = func() error {
-		var errServe error
-		select {
-		case errServe = <-done:
-		case <-time.After(5 * time.Second):
-			p.Kill()
-			errServe = errors.New("timeout waiting for nvim to exit")
-		}
-		state, err := p.Wait()
-		if errServe != nil {
-			return errServe
-		}
-		if err != nil {
-			return err
-		}
-		if !state.Success() {
-			return fmt.Errorf("%s", state)
-		}
-		return nil
-	}
-
+	closeOnExit = nil
 	return v, nil
 }
 
 // RegisterHandler registers fn as a MessagePack RPC handler for the named
 // method. The function signature for fn is one of
 //
-//  func(v *vim.Vim, {args}) ({resultType}, error)
-//  func(v *vim.Vim, {args}) error
-//  func(v *vim.Vim, {args})
+//  func([v *vim.Vim,] {args}) ({resultType}, error)
+//  func([v *vim.Vim,] {args}) error
+//  func([v *vim.Vim,] {args})
 //
-// where {args} is zero or more arguments and {resultType} is the type of of a
+// where {args} is zero or more arguments and {resultType} is the type of a
 // return value. Call the handler from Neovim using the rpcnotify and
 // rpcrequest functions:
 //
@@ -202,25 +174,30 @@ func StartEmbeddedVim(options *EmbedOptions) (*Vim, error) {
 // Plugin applications should use the Handler* methods in the ./plugin package
 // to register handlers instead of this method.
 func (v *Vim) RegisterHandler(method string, fn interface{}) error {
-	return v.ep.RegisterHandler(method, fn)
+	var args []interface{}
+	t := reflect.TypeOf(fn)
+	if t.Kind() == reflect.Func && t.NumIn() > 0 && t.In(0) == reflect.TypeOf(v) {
+		args = append(args, v)
+	}
+	return v.ep.Register(method, fn, args...)
 }
 
 // ChannelID returns Neovim's channel id for this client.
-func (v *Vim) ChannelID() (int, error) {
+func (v *Vim) ChannelID() int {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	if v.channelID != 0 {
-		return v.channelID, nil
+		return v.channelID
 	}
 	var info struct {
 		ChannelID int `msgpack:",array"`
 		Info      interface{}
 	}
 	if err := v.ep.Call("vim_get_api_info", &info); err != nil {
-		return 0, err
+		// TODO: log error and exit process?
 	}
 	v.channelID = info.ChannelID
-	return v.channelID, nil
+	return v.channelID
 }
 
 func (v *Vim) call(sm string, result interface{}, args ...interface{}) error {
@@ -269,7 +246,7 @@ func (p *Pipeline) Wait() error {
 		}
 		c := <-done
 		if c.Err != nil {
-			el = append(el, fixError(c.ServiceMethod, c.Err))
+			el = append(el, fixError(c.Method, c.Err))
 		}
 	}
 	p.n = 0

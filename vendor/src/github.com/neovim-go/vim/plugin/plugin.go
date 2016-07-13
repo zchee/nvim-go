@@ -5,77 +5,76 @@
 package plugin
 
 import (
+	"bytes"
 	"fmt"
-	"io"
 	"reflect"
 	"sort"
 	"strings"
-	"sync"
 
-	"github.com/garyburd/neovim-go/vim"
+	"github.com/neovim-go/vim"
 )
 
+// Plugin represents a remote plugin.
+type Plugin struct {
+	Vim         *vim.Vim
+	pluginSpecs []*pluginSpec
+
+	// Event/pattern counters used to generate unique paths for autocmds.
+	eventPathCounts map[string]int
+}
+
+// New returns an intialized plugin.
+func New(v *vim.Vim) *Plugin {
+	p := &Plugin{
+		Vim:             v,
+		eventPathCounts: make(map[string]int),
+	}
+
+	// Disable support for "specs" method until path mechanism for supporting
+	// binary exectables with Neovim is worked out.
+	// err := v.RegisterHandler("specs", func(path string) ([]*pluginSpec, error) {
+	//  return p.pluginSpecs, nil
+	// })
+
+	return p
+}
+
 type pluginSpec struct {
+	sm   string
 	Type string            `msgpack:"type"`
 	Name string            `msgpack:"name"`
 	Sync bool              `msgpack:"sync"`
 	Opts map[string]string `msgpack:"opts"`
-
-	ServiceMethod string `msgpack:"-"`
-	fn            interface{}
 }
 
-type handler struct {
-	sm string
-	fn interface{}
+func (spec *pluginSpec) path() string {
+	if i := strings.Index(spec.sm, ":"); i > 0 {
+		return spec.sm[:i]
+	}
+	return ""
 }
-
-var (
-	pluginSpecs = []*pluginSpec{}
-	handlers    []*handler
-)
 
 func isSync(f interface{}) bool {
 	t := reflect.TypeOf(f)
 	return t.Kind() == reflect.Func && t.NumOut() > 0
 }
 
-func RegisterHandlers(v *vim.Vim, paths ...string) error {
-	var mu sync.Mutex
-	done := false
-	err := v.RegisterHandler("specs", func(v *vim.Vim, path string) ([]*pluginSpec, error) {
-		mu.Lock()
-		defer mu.Unlock()
-		if done {
-			return []*pluginSpec{}, nil
-		}
-		done = true
-		return pluginSpecs, nil
-	})
-	if err != nil {
-		return err
+func (p *Plugin) handle(fn interface{}, spec *pluginSpec) {
+	p.pluginSpecs = append(p.pluginSpecs, spec)
+	if p.Vim == nil {
+		return
 	}
-	for _, path := range paths {
-		for _, s := range pluginSpecs {
-			if err := v.RegisterHandler(path+s.ServiceMethod, s.fn); err != nil {
-				return err
-			}
-		}
+	if err := p.Vim.RegisterHandler(spec.sm, fn); err != nil {
+		panic(err)
 	}
-	for _, h := range handlers {
-		if err := v.RegisterHandler(h.sm, h.fn); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // Handle registers fn as a MessagePack RPC handler for the specified method
 // name. The function signature for fn is one of
 //
-//  func(v *vim.Vim, {args}) ({resultType}, error)
-//  func(v *vim.Vim, {args}) error
-//  func(v *vim.Vim, {args})
+//  func([v *vim.Vim,] {args}) ({resultType}, error)
+//  func([v *vim.Vim,] {args}) error
+//  func([v *vim.Vim,] {args})
 //
 // where {args} is zero or more arguments and {resultType} is the type of of a
 // return value. Call the handler from Neovim using the rpcnotify and
@@ -83,24 +82,32 @@ func RegisterHandlers(v *vim.Vim, paths ...string) error {
 //
 //  :help rpcrequest()
 //  :help rpcnotify()
-func Handle(method string, fn interface{}) {
-	handlers = append(handlers, &handler{fn: fn, sm: method})
+func (p *Plugin) Handle(method string, fn interface{}) {
+	if p.Vim == nil {
+		return
+	}
+	if err := p.Vim.RegisterHandler(method, fn); err != nil {
+		panic(err)
+	}
 }
 
 // FunctionOptions specifies function options.
 type FunctionOptions struct {
+	// Name is the name of the function in Neovim. The name must be made of
+	// alphanumeric characters and '_', and must start with a capital
+	// letter.
+	Name string
+
 	// Eval is an expression evaluated in Neovim. The result is passed the
 	// handler function.
 	Eval string
 }
 
-// HandleFunction registers fn as a handler for a Neovim function with the
-// specified name. The name must be made of alphanumeric characters and '_',
-// and must start with a capital letter. The function signature for fn is one
-// of
+// HandleFunction registers fn as a handler for a Neovim function. The function
+// signature for fn is one of
 //
-//  func(v *vim.Vim, args {arrayType} [, eval {evalType}]) ({resultType}, error)
-//  func(v *vim.Vim, args {arrayType} [, eval {evalType}]) error
+//  func([v *vim.Vim,] args {arrayType} [, eval {evalType}]) ({resultType}, error)
+//  func([v *vim.Vim,] args {arrayType} [, eval {evalType}]) error
 //
 // where {arrayType} is a type that can be unmarshaled from a MessagePack
 // array, {evalType} is a type compatible with the Eval option expression and
@@ -112,7 +119,7 @@ type FunctionOptions struct {
 // expression to evaluate for each field. Nested structs are supported. The
 // expression for the function
 //
-//  func example(v *vim.Vim, eval *struct{
+//  func example(eval *struct{
 //      GOPATH string `eval:"$GOPATH"`
 //      Cwd    string `eval:"getcwd()"`
 //  })
@@ -120,26 +127,26 @@ type FunctionOptions struct {
 // is
 //
 //  {'GOPATH': $GOPATH, Cwd: getcwd()}
-func HandleFunction(name string, options *FunctionOptions, fn interface{}) {
+func (p *Plugin) HandleFunction(options *FunctionOptions, fn interface{}) {
 	m := make(map[string]string)
-	if options != nil {
-		if options.Eval != "" {
-			m["eval"] = eval(options.Eval, fn)
-		}
+	if options.Eval != "" {
+		m["eval"] = eval(options.Eval, fn)
 	}
-	pluginSpecs = append(pluginSpecs, &pluginSpec{
+	p.handle(fn, &pluginSpec{
+		sm:   "0:function:" + options.Name,
 		Type: "function",
-		Name: name,
+		Name: options.Name,
 		Sync: isSync(fn),
 		Opts: m,
-
-		fn:            fn,
-		ServiceMethod: ":function:" + name,
 	})
 }
 
 // CommandOptions specifies command options.
 type CommandOptions struct {
+	// Name is the name of the command in Neovim. The name must be made of
+	// alphanumeric characters and '_', and must start with a capital
+	// letter.
+	Name string
 
 	// NArgs specifies the number command arguments.
 	//
@@ -205,13 +212,10 @@ type CommandOptions struct {
 	Complete string
 }
 
-// HandleCommand registers fn as a handler for a Neovim command with the
-// specified name. The name must be made of alphanumeric characters and '_',
-// and must start with a capital letter.
-///
-// The arguments to fn function are:
+// HandleCommand registers fn as a handler for a Neovim command. The arguments
+// to the function fn are:
 //
-//  v *vim.Vim
+//  v *vim.Vim          optional
 //  args []string       when options.NArgs != ""
 //  range [2]int        when options.Range == "." or Range == "%"
 //  range int           when options.Range == N or Count != ""
@@ -225,62 +229,60 @@ type CommandOptions struct {
 // evaluate in Neovim from the type of fn's last argument. See the
 // HandleFunction documentation for information on how the expression is
 // generated.
-func HandleCommand(name string, options *CommandOptions, fn interface{}) error {
+func (p *Plugin) HandleCommand(options *CommandOptions, fn interface{}) {
 	m := make(map[string]string)
-	if options != nil {
 
-		if options.NArgs != "" {
-			m["nargs"] = options.NArgs
-		}
-
-		if options.Range != "" {
-			if options.Range == "." {
-				options.Range = ""
-			}
-			m["range"] = options.Range
-		} else if options.Count != "" {
-			m["count"] = options.Count
-		}
-
-		if options.Bang {
-			m["bang"] = ""
-		}
-
-		if options.Register {
-			m["register"] = ""
-		}
-
-		if options.Eval != "" {
-			m["eval"] = eval(options.Eval, fn)
-		}
-
-		if options.Addr != "" {
-			m["addr"] = options.Addr
-		}
-
-		if options.Bar {
-			m["bar"] = ""
-		}
-
-		if options.Complete != "" {
-			m["complete"] = options.Complete
-		}
+	if options.NArgs != "" {
+		m["nargs"] = options.NArgs
 	}
 
-	pluginSpecs = append(pluginSpecs, &pluginSpec{
+	if options.Range != "" {
+		if options.Range == "." {
+			options.Range = ""
+		}
+		m["range"] = options.Range
+	} else if options.Count != "" {
+		m["count"] = options.Count
+	}
+
+	if options.Bang {
+		m["bang"] = ""
+	}
+
+	if options.Register {
+		m["register"] = ""
+	}
+
+	if options.Eval != "" {
+		m["eval"] = eval(options.Eval, fn)
+	}
+
+	if options.Addr != "" {
+		m["addr"] = options.Addr
+	}
+
+	if options.Bar {
+		m["bar"] = ""
+	}
+
+	if options.Complete != "" {
+		m["complete"] = options.Complete
+	}
+
+	p.handle(fn, &pluginSpec{
+		sm:   "0:command:" + options.Name,
 		Type: "command",
-		Name: name,
+		Name: options.Name,
 		Sync: isSync(fn),
 		Opts: m,
-
-		ServiceMethod: ":command:" + name,
-		fn:            fn,
 	})
-	return nil
 }
 
 // AutocmdOptions specifies autocmd options.
 type AutocmdOptions struct {
+	// Event is the event name.
+	Event string
+
 	// Group specifies the autocmd group.
 	Group string
 
@@ -299,45 +301,61 @@ type AutocmdOptions struct {
 	Eval string
 }
 
-// HandleAutocmd registers fn as a handler for the specified autocmnd event.
+// HandleAutocmd registers fn as a handler an autocmnd event.
 //
 // If options.Eval == "*", then HandleAutocmd constructs the expression to
 // evaluate in Neovim from the type of fn's last argument. See the
 // HandleFunction documentation for information on how the expression is
 // generated.
-func HandleAutocmd(event string, options *AutocmdOptions, fn interface{}) {
+func (p *Plugin) HandleAutocmd(options *AutocmdOptions, fn interface{}) {
 	pattern := ""
 	m := make(map[string]string)
-	if options != nil {
-
-		if options.Group != "" {
-			m["group"] = options.Group
-		}
-
-		if options.Pattern != "" {
-			m["pattern"] = options.Pattern
-			pattern = options.Pattern
-		}
-
-		if options.Nested {
-			m["nested"] = "1"
-		}
-
-		if options.Eval != "" {
-			m["eval"] = eval(options.Eval, fn)
-		}
-
+	if options.Group != "" {
+		m["group"] = options.Group
 	}
-	pluginSpecs = append(pluginSpecs, &pluginSpec{
+	if options.Pattern != "" {
+		m["pattern"] = options.Pattern
+		pattern = options.Pattern
+	}
+	if options.Nested {
+		m["nested"] = "1"
+	}
+	if options.Eval != "" {
+		m["eval"] = eval(options.Eval, fn)
+	}
+
+	// Compute unique path for event and pattern.
+	ep := options.Event + ":" + pattern
+	i := p.eventPathCounts[ep]
+	p.eventPathCounts[ep] = i + 1
+	sm := fmt.Sprintf("%d:autocmd:%s", i, ep)
+
+	p.handle(fn, &pluginSpec{
+		sm:   sm,
 		Type: "autocmd",
-		Name: event,
+		Name: options.Event,
 		Sync: isSync(fn),
 		Opts: m,
-
-		fn:            fn,
-		ServiceMethod: fmt.Sprintf(":autocmd:%s:%s", event, pattern),
 	})
+}
 
+// RegisterForTests registers the plugin with Neovim. Use this method for
+// testing plugins in an embedded instance of Neovim.
+func (p *Plugin) RegisterForTests() error {
+	specs := make(map[string][]*pluginSpec)
+	for _, spec := range p.pluginSpecs {
+		specs[spec.path()] = append(specs[spec.path()], spec)
+	}
+	const host = "neovim-go-test"
+	for path, specs := range specs {
+		if err := p.Vim.Call("remote#host#RegisterPlugin", nil, host, path, specs); err != nil {
+			return err
+		}
+	}
+	if err := p.Vim.Call("remote#host#Register", nil, host, "x", p.Vim.ChannelID()); err != nil {
+		return err
+	}
+	return nil
 }
 
 func eval(eval string, f interface{}) string {
@@ -399,20 +417,32 @@ type byServiceMethod []*pluginSpec
 
 func (a byServiceMethod) Len() int           { return len(a) }
 func (a byServiceMethod) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byServiceMethod) Less(i, j int) bool { return a[i].ServiceMethod < a[j].ServiceMethod }
+func (a byServiceMethod) Less(i, j int) bool { return a[i].sm < a[j].sm }
 
-func writePluginSpecs(w io.Writer) {
+func (p *Plugin) Manifest(host string) []byte {
+	var buf bytes.Buffer
+
 	// Sort for consistent order on output.
-	sort.Sort(byServiceMethod(pluginSpecs))
+	sort.Sort(byServiceMethod(p.pluginSpecs))
 	escape := strings.NewReplacer("'", "''").Replace
 
-	fmt.Fprintf(w, "let s:specs = [\n")
-	for _, spec := range pluginSpecs {
+	prevPath := ""
+	for _, spec := range p.pluginSpecs {
+		path := spec.path()
+		if path != prevPath {
+			if prevPath != "" {
+				fmt.Fprintf(&buf, "\\ )")
+			}
+			fmt.Fprintf(&buf, "call remote#host#RegisterPlugin('%s', '%s', [\n", host, path)
+			prevPath = path
+		}
+
 		sync := "0"
 		if spec.Sync {
 			sync = "1"
 		}
-		fmt.Fprintf(w, "\\ {'type': '%s', 'name': '%s', 'sync': %s, 'opts': {", spec.Type, spec.Name, sync)
+
+		fmt.Fprintf(&buf, "\\ {'type': '%s', 'name': '%s', 'sync': %s, 'opts': {", spec.Type, spec.Name, sync)
 
 		var keys []string
 		for k := range spec.Opts {
@@ -422,11 +452,14 @@ func writePluginSpecs(w io.Writer) {
 
 		optDelim := ""
 		for _, k := range keys {
-			fmt.Fprintf(w, "%s'%s': '%s'", optDelim, k, escape(spec.Opts[k]))
+			fmt.Fprintf(&buf, "%s'%s': '%s'", optDelim, k, escape(spec.Opts[k]))
 			optDelim = ", "
 		}
 
-		fmt.Fprintf(w, "}},\n")
+		fmt.Fprintf(&buf, "}},\n")
 	}
-	fmt.Fprintf(w, "\\ ]\n")
+	if prevPath != "" {
+		fmt.Fprintf(&buf, "\\ ])\n")
+	}
+	return buf.Bytes()
 }

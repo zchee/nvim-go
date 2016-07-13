@@ -646,8 +646,8 @@ import (
     "fmt"
     "reflect"
 
-    "github.com/garyburd/neovim-go/msgpack"
-    "github.com/garyburd/neovim-go/msgpack/rpc"
+    "github.com/neovim-go/msgpack"
+    "github.com/neovim-go/msgpack/rpc"
 )
 
 const (

@@ -99,20 +99,6 @@
 			"path": "/terminal"
 		},
 		{
-			"importpath": "github.com/garyburd/neovim-go/msgpack",
-			"repository": "https://github.com/garyburd/neovim-go",
-			"revision": "541e248d530885213fa63c3ce2aa74acce56c692",
-			"branch": "master",
-			"path": "/msgpack"
-		},
-		{
-			"importpath": "github.com/garyburd/neovim-go/vim",
-			"repository": "https://github.com/garyburd/neovim-go",
-			"revision": "541e248d530885213fa63c3ce2aa74acce56c692",
-			"branch": "master",
-			"path": "/vim"
-		},
-		{
 			"importpath": "github.com/juju/errors",
 			"repository": "https://github.com/juju/errors",
 			"revision": "b2c7a7da5b2995941048f60146e67702a292e468",
@@ -140,6 +126,18 @@
 			"importpath": "github.com/motemen/go-iferr",
 			"repository": "https://github.com/motemen/go-iferr",
 			"revision": "a52028a70bbb348075c03a4c09c9597baa50253c",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/neovim-go/msgpack",
+			"repository": "https://github.com/neovim-go/msgpack",
+			"revision": "b8a9f492dc4eaa3c3d58ae6764af642f5331f0d2",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/neovim-go/vim",
+			"repository": "https://github.com/neovim-go/vim",
+			"revision": "1e4217641f89197e36ecc0fbcf62d8c07e2d72b7",
 			"branch": "master"
 		},
 		{
