@@ -6,6 +6,7 @@ package autocmd
 
 import (
 	"path/filepath"
+	"runtime"
 
 	"nvim-go/commands"
 	"nvim-go/config"
@@ -18,13 +19,27 @@ type bufWritePreEval struct {
 	File string
 }
 
-func (a *AutocmdContext) autocmdBufWritePre(v *vim.Vim, eval *bufWritePreEval) {
+func (a *Autocmd) bufWritePre(v *vim.Vim, eval *bufWritePreEval) {
+	a.bufWritePreChan = make(chan error, runtime.NumCPU())
+
 	dir := filepath.Dir(eval.File)
 
+	// Iferr need execute before Fmt function because that function calls "noautocmd write"
+	// Also do not use goroutine.
 	if config.IferrAutosave {
 		err := commands.Iferr(v, eval.File)
-		a.send(a.bufWritePreChan, err)
+		if err != nil {
+			return
+		}
 	}
-	err := commands.Fmt(v, dir)
-	a.send(a.bufWritePreChan, err)
+
+	if config.FmtAutosave {
+		a.wg.Add(1)
+		go func() {
+			defer a.wg.Done()
+			a.bufWritePreChan <- commands.Fmt(v, dir)
+		}()
+	}
+
+	a.wg.Wait()
 }

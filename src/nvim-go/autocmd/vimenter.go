@@ -12,13 +12,7 @@ import (
 	"nvim-go/config"
 
 	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
 )
-
-func init() {
-	plugin.HandleAutocmd("VimEnter",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmdVimEnter)
-}
 
 // autocmdVimEnter wrapper vimEnter function use goroutine.
 func autocmdVimEnter(v *vim.Vim, cfg *config.Config) {
