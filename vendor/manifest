@@ -31,49 +31,49 @@
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/frame",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "142d8827997378ff84434615edeec665f0092e05",
+			"revision": "c7f11149d7146427b96be5375aff10d5bc899f5a",
 			"branch": "master",
 			"path": "/dwarf/frame"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/line",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "142d8827997378ff84434615edeec665f0092e05",
+			"revision": "c7f11149d7146427b96be5375aff10d5bc899f5a",
 			"branch": "master",
 			"path": "/dwarf/line"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/op",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "142d8827997378ff84434615edeec665f0092e05",
+			"revision": "c7f11149d7146427b96be5375aff10d5bc899f5a",
 			"branch": "master",
 			"path": "/dwarf/op"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/reader",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "142d8827997378ff84434615edeec665f0092e05",
+			"revision": "c7f11149d7146427b96be5375aff10d5bc899f5a",
 			"branch": "master",
 			"path": "/dwarf/reader"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/util",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "142d8827997378ff84434615edeec665f0092e05",
+			"revision": "c7f11149d7146427b96be5375aff10d5bc899f5a",
 			"branch": "master",
 			"path": "/dwarf/util"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/proc",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "142d8827997378ff84434615edeec665f0092e05",
+			"revision": "c7f11149d7146427b96be5375aff10d5bc899f5a",
 			"branch": "master",
 			"path": "/proc"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "142d8827997378ff84434615edeec665f0092e05",
+			"revision": "c7f11149d7146427b96be5375aff10d5bc899f5a",
 			"branch": "master",
 			"path": "/service"
 		},
@@ -94,7 +94,7 @@
 		{
 			"importpath": "github.com/derekparker/delve/terminal",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "142d8827997378ff84434615edeec665f0092e05",
+			"revision": "c7f11149d7146427b96be5375aff10d5bc899f5a",
 			"branch": "master",
 			"path": "/terminal"
 		},
