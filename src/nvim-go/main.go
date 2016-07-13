@@ -10,15 +10,21 @@ import (
 	_ "net/http/pprof"
 
 	// Register autocmd
-	_ "nvim-go/autocmd"
+	"nvim-go/autocmd"
 	// Register commands
-	_ "nvim-go/commands"
+	"nvim-go/commands"
 	// Register delve command and autocmd
-	_ "nvim-go/commands/delve"
+	"nvim-go/commands/delve"
 
-	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/neovim-go/vim/plugin"
 )
 
 func main() {
-	plugin.Main()
+	plugin.Main(func(p *plugin.Plugin) error {
+		autocmd.Register(p)
+		commands.Register(p)
+		delve.Register(p)
+
+		return nil
+	})
 }

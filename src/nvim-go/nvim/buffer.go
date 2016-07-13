@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 )
 
 const pkgBuffer = "nvim.buffer"

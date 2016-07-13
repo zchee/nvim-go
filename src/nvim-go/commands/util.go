@@ -10,18 +10,8 @@ import (
 
 	"nvim-go/nvim"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/neovim-go/vim"
 )
-
-func init() {
-	plugin.HandleCommand("GoByteOffset",
-		&plugin.CommandOptions{Range: "%", Eval: "expand('%:p')"},
-		cmdByteOffset)
-	plugin.HandleCommand("GoBuffers", &plugin.CommandOptions{}, cmdBuffers)
-	plugin.HandleCommand("GoWindows", &plugin.CommandOptions{}, cmdWindows)
-	plugin.HandleCommand("GoTabpages", &plugin.CommandOptions{}, cmdTabpagas)
-}
 
 func cmdBuffers(v *vim.Vim) error {
 	bufs, _ := v.Buffers()

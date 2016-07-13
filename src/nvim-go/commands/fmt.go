@@ -14,9 +14,8 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 	"golang.org/x/tools/imports"
 )
 
@@ -27,10 +26,6 @@ var importsOptions = imports.Options{
 	Comments:  true,
 	TabIndent: true,
 	TabWidth:  8,
-}
-
-func init() {
-	plugin.HandleCommand("Gofmt", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, Fmt)
 }
 
 // Fmt format to the current buffer source uses gofmt behavior.

@@ -18,13 +18,8 @@ import (
 	"nvim-go/nvim/quickfix"
 	"nvim-go/pathutil"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/neovim-go/vim"
 )
-
-func init() {
-	plugin.HandleCommand("Gometalinter", &plugin.CommandOptions{Eval: "getcwd()"}, cmdMetalinter)
-}
 
 func cmdMetalinter(v *vim.Vim, cwd string) {
 	go Metalinter(v, cwd)

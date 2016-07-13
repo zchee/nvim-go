@@ -9,8 +9,8 @@ import (
 	"nvim-go/nvim"
 	"time"
 
-	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 )
 
 // Fade represents a Fade highlighting.

@@ -7,8 +7,8 @@ package nvim
 import (
 	"fmt"
 
-	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 )
 
 const pkgNvimSign = "nvim.sign"

@@ -14,8 +14,8 @@ import (
 	"sort"
 
 	delveapi "github.com/derekparker/delve/service/api"
-	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 )
 
 func (d *Delve) printTerminal(v *vim.Vim, cmd string, message []byte) error {

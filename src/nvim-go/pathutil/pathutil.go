@@ -8,7 +8,7 @@ import (
 
 	"nvim-go/nvim"
 
-	"github.com/garyburd/neovim-go/vim"
+	"github.com/neovim-go/vim"
 )
 
 var pkgPathutil = "pathutil"

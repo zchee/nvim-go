@@ -11,7 +11,7 @@ import (
 
 	"nvim-go/config"
 
-	"github.com/garyburd/neovim-go/vim"
+	"github.com/neovim-go/vim"
 )
 
 // autocmdVimEnter wrapper vimEnter function use goroutine.
@@ -22,7 +22,7 @@ func autocmdVimEnter(v *vim.Vim, cfg *config.Config) {
 // vimEnter gets user config variables and assign to global variable when autocmd VimEnter.
 // If config.DebugPprof is true, start net/pprof debugging.
 func vimEnter(v *vim.Vim, cfg *config.Config) (err error) {
-	cfg.Client.ChannelID, err = v.ChannelID()
+	cfg.Client.ChannelID = v.ChannelID()
 	if err != nil {
 		return err
 	}

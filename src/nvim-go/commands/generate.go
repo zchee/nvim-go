@@ -18,13 +18,8 @@ import (
 	"nvim-go/nvim/profile"
 
 	"github.com/cweill/gotests/gotests/process"
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/neovim-go/vim"
 )
-
-func init() {
-	plugin.HandleCommand("GoGenerateTest", &plugin.CommandOptions{NArgs: "*", Complete: "file", Eval: "expand('%:p:h')"}, cmdGenerateTest)
-}
 
 func cmdGenerateTest(v *vim.Vim, files []string, dir string) {
 	go GenerateTest(v, files, dir)

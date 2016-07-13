@@ -17,7 +17,7 @@ import (
 	"nvim-go/context"
 	"nvim-go/pathutil"
 
-	"github.com/garyburd/neovim-go/vim"
+	"github.com/neovim-go/vim"
 )
 
 // ErrorlistData represents an item in a quickfix and locationlist.

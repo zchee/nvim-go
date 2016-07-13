@@ -7,8 +7,8 @@ package delve
 import (
 	"log"
 
-	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 )
 
 func (d *Delve) cmdDetach(v *vim.Vim) {

@@ -9,7 +9,7 @@ import (
 	"nvim-go/internal/guru/serial"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/garyburd/neovim-go/vim"
+	"github.com/neovim-go/vim"
 )
 
 func TestGuru(t *testing.T) {

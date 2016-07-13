@@ -13,8 +13,8 @@ import (
 	"nvim-go/nvim"
 	"nvim-go/pathutil"
 
-	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 )
 
 var pkgTerminal = "GoTerminal"

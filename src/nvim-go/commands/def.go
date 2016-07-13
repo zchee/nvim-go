@@ -19,18 +19,13 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/neovim-go/vim"
 	"github.com/rogpeppe/godef/go/ast"
 	"github.com/rogpeppe/godef/go/parser"
 	"github.com/rogpeppe/godef/go/printer"
 	"github.com/rogpeppe/godef/go/token"
 	"github.com/rogpeppe/godef/go/types"
 )
-
-func init() {
-	plugin.HandleCommand("Godef", &plugin.CommandOptions{Eval: "expand('%:p:h')"}, cmdDef)
-}
 
 func cmdDef(v *vim.Vim, file string) {
 	go Def(v, file)

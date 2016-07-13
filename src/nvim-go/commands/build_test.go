@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/garyburd/neovim-go/vim"
+	"github.com/neovim-go/vim"
 )
 
 func TestBuild(t *testing.T) {

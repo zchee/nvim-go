@@ -32,20 +32,14 @@ import (
 	"nvim-go/nvim/quickfix"
 	"nvim-go/pathutil"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 	"github.com/ugorji/go/codec"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
 )
 
 var pkgGuru = "Guru"
-
-func init() {
-	plugin.HandleFunction("GoGuru",
-		&plugin.FunctionOptions{Eval: "[getcwd(), expand('%:p'), &modified, line2byte(line('.')) + (col('.')-2)]"}, funcGuru)
-}
 
 type funcGuruEval struct {
 	Cwd      string `msgpack:",array"`
@@ -125,11 +119,8 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 		}
 		p.Command(`lclose`)
 		p.Command(`normal! zz`)
-		if err := p.Wait(); err != nil {
-			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
-		}
 
-		go func() {
+		defer func() {
 			loclist = append(loclist, &quickfix.ErrorlistData{
 				FileName: fname,
 				LNum:     line,
@@ -138,7 +129,8 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 			})
 			quickfix.SetLoclist(v, loclist)
 		}()
-		return nil
+
+		return p.Wait()
 	}
 
 	switch ctxt.Build.Tool {
@@ -202,6 +194,7 @@ func definition(q *guru.Query) (*serial.Definition, error) {
 	defer profile.Start(time.Now(), "definition")
 
 	c := make(chan fallback)
+	go definitionFallback(q, c)
 
 	// First try the simple resolution done by parser.
 	// It only works for intra-file references but it is very fast.
@@ -239,7 +232,6 @@ func definition(q *guru.Query) (*serial.Definition, error) {
 		}, nil
 	}
 
-	go definitionFallback(q, c)
 	obj := <-c
 	if obj.Err != nil {
 		return nil, obj.Err

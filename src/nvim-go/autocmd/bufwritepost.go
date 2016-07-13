@@ -8,7 +8,7 @@ import (
 	"nvim-go/commands"
 	"nvim-go/config"
 
-	"github.com/garyburd/neovim-go/vim"
+	"github.com/neovim-go/vim"
 )
 
 type bufWritePostEval struct {

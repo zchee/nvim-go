@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/garyburd/neovim-go/vim"
+	"github.com/neovim-go/vim"
 )
 
 func TestFmt(t *testing.T) {
@@ -76,7 +76,7 @@ var minUpdateTests = []struct {
 }
 
 func TestMinUpdate(t *testing.T) {
-	v, err := vim.StartEmbeddedVim(&vim.EmbedOptions{
+	v, err := vim.NewEmbedded(&vim.EmbedOptions{
 		Args: []string{"-u", "NONE", "-n"},
 		Env:  []string{},
 		Logf: t.Logf,

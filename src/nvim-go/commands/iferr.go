@@ -17,18 +17,13 @@ import (
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/juju/errors"
 	"github.com/motemen/go-iferr"
+	"github.com/neovim-go/vim"
 	"golang.org/x/tools/go/loader"
 )
 
 const pkgIferr = "GoIferr"
-
-func init() {
-	plugin.HandleCommand("GoIferr", &plugin.CommandOptions{Eval: "expand('%:p')"}, cmdIferr)
-}
 
 func cmdIferr(v *vim.Vim, file string) {
 	go Iferr(v, file)

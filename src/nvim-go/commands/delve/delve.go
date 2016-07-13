@@ -21,9 +21,8 @@ import (
 	delveapi "github.com/derekparker/delve/service/api"
 	delverpc2 "github.com/derekparker/delve/service/rpc2"
 	delveterm "github.com/derekparker/delve/terminal"
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 )
 
 const (
@@ -31,39 +30,6 @@ const (
 
 	pkgDelve string = "Delve"
 )
-
-func init() {
-	d := NewDelve()
-
-	// Launch
-	plugin.HandleCommand("DlvDebug", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug) // Compile and begin debugging program.
-
-	// Breakpoint
-	plugin.HandleCommand("DlvBreakpoint", &plugin.CommandOptions{NArgs: "*", Eval: "[expand('%:p')]", Complete: "customlist,DlvListFunctions"}, d.cmdCreateBreakpoint) // Sets a breakpoint.
-
-	// Stepping execution control
-	plugin.HandleCommand("DlvContinue", &plugin.CommandOptions{Eval: "[expand('%:p:h')]"}, d.cmdContinue) // Run until breakpoint or program termination.
-	plugin.HandleCommand("DlvNext", &plugin.CommandOptions{Eval: "[expand('%:p:h')]"}, d.cmdNext)         // Step over to next source line.
-	plugin.HandleCommand("DlvRestart", &plugin.CommandOptions{}, d.cmdRestart)                            // Restart process.
-
-	// Interactive mode
-	// XXX(zchee): Support contextual command completion
-	plugin.HandleCommand("DlvStdin", &plugin.CommandOptions{}, d.cmdStdin)
-	plugin.HandleFunction("DlvListFunctions", &plugin.FunctionOptions{}, d.ListFunctions) // list of functions for command completion.
-
-	// Detach
-	plugin.HandleCommand("DlvDetach", &plugin.CommandOptions{}, d.cmdDetach) // Exit the debugger.
-
-	// RPC Exports
-	plugin.Handle("DlvStdin", d.stdin)
-
-	// State (WIP: for debug)
-	plugin.HandleCommand("DlvState", &plugin.CommandOptions{}, d.cmdState)
-
-	// autocmd VimLeavePre
-	// FIXME(zchee): Why "[delve]*" pattern dose not handle autocmd?
-	plugin.HandleAutocmd("VimLeavePre", &plugin.AutocmdOptions{Group: "nvim-go", Pattern: "*.go,terminal,context,thread"}, d.cmdDetach)
-}
 
 // Delve represents a delve client.
 type Delve struct {

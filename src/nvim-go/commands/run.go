@@ -13,16 +13,10 @@ import (
 	"nvim-go/nvim/terminal"
 	"nvim-go/pathutil"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/neovim-go/vim"
 )
 
 var runTerm *terminal.Terminal
-
-func init() {
-	plugin.HandleCommand("Gorun",
-		&plugin.CommandOptions{NArgs: "*", Eval: "expand('%:p')"}, cmdRun)
-}
 
 // Run runs the go run command for current buffer's packages.
 func Run(v *vim.Vim, cmd []string, file string) error {

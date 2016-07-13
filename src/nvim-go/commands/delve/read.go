@@ -4,7 +4,7 @@
 
 package delve
 
-import "github.com/garyburd/neovim-go/vim"
+import "github.com/neovim-go/vim"
 
 func (d *Delve) readServerStdout(v *vim.Vim, cmd, args string) error {
 	command := cmd + " " + args

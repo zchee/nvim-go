@@ -18,13 +18,8 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/neovim-go/vim"
 )
-
-func init() {
-	plugin.HandleCommand("Gobuild", &plugin.CommandOptions{Bang: true, Eval: "[getcwd(), expand('%:p:h')]"}, cmdBuild)
-}
 
 // CmdBuildEval struct type for Eval of GoBuild command.
 type CmdBuildEval struct {

@@ -10,8 +10,8 @@ import (
 
 	"nvim-go/nvim"
 
-	"github.com/garyburd/neovim-go/vim"
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 )
 
 // startServer starts the delve headless server and replace server Stdout & Stderr.

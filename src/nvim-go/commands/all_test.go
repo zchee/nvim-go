@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/garyburd/neovim-go/vim"
+	"github.com/neovim-go/vim"
 )
 
 var (
@@ -30,7 +30,7 @@ var (
 var testVim = func(t *testing.T, file string) *vim.Vim {
 	os.Setenv("NVIM_GO_DEBUG", "")
 
-	v, err := vim.StartEmbeddedVim(&vim.EmbedOptions{
+	v, err := vim.NewEmbedded(&vim.EmbedOptions{
 		Args: []string{"-u", "NONE", "-n", file},
 		Env:  []string{},
 		Logf: t.Logf,
@@ -46,7 +46,7 @@ var benchVim = func(b *testing.B, file string) *vim.Vim {
 	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
 
-	v, err := vim.StartEmbeddedVim(&vim.EmbedOptions{
+	v, err := vim.NewEmbedded(&vim.EmbedOptions{
 		Args: []string{"-u", "NONE", "-n", file},
 		Env:  []string{},
 		Logf: b.Logf,

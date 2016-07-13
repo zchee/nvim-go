@@ -19,19 +19,11 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/neovim-go/vim"
 	"golang.org/x/tools/refactor/rename"
 )
 
 const pkgRename = "GoRename"
-
-func init() {
-	plugin.HandleCommand("Gorename",
-		&plugin.CommandOptions{
-			NArgs: "?", Bang: true, Eval: "[getcwd(), expand('%:p'), expand('<cword>')]"},
-		cmdRename)
-}
 
 type cmdRenameEval struct {
 	Cwd        string `msgpack:",array"`

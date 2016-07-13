@@ -4,18 +4,15 @@
 
 package autocmd
 
-import "github.com/garyburd/neovim-go/vim/plugin"
+import "github.com/neovim-go/vim/plugin"
 
-func init() {
+func Register(p *plugin.Plugin) {
 	autocmd := new(Autocmd)
 
 	autocmd.bufWritePreChan = make(chan error, 2)
 	autocmd.bufWritePostChan = make(chan error, 2)
 
-	plugin.HandleAutocmd("BufWritePre",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p')]"}, autocmd.bufWritePre)
-	plugin.HandleAutocmd("BufWritePost",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h')]"}, autocmd.bufWritePost)
-	plugin.HandleAutocmd("VimEnter",
-		&plugin.AutocmdOptions{Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmdVimEnter)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p')]"}, autocmd.bufWritePre)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h')]"}, autocmd.bufWritePost)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimEnter", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmdVimEnter)
 }

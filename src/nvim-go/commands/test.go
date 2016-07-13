@@ -20,15 +20,9 @@ import (
 	"nvim-go/nvim/terminal"
 	"nvim-go/pathutil"
 
-	"github.com/garyburd/neovim-go/vim"
-	"github.com/garyburd/neovim-go/vim/plugin"
+	"github.com/neovim-go/vim"
 	"golang.org/x/tools/go/ast/astutil"
 )
-
-func init() {
-	plugin.HandleCommand("Gotest", &plugin.CommandOptions{NArgs: "*", Eval: "expand('%:p:h')"}, cmdTest)
-	plugin.HandleCommand("GoTestSwitch", &plugin.CommandOptions{Eval: "[getcwd(), expand('%:p')]"}, cmdTestSwitch)
-}
 
 func cmdTest(v *vim.Vim, args []string, dir string) {
 	go Test(v, args, dir)

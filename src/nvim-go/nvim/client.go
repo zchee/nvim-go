@@ -7,7 +7,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/garyburd/neovim-go/vim"
+	"github.com/neovim-go/vim"
 )
 
 // NewSocketClient creates the Neovim client over the socket session.
@@ -39,7 +39,7 @@ func NewEmbedClient(args []string, dir string, env []string) *vim.Vim {
 		Env:  env,
 	}
 
-	v, err := vim.StartEmbeddedVim(options)
+	v, err := vim.NewEmbedded(options)
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -50,7 +50,7 @@ func NewEmbedClient(args []string, dir string, env []string) *vim.Vim {
 
 // NewStdioClient creates the Neovim client over the stdio.
 func NewStdioClient() *vim.Vim {
-	v, err := vim.New(os.Stdin, os.Stdout, log.Printf)
+	v, err := vim.New(os.Stdin, os.Stdout, os.Stdout, log.Printf)
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -73,7 +73,7 @@ func dialNvim(addr string) (*vim.Vim, error) {
 	if err != nil {
 		return nil, err
 	}
-	v, err := vim.New(conn, conn, log.Printf)
+	v, err := vim.New(conn, conn, conn, log.Printf)
 	if err != nil {
 		return nil, err
 	}
