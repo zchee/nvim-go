@@ -90,7 +90,8 @@ function! s:RequireNvimGo(host) abort
   throw remote#host#LoadErrorForHost(a:host.orig_name, '$NVIM_GO_LOG_FILE')
 endfunction
 
-let s:specs = [
+call remote#host#Register(s:plugin_name, '*', function('s:RequireNvimGo'))
+call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p:h'')]', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p'')]', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': '{''Client'': {''ServerName'': v:servername}, ''Analyze'': {''FoldIcon'': g:go#analyze#foldicon}, ''Build'': {''Autosave'': g:go#build#autosave, ''Force'': g:go#build#force, ''Args'': g:go#build#args}, ''Fmt'': {''Autosave'': g:go#fmt#autosave, ''Async'': g:go#fmt#async}, ''Generate'': {''ExclFuncs'': g:go#generate#exclude}, ''Guru'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}, ''Iferr'': {''Autosave'': g:go#iferr#autosave}, ''Metalinter'': {''Autosave'': g:go#lint#metalinter#autosave, ''AutosaveTools'': g:go#lint#metalinter#autosave#tools, ''Tools'': g:go#lint#metalinter#tools, ''Deadline'': g:go#lint#metalinter#deadline, ''SkipDir'': g:go#lint#metalinter#skip_dir}, ''Rename'': {''Prefill'': g:go#rename#prefill}, ''Terminal'': {''Mode'': g:go#terminal#mode, ''Position'': g:go#terminal#position, ''Height'': g:go#terminal#height, ''Width'': g:go#terminal#width, ''StartInsetrt'': g:go#terminal#start_insert}, ''Test'': {''Autosave'': g:go#test#autosave, ''Args'': g:go#test#args}, ''Debug'': {''Pprof'': g:go#debug#pprof}}', 'group': 'nvim-go', 'pattern': '*.go'}},
@@ -119,9 +120,6 @@ let s:specs = [
 \ {'type': 'command', 'name': 'Gotest', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')', 'nargs': '*'}},
 \ {'type': 'function', 'name': 'DlvListFunctions', 'sync': 1, 'opts': {}},
 \ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p''), &modified, line2byte(line(''.'')) + (col(''.'')-2)]'}},
-\ ]
-
-call remote#host#Register(s:plugin_binary, '*', function('s:RequireNvimGo'))
-call remote#host#RegisterPlugin(s:plugin_binary, s:plugin_dir, s:specs)
+\ ])
 
 " }}}
