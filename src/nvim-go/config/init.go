@@ -44,7 +44,8 @@ type build struct {
 
 // fmt represents a GoFmt command config variable.
 type fmt struct {
-	Async int64 `eval:"g:go#fmt#async"`
+	Autosave int64 `eval:"g:go#fmt#autosave"`
+	Async    int64 `eval:"g:go#fmt#async"`
 }
 
 // generate represents a GoGenerate command config variables.
@@ -114,6 +115,8 @@ var (
 	// BuildArgs force build args.
 	BuildArgs []string
 
+	// FmtAutosave call the GoFmt command automatically at during the BufWritePre.
+	FmtAutosave bool
 	// FmtAsync asynchronous call the GoFmt command at during the BufWritePre.
 	FmtAsync bool
 
@@ -179,6 +182,7 @@ func GetConfig(v *vim.Vim, cfg *Config) {
 	BuildArgs = cfg.Build.Args
 
 	// Fmt
+	FmtAutosave = itob(cfg.Fmt.Autosave)
 	FmtAsync = itob(cfg.Fmt.Async)
 
 	// Generate
