@@ -93,6 +93,15 @@ func Fmt(v *vim.Vim, dir string) error {
 	out := nvim.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
 
 	minUpdate(v, b, in, out)
+
+	// TODO(zchee): When executed Fmt(itself) function at autocmd BufWritePre, vim "write"
+	// command will starting before the finish of the Fmt function because that function called
+	// asynchronously uses goroutine.
+	// However, "noautocmd" raises duplicate the filesystem events.
+	// In the case of macOS fsevents:
+	//  (FSE_STAT_CHANGED -> FSE_CHOWN -> FSE_CONTENT_MODIFIED) x2.
+	// It will affect the watchdog system such as inotify-tools, fswatch or fsevents-tools.
+	// We need to consider the Alternative of BufWriteCmd or other an effective way.
 	return v.Command("noautocmd write")
 }
 
