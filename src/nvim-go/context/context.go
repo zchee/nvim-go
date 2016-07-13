@@ -14,7 +14,7 @@ import (
 
 const pkgContext = "context"
 
-// Context represents a build context.
+// Context represents a embeded context package and build context.
 type Context struct {
 	context.Context
 
