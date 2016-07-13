@@ -76,15 +76,7 @@ var minUpdateTests = []struct {
 }
 
 func TestMinUpdate(t *testing.T) {
-	v, err := vim.NewEmbedded(&vim.EmbedOptions{
-		Args: []string{"-u", "NONE", "-n"},
-		Env:  []string{},
-		Logf: t.Logf,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer v.Close()
+	v := testVim(t, "")
 
 	b, err := v.CurrentBuffer()
 	if err != nil {

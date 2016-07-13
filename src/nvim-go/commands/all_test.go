@@ -28,6 +28,8 @@ var (
 )
 
 var testVim = func(t *testing.T, file string) *vim.Vim {
+	xdgDataHome := filepath.Join(testdata, "local", "share")
+	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
 
 	v, err := vim.NewEmbedded(&vim.EmbedOptions{
@@ -38,6 +40,8 @@ var testVim = func(t *testing.T, file string) *vim.Vim {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	go v.Serve()
 	return v
 }
 
@@ -54,5 +58,7 @@ var benchVim = func(b *testing.B, file string) *vim.Vim {
 	if err != nil {
 		b.Fatal(err)
 	}
+
+	go v.Serve()
 	return v
 }
