@@ -176,8 +176,8 @@ func (d *Delve) createBreakpoint(v *vim.Vim, args []string, eval *createBreakpoi
 	}
 	d.bpSign[bp.ID].Place(v, bp.ID, bp.Line, bp.File, false)
 
-	if err := d.printTerminal(v, "break "+bp.FunctionName, []byte{}); err != nil {
-		return nvim.ErrorWrap(v, err)
+	if err := d.printTerminal("break "+bp.FunctionName, []byte{}); err != nil {
+		return nvim.ErrorWrap(d.v, err)
 	}
 
 	return nil
@@ -208,7 +208,7 @@ func (d *Delve) cont(v *vim.Vim, eval *continueEval) error {
 			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
 			return
 		}
-		d.printContext(v, eval.Dir, cThread, goroutines)
+		d.printContext(eval.Dir, cThread, goroutines)
 	}()
 
 	go d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true)
@@ -244,7 +244,7 @@ func (d *Delve) cont(v *vim.Vim, eval *continueEval) error {
 				cThread.Breakpoint.TotalHitCount,
 				cThread.PC))
 	}
-	return d.printTerminal(v, "continue", msg)
+	return d.printTerminal("continue", msg)
 }
 
 // breakpointEval represent a breakpoint commands Eval args.
@@ -270,7 +270,7 @@ func (d *Delve) next(v *vim.Vim, eval *nextEval) error {
 			nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
 			return
 		}
-		d.printContext(v, eval.Dir, cThread, goroutines)
+		d.printContext(eval.Dir, cThread, goroutines)
 	}()
 
 	go d.pcSign.Place(v, cThread.ID, cThread.Line, cThread.File, true)
@@ -293,7 +293,7 @@ func (d *Delve) next(v *vim.Vim, eval *nextEval) error {
 			cThread.Line,
 			cThread.GoroutineID,
 			cThread.PC))
-	return d.printTerminal(v, "next", msg)
+	return d.printTerminal("next", msg)
 }
 
 func (d *Delve) cmdRestart(v *vim.Vim) {
@@ -307,7 +307,7 @@ func (d *Delve) restart(v *vim.Vim) error {
 	}
 
 	d.processPid = d.client.ProcessPid()
-	return d.printTerminal(v, "restart", []byte(fmt.Sprintf("Process restarted with PID %d", d.processPid)))
+	return d.printTerminal("restart", []byte(fmt.Sprintf("Process restarted with PID %d", d.processPid)))
 }
 
 func (d *Delve) cmdStdin(v *vim.Vim) {
@@ -364,7 +364,7 @@ func (d *Delve) stdin(v *vim.Vim) error {
 		return nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
 	}
 
-	return d.printTerminal(v, stdin.(string), out)
+	return d.printTerminal(stdin.(string), out)
 }
 
 func shortFilePath(p, cwd string) string {

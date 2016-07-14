@@ -9,11 +9,11 @@ import "github.com/neovim-go/vim"
 func (d *Delve) readServerStdout(v *vim.Vim, cmd, args string) error {
 	command := cmd + " " + args
 
-	return d.printTerminal(v, command, d.serverOut.Bytes())
+	return d.printTerminal(command, d.serverOut.Bytes())
 }
 
 func (d *Delve) readServerStderr(v *vim.Vim, cmd, args string) error {
 	command := cmd + " " + args
 
-	return d.printTerminal(v, command, d.serverErr.Bytes())
+	return d.printTerminal(command, d.serverErr.Bytes())
 }

@@ -57,5 +57,5 @@ func (d *Delve) waitServer(v *vim.Vim) error {
 		return errors.Annotate(err, "delve/server.waitServer")
 	}
 
-	return d.printTerminal(v, "", []byte("Type 'help' for list of commands."))
+	return d.printTerminal("", []byte("Type 'help' for list of commands."))
 }

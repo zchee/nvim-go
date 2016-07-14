@@ -18,11 +18,11 @@ import (
 	"github.com/neovim-go/vim"
 )
 
-func (d *Delve) printTerminal(v *vim.Vim, cmd string, message []byte) error {
-	v.SetBufferOption(d.buffer[Terminal].Buffer, "modifiable", true)
-	defer v.SetBufferOption(d.buffer[Terminal].Buffer, "modifiable", false)
+func (d *Delve) printTerminal(cmd string, message []byte) error {
+	d.v.SetBufferOption(d.buffer[Terminal].Buffer, "modifiable", true)
+	defer d.v.SetBufferOption(d.buffer[Terminal].Buffer, "modifiable", false)
 
-	lcount, err := v.BufferLineCount(d.buffer[Terminal].Buffer)
+	lcount, err := d.v.BufferLineCount(d.buffer[Terminal].Buffer)
 	if err != nil {
 		return errors.Annotate(err, pkgDelve)
 	}
@@ -41,28 +41,28 @@ func (d *Delve) printTerminal(v *vim.Vim, cmd string, message []byte) error {
 	}
 	msg = append(msg, []byte("(dlv)  ")...)
 
-	if err := v.SetBufferLines(d.buffer[Terminal].Buffer, lcount, -1, true, bytes.Split(msg, []byte{'\n'})); err != nil {
+	if err := d.v.SetBufferLines(d.buffer[Terminal].Buffer, lcount, -1, true, bytes.Split(msg, []byte{'\n'})); err != nil {
 		return errors.Annotate(err, pkgDelve)
 	}
 
-	afterBuf, err := v.BufferLines(d.buffer[Terminal].Buffer, 0, -1, true)
+	afterBuf, err := d.v.BufferLines(d.buffer[Terminal].Buffer, 0, -1, true)
 	if err != nil {
 		return errors.Annotate(err, pkgDelve)
 	}
 
-	return v.SetWindowCursor(d.buffer[Terminal].Window, [2]int{len(afterBuf), 7})
+	return d.v.SetWindowCursor(d.buffer[Terminal].Window, [2]int{len(afterBuf), 7})
 }
 
-func (d *Delve) printContext(v *vim.Vim, cwd string, cThread *delveapi.Thread, goroutines []*delveapi.Goroutine) error {
-	v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", true)
-	defer v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", false)
+func (d *Delve) printContext(cwd string, cThread *delveapi.Thread, goroutines []*delveapi.Goroutine) error {
+	d.v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", true)
+	defer d.v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", false)
 
-	stackHeight, err := d.printStacktrace(v, cwd, cThread.Function, goroutines)
+	stackHeight, err := d.printStacktrace(cwd, cThread.Function, goroutines)
 	if err != nil {
 		return errors.Annotate(err, pkgDelve)
 	}
 
-	if err := d.printLocals(v, cwd, d.Locals, stackHeight); err != nil {
+	if err := d.printLocals(cwd, d.Locals, stackHeight); err != nil {
 		return errors.Annotate(err, pkgDelve)
 	}
 
@@ -78,21 +78,21 @@ func (a byGroutineID) Less(i, j int) bool { return a[i].ID < a[j].ID }
 
 const goroutineDepth = 20
 
-func (d *Delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Function, goroutines []*delveapi.Goroutine) (int, error) {
+func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goroutines []*delveapi.Goroutine) (int, error) {
 	sort.Sort(byGroutineID(goroutines))
 
 	var locals []delveapi.Variable
 	var fade *highlight.Fade
 
 	stacksMsg := []byte("Stacktraces\n")
-	end, _ := v.BufferLineCount(d.buffer[Context].Buffer)
+	end, _ := d.v.BufferLineCount(d.buffer[Context].Buffer)
 
 	for _, g := range goroutines {
 		// Get the each threads function name.
 		if g.CurrentLoc.Function.Name == currentFunc.Name {
 			stacksMsg = append(stacksMsg, byte('*'))
 			hlLine := len(nvim.ToBufferLines(stacksMsg))
-			fade = highlight.NewFader(v, d.buffer[Context].Buffer, "delveFade", hlLine, hlLine, 3, -1, 80)
+			fade = highlight.NewFader(d.v, d.buffer[Context].Buffer, "delveFade", hlLine, hlLine, 3, -1, 80)
 		} else {
 			stacksMsg = append(stacksMsg, []byte(fmt.Sprintf("\t\u25B6 %s\n", g.CurrentLoc.Function.Name))...) // \u25B6: ▶
 			continue
@@ -104,7 +104,7 @@ func (d *Delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Fu
 		if g.ID != 0 {
 			stacks, err := d.client.Stacktrace(g.ID, goroutineDepth, &delveapi.LoadConfig{FollowPointers: true}) // []delveapi.Stackframe
 			if err != nil {
-				return end, nvim.ErrorWrap(v, errors.Annotate(err, pkgDelve))
+				return end, nvim.ErrorWrap(d.v, errors.Annotate(err, pkgDelve))
 			}
 			for _, s := range stacks {
 				stacksMsg = append(stacksMsg, []byte(
@@ -126,7 +126,7 @@ func (d *Delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Fu
 		end = len(stackData)
 	}
 
-	if err := v.SetBufferLines(d.buffer[Context].Buffer, 0, end, true, stackData); err != nil {
+	if err := d.v.SetBufferLines(d.buffer[Context].Buffer, 0, end, true, stackData); err != nil {
 		return end, errors.Annotate(err, pkgDelve)
 	}
 
@@ -151,13 +151,13 @@ func (d *Delve) printStacktrace(v *vim.Vim, cwd string, currentFunc *delveapi.Fu
 	return end, nil
 }
 
-func (d *Delve) printLocals(v *vim.Vim, cwd string, locals []delveapi.Variable, stackHeight int) error {
+func (d *Delve) printLocals(cwd string, locals []delveapi.Variable, stackHeight int) error {
 	localsMsg := []byte("Local Variables\n")
 	for _, l := range locals {
 		localsMsg = append(localsMsg, []byte(fmt.Sprintf("\t\u25B6 %s %s\n", l.Name, l.Kind.String()))...) // \u25B6: ▶
 
 	}
-	if err := v.SetBufferLines(d.buffer[Context].Buffer, stackHeight, -1, true, bytes.Split(localsMsg, []byte{'\n'})); err != nil {
+	if err := d.v.SetBufferLines(d.buffer[Context].Buffer, stackHeight, -1, true, bytes.Split(localsMsg, []byte{'\n'})); err != nil {
 		return errors.Annotate(err, pkgDelve)
 	}
 
