@@ -27,7 +27,7 @@ var (
 	gsftpMain = filepath.Join(gsftpRoot, "src", "cmd", "gsftp", "main.go")
 )
 
-var testVim = func(t *testing.T, file string) *vim.Vim {
+func testVim(t *testing.T, file string) *vim.Vim {
 	xdgDataHome := filepath.Join(testdata, "local", "share")
 	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
@@ -45,7 +45,7 @@ var testVim = func(t *testing.T, file string) *vim.Vim {
 	return v
 }
 
-var benchVim = func(b *testing.B, file string) *vim.Vim {
+func benchVim(b *testing.B, file string) *vim.Vim {
 	xdgDataHome := filepath.Join(testdata, "local", "share")
 	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
