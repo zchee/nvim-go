@@ -28,6 +28,10 @@ var importsOptions = imports.Options{
 	TabWidth:  8,
 }
 
+func cmdFmt(v *vim.Vim, dir string) {
+	go Fmt(v, dir)
+}
+
 // Fmt format to the current buffer source uses gofmt behavior.
 func Fmt(v *vim.Vim, dir string) error {
 	defer profile.Start(time.Now(), pkgFmt)

@@ -9,7 +9,7 @@ import "github.com/neovim-go/vim/plugin"
 func Register(p *plugin.Plugin) {
 	p.HandleCommand(&plugin.CommandOptions{Name: "Gobuild", Bang: true, Eval: "[getcwd(), expand('%:p:h')]"}, cmdBuild)
 	p.HandleCommand(&plugin.CommandOptions{Name: "Godef", Eval: "expand('%:p:h')"}, cmdDef)
-	p.HandleCommand(&plugin.CommandOptions{Name: "Gofmt", Eval: "expand('%:p:h')"}, Fmt)
+	p.HandleCommand(&plugin.CommandOptions{Name: "Gofmt", Eval: "expand('%:p:h')"}, cmdFmt)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoGenerateTest", NArgs: "*", Complete: "file", Eval: "expand('%:p:h')"}, cmdGenerateTest)
 	p.HandleFunction(&plugin.FunctionOptions{Name: "GoGuru", Eval: "[getcwd(), expand('%:p'), &modified, line2byte(line('.')) + (col('.')-2)]"}, funcGuru)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoIferr", Eval: "expand('%:p')"}, cmdIferr)
