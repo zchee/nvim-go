@@ -52,10 +52,7 @@ func (b *Buf) Create(name, filetype, mode string, option map[NvimOption]map[stri
 		return errors.Annotate(err, pkgBuffer)
 	}
 
-	b.p.CurrentBuffer(&b.Buffer)
-	b.p.CurrentWindow(&b.Window)
-	b.p.CurrentTabpage(&b.Tabpage)
-	if err := b.p.Wait(); err != nil {
+	if err := b.GetBufferContext(); err != nil {
 		return errors.Annotate(err, pkgBuffer)
 	}
 
@@ -96,12 +93,12 @@ func (b *Buf) Create(name, filetype, mode string, option map[NvimOption]map[stri
 	return b.p.Wait()
 }
 
-func (b *Buf) GetBufferContext() {
+func (b *Buf) GetBufferContext() error {
 	b.p.CurrentBuffer(&b.Buffer)
 	b.p.CurrentWindow(&b.Window)
 	b.p.CurrentTabpage(&b.Tabpage)
 
-	b.p.Wait()
+	return b.p.Wait()
 }
 
 func (b *Buf) BufferLines(start, end int, strict bool) {
