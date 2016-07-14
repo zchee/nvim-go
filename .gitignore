@@ -27,4 +27,4 @@ _testmain.go
 bin
 pkg
 
-plugin/specs
+plugin/manifest

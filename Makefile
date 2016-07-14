@@ -1,4 +1,5 @@
 GITHUB_USER := zchee
+JOBS := 1
 
 VERBOSE := -v
 ifeq ($(DEBUG),true)
@@ -34,16 +35,20 @@ GO_LINT := golint
 
 default: build
 
-build: $(PACKAGE_DIR)/plugin/specs
+build: $(PACKAGE_DIR)/plugin/manifest
 	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
-	$(PACKAGE_DIR)/plugin/specs -w $(PACKAGE_NAME)
+	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
-rebuild: clean $(PACKAGE_DIR)/plugin/specs
+build/race: $(PACKAGE_DIR)/plugin/manifest
+	${GO_BUILD} -race $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
+	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
+
+rebuild: clean $(PACKAGE_DIR)/plugin/manifest
 	${GO_BUILD} -f $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
-	$(PACKAGE_DIR)/plugin/specs -w $(PACKAGE_NAME)
+	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
-$(PACKAGE_DIR)/plugin/specs:
-	$(GO_CMD) build -o $(PACKAGE_DIR)/plugin/specs $(PACKAGE_DIR)/plugin/specs.go
+$(PACKAGE_DIR)/plugin/manifest:
+	$(GO_CMD) build -o $(PACKAGE_DIR)/plugin/manifest $(PACKAGE_DIR)/plugin/manifest.go
 
 test:
 	${GO_TEST} || exit 1

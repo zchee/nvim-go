@@ -73,11 +73,12 @@ let g:go#debug#pprof = get(g:, 'go#debug#pprof', 0)
 
 " Register remote plugin
 
-" plugin informations
+" plugin informations {{{
 let s:plugin_name   = 'nvim-go'
 let s:plugin_root   = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
 let s:plugin_dir    = s:plugin_root . '/rplugin/go/' . s:plugin_name
 let s:plugin_binary = s:plugin_root . '/bin/' . s:plugin_name
+" }}}
 
 " register function {{{
 function! s:RequireNvimGo(host) abort
@@ -89,7 +90,9 @@ function! s:RequireNvimGo(host) abort
   endtry
   throw remote#host#LoadErrorForHost(a:host.orig_name, '$NVIM_GO_LOG_FILE')
 endfunction
+" }}}
 
+" plugin manifest
 call remote#host#Register(s:plugin_name, '*', function('s:RequireNvimGo'))
 call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p:h'')]', 'group': 'nvim-go', 'pattern': '*.go'}},
@@ -121,5 +124,3 @@ call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'function', 'name': 'DlvListFunctions', 'sync': 1, 'opts': {}},
 \ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p''), &modified, line2byte(line(''.'')) + (col(''.'')-2)]'}},
 \ ])
-
-" }}}

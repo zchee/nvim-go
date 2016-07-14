@@ -5,23 +5,27 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 var (
-	old   = flag.Bool("old", false, "display old file data to stdout")
-	new   = flag.Bool("new", false, "display new file data to stdout")
-	spec  = flag.Bool("specs", false, "display latest specs to stdout")
-	write = flag.Bool("w", false, "write specs to file instead of stdout")
+	old      = flag.Bool("old", false, "display old file data to stdout")
+	new      = flag.Bool("new", false, "display new file data to stdout")
+	manifest = flag.Bool("manifest", false, "display new plugin manifest to stdout")
+	write    = flag.Bool("w", false, "write specs to file instead of stdout")
 )
 
 func main() {
 	// Define usage
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s [-old|-new|-specs|-w] plugin_name\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage: %s [-old|-new|-manifest|-w] plugin_name\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -30,29 +34,36 @@ func main() {
 	pluginName := flag.Arg(0)
 	if pluginName == "" || flag.NFlag() > 1 {
 		flag.Usage()
-		os.Exit(1)
+		os.Exit(2)
 	}
 
-	// Get gb project directory
-	gbCmd := exec.Command("gb", "env", "GB_PROJECT_DIR")
+	// Search gb binary path
+	gbBin, err := exec.LookPath("gb")
+	if err != nil {
+		err = errors.Wrap(err, "does not exists gb binary")
+		log.Fatal(err)
+	}
+
+	// Get the gb project directory root
+	gbCmd := exec.Command(gbBin)
+	gbCmd.Args = append(gbCmd.Args, "env", "GB_PROJECT_DIR")
 	gbResult, err := gbCmd.Output()
 	if err != nil {
-		panic(err)
+		err = errors.Wrap(err, "cannot get gb project directory")
+		log.Fatal(err)
 	}
-	gbCmd.Run()
-	projectDir := strings.TrimSpace(string(gbResult))
+	prjDir := strings.TrimSpace(string(gbResult))
 
-	// Get latest plugin specs
-	specsCmd := exec.Command(projectDir+"/bin/"+pluginName, "-specs")
-	newSpecs, err := specsCmd.Output()
+	// Get new plugin manifest
+	manifestsCmd := exec.Command(filepath.Join(prjDir, "bin", pluginName), "-manifest", pluginName)
+	newManifest, err := manifestsCmd.Output()
 	if err != nil {
 		panic(err)
 	}
-	specsCmd.Run()
-	newSpecs = append(newSpecs, byte('\n'))
+	newManifest = append(newManifest, '\n')
 
-	// Get vim file information from the `plugin` directory
-	plugFile, err := os.OpenFile(projectDir+"/plugin/"+pluginName+".vim", os.O_RDWR, os.ModeAppend)
+	// Get vim file information from the "./plugin" directory
+	plugFile, err := os.OpenFile(filepath.Join(prjDir, "plugin", pluginName+".vim"), os.O_RDWR, os.ModeAppend)
 	if err != nil {
 		panic(err)
 	}
@@ -64,9 +75,9 @@ func main() {
 		panic(err)
 	}
 
-	re := regexp.MustCompile(`(?s)let s:specs =.+]\n+`)
+	re := regexp.MustCompile(`(?s)call remote#host#RegisterPlugin.+`)
 	// Replace the old specs to the latest specs
-	newData := re.ReplaceAll(oldData, newSpecs)
+	newData := re.ReplaceAll(oldData, newManifest)
 
 	// Output result
 	switch {
@@ -76,9 +87,9 @@ func main() {
 	case *new:
 		fmt.Printf("%v", string(newData))
 		return
-	case *spec:
+	case *manifest:
 		// Trim last newline for output to stdout
-		fmt.Printf("%v", string(newSpecs[:len(newSpecs)-1]))
+		fmt.Printf("%v", string(newManifest[:len(newManifest)-1]))
 		return
 	case *write:
 		data := bytes.TrimSpace(newData)
