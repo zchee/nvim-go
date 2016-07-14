@@ -11,7 +11,6 @@ import (
 	"nvim-go/nvim"
 
 	"github.com/juju/errors"
-	"github.com/neovim-go/vim"
 )
 
 const (
@@ -23,19 +22,17 @@ const (
 	Threads = "thread"
 )
 
-func (d *Delve) createDebugBuffer(v *vim.Vim) error {
-	p := v.NewPipeline()
-
-	p.CurrentBuffer(&d.cb)
-	p.CurrentWindow(&d.cw)
-	if err := p.Wait(); err != nil {
+func (d *Delve) createDebugBuffer() error {
+	d.p.CurrentBuffer(&d.cb)
+	d.p.CurrentWindow(&d.cw)
+	if err := d.p.Wait(); err != nil {
 		return errors.Annotate(err, "delve/createDebugBuffer")
 	}
 
 	var height, width int
-	p.WindowHeight(d.cw, &height)
-	p.WindowWidth(d.cw, &width)
-	if err := p.Wait(); err != nil {
+	d.p.WindowHeight(d.cw, &height)
+	d.p.WindowWidth(d.cw, &width)
+	if err := d.p.Wait(); err != nil {
 		return errors.Annotate(err, "delve/createDebugBuffer")
 	}
 
@@ -50,23 +47,22 @@ func (d *Delve) createDebugBuffer(v *vim.Vim) error {
 		d.buffer[Terminal].SetLocalMapping(nvim.NoremapNormal, nnoremap)
 
 		d.buffer[Context] = nvim.NewBuffer(d.v)
-		d.buffer[Context].Create(Terminal, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
+		d.buffer[Context].Create(Context, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*2/3)), option)
 
 		d.buffer[Threads] = nvim.NewBuffer(d.v)
-		d.buffer[Threads].Create(Terminal, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
+		d.buffer[Threads].Create(Threads, nvim.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*1/5)), option)
+		d.v.SetWindowOption(d.buffer[Threads].Window, "winfixheight", true)
 
-		v.SetWindowOption(d.buffer[Threads].Window, "winfixheight", true)
-
-		defer v.SetCurrentWindow(d.cw)
+		defer d.v.SetCurrentWindow(d.cw)
 	}()
 
 	var err error
-	d.pcSign, err = nvim.NewSign(v, "delve_pc", nvim.ProgramCounterSymbol, "delvePCSign", "delvePCLine") // *nvim.Sign
+	d.pcSign, err = nvim.NewSign(d.v, "delve_pc", nvim.ProgramCounterSymbol, "delvePCSign", "delvePCLine") // *nvim.Sign
 	if err != nil {
 		return errors.Annotate(err, "delve/createDebugBuffer")
 	}
 
-	return p.Wait()
+	return d.p.Wait()
 }
 
 func (d *Delve) setTerminalOption() map[nvim.NvimOption]map[string]interface{} {

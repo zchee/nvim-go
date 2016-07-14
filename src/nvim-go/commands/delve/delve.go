@@ -34,6 +34,7 @@ const (
 // Delve represents a delve client.
 type Delve struct {
 	v *vim.Vim
+	p *vim.Pipeline
 
 	server     *exec.Cmd
 	client     *delverpc2.RPCClient
@@ -67,15 +68,16 @@ type SignContext struct {
 }
 
 // NewDelve represents a delve client interface.
-func NewDelve() *Delve {
-	return &Delve{}
+func NewDelve(v *vim.Vim) *Delve {
+	return &Delve{
+		v: v,
+		p: v.NewPipeline(),
+	}
 }
 
 // setupDelveClient setup the delve client. Separate the NewDelveClient() function.
 // caused by neovim-go can't call the rpc2.NewClient?
 func (d *Delve) setupDelve(v *vim.Vim) error {
-	d.v = v
-
 	d.client = delverpc2.NewClient(addr)           // *rpc2.RPCClient
 	d.term = delveterm.New(d.client, nil)          // *terminal.Term
 	d.debugger = delveterm.DebugCommands(d.client) // *terminal.Commands
@@ -91,7 +93,7 @@ type debugEval struct {
 }
 
 func (d *Delve) cmdDebug(v *vim.Vim, eval *debugEval) {
-	d.debug(v, eval)
+	go d.debug(v, eval)
 }
 
 // TODO(zchee): If failed debug(build), even create each buffers.
@@ -108,7 +110,7 @@ func (d *Delve) debug(v *vim.Vim, eval *debugEval) error {
 	}
 	defer d.waitServer(v)
 
-	return d.createDebugBuffer(v)
+	return d.createDebugBuffer()
 }
 
 func (d *Delve) parseArgs(v *vim.Vim, args []string, eval *createBreakpointEval) (*delveapi.Breakpoint, error) {
