@@ -7,11 +7,11 @@ package autocmd
 import (
 	"sync"
 
-	"github.com/neovim-go/vim"
-	"github.com/neovim-go/vim/plugin"
-
 	"nvim-go/commands"
 	"nvim-go/context"
+
+	"github.com/neovim-go/vim"
+	"github.com/neovim-go/vim/plugin"
 )
 
 // Autocmd represents a autocmd context.
