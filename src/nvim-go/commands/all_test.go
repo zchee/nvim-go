@@ -13,13 +13,13 @@ var (
 	cwd, _         = os.Getwd()
 	projectRoot, _ = filepath.Abs(filepath.Join(cwd, "../../.."))
 
-	testdata   = filepath.Join(projectRoot, "tests/testdata")
+	testdata   = filepath.Join(projectRoot, "test", "testdata")
 	testGoPath = filepath.Join(testdata, "go")
 
-	astdump     = filepath.Join(testGoPath, "src/astdump")
+	astdump     = filepath.Join(testGoPath, "src", "astdump")
 	astdumpMain = filepath.Join(astdump, "astdump.go")
 
-	broken     = filepath.Join(testGoPath, "src/broken")
+	broken     = filepath.Join(testGoPath, "src", "broken")
 	brokenMain = filepath.Join(astdump, "broken.go")
 
 	gsftp     = filepath.Join(testdata, "gb", "gsftp", "src", "cmd", "gsftp")
