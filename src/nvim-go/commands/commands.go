@@ -16,14 +16,15 @@ type Commands struct {
 	v *vim.Vim
 	p *vim.Pipeline
 
-	ctxt *context.Context
-	qf   []*quickfix.ErrorlistData
+	ctxt    *context.Context
+	errlist map[string][]*quickfix.ErrorlistData
 }
 
 func NewCommands(v *vim.Vim) *Commands {
 	return &Commands{
-		v:    v,
-		ctxt: new(context.Context),
+		v:       v,
+		ctxt:    new(context.Context),
+		errlist: make(map[string][]*quickfix.ErrorlistData),
 	}
 }
 

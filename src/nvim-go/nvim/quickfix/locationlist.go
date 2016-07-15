@@ -25,11 +25,11 @@ type ErrorlistData struct {
 	// Buffer number
 	Bufnr int `msgpack:"bufnr,omitempty"`
 
-	// Name of a file; only used when bufnr is not present or it is invalid.
-	FileName string `msgpack:"filename,omitempty"`
-
 	// Line number in the file.
 	LNum int `msgpack:"lnum,omitempty"`
+
+	// Search pattern used to locate the error.
+	Pattern string `msgpack:"pattern,omitempty"`
 
 	// Column number (first column is 1).
 	Col int `msgpack:"col,omitempty"`
@@ -40,14 +40,14 @@ type ErrorlistData struct {
 	// Error number.
 	Nr int `msgpack:"nr,omitempty"`
 
-	// Search pattern used to locate the error.
-	Pattern string `msgpack:"pattern,omitempty"`
-
 	// Description of the error.
 	Text string `msgpack:"text,omitempty"`
 
 	// Single-character error type, 'E', 'W', etc.
 	Type string `msgpack:"type,omitempty"`
+
+	// Name of a file; only used when bufnr is not present or it is invalid.
+	FileName string `msgpack:"filename,omitempty"`
 
 	// Valid is non-zero if this is a recognized error message.
 	Valid int `msgpack:"valid,omitempty"`
@@ -64,6 +64,68 @@ func SetLoclist(v *vim.Vim, loclist []*ErrorlistData) error {
 	}
 
 	return nil
+}
+
+type ErrorListType int
+
+const (
+	Quickfix ErrorListType = iota
+	LocationList
+)
+
+// SetErrorlist set the error results data to current buffer's locationlist.
+func SetErrorlist(v *vim.Vim, listtype ErrorListType, errlist []*ErrorlistData) error {
+	var setlist, clearlist func() error
+
+	switch listtype {
+	case Quickfix:
+		setlist = func() error { return v.Call("setqflist", nil, 0, errlist) }
+		clearlist = func() error { return v.Command("cgetexpr ''") }
+	case LocationList:
+		setlist = func() error { return v.Call("setloclist", nil, 0, errlist) }
+		clearlist = func() error { return v.Command("lgetexpr ''") }
+	}
+
+	if len(errlist) == 0 {
+		return clearlist()
+	}
+
+	return setlist()
+}
+
+// ErrorList merges the errlist map items and open the locationlist window.
+func ErrorList(v *vim.Vim, w vim.Window, listtype ErrorListType, errlist map[string][]*ErrorlistData, keep bool) error {
+	var openlist, closelist func() error
+
+	switch listtype {
+	case Quickfix:
+		openlist = func() error { return v.Command("copen") }
+		closelist = func() error { return v.Command("cclose") }
+	case LocationList:
+		openlist = func() error { return v.Command("lopen") }
+		closelist = func() error { return v.Command("lclose") }
+	}
+
+	if errlist == nil {
+		return closelist()
+	}
+
+	var loclist []*ErrorlistData
+	for _, err := range errlist {
+		loclist = append(loclist, err...)
+	}
+
+	if err := SetErrorlist(v, listtype, loclist); err != nil {
+		return err
+	}
+	if len(loclist) == 0 {
+		return closelist()
+	}
+
+	if keep {
+		defer v.SetCurrentWindow(w)
+	}
+	return openlist()
 }
 
 // OpenLoclist open or close the current buffer's locationlist window.

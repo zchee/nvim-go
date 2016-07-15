@@ -61,10 +61,10 @@ func (c *Commands) Fmt(dir string) error {
 
 	buf, err := imports.Process("", nvim.ToByteSlice(in), &importsOptions)
 	if err != nil {
-		var loclist []*quickfix.ErrorlistData
+		var errlist []*quickfix.ErrorlistData
 
 		if e, ok := err.(scanner.Error); ok {
-			loclist = append(loclist, &quickfix.ErrorlistData{
+			errlist = append(errlist, &quickfix.ErrorlistData{
 				FileName: bufName,
 				LNum:     e.Pos.Line,
 				Col:      e.Pos.Column,
@@ -72,7 +72,7 @@ func (c *Commands) Fmt(dir string) error {
 			})
 		} else if el, ok := err.(scanner.ErrorList); ok {
 			for _, e := range el {
-				loclist = append(loclist, &quickfix.ErrorlistData{
+				errlist = append(errlist, &quickfix.ErrorlistData{
 					FileName: bufName,
 					LNum:     e.Pos.Line,
 					Col:      e.Pos.Column,
@@ -80,14 +80,14 @@ func (c *Commands) Fmt(dir string) error {
 				})
 			}
 		}
+		c.errlist["Fmt"] = errlist
 
-		if err := quickfix.SetLoclist(c.v, loclist); err != nil {
-			return nvim.Echomsg(c.v, "Gofmt:", err)
-		}
-
-		quickfix.OpenLoclist(c.v, w, loclist, true)
+		quickfix.ErrorList(c.v, w, quickfix.LocationList, c.errlist, true)
 		return errors.Annotate(err, pkgFmt)
 	}
+
+	delete(c.errlist, "Fmt")
+	defer quickfix.ErrorList(c.v, w, quickfix.LocationList, c.errlist, true)
 
 	out := nvim.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
 
