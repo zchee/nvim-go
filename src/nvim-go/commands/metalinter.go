@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
@@ -21,8 +20,8 @@ import (
 	"github.com/neovim-go/vim"
 )
 
-func cmdMetalinter(v *vim.Vim, cwd string) {
-	go Metalinter(v, cwd)
+func (c *Commands) cmdMetalinter(cwd string) {
+	go c.Metalinter(cwd)
 }
 
 type metalinterResult struct {
@@ -35,30 +34,30 @@ type metalinterResult struct {
 }
 
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
-func Metalinter(v *vim.Vim, cwd string) error {
+func (c *Commands) Metalinter(cwd string) error {
 	defer profile.Start(time.Now(), "GoMetaLinter")
-	ctxt := new(context.Context)
-	defer ctxt.Build.SetContext(cwd)()
+	defer c.ctxt.Build.SetContext(cwd)()
 
 	var (
 		loclist []*quickfix.ErrorlistData
 		b       vim.Buffer
 		w       vim.Window
 	)
-
-	p := v.NewPipeline()
-	p.CurrentBuffer(&b)
-	p.CurrentWindow(&w)
-	if err := p.Wait(); err != nil {
+	if c.p == nil {
+		c.p = c.v.NewPipeline()
+	}
+	c.p.CurrentBuffer(&b)
+	c.p.CurrentWindow(&w)
+	if err := c.p.Wait(); err != nil {
 		return err
 	}
 
 	var args []string
-	switch ctxt.Build.Tool {
+	switch c.ctxt.Build.Tool {
 	case "go":
 		args = append(args, cwd+"/...")
 	case "gb":
-		args = append(args, ctxt.Build.GbProjectDir+"/...")
+		args = append(args, c.ctxt.Build.GbProjectDir+"/...")
 	}
 	args = append(args, []string{"--json", "--disable-all", "--deadline", config.MetalinterDeadline}...)
 
@@ -94,10 +93,10 @@ func Metalinter(v *vim.Vim, cwd string) error {
 		})
 	}
 
-	if err := quickfix.SetLoclist(v, loclist); err != nil {
-		return nvim.Echomsg(v, "Gometalinter: %v", err)
+	if err := quickfix.SetLoclist(c.v, loclist); err != nil {
+		return nvim.Echomsg(c.v, "Gometalinter: %v", err)
 	}
-	return quickfix.OpenLoclist(v, w, loclist, true)
+	return quickfix.OpenLoclist(c.v, w, loclist, true)
 }
 
 type byPath []metalinterResult

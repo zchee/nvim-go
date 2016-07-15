@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"nvim-go/commands"
 	"nvim-go/config"
 
 	"github.com/neovim-go/vim"
@@ -27,7 +26,7 @@ func (a *Autocmd) bufWritePre(v *vim.Vim, eval *bufWritePreEval) {
 	// Iferr need execute before Fmt function because that function calls "noautocmd write"
 	// Also do not use goroutine.
 	if config.IferrAutosave {
-		err := commands.Iferr(v, eval.File)
+		err := a.c.Iferr(eval.File)
 		if err != nil {
 			return
 		}
@@ -37,7 +36,7 @@ func (a *Autocmd) bufWritePre(v *vim.Vim, eval *bufWritePreEval) {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			a.bufWritePreChan <- commands.Fmt(v, dir)
+			a.bufWritePreChan <- a.c.Fmt(dir)
 		}()
 	}
 

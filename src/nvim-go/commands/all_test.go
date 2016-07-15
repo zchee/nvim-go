@@ -32,8 +32,12 @@ func testVim(t *testing.T, file string) *vim.Vim {
 	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
 
+	args := []string{"-u", "NONE", "-n"}
+	if file != "" {
+		args = append(args, file)
+	}
 	v, err := vim.NewEmbedded(&vim.EmbedOptions{
-		Args: []string{"-u", "NONE", "-n", file},
+		Args: args,
 		Env:  []string{},
 		Logf: t.Logf,
 	})
@@ -50,8 +54,12 @@ func benchVim(b *testing.B, file string) *vim.Vim {
 	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
 
+	args := []string{"-u", "NONE", "-n"}
+	if file != "" {
+		args = append(args, file)
+	}
 	v, err := vim.NewEmbedded(&vim.EmbedOptions{
-		Args: []string{"-u", "NONE", "-n", file},
+		Args: args,
 		Env:  []string{},
 		Logf: b.Logf,
 	})

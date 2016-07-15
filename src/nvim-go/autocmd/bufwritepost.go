@@ -25,7 +25,7 @@ func (a *Autocmd) bufWritePost(v *vim.Vim, eval *bufWritePostEval) {
 	}
 
 	if config.BuildAutosave {
-		err := commands.Build(v, false, &commands.CmdBuildEval{
+		err := a.c.Build(false, &commands.CmdBuildEval{
 			Cwd: eval.Cwd,
 			Dir: eval.Dir,
 		})
@@ -38,7 +38,7 @@ func (a *Autocmd) bufWritePost(v *vim.Vim, eval *bufWritePostEval) {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			commands.Metalinter(v, eval.Cwd)
+			a.c.Metalinter(eval.Cwd)
 		}()
 	}
 
@@ -46,7 +46,7 @@ func (a *Autocmd) bufWritePost(v *vim.Vim, eval *bufWritePostEval) {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			commands.Test(v, []string{}, eval.Dir)
+			a.c.Test([]string{}, eval.Dir)
 		}()
 	}
 

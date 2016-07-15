@@ -9,43 +9,48 @@ import (
 	"unsafe"
 
 	"nvim-go/nvim"
-
-	"github.com/neovim-go/vim"
 )
 
-func cmdBuffers(v *vim.Vim) error {
-	bufs, _ := v.Buffers()
+func (c *Commands) cmdBuffers() error {
+	bufs, _ := c.v.Buffers()
 	var b []string
 	for _, buf := range bufs {
-		nr, _ := v.BufferNumber(buf)
+		nr, _ := c.v.BufferNumber(buf)
 		b = append(b, fmt.Sprintf("%d", nr))
 	}
-	return nvim.Echomsg(v, "Buffers:", b)
+	return nvim.Echomsg(c.v, "Buffers:", b)
 }
 
-func cmdWindows(v *vim.Vim) error {
-	wins, _ := v.Windows()
+func (c *Commands) cmdWindows() error {
+	wins, _ := c.v.Windows()
 	var w []string
 	for _, win := range wins {
 		w = append(w, win.String())
 	}
-	return nvim.Echomsg(v, "Windows:", w)
+	return nvim.Echomsg(c.v, "Windows:", w)
 }
 
-func cmdTabpagas(v *vim.Vim) error {
-	tabs, _ := v.Tabpages()
+func (c *Commands) cmdTabpagas() error {
+	tabs, _ := c.v.Tabpages()
 	var t []string
 	for _, tab := range tabs {
 		t = append(t, tab.String())
 	}
-	return nvim.Echomsg(v, "Tabpages:", t)
+	return nvim.Echomsg(c.v, "Tabpages:", t)
 }
 
-func cmdByteOffset(v *vim.Vim) error {
-	b, _ := v.CurrentBuffer()
-	w, _ := v.CurrentWindow()
-	offset, _ := nvim.ByteOffset(v, b, w)
-	return nvim.Echomsg(v, offset)
+func (c *Commands) cmdByteOffset() error {
+	b, err := c.v.CurrentBuffer()
+	if err != nil {
+		return err
+	}
+	w, err := c.v.CurrentWindow()
+	if err != nil {
+		return err
+	}
+
+	offset, _ := nvim.ByteOffset(c.v, b, w)
+	return nvim.Echomsg(c.v, offset)
 }
 
 // Stringtoslicebyte convert string to byte slice use unsafe.

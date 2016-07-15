@@ -71,7 +71,6 @@ type SignContext struct {
 func NewDelve(v *vim.Vim) *Delve {
 	return &Delve{
 		v: v,
-		p: v.NewPipeline(),
 	}
 }
 
@@ -98,6 +97,8 @@ func (d *Delve) cmdDebug(v *vim.Vim, eval *debugEval) {
 
 // TODO(zchee): If failed debug(build), even create each buffers.
 func (d *Delve) debug(v *vim.Vim, eval *debugEval) error {
+	d.p = d.v.NewPipeline()
+
 	d.ctxt = new(context.Context)
 	defer d.ctxt.Build.SetContext(eval.Cwd)()
 

@@ -1,62 +1,165 @@
 package commands
 
 import (
-	"nvim-go/context"
-	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
+	"nvim-go/context"
+
 	"github.com/neovim-go/vim"
 )
 
-func TestBuild(t *testing.T) {
-	tests := []struct {
-		// Parameters.
-		v    *vim.Vim
+func TestCommands_Build(t *testing.T) {
+	type fields struct {
+		Vim  *vim.Vim
+		p    *vim.Pipeline
+		ctxt *context.Context
+	}
+	type args struct {
+		bang bool
 		eval *CmdBuildEval
-		// Expected results.
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
 		wantErr bool
 	}{
 		{
-			v: testVim(t, projectRoot),
-			eval: &CmdBuildEval{
-				Cwd: projectRoot,
-				Dir: projectRoot,
+			fields: fields{Vim: testVim(t, projectRoot)},
+			args: args{
+				eval: &CmdBuildEval{
+					Cwd: projectRoot,
+					Dir: projectRoot,
+				},
 			},
 		},
 		{
-			v: testVim(t, projectRoot),
-			eval: &CmdBuildEval{
-				Cwd: projectRoot,
-				Dir: filepath.Join(projectRoot, "src/nvim-go/commands"),
+			fields: fields{Vim: testVim(t, projectRoot)},
+			args: args{
+				eval: &CmdBuildEval{
+					Cwd: projectRoot,
+					Dir: filepath.Join(projectRoot, "src/nvim-go/commands"),
+				},
 			},
 		},
 		{
-			v: testVim(t, gsftpRoot),
-			eval: &CmdBuildEval{
-				Cwd: gsftpRoot,
-				Dir: gsftpRoot,
+			fields: fields{Vim: testVim(t, gsftpRoot)},
+			args: args{
+				eval: &CmdBuildEval{
+					Cwd: gsftpRoot,
+					Dir: gsftpRoot,
+				},
 			},
 		},
 		{
-			v: testVim(t, filepath.Join(astdump, "astdump.go")),
-			eval: &CmdBuildEval{
-				Cwd: astdump,
-				Dir: astdump,
+			fields: fields{Vim: testVim(t, filepath.Join(astdump, "astdump.go"))},
+			args: args{
+				eval: &CmdBuildEval{
+					Cwd: astdump,
+					Dir: astdump,
+				},
 			},
 		},
 	}
 	for _, tt := range tests {
-		if err := Build(tt.v, false, tt.eval); (err != nil) != tt.wantErr {
-			t.Errorf("Build(%+v, %+v) error = %v, wantErr %v", tt.v, tt.eval, err, tt.wantErr)
+		c := NewCommands(tt.fields.Vim)
+		if err := c.Build(tt.args.bang, tt.args.eval); (err != nil) != tt.wantErr {
+			t.Errorf("%q. Commands.Build(%v, %v) error = %v, wantErr %v", tt.name, tt.args.bang, tt.args.eval, err, tt.wantErr)
+		}
+	}
+}
+
+func TestCommands_compileCmd(t *testing.T) {
+	type fields struct {
+		Vim  *vim.Vim
+		p    *vim.Pipeline
+		ctxt *context.Context
+	}
+	type args struct {
+		bang bool
+		dir  string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "astdump (go build)",
+			fields: fields{
+				Vim: testVim(t, projectRoot),
+				ctxt: &context.Context{
+					Build: context.BuildContext{Tool: "go"},
+				},
+			},
+			args: args{
+				dir: astdump,
+			},
+			want:    "go",
+			wantErr: false,
+		},
+		{
+			name: "nvim-go (gb build)",
+			fields: fields{
+				Vim: testVim(t, projectRoot),
+				ctxt: &context.Context{
+					Build: context.BuildContext{
+						Tool:         "gb",
+						GbProjectDir: projectRoot,
+					},
+				},
+			},
+			args: args{
+				dir: projectRoot,
+			},
+			want:    "gb",
+			wantErr: false,
+		},
+		{
+			name: "gsftp (gb build)",
+			fields: fields{
+				Vim: testVim(t, projectRoot),
+				ctxt: &context.Context{
+					Build: context.BuildContext{
+						Tool:         "gb",
+						GbProjectDir: gsftpRoot,
+					},
+				},
+			},
+			args: args{
+				dir: gsftpRoot,
+			},
+			want:    "gb",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		c := &Commands{
+			v:    tt.fields.Vim,
+			p:    tt.fields.p,
+			ctxt: tt.fields.ctxt,
+		}
+		got, err := c.compileCmd(tt.args.bang, tt.args.dir)
+		if (err != nil) != tt.wantErr {
+			t.Errorf("%q. Commands.compileCmd(%v, %v) error = %v, wantErr %v", tt.name, tt.args.bang, tt.args.dir, err, tt.wantErr)
+			continue
+		}
+		cmdArgs := got.Args[0]
+		if !reflect.DeepEqual(cmdArgs, tt.want) {
+			t.Errorf("%q. Commands.compileCmd(%v, %v) = %v, want %v", tt.name, tt.args.bang, tt.args.dir, cmdArgs, tt.want)
 		}
 	}
 }
 
 func BenchmarkBuildGo(b *testing.B) {
+	c := NewCommands(benchVim(b, astdumpMain))
+
 	for i := 0; i < b.N; i++ {
-		if err := Build(benchVim(b, astdumpMain), false, &CmdBuildEval{
+		if err := c.Build(false, &CmdBuildEval{
 			Cwd: astdump,
 			Dir: astdump,
 		}); err != nil {
@@ -66,69 +169,14 @@ func BenchmarkBuildGo(b *testing.B) {
 }
 
 func BenchmarkBuildGb(b *testing.B) {
+	c := NewCommands(benchVim(b, gsftpMain))
+
 	for i := 0; i < b.N; i++ {
-		if err := Build(benchVim(b, gsftpMain), false, &CmdBuildEval{
+		if err := c.Build(false, &CmdBuildEval{
 			Cwd: gsftpRoot,
 			Dir: gsftpRoot,
 		}); err != nil {
 			b.Errorf("BenchmarkBuildGb: %v", err)
-		}
-	}
-}
-
-func TestCompileCmd(t *testing.T) {
-	goCompiler := []string{"go"}
-	gbCompiler := []string{"gb"}
-
-	tests := []struct {
-		// Parameters.
-		ctxt *context.Context
-		dir  string
-		// Expected results.
-		want    []string
-		wantErr bool
-	}{
-		{
-			ctxt: &context.Context{
-				Build: context.BuildContext{Tool: "go"},
-			},
-			dir:     astdump,
-			want:    goCompiler,
-			wantErr: false,
-		},
-		{
-			ctxt: &context.Context{
-				Build: context.BuildContext{
-					Tool:         "gb",
-					GbProjectDir: projectRoot,
-				},
-			},
-			dir:     projectRoot,
-			want:    gbCompiler,
-			wantErr: false,
-		},
-		{
-			ctxt: &context.Context{
-				Build: context.BuildContext{
-					Tool:         "gb",
-					GbProjectDir: gsftpRoot,
-				},
-			},
-			dir:  gsftpRoot,
-			want: gbCompiler,
-		},
-	}
-	for _, tt := range tests {
-		os.Setenv("GOPATH", testGoPath)
-
-		got, err := compileCmd(tt.ctxt, false, tt.dir)
-		if (err != nil) != tt.wantErr {
-			t.Errorf("compileCmd(%v, %v) error = %v, wantErr %v", tt.ctxt, tt.dir, err, tt.wantErr)
-			continue
-		}
-		cmdArgs := got.Args[:1]
-		if !reflect.DeepEqual(cmdArgs, tt.want) {
-			t.Errorf("compileCmd\n%v\n%v\n\nActual %v\nwant1 %v", tt.ctxt, tt.dir, cmdArgs, tt.want)
 		}
 	}
 }

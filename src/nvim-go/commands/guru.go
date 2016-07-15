@@ -17,14 +17,12 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
-	"log"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/context"
 	"nvim-go/internal/guru"
 	"nvim-go/internal/guru/serial"
 	"nvim-go/nvim"
@@ -48,26 +46,25 @@ type funcGuruEval struct {
 	Offset   int
 }
 
-func funcGuru(v *vim.Vim, args []string, eval *funcGuruEval) {
-	go Guru(v, args, eval)
+func (c *Commands) funcGuru(args []string, eval *funcGuruEval) {
+	go c.Guru(args, eval)
 }
 
 // Guru go source analysis and output result to the quickfix or locationlist.
-func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
+func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	defer profile.Start(time.Now(), "Guru")
 	mode := args[0]
 	if len(args) > 1 {
-		return guruHelp(v, mode)
+		return guruHelp(c.v, mode)
 	}
 
-	ctxt := new(context.Context)
 	dir, _ := filepath.Split(eval.File)
-	defer ctxt.Build.SetContext(dir)()
+	defer c.ctxt.Build.SetContext(dir)()
 
 	defer func() {
 		if r := recover(); r != nil {
 			err = errors.Errorf("guru internal panic.\nMaybe your set 'g:go#guru#reflection' to 1. Please retry with disable it option.\nOriginal panic message:\n\t%v", r.(error))
-			nvim.ErrorWrap(v, err)
+			nvim.ErrorWrap(c.v, err)
 		}
 	}()
 
@@ -75,11 +72,13 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 		b vim.Buffer
 		w vim.Window
 	)
-	p := v.NewPipeline()
-	p.CurrentBuffer(&b)
-	p.CurrentWindow(&w)
-	if err := p.Wait(); err != nil {
-		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+	if c.p == nil {
+		c.p = c.v.NewPipeline()
+	}
+	c.p.CurrentBuffer(&b)
+	c.p.CurrentWindow(&w)
+	if err := c.p.Wait(); err != nil {
+		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
 	}
 
 	guruContext := &build.Default
@@ -89,9 +88,9 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 		overlay := make(map[string][]byte)
 		var buf [][]byte
 
-		p.BufferLines(b, 0, -1, true, &buf)
-		if err := p.Wait(); err != nil {
-			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		c.p.BufferLines(b, 0, -1, true, &buf)
+		if err := c.p.Wait(); err != nil {
+			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
 		}
 
 		overlay[eval.File] = bytes.Join(buf, []byte{'\n'})
@@ -108,17 +107,17 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 	if mode == "definition" {
 		obj, err := definition(&query)
 		if err != nil {
-			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
 		}
 		fname, line, col := quickfix.SplitPos(obj.ObjPos, eval.Cwd)
 		text := obj.Desc
-		p.Command(fmt.Sprintf("edit %s", fname))
-		p.SetWindowCursor(w, [2]int{line, col - 1})
-		if err := p.Wait(); err != nil {
-			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		c.p.Command(fmt.Sprintf("edit %s", fname))
+		c.p.SetWindowCursor(w, [2]int{line, col - 1})
+		if err := c.p.Wait(); err != nil {
+			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
 		}
-		p.Command(`lclose`)
-		p.Command(`normal! zz`)
+		c.p.Command(`lclose`)
+		c.p.Command(`normal! zz`)
 
 		defer func() {
 			loclist = append(loclist, &quickfix.ErrorlistData{
@@ -127,21 +126,21 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 				Col:      col,
 				Text:     text,
 			})
-			quickfix.SetLoclist(v, loclist)
+			quickfix.SetLoclist(c.v, loclist)
 		}()
 
-		return p.Wait()
+		return c.p.Wait()
 	}
 
-	switch ctxt.Build.Tool {
+	switch c.ctxt.Build.Tool {
 	case "go":
-		pkgPath, err := ctxt.Build.PackagePath(dir)
+		pkgPath, err := c.ctxt.Build.PackagePath(dir)
 		if err != nil {
-			return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
 		}
 		query.Scope = []string{strings.TrimPrefix(pkgPath, "src"+string(filepath.Separator))}
 	case "gb":
-		query.Scope = []string{pathutil.GbProjectName(dir, ctxt.Build.GbProjectDir) + string(filepath.Separator) + "..."}
+		query.Scope = []string{pathutil.GbProjectName(dir, c.ctxt.Build.GbProjectDir) + string(filepath.Separator) + "..."}
 	}
 
 	var outputMu sync.Mutex
@@ -150,35 +149,35 @@ func Guru(v *vim.Vim, args []string, eval *funcGuruEval) (err error) {
 		outputMu.Lock()
 		defer outputMu.Unlock()
 		if loclist, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
-			nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+			nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
 		}
 	}
 	query.Output = output
 
-	nvim.EchoProgress(v, pkgGuru, fmt.Sprintf("analysing %s", mode))
+	nvim.EchoProgress(c.v, pkgGuru, fmt.Sprintf("analysing %s", mode))
 	if err := guru.Run(mode, &query); err != nil {
-		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
 	}
-	defer nvim.ClearMsg(v)
+	defer nvim.ClearMsg(c.v)
 	if len(loclist) == 0 {
 		return fmt.Errorf("%s not fount", mode)
 	}
-	if err := quickfix.SetLoclist(v, loclist); err != nil {
-		return nvim.ErrorWrap(v, errors.Annotate(err, pkgGuru))
+	if err := quickfix.SetLoclist(c.v, loclist); err != nil {
+		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
 	}
 
 	// jumpfirst or definition mode
 	if config.GuruJumpFirst {
-		p.Command(`silent ll 1`)
-		p.Command(`normal! zz`)
-		return p.Wait()
+		c.p.Command(`silent ll 1`)
+		c.p.Command(`normal! zz`)
+		return c.p.Wait()
 	}
 
 	var keepCursor bool
 	if int64(1) == config.GuruKeepCursor[mode] {
 		keepCursor = true
 	}
-	return quickfix.OpenLoclist(v, w, loclist, keepCursor)
+	return quickfix.OpenLoclist(c.v, w, loclist, keepCursor)
 }
 
 type fallback struct {
@@ -193,7 +192,7 @@ type fallback struct {
 func definition(q *guru.Query) (*serial.Definition, error) {
 	defer profile.Start(time.Now(), "definition")
 
-	c := make(chan fallback)
+	c := make(chan *fallback)
 	go definitionFallback(q, c)
 
 	// First try the simple resolution done by parser.
@@ -236,19 +235,19 @@ func definition(q *guru.Query) (*serial.Definition, error) {
 	if obj.Err != nil {
 		return nil, obj.Err
 	}
-	log.Println("fallback")
+
 	return obj.Obj, nil
 }
 
-func fallbackChan(obj *serial.Definition, err error) fallback {
-	return fallback{
+func fallbackChan(obj *serial.Definition, err error) *fallback {
+	return &fallback{
 		Obj: obj,
 		Err: err,
 	}
 }
 
 // definitionFallback fall back on the type checker.
-func definitionFallback(q *guru.Query, c chan fallback) {
+func definitionFallback(q *guru.Query, c chan *fallback) {
 	defer profile.Start(time.Now(), "definitionFallback")
 
 	// Run the type checker.
@@ -588,7 +587,7 @@ func guruHelp(v *vim.Vim, mode string) error {
 		return nvim.EchohlBefore(v, "GoGuruWhat", "Function", "Show basic information about the selected syntax node")
 	case "whicherrs":
 		return nvim.EchohlBefore(v, "GoGuruWhicherrs", "Function", "Show possible values of the selected error variable")
+	default:
+		return nvim.Echoerr(v, "Invalid arguments")
 	}
-
-	return nvim.Echoerr(v, "Invalid arguments")
 }

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"nvim-go/context"
 	"nvim-go/internal/guru"
 	"nvim-go/internal/guru/serial"
 	"nvim-go/nvim/quickfix"
@@ -12,155 +13,182 @@ import (
 	"github.com/neovim-go/vim"
 )
 
-func TestGuru(t *testing.T) {
-	tests := []struct {
-		// Parameters.
-		v    *vim.Vim
+func TestCommands_Guru(t *testing.T) {
+	type fields struct {
+		Vim  *vim.Vim
+		p    *vim.Pipeline
+		ctxt *context.Context
+	}
+	type args struct {
 		args []string
 		eval *funcGuruEval
-		// Expected results.
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
 		wantErr bool
 	}{
 	// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		if err := Guru(tt.v, tt.args, tt.eval); (err != nil) != tt.wantErr {
-			t.Errorf("Guru(%v, %v, %v) error = %v, wantErr %v", tt.v, tt.args, tt.eval, err, tt.wantErr)
+		c := &Commands{
+			v:    tt.fields.Vim,
+			p:    tt.fields.p,
+			ctxt: tt.fields.ctxt,
+		}
+		if err := c.Guru(tt.args.args, tt.args.eval); (err != nil) != tt.wantErr {
+			t.Errorf("%q. Commands.Guru(%v, %v) error = %v, wantErr %v", tt.name, tt.args.args, tt.args.eval, err, tt.wantErr)
 		}
 	}
 }
 
-func TestDefinition(t *testing.T) {
-	tests := []struct {
-		// Parameters.
+func Test_definition(t *testing.T) {
+	type args struct {
 		q *guru.Query
-		// Expected results.
+	}
+	tests := []struct {
+		name    string
+		args    args
 		want    *serial.Definition
 		wantErr bool
 	}{
 	// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		got, err := definition(tt.q)
+		got, err := definition(tt.args.q)
 		if (err != nil) != tt.wantErr {
-			t.Errorf("definition(%v) error = %v, wantErr %v", tt.q, err, tt.wantErr)
+			t.Errorf("%q. definition(%v) error = %v, wantErr %v", tt.name, tt.args.q, err, tt.wantErr)
+			continue
 		}
 		if !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("definition(%v) = %v, want %v", tt.q, got, tt.want)
+			t.Errorf("%q. definition(%v) = %v, want %v", tt.name, tt.args.q, got, tt.want)
 		}
 	}
 }
 
-func TestFallbackChan(t *testing.T) {
-	tests := []struct {
-		// Parameters.
+func Test_fallbackChan(t *testing.T) {
+	type args struct {
 		obj *serial.Definition
 		err error
-		// Expected results.
+	}
+	tests := []struct {
+		name string
+		args args
 		want fallback
 	}{
 	// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		if got := fallbackChan(tt.obj, tt.err); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("fallbackChan(%v, %v) = %v, want %v", tt.obj, tt.err, got, tt.want)
+		if got := fallbackChan(tt.args.obj, tt.args.err); !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("%q. fallbackChan(%v, %v) = %v, want %v", tt.name, tt.args.obj, tt.args.err, got, tt.want)
 		}
 	}
 }
 
-func TestDefinitionFallback(t *testing.T) {
-	tests := []struct {
-		// Parameters.
+func Test_definitionFallback(t *testing.T) {
+	type args struct {
 		q *guru.Query
 		c chan fallback
+	}
+	tests := []struct {
+		name string
+		args args
 	}{
 	// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		definitionFallback(tt.q, tt.c)
+		definitionFallback(tt.args.q, tt.args.c)
 	}
 }
 
-func TestParseResult(t *testing.T) {
-	tests := []struct {
-		// Parameters.
+func Test_parseResult(t *testing.T) {
+	type args struct {
 		mode string
 		fset *token.FileSet
 		data []byte
 		cwd  string
-		// Expected results.
+	}
+	tests := []struct {
+		name    string
+		args    args
 		want    []*quickfix.ErrorlistData
 		wantErr bool
 	}{
 	// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		got, err := parseResult(tt.mode, tt.fset, tt.data, tt.cwd)
+		got, err := parseResult(tt.args.mode, tt.args.fset, tt.args.data, tt.args.cwd)
 		if (err != nil) != tt.wantErr {
-			t.Errorf("parseResult(%v, %v, %v, %v) error = %v, wantErr %v", tt.mode, tt.fset, tt.data, tt.cwd, err, tt.wantErr)
+			t.Errorf("%q. parseResult(%v, %v, %v, %v) error = %v, wantErr %v", tt.name, tt.args.mode, tt.args.fset, tt.args.data, tt.args.cwd, err, tt.wantErr)
 			continue
 		}
 		if !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("parseResult(%v, %v, %v, %v) = %v, want %v", tt.mode, tt.fset, tt.data, tt.cwd, got, tt.want)
+			t.Errorf("%q. parseResult(%v, %v, %v, %v) = %v, want %v", tt.name, tt.args.mode, tt.args.fset, tt.args.data, tt.args.cwd, got, tt.want)
 		}
 	}
 }
 
-func TestGuruHelp(t *testing.T) {
-	tests := []struct {
-		// Parameters.
+func Test_guruHelp(t *testing.T) {
+	type args struct {
 		v    *vim.Vim
 		mode string
-		// Expected results.
+	}
+	tests := []struct {
+		name    string
+		args    args
 		wantErr bool
 	}{
 	// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		if err := guruHelp(tt.v, tt.mode); (err != nil) != tt.wantErr {
-			t.Errorf("guruHelp(%v, %v) error = %v, wantErr %v", tt.v, tt.mode, err, tt.wantErr)
+		if err := guruHelp(tt.args.v, tt.args.mode); (err != nil) != tt.wantErr {
+			t.Errorf("%q. guruHelp(%v, %v) error = %v, wantErr %v", tt.name, tt.args.v, tt.args.mode, err, tt.wantErr)
 		}
 	}
 }
 
-func BenchmarkGuruDefinition(b *testing.B) {
-	v := benchVim(b, gsftpMain)
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		if err := Guru(v, []string{"definition"}, &funcGuruEval{
-			Cwd:      gsftp,
-			File:     gsftpMain,
-			Modified: 0,
-			Offset:   2027, // client, err := sftp.|N|ewClient(conn)
-		}); err != nil {
-			b.Errorf("BenchmarkGuruDefinition: %v", err)
-		}
-	}
-}
-
-func BenchmarkGuruDefinitionFallback(b *testing.B) {
-	v := benchVim(b, gsftpMain)
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		if err := Guru(v, []string{"definition"}, &funcGuruEval{
-			Cwd:      gsftp,
-			File:     gsftpMain,
-			Modified: 0,
-			Offset:   2132, // defer conn.|C|lose()
-		}); err != nil {
-			b.Errorf("BenchmarkGuruDefinitionFallback: %v", err)
-		}
-	}
-}
-
-// func BenchmarkGuruCallees(b *testing.B) {
+// func BenchmarkGuruDefinition(b *testing.B) {
 // 	v := benchVim(b, gsftpMain)
+// 	c := NewCommands(v)
 // 	b.ResetTimer()
 //
 // 	for i := 0; i < b.N; i++ {
-// 		if err := Guru(v, []string{"callees"}, &funcGuruEval{
+// 		if err := c.Guru([]string{"definition"}, &funcGuruEval{
+// 			Cwd:      gsftp,
+// 			File:     gsftpMain,
+// 			Modified: 0,
+// 			Offset:   2027, // client, err := sftp.|N|ewClient(conn)
+// 		}); err != nil {
+// 			b.Errorf("BenchmarkGuruDefinition: %v", err)
+// 		}
+// 	}
+// }
+//
+// func BenchmarkGuruDefinitionFallback(b *testing.B) {
+// 	v := benchVim(b, gsftpMain)
+// 	c := NewCommands(v)
+// 	b.ResetTimer()
+//
+// 	for i := 0; i < b.N; i++ {
+// 		if err := c.Guru([]string{"definition"}, &funcGuruEval{
+// 			Cwd:      gsftp,
+// 			File:     gsftpMain,
+// 			Modified: 0,
+// 			Offset:   2132, // defer conn.|C|lose()
+// 		}); err != nil {
+// 			b.Errorf("BenchmarkGuruDefinitionFallback: %v", err)
+// 		}
+// 	}
+// }
+//
+// func BenchmarkGuruCallees(b *testing.B) {
+// 	v := benchVim(b, gsftpMain)
+// 	c := NewCommands(v)
+// 	b.ResetTimer()
+//
+// 	for i := 0; i < b.N; i++ {
+// 		if err := c.Guru([]string{"callees"}, &funcGuruEval{
 // 			Cwd:      gsftp,
 // 			File:     gsftpMain,
 // 			Modified: 0,
@@ -170,13 +198,14 @@ func BenchmarkGuruDefinitionFallback(b *testing.B) {
 // 		}
 // 	}
 // }
-
+//
 // func BenchmarkGuruCallers(b *testing.B) {
 // 	v := benchVim(b, gsftpMain)
+// 	c := NewCommands(v)
 // 	b.ResetTimer()
 //
 // 	for i := 0; i < b.N; i++ {
-// 		if err := Guru(v, []string{"callers"}, &funcGuruEval{
+// 		if err := c.Guru([]string{"callers"}, &funcGuruEval{
 // 			Cwd:      gsftp,
 // 			File:     gsftpMain,
 // 			Modified: 0,

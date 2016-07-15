@@ -14,11 +14,11 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
+	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
 	"golang.org/x/tools/refactor/rename"
 )
@@ -31,31 +31,34 @@ type cmdRenameEval struct {
 	RenameFrom string
 }
 
-func cmdRename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) {
-	go Rename(v, args, bang, eval)
+func (c *Commands) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
+	go c.Rename(args, bang, eval)
 }
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
-func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
+func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 	defer profile.Start(time.Now(), "GoRename")
-
-	ctxt := new(context.Context)
-	defer ctxt.Build.SetContext(filepath.Dir(eval.File))()
+	dir := filepath.Dir(eval.File)
+	defer c.ctxt.Build.SetContext(dir)()
 
 	var (
 		b vim.Buffer
 		w vim.Window
 	)
-	p := v.NewPipeline()
-	p.CurrentBuffer(&b)
-	p.CurrentWindow(&w)
-	if err := p.Wait(); err != nil {
-		return err
+	if c.p == nil {
+		c.p = c.v.NewPipeline()
+	}
+	c.p.CurrentBuffer(&b)
+	c.p.CurrentWindow(&w)
+	if err := c.p.Wait(); err != nil {
+		err = errors.Annotate(err, pkgRename)
+		return nvim.ErrorWrap(c.v, err)
 	}
 
-	offset, err := nvim.ByteOffset(v, b, w)
+	offset, err := nvim.ByteOffset(c.v, b, w)
 	if err != nil {
-		return err
+		err = errors.Annotate(err, pkgRename)
+		return nvim.ErrorWrap(c.v, err)
 	}
 	pos := fmt.Sprintf("%s:#%d", eval.File, offset)
 
@@ -66,23 +69,23 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 		askMessage := fmt.Sprintf("%s: Rename '%s' to: ", pkgRename, eval.RenameFrom)
 		var toResult interface{}
 		if config.RenamePrefill {
-			err := v.Call("input", &toResult, askMessage, eval.RenameFrom)
+			err := c.v.Call("input", &toResult, askMessage, eval.RenameFrom)
 			if err != nil {
-				return nvim.EchohlErr(v, pkgRename, "Keyboard interrupt")
+				return nvim.EchohlErr(c.v, pkgRename, "Keyboard interrupt")
 			}
 		} else {
-			err := v.Call("input", &toResult, askMessage)
+			err := c.v.Call("input", &toResult, askMessage)
 			if err != nil {
-				return nvim.EchohlErr(v, pkgRename, "Keyboard interrupt")
+				return nvim.EchohlErr(c.v, pkgRename, "Keyboard interrupt")
 			}
 		}
 		if toResult.(string) == "" {
-			return nvim.EchohlErr(v, pkgRename, "Not enough arguments for rename destination name")
+			return nvim.EchohlErr(c.v, pkgRename, "Not enough arguments for rename destination name")
 		}
 		renameTo = fmt.Sprintf("%s", toResult)
 	}
 
-	v.Command(fmt.Sprintf("echo '%s: Renaming ' | echohl Identifier | echon '%s' | echohl None | echon ' to ' | echohl Identifier | echon '%s' | echohl None | echon ' ...'", pkgRename, eval.RenameFrom, renameTo))
+	c.v.Command(fmt.Sprintf("echo '%s: Renaming ' | echohl Identifier | echon '%s' | echohl None | echon ' to ' | echohl Identifier | echon '%s' | echohl None | echon ' ...'", pkgRename, eval.RenameFrom, renameTo))
 
 	if bang {
 		rename.Force = true
@@ -103,19 +106,20 @@ func Rename(v *vim.Vim, args []string, bang bool, eval *cmdRenameEval) error {
 		er, _ := ioutil.ReadAll(read)
 		log.Printf("er: %+v\n", string(er))
 		go func() {
-			loclist, _ := quickfix.ParseError(er, eval.Cwd, &ctxt.Build)
-			quickfix.SetLoclist(v, loclist)
-			quickfix.OpenLoclist(v, w, loclist, true)
+			loclist, _ := quickfix.ParseError(er, eval.Cwd, &c.ctxt.Build)
+			quickfix.SetLoclist(c.v, loclist)
+			quickfix.OpenLoclist(c.v, w, loclist, true)
 		}()
 
-		return nvim.EchohlErr(v, "GoRename", err)
+		err = errors.Annotate(err, pkgRename)
+		return nvim.ErrorWrap(c.v, err)
 	}
 
 	write.Close()
 	out, _ := ioutil.ReadAll(read)
-	defer nvim.EchoSuccess(v, pkgRename, fmt.Sprintf("%s", out))
+	defer nvim.EchoSuccess(c.v, pkgRename, fmt.Sprintf("%s", out))
 
 	// TODO(zchee): 'edit' command is ugly.
 	// Should create tempfile and use SetBufferLines.
-	return v.Command("silent edit")
+	return c.v.Command("silent edit")
 }

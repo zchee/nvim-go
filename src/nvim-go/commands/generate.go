@@ -13,37 +13,33 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 
 	"github.com/cweill/gotests/gotests/process"
-	"github.com/neovim-go/vim"
 )
 
-func cmdGenerateTest(v *vim.Vim, files []string, dir string) {
-	go GenerateTest(v, files, dir)
+func (c *Commands) cmdGenerateTest(files []string, dir string) {
+	go c.GenerateTest(files, dir)
 }
 
 // GenerateTest generates the test files based by current buffer or args files
 // functions.
 // TODO(zchee): Currently Support '-all' flag only.
 // Needs support -exported, -i, -only flags.
-func GenerateTest(v *vim.Vim, files []string, dir string) error {
+func (c *Commands) GenerateTest(files []string, dir string) error {
 	defer profile.Start(time.Now(), "GenerateTest")
+	defer c.ctxt.Build.SetContext(filepath.Dir(dir))()
 
-	ctxt := new(context.Context)
-	defer ctxt.Build.SetContext(filepath.Dir(dir))()
-
-	b, err := v.CurrentBuffer()
+	b, err := c.v.CurrentBuffer()
 	if err != nil {
-		return nvim.Echoerr(v, "GoGenerateTest: %v", err)
+		return nvim.Echoerr(c.v, "GoGenerateTest: %v", err)
 	}
 
 	if len(files) == 0 {
-		f, err := v.BufferName(b)
+		f, err := c.v.BufferName(b)
 		if err != nil {
-			return nvim.Echoerr(v, "GoGenerateTest: %v", err)
+			return nvim.Echoerr(c.v, "GoGenerateTest: %v", err)
 		}
 		files = []string{f}
 	}
@@ -83,14 +79,14 @@ func GenerateTest(v *vim.Vim, files []string, dir string) error {
 
 	ask := fmt.Sprintf("%s\nGoGenerateTest: Generated %s\nGoGenerateTest: Open it? (y, n): ", genFuncs, ftestsRel)
 	var answer interface{}
-	if err := v.Call("input", &answer, ask); err != nil {
+	if err := c.v.Call("input", &answer, ask); err != nil {
 		return err
 	}
 
 	// TODO(zchee): Support open the ftests[0] file only.
 	// If passes multiple files for 'edit' commands, occur 'E172: Only one file name allowed' errror.
 	if answer.(string) != "n" {
-		return v.Command(fmt.Sprintf("edit %s", ftests))
+		return c.v.Command(fmt.Sprintf("edit %s", ftests))
 	}
 
 	return nil

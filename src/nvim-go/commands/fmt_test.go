@@ -1,48 +1,64 @@
-// Copyright 2016 Koichi Shiraishi. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package commands
 
 import (
 	"bytes"
-	"os"
+	"context"
 	"reflect"
 	"testing"
 
 	"github.com/neovim-go/vim"
 )
 
-func TestFmt(t *testing.T) {
-	tests := []struct {
-		// Parameters.
-		v   *vim.Vim
+func TestCommands_Fmt(t *testing.T) {
+	type fields struct {
+		Vim  *vim.Vim
+		p    *vim.Pipeline
+		ctxt *context.Context
+	}
+	type args struct {
 		dir string
-		// Expected results.
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
 		wantErr bool
 	}{
 		{
-			v:       testVim(t, astdumpMain), // correct file
-			dir:     astdump,
+			name: "correct (astdump)",
+			fields: fields{
+				Vim: testVim(t, astdumpMain), // correct file
+			},
+			args: args{
+				dir: astdump,
+			},
 			wantErr: false,
 		},
 		{
-			v:       testVim(t, brokenMain), // broken file
-			dir:     broken,
+			name: "broken (astdump)",
+			fields: fields{
+				Vim: testVim(t, brokenMain), // broken file
+			},
+			args: args{
+				dir: broken,
+			},
 			wantErr: true,
 		},
 		{
-			v:       testVim(t, gsftpMain), // correct file
-			dir:     gsftp,
+			name: "correct (gsftp)",
+			fields: fields{
+				Vim: testVim(t, gsftpMain), // correct file
+			},
+			args: args{
+				dir: gsftp,
+			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
-		if stat, err := os.Stat(tt.dir); err != nil || !stat.IsDir() {
-			t.Error(err)
-		}
-		if err := Fmt(tt.v, tt.dir); (err != nil) != tt.wantErr {
-			t.Errorf("Fmt(%v, %v) error = %v, wantErr %v", tt.v, tt.dir, err, tt.wantErr)
+		c := NewCommands(tt.fields.Vim)
+		if err := c.Fmt(tt.args.dir); (err != nil) != tt.wantErr {
+			t.Errorf("%q. Commands.Fmt(%v) error = %v, wantErr %v", tt.name, tt.args.dir, err, tt.wantErr)
 		}
 	}
 }

@@ -12,18 +12,25 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/terminal"
 	"nvim-go/pathutil"
-
-	"github.com/neovim-go/vim"
 )
 
 var runTerm *terminal.Terminal
 
+func (c *Commands) cmdRun(args []string, file string) {
+	cmd := []string{"go", "run", file}
+	if len(args) != 0 {
+		cmd = append(cmd, args...)
+	}
+
+	go c.Run(cmd, file)
+}
+
 // Run runs the go run command for current buffer's packages.
-func Run(v *vim.Vim, cmd []string, file string) error {
+func (c *Commands) Run(cmd []string, file string) error {
 	defer profile.Start(time.Now(), "GoRun")
 
 	if runTerm == nil {
-		runTerm = terminal.NewTerminal(v, "__GO_TEST__", cmd, config.TerminalMode)
+		runTerm = terminal.NewTerminal(c.v, "__GO_TEST__", cmd, config.TerminalMode)
 	}
 	dir, _ := filepath.Split(file)
 	rootDir := pathutil.FindVcsRoot(dir)
@@ -34,13 +41,4 @@ func Run(v *vim.Vim, cmd []string, file string) error {
 	}
 
 	return nil
-}
-
-func cmdRun(v *vim.Vim, args []string, file string) {
-	cmd := []string{"go", "run", file}
-	if len(args) != 0 {
-		cmd = append(cmd, args...)
-	}
-
-	go Run(v, cmd, file)
 }

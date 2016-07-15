@@ -4,10 +4,33 @@
 
 package autocmd
 
-import "github.com/neovim-go/vim/plugin"
+import (
+	"sync"
+
+	"github.com/neovim-go/vim/plugin"
+
+	"nvim-go/commands"
+	"nvim-go/context"
+	"nvim-go/nvim/quickfix"
+)
+
+// Autocmd represents a autocmd context.
+type Autocmd struct {
+	ctxt *context.Context
+
+	c  *commands.Commands
+	qf []*quickfix.ErrorlistData
+
+	bufWritePostChan chan error
+	bufWritePreChan  chan error
+	wg               sync.WaitGroup
+
+	errors []error
+}
 
 func Register(p *plugin.Plugin) {
 	autocmd := new(Autocmd)
+	autocmd.c = commands.NewCommands(p.Vim)
 
 	autocmd.bufWritePreChan = make(chan error, 2)
 	autocmd.bufWritePostChan = make(chan error, 2)

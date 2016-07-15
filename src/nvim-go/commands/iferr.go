@@ -13,38 +13,35 @@ import (
 	"path/filepath"
 	"time"
 
-	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 
 	"github.com/juju/errors"
 	"github.com/motemen/go-iferr"
-	"github.com/neovim-go/vim"
 	"golang.org/x/tools/go/loader"
 )
 
 const pkgIferr = "GoIferr"
 
-func cmdIferr(v *vim.Vim, file string) {
-	go Iferr(v, file)
+func (c *Commands) cmdIferr(file string) {
+	go c.Iferr(file)
 }
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
-func Iferr(v *vim.Vim, file string) error {
+func (c *Commands) Iferr(file string) error {
 	defer profile.Start(time.Now(), "GoIferr")
 
 	dir := filepath.Dir(file)
-	ctxt := new(context.Context)
-	defer ctxt.Build.SetContext(dir)()
+	defer c.ctxt.Build.SetContext(dir)()
 
-	b, err := v.CurrentBuffer()
+	b, err := c.v.CurrentBuffer()
 	if err != nil {
-		return nvim.ErrorWrap(v, errors.Annotate(err, pkgIferr))
+		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgIferr))
 	}
 
-	buflines, err := v.BufferLines(b, 0, -1, true)
+	buflines, err := c.v.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return nvim.ErrorWrap(v, errors.Annotate(err, pkgIferr))
+		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgIferr))
 	}
 
 	conf := loader.Config{
@@ -60,13 +57,13 @@ func Iferr(v *vim.Vim, file string) error {
 
 	f, err := conf.ParseFile(file, src.Bytes())
 	if err != nil {
-		return nvim.ErrorWrap(v, errors.Annotate(err, pkgIferr))
+		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgIferr))
 	}
 
 	conf.CreateFromFiles(file, f)
 	prog, err := conf.Load()
 	if err != nil {
-		return nvim.ErrorWrap(v, errors.Annotate(err, pkgIferr))
+		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgIferr))
 	}
 
 	// Reuse src variable
@@ -81,5 +78,5 @@ func Iferr(v *vim.Vim, file string) error {
 
 	// format.Node() will added pointless newline
 	buf := bytes.TrimSuffix(src.Bytes(), []byte{'\n'})
-	return v.SetBufferLines(b, 0, -1, true, nvim.ToBufferLines(buf))
+	return c.v.SetBufferLines(b, 0, -1, true, nvim.ToBufferLines(buf))
 }

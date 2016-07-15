@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
@@ -24,31 +23,30 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-func cmdTest(v *vim.Vim, args []string, dir string) {
-	go Test(v, args, dir)
+func (c *Commands) cmdTest(args []string, dir string) {
+	go c.Test(args, dir)
 }
 
 var term *terminal.Terminal
 
 // Test run the package test command use compile tool that determined from
 // the directory structure.
-func Test(v *vim.Vim, args []string, dir string) error {
+func (c *Commands) Test(args []string, dir string) error {
 	defer profile.Start(time.Now(), "GoTest")
-	ctxt := new(context.Context)
-	defer ctxt.Build.SetContext(dir)()
+	defer c.ctxt.Build.SetContext(dir)()
 
-	cmd := []string{ctxt.Build.Tool, "test"}
+	cmd := []string{c.ctxt.Build.Tool, "test"}
 	args = append(args, config.TestArgs...)
 	if len(args) > 0 {
 		cmd = append(cmd, args...)
 	}
 
-	if ctxt.Build.Tool == "go" {
+	if c.ctxt.Build.Tool == "go" {
 		cmd = append(cmd, string("./..."))
 	}
 
 	if term == nil {
-		term = terminal.NewTerminal(v, "__GO_TEST__", cmd, config.TerminalMode)
+		term = terminal.NewTerminal(c.v, "__GO_TEST__", cmd, config.TerminalMode)
 		term.Dir = pathutil.FindVcsRoot(dir)
 	}
 
@@ -76,12 +74,12 @@ type cmdTestSwitchEval struct {
 	File string
 }
 
-func cmdTestSwitch(v *vim.Vim, eval cmdTestSwitchEval) {
-	go TestSwitch(v, eval)
+func (c *Commands) cmdTestSwitch(eval cmdTestSwitchEval) {
+	go c.TestSwitch(eval)
 }
 
 // TestSwitch switch to corresponds current cursor (test)function.
-func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
+func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
 	// Check the current buffer name whether '*_test.go'.
 	fname := eval.File
 	exp := filepath.Ext(fname)
@@ -96,12 +94,11 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 
 	// Check the exists of switch destination file.
 	if _, err := os.Stat(switchfile); err != nil {
-		return nvim.EchohlErr(v, "GoTestSwitch", "Switch destination file does not exist")
+		return nvim.EchohlErr(c.v, "GoTestSwitch", "Switch destination file does not exist")
 	}
 
-	ctxt := new(context.Context)
 	dir, _ := filepath.Split(fname)
-	defer ctxt.Build.SetContext(filepath.Dir(dir))()
+	defer c.ctxt.Build.SetContext(filepath.Dir(dir))()
 
 	var (
 		b vim.Buffer
@@ -109,23 +106,25 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 	)
 
 	// Gets the current buffer information.
-	p := v.NewPipeline()
-	p.CurrentBuffer(&b)
-	p.CurrentWindow(&w)
-	if err := p.Wait(); err != nil {
+	if c.p == nil {
+		c.p = c.v.NewPipeline()
+	}
+	c.p.CurrentBuffer(&b)
+	c.p.CurrentWindow(&w)
+	if err := c.p.Wait(); err != nil {
 		return err
 	}
 
 	// Get the byte offset of current cursor position from buffer.
 	// TODO(zchee): Eval 'line2byte(line('.'))+(col('.')-2)' is faster and safer?
-	byteOffset, err := nvim.ByteOffset(v, b, w)
+	byteOffset, err := nvim.ByteOffset(c.v, b, w)
 	if err != nil {
 		return err
 	}
 	// Get the 2d byte slice of current buffer.
 	var buf [][]byte
-	p.BufferLines(b, 0, -1, true, &buf)
-	if err := p.Wait(); err != nil {
+	c.p.BufferLines(b, 0, -1, true, &buf)
+	if err := c.p.Wait(); err != nil {
 		return err
 	}
 
@@ -168,11 +167,11 @@ func TestSwitch(v *vim.Vim, eval cmdTestSwitchEval) error {
 	ast.Walk(visitorFunc(parseFunc), fswitch)
 
 	if !pos.IsValid() {
-		return nvim.EchohlErr(v, "GoTestSwitch", "Not found the switch destination function")
+		return nvim.EchohlErr(c.v, "GoTestSwitch", "Not found the switch destination function")
 	}
 
 	// Jump to the corresponds function.
-	return quickfix.GotoPos(v, w, fset.Position(pos), eval.Cwd)
+	return quickfix.GotoPos(c.v, w, fset.Position(pos), eval.Cwd)
 }
 
 // Wrapper of the parser.ParseFile()
