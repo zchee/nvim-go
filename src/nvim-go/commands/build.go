@@ -16,7 +16,11 @@ import (
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
+
+	"github.com/juju/errors"
 )
+
+const pkgBuild = "GoBuild"
 
 // CmdBuildEval struct type for Eval of GoBuild command.
 type CmdBuildEval struct {
@@ -31,7 +35,7 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 // Build builds the current buffer's package use compile tool that
 // determined from the directory structure.
 func (c *Commands) Build(bang bool, eval *CmdBuildEval) error {
-	defer profile.Start(time.Now(), "GoBuild")
+	defer profile.Start(time.Now(), pkgBuild)
 	defer c.ctxt.Build.SetContext(eval.Dir)()
 
 	if !bang {
@@ -40,34 +44,35 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) error {
 
 	cmd, err := c.compileCmd(bang, eval.Cwd)
 	if err != nil {
-		return err
+		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
 	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
 	err = cmd.Run()
 	if err == nil {
-		return nvim.EchoSuccess(c.v, "GoBuild", fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
+		return nvim.EchoSuccess(c.v, pkgBuild, fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
 	}
 
 	if _, ok := err.(*exec.ExitError); ok {
 		w, err := c.v.CurrentWindow()
 		if err != nil {
-			return err
+			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
 		}
 
 		loclist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
 		if err != nil {
-			return err
+			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
 		}
 		if err := quickfix.SetLoclist(c.v, loclist); err != nil {
-			return err
+			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
 		}
 
 		return quickfix.OpenLoclist(c.v, w, loclist, true)
 	}
 
-	return err
+	// TODO(zchee): Not reachable?
+	return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
 }
 
 func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
