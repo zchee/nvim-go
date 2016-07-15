@@ -192,7 +192,7 @@ type fallback struct {
 func definition(q *guru.Query) (*serial.Definition, error) {
 	defer profile.Start(time.Now(), "definition")
 
-	c := make(chan *fallback)
+	c := make(chan fallback)
 	go definitionFallback(q, c)
 
 	// First try the simple resolution done by parser.
@@ -239,15 +239,15 @@ func definition(q *guru.Query) (*serial.Definition, error) {
 	return obj.Obj, nil
 }
 
-func fallbackChan(obj *serial.Definition, err error) *fallback {
-	return &fallback{
+func fallbackChan(obj *serial.Definition, err error) fallback {
+	return fallback{
 		Obj: obj,
 		Err: err,
 	}
 }
 
 // definitionFallback fall back on the type checker.
-func definitionFallback(q *guru.Query, c chan *fallback) {
+func definitionFallback(q *guru.Query, c chan fallback) {
 	defer profile.Start(time.Now(), "definitionFallback")
 
 	// Run the type checker.
