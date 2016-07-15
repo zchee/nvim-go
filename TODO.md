@@ -1,3 +1,7 @@
+|                 | **TravisCI** | **CircleCI**                                                                                                                                                    |
+|:---------------:|:------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| **CI Services** |   not yet    | [![CircleCI](https://circleci.com/gh/zchee/nvim-go.svg?style=svg&circle-token=0c7419d90f365191e05f0e8c713d20ff986587bc)](https://circleci.com/gh/zchee/nvim-go) |
+
 nvim-go original behavior
 =========================
 
@@ -171,7 +175,8 @@ GoTest
 https://github.com/fatih/vim-go/blob/master/autoload/go/cmd.vim#L188
 
 -	[x] Implements `GoTest` command output to neovim terminal feature
--	[ ] Support `run=func` flag - [ ] Support GoTestCompile(?)
+-	[ ] Support `run=func` flag
+-	[ ] Support GoTestCompile(?)
 
 GoGuru
 ------
