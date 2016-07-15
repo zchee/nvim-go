@@ -20,41 +20,8 @@ import (
 	"github.com/neovim-go/vim"
 )
 
-// ErrorlistData represents an item in a quickfix and locationlist.
-type ErrorlistData struct {
-	// Buffer number
-	Bufnr int `msgpack:"bufnr,omitempty"`
-
-	// Line number in the file.
-	LNum int `msgpack:"lnum,omitempty"`
-
-	// Search pattern used to locate the error.
-	Pattern string `msgpack:"pattern,omitempty"`
-
-	// Column number (first column is 1).
-	Col int `msgpack:"col,omitempty"`
-
-	// When Vcol is != 0,  Col is visual column.
-	VCol int `msgpack:"vcol,omitempty"`
-
-	// Error number.
-	Nr int `msgpack:"nr,omitempty"`
-
-	// Description of the error.
-	Text string `msgpack:"text,omitempty"`
-
-	// Single-character error type, 'E', 'W', etc.
-	Type string `msgpack:"type,omitempty"`
-
-	// Name of a file; only used when bufnr is not present or it is invalid.
-	FileName string `msgpack:"filename,omitempty"`
-
-	// Valid is non-zero if this is a recognized error message.
-	Valid int `msgpack:"valid,omitempty"`
-}
-
 // SetLoclist set the error results data to current buffer's locationlist.
-func SetLoclist(v *vim.Vim, loclist []*ErrorlistData) error {
+func SetLoclist(v *vim.Vim, loclist []*vim.QuickfixError) error {
 	// setloclist({nr}, {list} [, {action}])
 	// v.Call(fname string, result interface{}, args ...interface{})
 	if len(loclist) > 0 {
@@ -74,7 +41,7 @@ const (
 )
 
 // SetErrorlist set the error results data to current buffer's locationlist.
-func SetErrorlist(v *vim.Vim, listtype ErrorListType, errlist []*ErrorlistData) error {
+func SetErrorlist(v *vim.Vim, listtype ErrorListType, errlist []*vim.QuickfixError) error {
 	var setlist, clearlist func() error
 
 	switch listtype {
@@ -94,7 +61,7 @@ func SetErrorlist(v *vim.Vim, listtype ErrorListType, errlist []*ErrorlistData) 
 }
 
 // ErrorList merges the errlist map items and open the locationlist window.
-func ErrorList(v *vim.Vim, w vim.Window, listtype ErrorListType, errlist map[string][]*ErrorlistData, keep bool) error {
+func ErrorList(v *vim.Vim, w vim.Window, listtype ErrorListType, errlist map[string][]*vim.QuickfixError, keep bool) error {
 	var openlist, closelist func() error
 
 	switch listtype {
@@ -110,7 +77,7 @@ func ErrorList(v *vim.Vim, w vim.Window, listtype ErrorListType, errlist map[str
 		return closelist()
 	}
 
-	var loclist []*ErrorlistData
+	var loclist []*vim.QuickfixError
 	for _, err := range errlist {
 		loclist = append(loclist, err...)
 	}
@@ -129,7 +96,7 @@ func ErrorList(v *vim.Vim, w vim.Window, listtype ErrorListType, errlist map[str
 }
 
 // OpenLoclist open or close the current buffer's locationlist window.
-func OpenLoclist(v *vim.Vim, w vim.Window, loclist []*ErrorlistData, keep bool) error {
+func OpenLoclist(v *vim.Vim, w vim.Window, loclist []*vim.QuickfixError, keep bool) error {
 	if len(loclist) == 0 {
 		return v.Command("lclose")
 	}
@@ -147,7 +114,7 @@ func CloseLoclist(v *vim.Vim) error {
 }
 
 // SetQuickfix set the error results data to quickfix list.
-func SetQuickfix(p *vim.Pipeline, qflist []*ErrorlistData) error {
+func SetQuickfix(p *vim.Pipeline, qflist []*vim.QuickfixError) error {
 	p.Call("setqflist", nil, qflist)
 
 	return nil
@@ -210,11 +177,11 @@ var errRe = regexp.MustCompile(`(?m)^([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
 
 // ParseError parses a typical error message of Go compile tools.
 // TODO(zchee): More elegant way
-func ParseError(errors []byte, cwd string, ctxt *context.BuildContext) ([]*ErrorlistData, error) {
+func ParseError(errors []byte, cwd string, ctxt *context.BuildContext) ([]*vim.QuickfixError, error) {
 	var (
 		parentDir string
 		fpath     string
-		errlist   []*ErrorlistData
+		errlist   []*vim.QuickfixError
 	)
 
 	// m[1]: relative file path of error file
@@ -262,7 +229,7 @@ func ParseError(errors []byte, cwd string, ctxt *context.BuildContext) ([]*Error
 			col = 0
 		}
 
-		errlist = append(errlist, &ErrorlistData{
+		errlist = append(errlist, &vim.QuickfixError{
 			FileName: filename,
 			LNum:     line,
 			Col:      col,

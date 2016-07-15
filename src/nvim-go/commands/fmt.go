@@ -61,10 +61,10 @@ func (c *Commands) Fmt(dir string) error {
 
 	buf, err := imports.Process("", nvim.ToByteSlice(in), &importsOptions)
 	if err != nil {
-		var errlist []*quickfix.ErrorlistData
+		var errlist []*vim.QuickfixError
 
 		if e, ok := err.(scanner.Error); ok {
-			errlist = append(errlist, &quickfix.ErrorlistData{
+			errlist = append(errlist, &vim.QuickfixError{
 				FileName: bufName,
 				LNum:     e.Pos.Line,
 				Col:      e.Pos.Column,
@@ -72,7 +72,7 @@ func (c *Commands) Fmt(dir string) error {
 			})
 		} else if el, ok := err.(scanner.ErrorList); ok {
 			for _, e := range el {
-				errlist = append(errlist, &quickfix.ErrorlistData{
+				errlist = append(errlist, &vim.QuickfixError{
 					FileName: bufName,
 					LNum:     e.Pos.Line,
 					Col:      e.Pos.Column,

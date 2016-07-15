@@ -7,11 +7,11 @@ package autocmd
 import (
 	"sync"
 
+	"github.com/neovim-go/vim"
 	"github.com/neovim-go/vim/plugin"
 
 	"nvim-go/commands"
 	"nvim-go/context"
-	"nvim-go/nvim/quickfix"
 )
 
 // Autocmd represents a autocmd context.
@@ -19,7 +19,7 @@ type Autocmd struct {
 	ctxt *context.Context
 
 	c  *commands.Commands
-	qf []*quickfix.ErrorlistData
+	qf []*vim.QuickfixError
 
 	bufWritePostChan chan error
 	bufWritePreChan  chan error

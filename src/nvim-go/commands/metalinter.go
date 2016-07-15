@@ -39,7 +39,7 @@ func (c *Commands) Metalinter(cwd string) error {
 	defer c.ctxt.Build.SetContext(cwd)()
 
 	var (
-		loclist []*quickfix.ErrorlistData
+		loclist []*vim.QuickfixError
 		b       vim.Buffer
 		w       vim.Window
 	)
@@ -84,7 +84,7 @@ func (c *Commands) Metalinter(cwd string) error {
 	sort.Sort(byPath(result))
 
 	for _, r := range result {
-		loclist = append(loclist, &quickfix.ErrorlistData{
+		loclist = append(loclist, &vim.QuickfixError{
 			FileName: pathutil.RelPath(r.Path, cwd),
 			LNum:     r.Line,
 			Col:      r.Col,

@@ -8,7 +8,6 @@ import (
 	"nvim-go/context"
 	"nvim-go/internal/guru"
 	"nvim-go/internal/guru/serial"
-	"nvim-go/nvim/quickfix"
 
 	"github.com/neovim-go/vim"
 )
@@ -112,7 +111,7 @@ func Test_parseResult(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []*quickfix.ErrorlistData
+		want    []*vim.QuickfixError
 		wantErr bool
 	}{
 	// TODO: Add test cases.

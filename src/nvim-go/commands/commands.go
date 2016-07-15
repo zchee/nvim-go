@@ -6,7 +6,6 @@ package commands
 
 import (
 	"nvim-go/context"
-	"nvim-go/nvim/quickfix"
 
 	"github.com/neovim-go/vim"
 	"github.com/neovim-go/vim/plugin"
@@ -17,14 +16,14 @@ type Commands struct {
 	p *vim.Pipeline
 
 	ctxt    *context.Context
-	errlist map[string][]*quickfix.ErrorlistData
+	errlist map[string][]*vim.QuickfixError
 }
 
 func NewCommands(v *vim.Vim) *Commands {
 	return &Commands{
 		v:       v,
 		ctxt:    new(context.Context),
-		errlist: make(map[string][]*quickfix.ErrorlistData),
+		errlist: make(map[string][]*vim.QuickfixError),
 	}
 }
 

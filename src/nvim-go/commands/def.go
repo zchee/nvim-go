@@ -79,8 +79,8 @@ func Def(v *vim.Vim, file string) error {
 		obj, _ := types.ExprType(e, types.DefaultImporter, types.FileSet)
 		if obj != nil {
 			pos := types.FileSet.Position(types.DeclPos(obj))
-			var loclist []*quickfix.ErrorlistData
-			loclist = append(loclist, &quickfix.ErrorlistData{
+			var loclist []*vim.QuickfixError
+			loclist = append(loclist, &vim.QuickfixError{
 				FileName: pos.Filename,
 				LNum:     pos.Line,
 				Col:      pos.Column,
