@@ -242,7 +242,7 @@ func IsBufferValid(v *vim.Vim, b vim.Buffer) bool {
 }
 
 // BufContains reports whether buffer list is within b.
-func IsBufContains(v *vim.Vim, b vim.Buffer) bool {
+func IsBufferContains(v *vim.Vim, b vim.Buffer) bool {
 	bufs, _ := v.Buffers()
 	for _, buf := range bufs {
 		if buf == b {
