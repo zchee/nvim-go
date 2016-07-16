@@ -52,7 +52,7 @@ type fmt struct {
 
 // generate represents a GoGenerate command config variables.
 type generate struct {
-	ExclFuncs string `eval:"g:go#generate#exclude"`
+	TestExclFuncs string `eval:"g:go#generate#test#exclude"`
 }
 
 // guru represents a GoGuru command config variable.
@@ -127,7 +127,7 @@ var (
 	FmtMode string
 
 	// GenerateExclFuncs exclude function of generate test.
-	GenerateExclFuncs string
+	GenerateTestExclFuncs string
 
 	// GuruReflection use the type reflection on GoGuru commmands.
 	GuruReflection bool
@@ -194,7 +194,7 @@ func GetConfig(v *vim.Vim, cfg *Config) {
 	FmtMode = cfg.Fmt.Mode
 
 	// Generate
-	GenerateExclFuncs = cfg.Generate.ExclFuncs
+	GenerateTestExclFuncs = cfg.Generate.TestExclFuncs
 
 	// Guru
 	GuruReflection = itob(cfg.Guru.Reflection)

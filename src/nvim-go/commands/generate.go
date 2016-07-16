@@ -46,7 +46,7 @@ func (c *Commands) GenerateTest(files []string, dir string) error {
 
 	var opt = process.Options{
 		AllFuncs:    true,
-		ExclFuncs:   config.GenerateExclFuncs,
+		ExclFuncs:   config.GenerateTestExclFuncs,
 		WriteOutput: true,
 		PrintInputs: true,
 	}
