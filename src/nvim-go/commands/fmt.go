@@ -94,12 +94,12 @@ func (c *Commands) Fmt(dir string) error {
 		}
 		c.errlist["Fmt"] = errlist
 
-		return quickfix.ErrorList(c.v, w, quickfix.LocationList, c.errlist, true)
+		return quickfix.ErrorList(c.v, w, c.errlist, true)
 	}
 
 	// delete "Fmt" errors in the errlist(map[string][]*vim.QuickfixError)
 	delete(c.errlist, "Fmt")
-	defer quickfix.ErrorList(c.v, w, quickfix.LocationList, c.errlist, true)
+	defer quickfix.ErrorList(c.v, w, c.errlist, true)
 
 	out := nvim.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
 	minUpdate(c.v, b, in, out)

@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 
+	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/pathutil"
 
@@ -33,22 +34,15 @@ func SetLoclist(v *vim.Vim, loclist []*vim.QuickfixError) error {
 	return nil
 }
 
-type ErrorListType int
-
-const (
-	Quickfix ErrorListType = iota
-	LocationList
-)
-
 // SetErrorlist set the error results data to current buffer's locationlist.
-func SetErrorlist(v *vim.Vim, listtype ErrorListType, errlist []*vim.QuickfixError) error {
+func SetErrorlist(v *vim.Vim, listtype string, errlist []*vim.QuickfixError) error {
 	var setlist, clearlist func() error
 
 	switch listtype {
-	case Quickfix:
+	case "quickfix":
 		setlist = func() error { return v.Call("setqflist", nil, errlist) }
 		clearlist = func() error { return v.Command("cgetexpr ''") }
-	case LocationList:
+	case "locationlist":
 		setlist = func() error { return v.Call("setloclist", nil, 0, errlist) }
 		clearlist = func() error { return v.Command("lgetexpr ''") }
 	}
@@ -64,14 +58,15 @@ func SetErrorlist(v *vim.Vim, listtype ErrorListType, errlist []*vim.QuickfixErr
 // TODO(zchee): This function will reports the errors with open the quickfix window, but will close
 // the quickfix window if no errors.
 // Do ErrorList function name is appropriate?
-func ErrorList(v *vim.Vim, w vim.Window, listtype ErrorListType, errlist map[string][]*vim.QuickfixError, keep bool) error {
+func ErrorList(v *vim.Vim, w vim.Window, errlist map[string][]*vim.QuickfixError, keep bool) error {
 	var openlist, closelist func() error
 
-	switch listtype {
-	case Quickfix:
+	listtype := config.ErrorListType
+	switch config.ErrorListType {
+	case "quickfix":
 		openlist = func() error { return v.Command("copen") }
 		closelist = func() error { return v.Command("cclose") }
-	case LocationList:
+	case "locationlist":
 		openlist = func() error { return v.Command("lopen") }
 		closelist = func() error { return v.Command("lclose") }
 	}
