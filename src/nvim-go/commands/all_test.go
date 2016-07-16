@@ -27,17 +27,20 @@ var (
 	gsftpMain = filepath.Join(gsftpRoot, "src", "cmd", "gsftp", "main.go")
 )
 
+// -u: Use <init.vim> instead of the default
+// -n: No swap file, use memory only
+var nvimArgs = []string{"-u", filepath.Join(testdata, "init.vim"), "-n"}
+
 func testVim(t *testing.T, file string) *vim.Vim {
 	xdgDataHome := filepath.Join(testdata, "local", "share")
 	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
 
-	args := []string{"-u", "NONE", "-n"}
 	if file != "" {
-		args = append(args, file)
+		nvimArgs = append(nvimArgs, file)
 	}
 	v, err := vim.NewEmbedded(&vim.EmbedOptions{
-		Args: args,
+		Args: nvimArgs,
 		Env:  []string{},
 		Logf: t.Logf,
 	})
@@ -54,12 +57,11 @@ func benchVim(b *testing.B, file string) *vim.Vim {
 	os.Setenv("XDG_DATA_HOME", xdgDataHome)
 	os.Setenv("NVIM_GO_DEBUG", "")
 
-	args := []string{"-u", "NONE", "-n"}
 	if file != "" {
-		args = append(args, file)
+		nvimArgs = append(nvimArgs, file)
 	}
 	v, err := vim.NewEmbedded(&vim.EmbedOptions{
-		Args: args,
+		Args: nvimArgs,
 		Env:  []string{},
 		Logf: b.Logf,
 	})
