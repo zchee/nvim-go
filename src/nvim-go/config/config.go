@@ -10,7 +10,7 @@ import "github.com/neovim-go/vim"
 // Each type must be exported for plugin.HandleAutocmd Eval option.
 // Also it does not support embeded type.
 type Config struct {
-	Client     Client
+	Global     Global
 	Analyze    analyze
 	Build      build
 	Fmt        fmt
@@ -24,10 +24,11 @@ type Config struct {
 	Debug      debug
 }
 
-// Client represents a Neovim remote client information.
-type Client struct {
-	ChannelID  int
-	ServerName string `eval:"v:servername"`
+// Global represents a global config variable.
+type Global struct {
+	ChannelID     int
+	ServerName    string `eval:"v:servername"`
+	ErrorListType string `eval:"g:go#global#errorlisttype"`
 }
 
 // analyze represents a GoAnalyze command config variable.
@@ -102,9 +103,11 @@ type debug struct {
 
 var (
 	// ClientChannelID remote plugins channel id.
-	ClientChannelID int
+	ChannelID int
 	// ClientServerName Neovim socket listen location.
-	ClientServerName string
+	ServerName string
+	// ErrorListType type of error list window.
+	ErrorListType string
 
 	// AnalyzeFoldIcon define default astview tree fold icon.
 	AnalyzeFoldIcon string
@@ -173,8 +176,9 @@ var (
 // GetConfig gets the user config variables and convert to global varialble.
 func GetConfig(v *vim.Vim, cfg *Config) {
 	// Client
-	ClientChannelID = cfg.Client.ChannelID
-	ClientServerName = cfg.Client.ServerName
+	ChannelID = cfg.Global.ChannelID
+	ServerName = cfg.Global.ServerName
+	ErrorListType = cfg.Global.ErrorListType
 
 	// Analyze
 	AnalyzeFoldIcon = cfg.Analyze.FoldIcon

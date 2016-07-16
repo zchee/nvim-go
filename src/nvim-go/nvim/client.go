@@ -17,7 +17,7 @@ func NewSocketClient() *vim.Vim {
 		err error
 	)
 
-	addr := config.ClientServerName
+	addr := config.ServerName
 	if addr == "" {
 		return nil
 	}

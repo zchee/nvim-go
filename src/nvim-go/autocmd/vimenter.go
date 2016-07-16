@@ -22,7 +22,7 @@ func autocmdVimEnter(v *vim.Vim, cfg *config.Config) {
 // vimEnter gets user config variables and assign to global variable when autocmd VimEnter.
 // If config.DebugPprof is true, start net/pprof debugging.
 func vimEnter(v *vim.Vim, cfg *config.Config) (err error) {
-	cfg.Client.ChannelID = v.ChannelID()
+	cfg.Global.ChannelID = v.ChannelID()
 	if err != nil {
 		return err
 	}
