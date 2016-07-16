@@ -182,6 +182,13 @@
 			"path": "/macho"
 		},
 		{
+			"importpath": "golang.org/x/net/context",
+			"repository": "https://go.googlesource.com/net",
+			"revision": "e90d6d0afc4c315a0d87a568ae68577cc15149a0",
+			"branch": "master",
+			"path": "/context"
+		},
+		{
 			"importpath": "golang.org/x/net/http2/hpack",
 			"repository": "https://go.googlesource.com/net",
 			"revision": "f841c39de738b1d0df95b5a7187744f0e03d8112",

@@ -5,11 +5,12 @@
 package context
 
 import (
-	"context"
 	"go/build"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"golang.org/x/net/context"
 )
 
 const pkgContext = "context"
