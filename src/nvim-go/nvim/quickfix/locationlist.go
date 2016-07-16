@@ -46,7 +46,7 @@ func SetErrorlist(v *vim.Vim, listtype ErrorListType, errlist []*vim.QuickfixErr
 
 	switch listtype {
 	case Quickfix:
-		setlist = func() error { return v.Call("setqflist", nil, 0, errlist) }
+		setlist = func() error { return v.Call("setqflist", nil, errlist) }
 		clearlist = func() error { return v.Command("cgetexpr ''") }
 	case LocationList:
 		setlist = func() error { return v.Call("setloclist", nil, 0, errlist) }
