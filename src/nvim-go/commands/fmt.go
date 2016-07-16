@@ -6,9 +6,11 @@ package commands
 
 import (
 	"bytes"
+	"go/format"
 	"go/scanner"
 	"time"
 
+	"nvim-go/config"
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
@@ -46,21 +48,31 @@ func (c *Commands) Fmt(dir string) error {
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		return err
-	}
-
-	bufName, err := c.v.BufferName(b)
-	if err != nil {
-		return err
+		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgFmt))
 	}
 
 	in, err := c.v.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return err
+		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgFmt))
 	}
 
-	buf, err := imports.Process("", nvim.ToByteSlice(in), &importsOptions)
+	var buf []byte
+	switch config.FmtMode {
+	case "fmt":
+		buf, err = format.Source(nvim.ToByteSlice(in))
+	case "goimports":
+		buf, err = imports.Process("", nvim.ToByteSlice(in), &importsOptions)
+	default:
+		err := errors.Annotate(errors.New("invalid value of go#fmt#mode option"), pkgFmt)
+		return nvim.ErrorWrap(c.v, err)
+	}
+
 	if err != nil {
+		bufName, err := c.v.BufferName(b)
+		if err != nil {
+			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgFmt))
+		}
+
 		var errlist []*vim.QuickfixError
 
 		if e, ok := err.(scanner.Error); ok {
@@ -82,15 +94,14 @@ func (c *Commands) Fmt(dir string) error {
 		}
 		c.errlist["Fmt"] = errlist
 
-		quickfix.ErrorList(c.v, w, quickfix.LocationList, c.errlist, true)
-		return errors.Annotate(err, pkgFmt)
+		return quickfix.ErrorList(c.v, w, quickfix.LocationList, c.errlist, true)
 	}
 
+	// delete "Fmt" errors in the errlist(map[string][]*vim.QuickfixError)
 	delete(c.errlist, "Fmt")
 	defer quickfix.ErrorList(c.v, w, quickfix.LocationList, c.errlist, true)
 
 	out := nvim.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
-
 	minUpdate(c.v, b, in, out)
 
 	// TODO(zchee): When executed Fmt(itself) function at autocmd BufWritePre, vim "write"
