@@ -61,6 +61,9 @@ func SetErrorlist(v *vim.Vim, listtype ErrorListType, errlist []*vim.QuickfixErr
 }
 
 // ErrorList merges the errlist map items and open the locationlist window.
+// TODO(zchee): This function will reports the errors with open the quickfix window, but will close
+// the quickfix window if no errors.
+// Do ErrorList function name is appropriate?
 func ErrorList(v *vim.Vim, w vim.Window, listtype ErrorListType, errlist map[string][]*vim.QuickfixError, keep bool) error {
 	var openlist, closelist func() error
 
