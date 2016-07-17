@@ -99,6 +99,12 @@
 			"path": "/terminal"
 		},
 		{
+			"importpath": "github.com/golang/lint",
+			"repository": "https://github.com/golang/lint",
+			"revision": "c7bacac2b21ca01afa1dee0acf64df3ce047c28f",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/juju/errors",
 			"repository": "https://github.com/juju/errors",
 			"revision": "b2c7a7da5b2995941048f60146e67702a292e468",
@@ -250,6 +256,13 @@
 			"revision": "cda5280914a6bccec2b76d8d4341f4f4c5d62592",
 			"branch": "master",
 			"path": "/go/callgraph"
+		},
+		{
+			"importpath": "golang.org/x/tools/go/gcimporter15",
+			"repository": "https://go.googlesource.com/tools",
+			"revision": "6d32be89d569efd9d2426c967e8d133fd4abb9f0",
+			"branch": "master",
+			"path": "/go/gcimporter15"
 		},
 		{
 			"importpath": "golang.org/x/tools/go/loader",
