@@ -9,21 +9,24 @@ import (
 	// For pprof debugging.
 	_ "net/http/pprof"
 
-	// Register autocmd
 	"nvim-go/autocmd"
-	// Register commands
 	"nvim-go/commands"
-	// Register delve command and autocmd
 	"nvim-go/commands/delve"
+	"nvim-go/context"
 
 	"github.com/neovim-go/vim/plugin"
 )
 
+var c *commands.Commands
+
 func main() {
 	plugin.Main(func(p *plugin.Plugin) error {
-		autocmd.Register(p)
-		commands.Register(p)
+		ctxt := context.NewContext()
+
+		c := commands.Register(p, ctxt)
 		delve.Register(p)
+
+		autocmd.Register(p, ctxt, c)
 
 		return nil
 	})

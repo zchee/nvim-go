@@ -51,8 +51,8 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) error {
 
 	err = cmd.Run()
 	if err == nil {
-		delete(c.errlist, "Build")
-		defer quickfix.ErrorList(c.v, 0, c.errlist, true)
+		delete(c.ctxt.Errlist, "Build")
+		defer quickfix.ErrorList(c.v, 0, c.ctxt.Errlist, true)
 
 		return nvim.EchoSuccess(c.v, pkgBuild, fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
 	}
@@ -67,9 +67,9 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) error {
 		if err != nil {
 			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
 		}
-		c.errlist["Build"] = errlist
+		c.ctxt.Errlist["Build"] = errlist
 
-		return quickfix.ErrorList(c.v, w, c.errlist, true)
+		return quickfix.ErrorList(c.v, w, c.ctxt.Errlist, true)
 	}
 
 	// TODO(zchee): Not reachable?

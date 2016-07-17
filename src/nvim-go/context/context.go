@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/neovim-go/vim"
 	"golang.org/x/net/context"
 )
 
@@ -18,14 +19,21 @@ const pkgContext = "context"
 // Context represents a embeded context package and build context.
 type Context struct {
 	context.Context
-
 	Build BuildContext
+
+	Errlist map[string][]*vim.QuickfixError
 }
 
 // BuildContext represents a compile tool information.
 type BuildContext struct {
 	Tool         string
 	GbProjectDir string
+}
+
+func NewContext() *Context {
+	return &Context{
+		Errlist: make(map[string][]*vim.QuickfixError),
+	}
 }
 
 // GoPath return the new GOPATH estimated from the path p directory structure.

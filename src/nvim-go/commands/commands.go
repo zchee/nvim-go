@@ -15,20 +15,18 @@ type Commands struct {
 	v *vim.Vim
 	p *vim.Pipeline
 
-	ctxt    *context.Context
-	errlist map[string][]*vim.QuickfixError
+	ctxt *context.Context
 }
 
-func NewCommands(v *vim.Vim) *Commands {
+func NewCommands(v *vim.Vim, ctxt *context.Context) *Commands {
 	return &Commands{
-		v:       v,
-		ctxt:    new(context.Context),
-		errlist: make(map[string][]*vim.QuickfixError),
+		v:    v,
+		ctxt: ctxt,
 	}
 }
 
-func Register(p *plugin.Plugin) {
-	c := NewCommands(p.Vim)
+func Register(p *plugin.Plugin, ctxt *context.Context) *Commands {
+	c := NewCommands(p.Vim, ctxt)
 
 	// Register command and function
 	p.HandleCommand(&plugin.CommandOptions{Name: "Gobuild", Bang: true, Eval: "[getcwd(), expand('%:p:h')]"}, c.cmdBuild)
@@ -48,4 +46,6 @@ func Register(p *plugin.Plugin) {
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoBuffers"}, c.cmdBuffers)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoWindows"}, c.cmdWindows)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoTabpages"}, c.cmdTabpagas)
+
+	return c
 }

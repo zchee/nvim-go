@@ -84,12 +84,13 @@ func TestCommands_Build(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		c := NewCommands(tt.fields.Vim)
+		ctxt := context.NewContext()
+		c := NewCommands(tt.fields.Vim, ctxt)
 		config.FmtMode = "goimports"
 		config.ErrorListType = "locationlist"
 
 		c.Build(tt.args.bang, tt.args.eval)
-		if (len(c.errlist) != 0) != tt.wantErr {
+		if (len(c.ctxt.Errlist) != 0) != tt.wantErr {
 			t.Errorf("%q. Commands.Build(%v, %v) wantErr %v", tt.name, tt.args.bang, tt.args.eval, tt.wantErr)
 		}
 	}
@@ -180,7 +181,8 @@ func TestCommands_compileCmd(t *testing.T) {
 }
 
 func BenchmarkBuildGo(b *testing.B) {
-	c := NewCommands(benchVim(b, astdumpMain))
+	ctxt := context.NewContext()
+	c := NewCommands(benchVim(b, astdumpMain), ctxt)
 
 	for i := 0; i < b.N; i++ {
 		if err := c.Build(false, &CmdBuildEval{
@@ -193,7 +195,8 @@ func BenchmarkBuildGo(b *testing.B) {
 }
 
 func BenchmarkBuildGb(b *testing.B) {
-	c := NewCommands(benchVim(b, gsftpMain))
+	ctxt := context.NewContext()
+	c := NewCommands(benchVim(b, gsftpMain), ctxt)
 
 	for i := 0; i < b.N; i++ {
 		if err := c.Build(false, &CmdBuildEval{
