@@ -36,6 +36,8 @@ type Delve struct {
 	v *vim.Vim
 	p *vim.Pipeline
 
+	ctxt *context.Context
+
 	server     *exec.Cmd
 	client     *delverpc2.RPCClient
 	term       *delveterm.Term
@@ -50,8 +52,6 @@ type Delve struct {
 
 	BufferContext
 	SignContext
-
-	ctxt *context.Context
 }
 
 // BufferContext represents a each debug information buffers.
@@ -68,9 +68,10 @@ type SignContext struct {
 }
 
 // NewDelve represents a delve client interface.
-func NewDelve(v *vim.Vim) *Delve {
+func NewDelve(v *vim.Vim, ctxt *context.Context) *Delve {
 	return &Delve{
-		v: v,
+		v:    v,
+		ctxt: ctxt,
 	}
 }
 

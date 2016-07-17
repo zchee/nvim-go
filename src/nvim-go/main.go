@@ -17,14 +17,12 @@ import (
 	"github.com/neovim-go/vim/plugin"
 )
 
-var c *commands.Commands
-
 func main() {
 	plugin.Main(func(p *plugin.Plugin) error {
 		ctxt := context.NewContext()
 
 		c := commands.Register(p, ctxt)
-		delve.Register(p)
+		delve.Register(p, ctxt)
 
 		autocmd.Register(p, ctxt, c)
 
