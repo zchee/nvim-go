@@ -6,7 +6,6 @@ package autocmd
 
 import (
 	"path/filepath"
-	"runtime"
 
 	"nvim-go/config"
 
@@ -19,8 +18,6 @@ type bufWritePreEval struct {
 }
 
 func (a *Autocmd) bufWritePre(v *vim.Vim, eval *bufWritePreEval) {
-	a.bufWritePreChan = make(chan error, runtime.NumCPU())
-
 	dir := filepath.Dir(eval.File)
 
 	// Iferr need execute before Fmt function because that function calls "noautocmd write"
