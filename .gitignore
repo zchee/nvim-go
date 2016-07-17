@@ -27,4 +27,8 @@ _testmain.go
 bin
 pkg
 
+# workaround for github.com/pkg
+!test/testdata/gb/gsftp/vendor/src/github.com/pkg/
+
+# manifest write script
 plugin/manifest
