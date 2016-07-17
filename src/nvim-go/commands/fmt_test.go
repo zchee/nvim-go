@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"context"
+	"nvim-go/config"
 	"reflect"
 	"testing"
 
@@ -57,8 +58,11 @@ func TestCommands_Fmt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		c := NewCommands(tt.fields.Vim)
-		if err := c.Fmt(tt.args.dir); (err != nil) != tt.wantErr {
-			t.Errorf("%q. Commands.Fmt(%v) error = %v, wantErr %v", tt.name, tt.args.dir, err, tt.wantErr)
+		config.FmtMode = "goimports"
+
+		c.Fmt(tt.args.dir)
+		if (len(c.errlist) != 0) != tt.wantErr {
+			t.Errorf("%q. Commands.Fmt(%v), wantErr %v", tt.name, tt.args.dir, tt.wantErr)
 		}
 	}
 }

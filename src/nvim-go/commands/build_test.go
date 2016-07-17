@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"nvim-go/config"
 	"nvim-go/context"
 
 	"github.com/neovim-go/vim"
@@ -27,6 +28,7 @@ func TestCommands_Build(t *testing.T) {
 		wantErr bool
 	}{
 		{
+			name:   "nvim-go projectRoot",
 			fields: fields{Vim: testVim(t, projectRoot)},
 			args: args{
 				eval: &CmdBuildEval{
@@ -34,8 +36,10 @@ func TestCommands_Build(t *testing.T) {
 					Dir: projectRoot,
 				},
 			},
+			wantErr: false,
 		},
 		{
+			name:   "nvim-go cwd: projectRoot Dir: filepath.Join(projectRoot, \"src/nvim-go/commands\")",
 			fields: fields{Vim: testVim(t, projectRoot)},
 			args: args{
 				eval: &CmdBuildEval{
@@ -43,8 +47,10 @@ func TestCommands_Build(t *testing.T) {
 					Dir: filepath.Join(projectRoot, "src/nvim-go/commands"),
 				},
 			},
+			wantErr: false,
 		},
 		{
+			name:   "gsftp",
 			fields: fields{Vim: testVim(t, gsftpRoot)},
 			args: args{
 				eval: &CmdBuildEval{
@@ -52,8 +58,10 @@ func TestCommands_Build(t *testing.T) {
 					Dir: gsftpRoot,
 				},
 			},
+			wantErr: false,
 		},
 		{
+			name:   "correct (astdump)",
 			fields: fields{Vim: testVim(t, filepath.Join(astdump, "astdump.go"))},
 			args: args{
 				eval: &CmdBuildEval{
@@ -61,12 +69,28 @@ func TestCommands_Build(t *testing.T) {
 					Dir: astdump,
 				},
 			},
+			wantErr: false,
+		},
+		{
+			name:   "broken (astdump)",
+			fields: fields{Vim: testVim(t, brokenMain)}, // broken file
+			args: args{
+				eval: &CmdBuildEval{
+					Cwd: broken,
+					Dir: broken,
+				},
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		c := NewCommands(tt.fields.Vim)
-		if err := c.Build(tt.args.bang, tt.args.eval); (err != nil) != tt.wantErr {
-			t.Errorf("%q. Commands.Build(%v, %v) error = %v, wantErr %v", tt.name, tt.args.bang, tt.args.eval, err, tt.wantErr)
+		config.FmtMode = "goimports"
+		config.ErrorListType = "locationlist"
+
+		c.Build(tt.args.bang, tt.args.eval)
+		if (len(c.errlist) != 0) != tt.wantErr {
+			t.Errorf("%q. Commands.Build(%v, %v) wantErr %v", tt.name, tt.args.bang, tt.args.eval, tt.wantErr)
 		}
 	}
 }
