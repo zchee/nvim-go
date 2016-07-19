@@ -6,7 +6,6 @@ package commands
 
 import (
 	"bytes"
-	"go/format"
 	"go/scanner"
 	"time"
 
@@ -56,33 +55,32 @@ func (c *Commands) Fmt(dir string) error {
 		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgFmt))
 	}
 
-	var buf []byte
 	switch config.FmtMode {
 	case "fmt":
-		buf, err = format.Source(nvim.ToByteSlice(in))
+		importsOptions.FormatOnly = true
 	case "goimports":
-		buf, err = imports.Process("", nvim.ToByteSlice(in), &importsOptions)
+		// nothing to to
 	default:
 		err := errors.Annotate(errors.New("invalid value of go#fmt#mode option"), pkgFmt)
 		return nvim.ErrorWrap(c.v, err)
 	}
 
-	if err != nil {
+	buf, formatErr := imports.Process("", nvim.ToByteSlice(in), &importsOptions)
+	if formatErr != nil {
 		bufName, err := c.v.BufferName(b)
 		if err != nil {
 			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgFmt))
 		}
 
 		var errlist []*vim.QuickfixError
-
-		if e, ok := err.(scanner.Error); ok {
+		if e, ok := formatErr.(scanner.Error); ok {
 			errlist = append(errlist, &vim.QuickfixError{
 				FileName: bufName,
 				LNum:     e.Pos.Line,
 				Col:      e.Pos.Column,
 				Text:     e.Msg,
 			})
-		} else if el, ok := err.(scanner.ErrorList); ok {
+		} else if el, ok := formatErr.(scanner.ErrorList); ok {
 			for _, e := range el {
 				errlist = append(errlist, &vim.QuickfixError{
 					FileName: bufName,
