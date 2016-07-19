@@ -49,15 +49,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) error {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
-	err = cmd.Run()
-	if err == nil {
-		delete(c.ctxt.Errlist, "Build")
-		defer quickfix.ErrorList(c.v, 0, c.ctxt.Errlist, true)
-
-		return nvim.EchoSuccess(c.v, pkgBuild, fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
-	}
-
-	if _, ok := err.(*exec.ExitError); ok {
+	if err := cmd.Run(); err != nil && err.(*exec.ExitError) != nil {
 		w, err := c.v.CurrentWindow()
 		if err != nil {
 			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
@@ -72,8 +64,12 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) error {
 		return quickfix.ErrorList(c.v, w, c.ctxt.Errlist, true)
 	}
 
-	// TODO(zchee): Not reachable?
-	return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
+	go func() {
+		delete(c.ctxt.Errlist, "Build")
+		quickfix.ErrorList(c.v, 0, c.ctxt.Errlist, true)
+	}()
+
+	return nvim.EchoSuccess(c.v, pkgBuild, fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
 }
 
 func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
