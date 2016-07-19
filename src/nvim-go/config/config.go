@@ -10,18 +10,20 @@ import "github.com/neovim-go/vim"
 // Each type must be exported for plugin.HandleAutocmd Eval option.
 // Also it does not support embeded type.
 type Config struct {
-	Global     Global
-	Analyze    analyze
-	Build      build
-	Fmt        fmt
-	Generate   generate
-	Guru       guru
-	Iferr      iferr
-	Metalinter metalinter
-	Rename     rename
-	Terminal   terminal
-	Test       test
-	Debug      debug
+	Global Global
+
+	Analyze  analyze
+	Build    build
+	Fmt      fmt
+	Generate generate
+	Guru     guru
+	Iferr    iferr
+	Lint     lint
+	Rename   rename
+	Terminal terminal
+	Test     test
+
+	Debug debug
 }
 
 // Global represents a global config variable.
@@ -67,13 +69,13 @@ type iferr struct {
 	Autosave int64 `eval:"g:go#iferr#autosave"`
 }
 
-// metalinter represents a GoMetaLinter command config variable.
-type metalinter struct {
-	Autosave      int64    `eval:"g:go#lint#metalinter#autosave"`
-	AutosaveTools []string `eval:"g:go#lint#metalinter#autosave#tools"`
-	Tools         []string `eval:"g:go#lint#metalinter#tools"`
-	Deadline      string   `eval:"g:go#lint#metalinter#deadline"`
-	SkipDir       []string `eval:"g:go#lint#metalinter#skip_dir"`
+// lint represents a code lint commands config variable.
+type lint struct {
+	MetalinterAutosave      int64    `eval:"g:go#lint#metalinter#autosave"`
+	MetalinterAutosaveTools []string `eval:"g:go#lint#metalinter#autosave#tools"`
+	MetalinterTools         []string `eval:"g:go#lint#metalinter#tools"`
+	MetalinterDeadline      string   `eval:"g:go#lint#metalinter#deadline"`
+	MetalinterSkipDir       []string `eval:"g:go#lint#metalinter#skip_dir"`
 }
 
 // rename represents a GoRename command config variable.
@@ -204,12 +206,12 @@ func GetConfig(v *vim.Vim, cfg *Config) {
 	// Iferr
 	IferrAutosave = itob(cfg.Iferr.Autosave)
 
-	// Metalinter
-	MetalinterAutosave = itob(cfg.Metalinter.Autosave)
-	MetalinterAutosaveTools = cfg.Metalinter.AutosaveTools
-	MetalinterTools = cfg.Metalinter.Tools
-	MetalinterDeadline = cfg.Metalinter.Deadline
-	MetalinterSkipDir = cfg.Metalinter.SkipDir
+	// Lint
+	MetalinterAutosave = itob(cfg.Lint.MetalinterAutosave)
+	MetalinterAutosaveTools = cfg.Lint.MetalinterAutosaveTools
+	MetalinterTools = cfg.Lint.MetalinterTools
+	MetalinterDeadline = cfg.Lint.MetalinterDeadline
+	MetalinterSkipDir = cfg.Lint.MetalinterSkipDir
 
 	// Rename
 	RenamePrefill = itob(cfg.Rename.Prefill)
