@@ -35,9 +35,11 @@ func SetLoclist(v *vim.Vim, loclist []*vim.QuickfixError) error {
 }
 
 var (
-	listtype                  ErrorListType
-	openlistCmd, closelistCmd func() error
-	setlistCmd, clearlistCmd  func() error
+	listtype     ErrorListType
+	openlistCmd  func() error
+	closelistCmd func() error
+	clearlistCmd func() error
+	setlistCmd   func(errlist []*vim.QuickfixError) error
 )
 
 type ErrorListType string
@@ -47,44 +49,27 @@ const (
 	LocationList ErrorListType = "locationlist"
 )
 
-// SetErrorlist set the error results data to current buffer's locationlist.
-func SetErrorlist(v *vim.Vim, errlist []*vim.QuickfixError) error {
-	if setlistCmd == nil || clearlistCmd == nil {
-		switch listtype {
-		case Quickfix:
-			setlistCmd = func() error { return v.Call("setqflist", nil, errlist) }
-			clearlistCmd = func() error { return v.Command("cgetexpr ''") }
-		case LocationList:
-			setlistCmd = func() error { return v.Call("setloclist", nil, 0, errlist) }
-			clearlistCmd = func() error { return v.Command("lgetexpr ''") }
-		}
-	}
-
-	if len(errlist) == 0 {
-		return clearlistCmd()
-	}
-
-	return setlistCmd()
-}
-
 // ErrorList merges the errlist map items and open the locationlist window.
 // TODO(zchee): This function will reports the errors with open the quickfix window, but will close
 // the quickfix window if no errors.
 // Do ErrorList function name is appropriate?
-func ErrorList(v *vim.Vim, w vim.Window, errors map[string][]*vim.QuickfixError, keep bool) error {
+func ErrorList(v *vim.Vim, errors map[string][]*vim.QuickfixError, keep bool) error {
 	if listtype == "" {
 		listtype = ErrorListType(config.ErrorListType)
 		switch listtype {
 		case Quickfix:
 			openlistCmd = func() error { return v.Command("copen") }
 			closelistCmd = func() error { return v.Command("cclose") }
+			clearlistCmd = func() error { return v.Command("cgetexpr ''") }
 		case LocationList:
 			openlistCmd = func() error { return v.Command("lopen") }
 			closelistCmd = func() error { return v.Command("lclose") }
+			clearlistCmd = func() error { return v.Command("lgetexpr ''") }
 		}
 	}
 
 	if errors == nil || len(errors) == 0 {
+		defer clearlistCmd()
 		return closelistCmd()
 	}
 
@@ -92,15 +77,46 @@ func ErrorList(v *vim.Vim, w vim.Window, errors map[string][]*vim.QuickfixError,
 	for _, err := range errors {
 		errlist = append(errlist, err...)
 	}
-
 	if err := SetErrorlist(v, errlist); err != nil {
 		return err
 	}
 
 	if keep {
+		w, err := v.CurrentWindow()
+		if err != nil {
+			return err
+		}
 		defer v.SetCurrentWindow(w)
 	}
 	return openlistCmd()
+}
+
+// SetErrorlist set the error results data to Neovim error list.
+func SetErrorlist(v *vim.Vim, errlist []*vim.QuickfixError) error {
+	if setlistCmd == nil {
+		switch listtype {
+		case Quickfix:
+			setlistCmd = func(errlist []*vim.QuickfixError) error { return v.Call("setqflist", nil, errlist, "r") }
+		case LocationList:
+			setlistCmd = func(errlist []*vim.QuickfixError) error { return v.Call("setloclist", nil, 0, errlist, "r") }
+		}
+	}
+
+	return setlistCmd(errlist)
+}
+
+// ClearErrorlist clear the Neovim error list.
+func ClearErrorlist(v *vim.Vim) error {
+	if clearlistCmd == nil {
+		switch listtype {
+		case Quickfix:
+			clearlistCmd = func() error { return v.Command("cgetexpr ''") }
+		case LocationList:
+			clearlistCmd = func() error { return v.Command("lgetexpr ''") }
+		}
+	}
+
+	return clearlistCmd()
 }
 
 // OpenLoclist open or close the current buffer's locationlist window.
