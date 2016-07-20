@@ -50,6 +50,9 @@ func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
 // ErrorWrap splits the errors.Annotate's cause and error messages,
 // and provide the vim 'echo' message with 'echohl' highlighting to cause text.
 func ErrorWrap(v *vim.Vim, err error) error {
+	if err == nil {
+		return nil
+	}
 	v.Command("redraw")
 	er := strings.SplitAfterN(fmt.Sprintf("%s", err), ": ", 2)
 	if strings.Contains(er[1], `"`) {
