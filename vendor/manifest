@@ -195,27 +195,6 @@
 			"path": "/context"
 		},
 		{
-			"importpath": "golang.org/x/net/http2/hpack",
-			"repository": "https://go.googlesource.com/net",
-			"revision": "f841c39de738b1d0df95b5a7187744f0e03d8112",
-			"branch": "master",
-			"path": "/http2/hpack"
-		},
-		{
-			"importpath": "golang.org/x/net/lex/httplex",
-			"repository": "https://go.googlesource.com/net",
-			"revision": "f841c39de738b1d0df95b5a7187744f0e03d8112",
-			"branch": "master",
-			"path": "/lex/httplex"
-		},
-		{
-			"importpath": "golang.org/x/net/route",
-			"repository": "https://go.googlesource.com/net",
-			"revision": "f841c39de738b1d0df95b5a7187744f0e03d8112",
-			"branch": "master",
-			"path": "/route"
-		},
-		{
 			"importpath": "golang.org/x/sys/unix",
 			"repository": "https://go.googlesource.com/sys",
 			"revision": "b518c298ac9dc94b6ac0757394f50d10c5dfa25a",
