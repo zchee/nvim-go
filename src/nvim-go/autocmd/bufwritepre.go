@@ -17,6 +17,10 @@ type bufWritePreEval struct {
 	File string
 }
 
+func (a *Autocmd) cmdBufWritePre(v *vim.Vim, eval *bufWritePreEval) {
+	go a.bufWritePre(v, eval)
+}
+
 func (a *Autocmd) bufWritePre(v *vim.Vim, eval *bufWritePreEval) {
 	dir := filepath.Dir(eval.File)
 

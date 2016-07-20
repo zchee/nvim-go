@@ -29,11 +29,21 @@ var importsOptions = imports.Options{
 }
 
 func (c *Commands) cmdFmt(dir string) {
-	go c.Fmt(dir)
+	go func() {
+		err := c.Fmt(dir)
+
+		switch e := err.(type) {
+		case error:
+			nvim.ErrorWrap(c.v, e)
+		case []*vim.QuickfixError:
+			c.ctxt.Errlist["Fmt"] = e
+			quickfix.ErrorList(c.v, c.ctxt.Errlist, true)
+		}
+	}()
 }
 
 // Fmt format to the current buffer source uses gofmt behavior.
-func (c *Commands) Fmt(dir string) error {
+func (c *Commands) Fmt(dir string) interface{} {
 	defer profile.Start(time.Now(), pkgFmt)
 	defer c.ctxt.Build.SetContext(dir)()
 
@@ -47,29 +57,28 @@ func (c *Commands) Fmt(dir string) error {
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgFmt))
+		return errors.Annotate(err, pkgFmt)
 	}
 
 	in, err := c.v.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgFmt))
+		return errors.Annotate(err, pkgFmt)
 	}
 
 	switch config.FmtMode {
 	case "fmt":
 		importsOptions.FormatOnly = true
 	case "goimports":
-		// nothing to to
+		// nothing to do
 	default:
-		err := errors.Annotate(errors.New("invalid value of go#fmt#mode option"), pkgFmt)
-		return nvim.ErrorWrap(c.v, err)
+		return errors.Annotate(errors.New("invalid value of go#fmt#mode option"), pkgFmt)
 	}
 
 	buf, formatErr := imports.Process("", nvim.ToByteSlice(in), &importsOptions)
 	if formatErr != nil {
 		bufName, err := c.v.BufferName(b)
 		if err != nil {
-			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgFmt))
+			return errors.Annotate(err, pkgFmt)
 		}
 
 		var errlist []*vim.QuickfixError
@@ -90,14 +99,10 @@ func (c *Commands) Fmt(dir string) error {
 				})
 			}
 		}
-		c.ctxt.Errlist["Fmt"] = errlist
 
-		return quickfix.ErrorList(c.v, w, c.ctxt.Errlist, true)
+		return errlist
 	}
-
-	// delete "Fmt" errors in the errlist(map[string][]*vim.QuickfixError)
 	delete(c.ctxt.Errlist, "Fmt")
-	defer quickfix.ErrorList(c.v, w, c.ctxt.Errlist, true)
 
 	out := nvim.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
 	minUpdate(c.v, b, in, out)

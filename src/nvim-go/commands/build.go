@@ -18,6 +18,7 @@ import (
 	"nvim-go/nvim/quickfix"
 
 	"github.com/juju/errors"
+	"github.com/neovim-go/vim"
 )
 
 const pkgBuild = "GoBuild"
@@ -29,12 +30,22 @@ type CmdBuildEval struct {
 }
 
 func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
-	go c.Build(bang, eval)
+	go func() {
+		err := c.Build(bang, eval)
+
+		switch e := err.(type) {
+		case error:
+			nvim.ErrorWrap(c.v, e)
+		case []*vim.QuickfixError:
+			c.ctxt.Errlist["Build"] = e
+			quickfix.ErrorList(c.v, c.ctxt.Errlist, true)
+		}
+	}()
 }
 
 // Build builds the current buffer's package use compile tool that
 // determined from the directory structure.
-func (c *Commands) Build(bang bool, eval *CmdBuildEval) error {
+func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	defer profile.Start(time.Now(), pkgBuild)
 	defer c.ctxt.Build.SetContext(eval.Dir)()
 
@@ -44,30 +55,19 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) error {
 
 	cmd, err := c.compileCmd(bang, eval.Cwd)
 	if err != nil {
-		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
+		return errors.Annotate(err, pkgBuild)
 	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
-	if err := cmd.Run(); err != nil && err.(*exec.ExitError) != nil {
-		w, err := c.v.CurrentWindow()
-		if err != nil {
-			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
-		}
-
+	if buildErr := cmd.Run(); buildErr != nil && buildErr.(*exec.ExitError) != nil {
 		errlist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
 		if err != nil {
-			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgBuild))
+			return errors.Annotate(err, pkgBuild)
 		}
-		c.ctxt.Errlist["Build"] = errlist
-
-		return quickfix.ErrorList(c.v, w, c.ctxt.Errlist, true)
+		return errlist
 	}
-
-	go func() {
-		delete(c.ctxt.Errlist, "Build")
-		quickfix.ErrorList(c.v, 0, c.ctxt.Errlist, true)
-	}()
+	delete(c.ctxt.Errlist, "Build")
 
 	return nvim.EchoSuccess(c.v, pkgBuild, fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
 }
