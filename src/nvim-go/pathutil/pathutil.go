@@ -6,8 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"nvim-go/nvim"
-
 	"github.com/neovim-go/vim"
 )
 
@@ -23,7 +21,7 @@ func Chdir(v *vim.Vim, dir string) func() {
 	)
 	m.Lock()
 	if err := v.Eval("getcwd()", &cwd); err != nil {
-		nvim.Echoerr(v, "GoTerminal: %v", err)
+		return nil
 	}
 	v.ChangeDirectory(dir)
 	return func() {
