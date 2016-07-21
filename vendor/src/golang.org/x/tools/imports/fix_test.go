@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -826,8 +827,9 @@ func TestFixImports(t *testing.T) {
 // Test support for packages in GOPATH that are actually symlinks.
 // Also test that a symlink loop does not block the process.
 func TestImportSymlinks(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("Skipping test on Windows as there are no symlinks.")
+	switch runtime.GOOS {
+	case "windows", "plan9":
+		t.Skip("skipping test on %q as there are no symlinks", runtime.GOOS)
 	}
 
 	newGoPath, err := ioutil.TempDir("", "symlinktest")
@@ -980,12 +982,20 @@ type Buffer2 struct {}
 	})
 }
 
+func init() {
+	inTests = true
+}
+
 func withEmptyGoPath(fn func()) {
+	testMu.Lock()
+
 	dirScanMu.Lock()
-	scanGoRootOnce = &sync.Once{}
-	scanGoPathOnce = &sync.Once{}
+	populateIgnoreOnce = sync.Once{}
+	scanGoRootOnce = sync.Once{}
+	scanGoPathOnce = sync.Once{}
 	dirScan = nil
 	ignoredDirs = nil
+	scanGoRootDone = make(chan struct{})
 	dirScanMu.Unlock()
 
 	oldGOPATH := build.Default.GOPATH
@@ -993,11 +1003,16 @@ func withEmptyGoPath(fn func()) {
 	build.Default.GOPATH = ""
 	visitedSymlinks.m = nil
 	testHookScanDir = func(string) {}
+	testMu.Unlock()
+
 	defer func() {
+		testMu.Lock()
 		testHookScanDir = func(string) {}
 		build.Default.GOPATH = oldGOPATH
 		build.Default.GOROOT = oldGOROOT
+		testMu.Unlock()
 	}()
+
 	fn()
 }
 
@@ -1161,7 +1176,13 @@ func mapToDir(destDir string, files map[string]string) error {
 		if err := os.MkdirAll(filepath.Dir(file), 0755); err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(file, []byte(contents), 0644); err != nil {
+		var err error
+		if strings.HasPrefix(contents, "LINK:") {
+			err = os.Symlink(strings.TrimPrefix(contents, "LINK:"), file)
+		} else {
+			err = ioutil.WriteFile(file, []byte(contents), 0644)
+		}
+		if err != nil {
 			return err
 		}
 	}
@@ -1325,10 +1346,168 @@ func TestIgnoreConfiguration(t *testing.T) {
 	})
 }
 
+// Skip "node_modules" directory.
+func TestSkipNodeModules(t *testing.T) {
+	testConfig{
+		gopathFiles: map[string]string{
+			"example.net/node_modules/pkg/a.go":         "package pkg\nconst X = 1",
+			"otherwise-longer.net/not_modules/pkg/a.go": "package pkg\nconst X = 1",
+		},
+	}.test(t, func(t *goimportTest) {
+		const in = "package x\n\nconst _ = pkg.X\n"
+		const want = "package x\n\nimport \"otherwise-longer.net/not_modules/pkg\"\n\nconst _ = pkg.X\n"
+		buf, err := Process(t.gopath+"/src/x/x.go", []byte(in), nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(buf) != want {
+			t.Errorf("wrong output.\ngot:\n%q\nwant:\n%q\n", buf, want)
+		}
+	})
+}
+
 func strSet(ss []string) map[string]bool {
 	m := make(map[string]bool)
 	for _, s := range ss {
 		m[s] = true
 	}
 	return m
+}
+
+func TestPkgIsCandidate(t *testing.T) {
+	tests := [...]struct {
+		filename string
+		pkgIdent string
+		pkg      *pkg
+		want     bool
+	}{
+		// normal match
+		0: {
+			filename: "/gopath/src/my/pkg/pkg.go",
+			pkgIdent: "client",
+			pkg: &pkg{
+				dir:             "/gopath/src/client",
+				importPath:      "client",
+				importPathShort: "client",
+			},
+			want: true,
+		},
+		// not a match
+		1: {
+			filename: "/gopath/src/my/pkg/pkg.go",
+			pkgIdent: "zzz",
+			pkg: &pkg{
+				dir:             "/gopath/src/client",
+				importPath:      "client",
+				importPathShort: "client",
+			},
+			want: false,
+		},
+		// would be a match, but "client" appears too deep.
+		2: {
+			filename: "/gopath/src/my/pkg/pkg.go",
+			pkgIdent: "client",
+			pkg: &pkg{
+				dir:             "/gopath/src/client/foo/foo/foo",
+				importPath:      "client/foo/foo",
+				importPathShort: "client/foo/foo",
+			},
+			want: false,
+		},
+		// not an exact match, but substring is good enough.
+		3: {
+			filename: "/gopath/src/my/pkg/pkg.go",
+			pkgIdent: "client",
+			pkg: &pkg{
+				dir:             "/gopath/src/foo/go-client",
+				importPath:      "foo/go-client",
+				importPathShort: "foo/go-client",
+			},
+			want: true,
+		},
+		// "internal" package, and not visible
+		4: {
+			filename: "/gopath/src/my/pkg/pkg.go",
+			pkgIdent: "client",
+			pkg: &pkg{
+				dir:             "/gopath/src/foo/internal/client",
+				importPath:      "foo/internal/client",
+				importPathShort: "foo/internal/client",
+			},
+			want: false,
+		},
+		// "internal" package but visible
+		5: {
+			filename: "/gopath/src/foo/bar.go",
+			pkgIdent: "client",
+			pkg: &pkg{
+				dir:             "/gopath/src/foo/internal/client",
+				importPath:      "foo/internal/client",
+				importPathShort: "foo/internal/client",
+			},
+			want: true,
+		},
+		// "vendor" package not visible
+		6: {
+			filename: "/gopath/src/foo/bar.go",
+			pkgIdent: "client",
+			pkg: &pkg{
+				dir:             "/gopath/src/other/vendor/client",
+				importPath:      "other/vendor/client",
+				importPathShort: "client",
+			},
+			want: false,
+		},
+		// "vendor" package, visible
+		7: {
+			filename: "/gopath/src/foo/bar.go",
+			pkgIdent: "client",
+			pkg: &pkg{
+				dir:             "/gopath/src/foo/vendor/client",
+				importPath:      "other/foo/client",
+				importPathShort: "client",
+			},
+			want: true,
+		},
+		// Ignore hyphens.
+		8: {
+			filename: "/gopath/src/foo/bar.go",
+			pkgIdent: "socketio",
+			pkg: &pkg{
+				dir:             "/gopath/src/foo/socket-io",
+				importPath:      "foo/socket-io",
+				importPathShort: "foo/socket-io",
+			},
+			want: true,
+		},
+		// Ignore case.
+		9: {
+			filename: "/gopath/src/foo/bar.go",
+			pkgIdent: "fooprod",
+			pkg: &pkg{
+				dir:             "/gopath/src/foo/FooPROD",
+				importPath:      "foo/FooPROD",
+				importPathShort: "foo/FooPROD",
+			},
+			want: true,
+		},
+		// Ignoring both hyphens and case together.
+		10: {
+			filename: "/gopath/src/foo/bar.go",
+			pkgIdent: "fooprod",
+			pkg: &pkg{
+				dir:             "/gopath/src/foo/Foo-PROD",
+				importPath:      "foo/Foo-PROD",
+				importPathShort: "foo/Foo-PROD",
+			},
+			want: true,
+		},
+	}
+	for i, tt := range tests {
+		got := pkgIsCandidate(tt.filename, tt.pkgIdent, tt.pkg)
+		if got != tt.want {
+			t.Errorf("test %d. pkgIsCandidate(%q, %q, %+v) = %v; want %v",
+				i, tt.filename, tt.pkgIdent, *tt.pkg, got, tt.want)
+		}
+	}
 }
