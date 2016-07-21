@@ -11,21 +11,20 @@ import (
 
 var (
 	vcsDirs     = []string{".git", ".svn", ".hg"}
-	vcsDirFound bool
+	foundVCSDir bool
 )
 
 // FindVcsRoot find package root path from arg path
-func FindVcsRoot(basedir string) string {
-	vcsDirFound = false
-	filepath.Walk(basedir, findvcsDirWalkFunc)
+func FindVCSRoot(basedir string) string {
+	foundVCSDir = false
 
 	for {
-		if !vcsDirFound {
+		filepath.Walk(basedir, findvcsDirWalkFunc)
+		if !foundVCSDir {
 			basedir = filepath.Dir(basedir)
-			filepath.Walk(basedir, findvcsDirWalkFunc)
-		} else {
-			break
+			continue
 		}
+		break
 	}
 
 	return filepath.Clean(basedir)
@@ -39,7 +38,7 @@ func findvcsDirWalkFunc(path string, fileInfo os.FileInfo, err error) error {
 	for _, d := range vcsDirs {
 		_, err := os.Stat(filepath.Join(path, d))
 		if err == nil {
-			vcsDirFound = true
+			foundVCSDir = true
 			break
 		}
 	}

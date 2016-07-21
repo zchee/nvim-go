@@ -33,7 +33,7 @@ func (c *Commands) Run(cmd []string, file string) error {
 		runTerm = terminal.NewTerminal(c.v, "__GO_TEST__", cmd, config.TerminalMode)
 	}
 	dir, _ := filepath.Split(file)
-	rootDir := pathutil.FindVcsRoot(dir)
+	rootDir := pathutil.FindVCSRoot(dir)
 	runTerm.Dir = rootDir
 
 	if err := runTerm.Run(cmd); err != nil {

@@ -47,7 +47,7 @@ func (c *Commands) Test(args []string, dir string) error {
 
 	if term == nil {
 		term = terminal.NewTerminal(c.v, "__GO_TEST__", cmd, config.TerminalMode)
-		term.Dir = pathutil.FindVcsRoot(dir)
+		term.Dir = pathutil.FindVCSRoot(dir)
 	}
 
 	if err := term.Run(cmd); err != nil {

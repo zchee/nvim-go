@@ -103,7 +103,7 @@ func (d *Delve) debug(v *vim.Vim, eval *debugEval) error {
 	d.ctxt = new(context.Context)
 	defer d.ctxt.Build.SetContext(eval.Cwd)()
 
-	rootDir := pathutil.FindVcsRoot(eval.Dir)
+	rootDir := pathutil.FindVCSRoot(eval.Dir)
 	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
 	path := filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
 
