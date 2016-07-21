@@ -31,15 +31,17 @@ func Chdir(v *vim.Vim, dir string) func() {
 	}
 }
 
-func RelPath(f, cwd string) string {
+// Rel return the f relative path from cwd.
+func Rel(f, cwd string) string {
 	if filepath.HasPrefix(f, cwd) {
-		return strings.Replace(f, cwd+string(filepath.Separator), "", 1)
+		return strings.TrimPrefix(f, cwd+string(filepath.Separator))
 	}
 	rel, _ := filepath.Rel(cwd, f)
 	return rel
 }
 
-func Expand(p string) string {
+// ExpandGoRoot expands the "$GOROOT" include from p.
+func ExpandGoRoot(p string) string {
 	switch {
 	case strings.Index(p, "$GOROOT") != 1:
 		return strings.Replace(p, "$GOROOT", runtime.GOROOT(), 1)
@@ -48,11 +50,13 @@ func Expand(p string) string {
 	return p // Not hit
 }
 
+// IsDir returns whether the filename is directory.
 func IsDir(filename string) bool {
 	fi, err := os.Stat(filename)
 	return err == nil && fi.IsDir()
 }
 
+// IsExist returns whether the filename is exists.
 func IsExist(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil

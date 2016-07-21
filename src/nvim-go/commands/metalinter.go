@@ -85,7 +85,7 @@ func (c *Commands) Metalinter(cwd string) error {
 
 	for _, r := range result {
 		loclist = append(loclist, &vim.QuickfixError{
-			FileName: pathutil.RelPath(r.Path, cwd),
+			FileName: pathutil.Rel(r.Path, cwd),
 			LNum:     r.Line,
 			Col:      r.Col,
 			Text:     r.Linter + ": " + r.Message,
