@@ -233,7 +233,7 @@ func ParseError(errors []byte, cwd string, ctxt *context.BuildContext) ([]*vim.Q
 
 		case "gb":
 			if !filepath.IsAbs(filename) {
-				filename = filepath.Join(ctxt.GbProjectDir, "src", filename)
+				filename = filepath.Join(ctxt.ProjectRoot, "src", filename)
 			}
 			if frel, err := filepath.Rel(cwd, filename); err == nil {
 				filename = frel

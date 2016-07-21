@@ -195,7 +195,7 @@ func TestCommands_compileCmd(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt.fields.ctxt.Build.Tool = tt.want
-		tt.fields.ctxt.Build.GbProjectDir = tt.args.dir
+		tt.fields.ctxt.Build.ProjectRoot = tt.args.dir
 		c := NewCommands(tt.fields.Vim, tt.fields.ctxt)
 		got, err := c.compileCmd(tt.args.bang, tt.args.dir)
 		if (err != nil) != tt.wantErr {

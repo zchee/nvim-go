@@ -92,7 +92,7 @@ func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 			args = append(args, "-o", tmpfile.Name())
 		}
 	case "gb":
-		cmd.Dir = c.ctxt.Build.GbProjectDir
+		cmd.Dir = c.ctxt.Build.ProjectRoot
 	}
 	cmd.Args = append(cmd.Args, args...)
 

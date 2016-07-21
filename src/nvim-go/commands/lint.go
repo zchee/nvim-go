@@ -59,7 +59,7 @@ func (c *Commands) Lint(args []string, file string) ([]*vim.QuickfixError, error
 		case "current":
 			errlist, err = c.lintDir(dir)
 		case "root":
-			gbProject := filepath.Base(c.ctxt.Build.GbProjectDir)
+			gbProject := filepath.Base(c.ctxt.Build.ProjectRoot)
 			for _, pkgname := range importPaths([]string{gbProject + "/..."}) {
 				errors, err := c.lintPackage(pkgname)
 				if err != nil {

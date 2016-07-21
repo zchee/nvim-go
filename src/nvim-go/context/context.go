@@ -26,8 +26,8 @@ type Context struct {
 
 // BuildContext represents a compile tool information.
 type BuildContext struct {
-	Tool         string
-	GbProjectDir string
+	Tool        string
+	ProjectRoot string
 }
 
 func NewContext() *Context {
@@ -41,14 +41,16 @@ func (ctxt *BuildContext) buildContext(p string) build.Context {
 	buildDefault := build.Default
 
 	ctxt.Tool = "go"
+	ctxt.ProjectRoot, _ = ctxt.PackagePath(p)
+
 	// Get original $GOPATH path.
 	goPath := os.Getenv("GOPATH")
 
 	// Check the path p are Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
 	if gbpath, ok := ctxt.isGb(filepath.Clean(p)); ok {
-		ctxt.GbProjectDir = gbpath
 		ctxt.Tool = "gb"
+		ctxt.ProjectRoot = gbpath
 		buildDefault.JoinPath = ctxt.GbJoinPath
 
 		goPath = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")

@@ -61,7 +61,7 @@ func FindGbProjectRoot(path string) (string, error) {
 func (ctxt *BuildContext) GbJoinPath(elem ...string) string {
 	res := filepath.Join(elem...)
 
-	if gbrel, err := filepath.Rel(ctxt.GbProjectDir, res); err == nil {
+	if gbrel, err := filepath.Rel(ctxt.ProjectRoot, res); err == nil {
 		gbrel = filepath.ToSlash(gbrel)
 		gbrel, _ = match(gbrel, "vendor/")
 		if gbrel, ok := match(gbrel, fmt.Sprintf("pkg/%s_%s", build.Default.GOOS, build.Default.GOARCH)); ok {
@@ -72,7 +72,7 @@ func (ctxt *BuildContext) GbJoinPath(elem ...string) string {
 			}
 			gbrel = fmt.Sprintf("pkg/%s-%s/", build.Default.GOOS, build.Default.GOARCH) + gbrel
 			gbrel = filepath.FromSlash(gbrel)
-			res = filepath.Join(ctxt.GbProjectDir, gbrel)
+			res = filepath.Join(ctxt.ProjectRoot, gbrel)
 		}
 	}
 

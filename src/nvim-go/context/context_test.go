@@ -28,8 +28,8 @@ func TestBuildContext_buildContext(t *testing.T) {
 	}
 	for _, tt := range tests {
 		ctxt := &BuildContext{
-			Tool:         tt.fields.Tool,
-			GbProjectDir: tt.fields.GbProjectDir,
+			Tool:        tt.fields.Tool,
+			ProjectRoot: tt.fields.GbProjectDir,
 		}
 		if got := ctxt.buildContext(tt.args.p); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%q. BuildContext.buildContext(%v) = %v, want %v", tt.name, tt.args.p, got, tt.want)
@@ -55,8 +55,8 @@ func TestBuildContext_SetContext(t *testing.T) {
 	}
 	for _, tt := range tests {
 		ctxt := &BuildContext{
-			Tool:         tt.fields.Tool,
-			GbProjectDir: tt.fields.GbProjectDir,
+			Tool:        tt.fields.Tool,
+			ProjectRoot: tt.fields.GbProjectDir,
 		}
 		if got := ctxt.SetContext(tt.args.p); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%q. BuildContext.SetContext(%v) = %v, want %v", tt.name, tt.args.p, got, tt.want)

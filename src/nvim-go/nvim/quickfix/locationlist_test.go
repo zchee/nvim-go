@@ -88,8 +88,8 @@ func TestParseError(t *testing.T) {
 echo.go:79: syntax error: non-declaration statement outside function body`),
 				cwd: cwd,
 				ctxt: &context.BuildContext{
-					Tool:         "gb",
-					GbProjectDir: gbProjectDir,
+					Tool:        "gb",
+					ProjectRoot: gbProjectDir,
 				},
 			},
 			want: []*vim.QuickfixError{&vim.QuickfixError{
@@ -108,8 +108,8 @@ locationlist.go:152: syntax error: unexpected case, expecting }
 locationlist.go:160: syntax error: non-declaration statement outside function body`),
 				cwd: cwd,
 				ctxt: &context.BuildContext{
-					Tool:         "gb",
-					GbProjectDir: gbProjectDir,
+					Tool:        "gb",
+					ProjectRoot: gbProjectDir,
 				},
 			},
 			want: []*vim.QuickfixError{
@@ -136,8 +136,8 @@ locationlist.go:199: ParseError redeclared in this block
         previous declaration at locationlist.go:149`),
 				cwd: cwd,
 				ctxt: &context.BuildContext{
-					Tool:         "gb",
-					GbProjectDir: gbProjectDir,
+					Tool:        "gb",
+					ProjectRoot: gbProjectDir,
 				},
 			},
 			want: []*vim.QuickfixError{

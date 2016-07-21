@@ -57,7 +57,7 @@ func (c *Commands) Metalinter(cwd string) error {
 	case "go":
 		args = append(args, cwd+"/...")
 	case "gb":
-		args = append(args, c.ctxt.Build.GbProjectDir+"/...")
+		args = append(args, c.ctxt.Build.ProjectRoot+"/...")
 	}
 	args = append(args, []string{"--json", "--disable-all", "--deadline", config.MetalinterDeadline}...)
 

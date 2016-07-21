@@ -142,7 +142,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		}
 		query.Scope = []string{strings.TrimPrefix(pkgPath, "src"+string(filepath.Separator))}
 	case "gb":
-		query.Scope = []string{pathutil.GbProjectName(dir, c.ctxt.Build.GbProjectDir) + string(filepath.Separator) + "..."}
+		query.Scope = []string{pathutil.GbProjectName(dir, c.ctxt.Build.ProjectRoot) + string(filepath.Separator) + "..."}
 	}
 
 	var outputMu sync.Mutex
