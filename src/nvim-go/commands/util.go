@@ -6,7 +6,6 @@ package commands
 
 import (
 	"fmt"
-	"unsafe"
 
 	"nvim-go/nvim"
 )
@@ -51,9 +50,4 @@ func (c *Commands) cmdByteOffset() error {
 
 	offset, _ := nvim.ByteOffset(c.v, b, w)
 	return nvim.Echomsg(c.v, offset)
-}
-
-// Stringtoslicebyte convert string to byte slice use unsafe.
-func Stringtoslicebyte(s string) []byte {
-	return *(*[]byte)(unsafe.Pointer(&s))
 }
