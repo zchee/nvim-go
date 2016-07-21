@@ -50,7 +50,10 @@ let g:go#guru#jump_first  = get(g:, 'go#guru#jump_first', 0)
 " GoIferr
 let g:go#iferr#autosave = get(g:, 'go#iferr#autosave', 0)
 
-" GoMetaLinter
+" Lint tools
+let g:go#lint#golint#ignore             = get(g:, 'go#lint#golint#ignore', [])
+let g:go#lint#golint#min_confidence     = get(g:, 'go#lint#golint#min_confidence', 0.8)
+let g:go#lint#golint#mode               = get(g:, 'go#lint#golint#mode', 'current')
 let g:go#lint#metalinter#autosave       = get(g:, 'go#lint#metalinter#autosave', 0)
 let g:go#lint#metalinter#autosave#tools = get(g:, 'go#lint#metalinter#autosave#tools', ['vet', 'golint'])
 let g:go#lint#metalinter#deadline       = get(g:, 'go#lint#metalinter#deadline', '5s')
@@ -102,7 +105,7 @@ call remote#host#Register(s:plugin_name, '*', function('s:RequireNvimGo'))
 call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p:h'')]', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p'')]', 'group': 'nvim-go', 'pattern': '*.go'}},
-\ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': '{''Global'': {''ServerName'': v:servername, ''ErrorListType'': g:go#global#errorlisttype}, ''Analyze'': {''FoldIcon'': g:go#analyze#foldicon}, ''Build'': {''Autosave'': g:go#build#autosave, ''Force'': g:go#build#force, ''Args'': g:go#build#args}, ''Fmt'': {''Autosave'': g:go#fmt#autosave, ''Async'': g:go#fmt#async, ''Mode'': g:go#fmt#mode}, ''Generate'': {''TestExclFuncs'': g:go#generate#test#exclude}, ''Guru'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}, ''Iferr'': {''Autosave'': g:go#iferr#autosave}, ''Metalinter'': {''Autosave'': g:go#lint#metalinter#autosave, ''AutosaveTools'': g:go#lint#metalinter#autosave#tools, ''Tools'': g:go#lint#metalinter#tools, ''Deadline'': g:go#lint#metalinter#deadline, ''SkipDir'': g:go#lint#metalinter#skip_dir}, ''Rename'': {''Prefill'': g:go#rename#prefill}, ''Terminal'': {''Mode'': g:go#terminal#mode, ''Position'': g:go#terminal#position, ''Height'': g:go#terminal#height, ''Width'': g:go#terminal#width, ''StartInsetrt'': g:go#terminal#start_insert}, ''Test'': {''Autosave'': g:go#test#autosave, ''Args'': g:go#test#args}, ''Debug'': {''Pprof'': g:go#debug#pprof}}', 'group': 'nvim-go', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': '{''Global'': {''ServerName'': v:servername, ''ErrorListType'': g:go#global#errorlisttype}, ''Analyze'': {''FoldIcon'': g:go#analyze#foldicon}, ''Build'': {''Autosave'': g:go#build#autosave, ''Force'': g:go#build#force, ''Args'': g:go#build#args}, ''Fmt'': {''Autosave'': g:go#fmt#autosave, ''Async'': g:go#fmt#async, ''Mode'': g:go#fmt#mode}, ''Generate'': {''TestExclFuncs'': g:go#generate#test#exclude}, ''Guru'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}, ''Iferr'': {''Autosave'': g:go#iferr#autosave}, ''Lint'': {''GolintIgnore'': g:go#lint#golint#ignore, ''GolintMinConfidence'': g:go#lint#golint#min_confidence, ''GolintMode'': g:go#lint#golint#mode, ''MetalinterAutosave'': g:go#lint#metalinter#autosave, ''MetalinterAutosaveTools'': g:go#lint#metalinter#autosave#tools, ''MetalinterTools'': g:go#lint#metalinter#tools, ''MetalinterDeadline'': g:go#lint#metalinter#deadline, ''MetalinterSkipDir'': g:go#lint#metalinter#skip_dir}, ''Rename'': {''Prefill'': g:go#rename#prefill}, ''Terminal'': {''Mode'': g:go#terminal#mode, ''Position'': g:go#terminal#position, ''Height'': g:go#terminal#height, ''Width'': g:go#terminal#width, ''StartInsetrt'': g:go#terminal#start_insert}, ''Test'': {''Autosave'': g:go#test#autosave, ''Args'': g:go#test#args}, ''Debug'': {''Pprof'': g:go#debug#pprof}}', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'VimLeavePre', 'sync': 0, 'opts': {'group': 'nvim-go', 'pattern': '*.go,terminal,context,thread'}},
 \ {'type': 'command', 'name': 'DlvBreakpoint', 'sync': 0, 'opts': {'complete': 'customlist,DlvListFunctions', 'eval': '[expand(''%:p'')]', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'DlvContinue', 'sync': 0, 'opts': {'eval': '[expand(''%:p:h'')]'}},
@@ -122,10 +125,12 @@ call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'command', 'name': 'Gobuild', 'sync': 0, 'opts': {'bang': '', 'eval': '[getcwd(), expand(''%:p:h'')]'}},
 \ {'type': 'command', 'name': 'Godef', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')'}},
 \ {'type': 'command', 'name': 'Gofmt', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')'}},
+\ {'type': 'command', 'name': 'Golint', 'sync': 0, 'opts': {'complete': 'customlist,GoLintCompletion', 'eval': 'expand(''%:p'')', 'nargs': '?'}},
 \ {'type': 'command', 'name': 'Gometalinter', 'sync': 0, 'opts': {'eval': 'getcwd()'}},
 \ {'type': 'command', 'name': 'Gorename', 'sync': 0, 'opts': {'bang': '', 'eval': '[getcwd(), expand(''%:p''), expand(''<cword>'')]', 'nargs': '?'}},
 \ {'type': 'command', 'name': 'Gorun', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'Gotest', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')', 'nargs': '*'}},
 \ {'type': 'function', 'name': 'DlvListFunctions', 'sync': 1, 'opts': {}},
 \ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p''), &modified, line2byte(line(''.'')) + (col(''.'')-2)]'}},
+\ {'type': 'function', 'name': 'GoLintCompletion', 'sync': 1, 'opts': {'eval': 'getcwd()'}},
 \ ])

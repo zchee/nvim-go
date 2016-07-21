@@ -71,6 +71,9 @@ type iferr struct {
 
 // lint represents a code lint commands config variable.
 type lint struct {
+	GolintIgnore            []string `eval:"g:go#lint#golint#ignore"`
+	GolintMinConfidence     float64  `eval:"g:go#lint#golint#min_confidence"`
+	GolintMode              string   `eval:"g:go#lint#golint#mode"`
 	MetalinterAutosave      int64    `eval:"g:go#lint#metalinter#autosave"`
 	MetalinterAutosaveTools []string `eval:"g:go#lint#metalinter#autosave#tools"`
 	MetalinterTools         []string `eval:"g:go#lint#metalinter#tools"`
@@ -141,6 +144,13 @@ var (
 	// IferrAutosave call the GoIferr command automatically at during the BufWritePre.
 	IferrAutosave bool
 
+	// GolintIgnore ignore file for lint command.
+	GolintIgnore []string
+	// GolintMinConfidence minimum confidence of a problem to print it
+	GolintMinConfidence float64
+	// GolintMode mode of golint. available value are "root", "current" and "recursive".
+	GolintMode string
+
 	// MetalinterAutosave call the GoMetaLinter command automatically at during the BufWritePre.
 	MetalinterAutosave bool
 	// MetalinterAutosaveTools lint tool list for MetalinterAutosave.
@@ -207,6 +217,9 @@ func GetConfig(v *vim.Vim, cfg *Config) {
 	IferrAutosave = itob(cfg.Iferr.Autosave)
 
 	// Lint
+	GolintIgnore = cfg.Lint.GolintIgnore
+	GolintMinConfidence = cfg.Lint.GolintMinConfidence
+	GolintMode = cfg.Lint.GolintMode
 	MetalinterAutosave = itob(cfg.Lint.MetalinterAutosave)
 	MetalinterAutosaveTools = cfg.Lint.MetalinterAutosaveTools
 	MetalinterTools = cfg.Lint.MetalinterTools
