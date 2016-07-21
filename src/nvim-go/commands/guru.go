@@ -111,7 +111,9 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		}
 		fname, line, col := quickfix.SplitPos(obj.ObjPos, eval.Cwd)
 		text := obj.Desc
-		c.p.Command(fmt.Sprintf("edit %s", fname))
+		if fname != eval.File {
+			c.p.Command(fmt.Sprintf("edit %s", fname))
+		}
 		c.p.SetWindowCursor(w, [2]int{line, col - 1})
 		if err := c.p.Wait(); err != nil {
 			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
