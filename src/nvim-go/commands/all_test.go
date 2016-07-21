@@ -33,7 +33,7 @@ func testVim(t *testing.T, file string) *vim.Vim {
 
 	// -u: Use <init.vim> instead of the default
 	// -n: No swap file, use memory only
-	nvimArgs := []string{"-u", filepath.Join(testdata, "init.vim"), "-n"}
+	nvimArgs := []string{"-u", "NONE", "-n"}
 	if file != "" {
 		nvimArgs = append(nvimArgs, file)
 	}
@@ -58,7 +58,7 @@ func benchVim(b *testing.B, file string) *vim.Vim {
 
 	// -u: Use <init.vim> instead of the default
 	// -n: No swap file, use memory only
-	nvimArgs := []string{"-u", filepath.Join(testdata, "init.vim"), "-n"}
+	nvimArgs := []string{"-u", "NONE", "-n"}
 	if file != "" {
 		nvimArgs = append(nvimArgs, file)
 	}
