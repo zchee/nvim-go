@@ -16,7 +16,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/context"
-	"nvim-go/pathutil"
 
 	"github.com/neovim-go/vim"
 )
@@ -165,7 +164,7 @@ func CloseQuickfix(v *vim.Vim) error {
 func GotoPos(v *vim.Vim, w vim.Window, pos token.Position, cwd string) error {
 	fname, line, col := SplitPos(pos.String(), cwd)
 
-	v.Command(fmt.Sprintf("edit %s", pathutil.Expand(fname)))
+	v.Command(fmt.Sprintf("edit %s", fname))
 	v.SetWindowCursor(w, [2]int{line, col - 1})
 	defer v.Command(`lclose`)
 
