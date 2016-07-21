@@ -58,6 +58,7 @@ func FindGbProjectRoot(path string) (string, error) {
 	return "", fmt.Errorf(`could not find project root in "%s" or its parents`, start)
 }
 
+// GbJoinPath joins the sequence of path fragments into a single path for build.Default.JoinPath.
 func (ctxt *BuildContext) GbJoinPath(elem ...string) string {
 	res := filepath.Join(elem...)
 

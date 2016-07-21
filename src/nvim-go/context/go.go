@@ -11,7 +11,7 @@ import (
 	"github.com/juju/errors"
 )
 
-// PackagePath returns the import path of the current file of the package.
+// PackagePath returns the package import path estimated from the path p directory structure.
 func (ctxt *BuildContext) PackagePath(dir string) (string, error) {
 	dir = filepath.Clean(dir)
 

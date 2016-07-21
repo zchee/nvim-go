@@ -26,17 +26,21 @@ type Context struct {
 
 // BuildContext represents a compile tool information.
 type BuildContext struct {
-	Tool        string
+	// Tool name of project compile tool
+	Tool string
+	// ProjectRoot package import path in the case of go project, GB_PROJECT_DIR in the case of
+	// gb project.
 	ProjectRoot string
 }
 
+// NewContext return the Context type with initialize Context.Errlist.
 func NewContext() *Context {
 	return &Context{
 		Errlist: make(map[string][]*vim.QuickfixError),
 	}
 }
 
-// GoPath return the new GOPATH estimated from the path p directory structure.
+// buildContext return the new build context estimated from the path p directory structure.
 func (ctxt *BuildContext) buildContext(p string) build.Context {
 	buildDefault := build.Default
 
