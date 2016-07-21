@@ -17,10 +17,9 @@ import (
 
 // CompleteFiles provides a "-complete=file" completion exclude the non go files.
 func CompleteFiles(v *vim.Vim, a *vim.CommandCompletionArgs, dir string) (filelist []string, err error) {
-	a.ArgLead = filepath.Clean(a.ArgLead)
-
 	switch {
 	case len(a.ArgLead) > 0:
+		a.ArgLead = filepath.Clean(a.ArgLead)
 		if pathutil.IsDir(a.ArgLead) { // abs or rel directory path
 			files, err := ioutil.ReadDir(a.ArgLead)
 			if err != nil {
