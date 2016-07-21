@@ -62,9 +62,11 @@ func TestCommands_Fmt(t *testing.T) {
 		c := NewCommands(tt.fields.Vim, ctxt)
 		config.FmtMode = "goimports"
 
-		c.Fmt(tt.args.dir)
-		if (len(c.ctxt.Errlist) != 0) != tt.wantErr {
-			t.Errorf("%q. Commands.Fmt(%v), wantErr %v", tt.name, tt.args.dir, tt.wantErr)
+		err := c.Fmt(tt.args.dir)
+		if errlist, ok := err.([]*vim.QuickfixError); !ok {
+			if (len(errlist) != 0) != tt.wantErr {
+				t.Errorf("%q. Commands.Fmt(%v), wantErr %v", tt.name, tt.args.dir, tt.wantErr)
+			}
 		}
 	}
 }

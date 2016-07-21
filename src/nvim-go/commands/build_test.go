@@ -101,9 +101,11 @@ func TestCommands_Build(t *testing.T) {
 		c := NewCommands(tt.fields.v, tt.fields.ctxt)
 		config.ErrorListType = "locationlist"
 
-		c.Build(tt.args.bang, tt.args.eval)
-		if (len(c.ctxt.Errlist) != 0) != tt.wantErr {
-			t.Errorf("%q. Commands.Build(%v, %v) wantErr %v", tt.name, tt.args.bang, tt.args.eval, tt.wantErr)
+		err := c.Build(tt.args.bang, tt.args.eval)
+		if errlist, ok := err.([]*vim.QuickfixError); !ok {
+			if (len(errlist) != 0) != tt.wantErr {
+				t.Errorf("%q. Commands.Build(%v, %v) wantErr %v", tt.name, tt.args.bang, tt.args.eval, tt.wantErr)
+			}
 		}
 	}
 }
