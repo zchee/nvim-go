@@ -68,11 +68,16 @@ vendor/guru:
 	${VENDOR_CMD} delete golang.org/x/tools/cmd/guru
 	${VENDOR_CMD} update golang.org/x/tools/cmd/guru/serial
 
+docker: docker/run
+
 docker/build:
 	${DOCKER_CMD} build --rm -t ${GITHUB_USER}/${PACKAGE_NAME} .
 
 docker/build-nocache:
 	${DOCKER_CMD} build --rm --no-cache -t ${GITHUB_USER}/${PACKAGE_NAME} .
+
+docker/run: docker/build
+	${DOCKER_CMD} run --rm -it ${GITHUB_USER}/${PACKAGE_NAME}
 
 clean:
 	${RM} -r ./bin ./pkg

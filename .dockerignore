@@ -5,3 +5,4 @@ doc
 bin
 pkg
 bitbucket-pipelines.yml
+Dockerfile
