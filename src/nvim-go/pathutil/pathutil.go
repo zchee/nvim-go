@@ -1,6 +1,7 @@
 package pathutil
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -45,4 +46,14 @@ func Expand(p string) string {
 	}
 
 	return p // Not hit
+}
+
+func IsDir(filename string) bool {
+	fi, err := os.Stat(filename)
+	return err == nil && fi.IsDir()
+}
+
+func IsExist(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
 }
