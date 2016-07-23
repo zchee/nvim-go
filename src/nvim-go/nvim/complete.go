@@ -26,7 +26,7 @@ func CompleteFiles(v *vim.Vim, a *vim.CommandCompletionArgs, dir string) (fileli
 				return nil, err
 			}
 			for _, f := range files {
-				if filepath.Ext(f.Name()) == ".go" || f.IsDir() {
+				if strings.HasSuffix(f.Name(), ".go") || f.IsDir() {
 					filelist = append(filelist, a.ArgLead+string(filepath.Separator)+f.Name())
 				}
 			}
