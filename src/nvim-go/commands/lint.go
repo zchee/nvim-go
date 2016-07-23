@@ -41,6 +41,13 @@ func (c *Commands) cmdLint(v *vim.Vim, args []string, file string) {
 	}()
 }
 
+type lintMode string
+
+const (
+	current lintMode = "current"
+	root    lintMode = "root"
+)
+
 // Lint lints a go source file. The argument is a filename or directory path.
 // TODO(zchee): Support go packages.
 func (c *Commands) Lint(args []string, file string) ([]*vim.QuickfixError, error) {
@@ -55,12 +62,18 @@ func (c *Commands) Lint(args []string, file string) ([]*vim.QuickfixError, error
 	)
 	switch {
 	case len(args) == 0:
-		switch config.GolintMode {
-		case "current":
+		switch lintMode(config.GolintMode) {
+		case current:
 			errlist, err = c.lintDir(dir)
-		case "root":
-			root := filepath.Base(c.ctxt.Build.ProjectRoot)
-			for _, pkgname := range importPaths([]string{root + "/..."}) {
+		case root:
+			var rootDir string
+			switch c.ctxt.Build.Tool {
+			case "go":
+				rootDir = c.ctxt.Build.ProjectRoot
+			case "gb":
+				rootDir = filepath.Base(c.ctxt.Build.ProjectRoot)
+			}
+			for _, pkgname := range importPaths([]string{rootDir + "/..."}) {
 				errors, err := c.lintPackage(pkgname)
 				if err != nil {
 					return nil, err
