@@ -260,6 +260,26 @@ func IsBufExists(v *vim.Vim, bufnr int) bool {
 	return res.(int64) != 0
 }
 
+// IsVisible reports whether buffer list within buffer that &ft has filetype.
+// Useful for Check qf, preview or any specific buffer is whether the opened.
+func IsVisible(v *vim.Vim, filetype string) bool {
+	buffers, err := v.Buffers()
+	if err != nil {
+		return false
+	}
+	for _, b := range buffers {
+		var ft interface{}
+		err := v.BufferOption(b, "filetype", &ft)
+		if err != nil {
+			return false
+		}
+		if f, ok := ft.(string); ok && f == filetype {
+			return true
+		}
+	}
+	return false
+}
+
 // Modifiable sets modifiable to true,
 // The returned function restores modifiable to false.
 func Modifiable(v *vim.Vim, b vim.Buffer) func() {
