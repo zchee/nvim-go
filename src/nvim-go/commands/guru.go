@@ -208,7 +208,7 @@ func definition(q *guru.Query) (*serial.Definition, error) {
 
 	id, _ := qpos.path[0].(*ast.Ident)
 	if id == nil {
-		err := errors.New("qpos.path[0].(*ast.Ident)")
+		err := errors.New("no identifier here")
 		return nil, err
 	}
 
