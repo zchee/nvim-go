@@ -7,7 +7,6 @@ package terminal
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"nvim-go/config"
 	"nvim-go/nvim"
@@ -125,25 +124,6 @@ func (t *Terminal) switchFocus() func() {
 
 	return func() {
 		t.v.SetCurrentWindow(t.cw)
-	}
-}
-
-// chdir changes vim current working directory.
-// The returned function restores working directory to `getcwd()` result path
-// and unlocks the mutex.
-func chdir(v *vim.Vim, dir string) func() {
-	var (
-		m   sync.Mutex
-		cwd interface{}
-	)
-	m.Lock()
-	if err := v.Eval("getcwd()", &cwd); err != nil {
-		nvim.Echoerr(v, "GoTerminal: %v", err)
-	}
-	v.ChangeDirectory(dir)
-	return func() {
-		v.ChangeDirectory(cwd.(string))
-		m.Unlock()
 	}
 }
 
