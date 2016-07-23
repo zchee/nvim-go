@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sync"
 
+	"nvim-go/pathutil"
+
 	"github.com/neovim-go/vim"
 	"golang.org/x/net/context"
 )
@@ -52,7 +54,7 @@ func (ctxt *BuildContext) buildContext(p string) build.Context {
 
 	// Check the path p are Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
-	if gbpath, ok := ctxt.isGb(filepath.Clean(p)); ok {
+	if gbpath, ok := pathutil.IsGb(filepath.Clean(p)); ok {
 		ctxt.Tool = "gb"
 		ctxt.ProjectRoot = gbpath
 		buildDefault.JoinPath = ctxt.GbJoinPath

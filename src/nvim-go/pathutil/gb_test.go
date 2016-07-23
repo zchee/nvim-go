@@ -1,8 +1,4 @@
-// Copyright 2016 Koichi Shiraishi. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-package context
+package pathutil
 
 import (
 	"go/build"
@@ -66,11 +62,8 @@ func TestIsGb(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		ctxt := &BuildContext{
-			Tool: tt.rTool,
-		}
-		got, got1 := ctxt.isGb(tt.p) // projDir string, isGb bool
-		if got1 != tt.want1 {        // Check the isGb package
+		got, got1 := IsGb(tt.p) // projDir string, isGb bool
+		if got1 != tt.want1 {   // Check the isGb package
 			t.Errorf("Build.isGb(%v)\ngot1 = %v,\nwant %v", tt.p, got1, tt.want1)
 		}
 		if got1 && tt.rTool != "gb" { // If got1 == true, must be tt.rTool == "gb"

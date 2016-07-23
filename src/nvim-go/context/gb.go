@@ -7,56 +7,9 @@ package context
 import (
 	"fmt"
 	"go/build"
-	"os"
 	"path/filepath"
 	"strings"
 )
-
-// isGb check the current buffer directory whether gb directory structure.
-// Return the gb project root path and boolean, and sets the context.GbProjectDir.
-func (ctxt *BuildContext) isGb(dir string) (string, bool) {
-	root, err := FindGbProjectRoot(dir)
-	if err != nil {
-		return "", false
-	}
-
-	// Check root directory whether "vendor", and overwrite root path to parent of vendor directory.
-	if filepath.Base(root) == "vendor" {
-		root = filepath.Dir(root)
-	}
-	// FindGbProjectRoot gets the GOPATH root if go directory structure.
-	// Recheck use vendor directory.
-	vendor := filepath.Join(root, "vendor")
-	if _, err := os.Stat(vendor); err != nil {
-		if os.IsNotExist(err) {
-			return "", false
-		}
-	}
-	return root, true
-}
-
-// FindGbProjectRoot works upwards from path seaching for the src/ directory
-// which identifies the project root.
-// Code taken directly from constabulary/gb.
-//  github.com/constabulary/gb/cmd/path.go
-func FindGbProjectRoot(path string) (string, error) {
-	if path == "" {
-		return "", fmt.Errorf("project root is blank")
-	}
-	start := path
-	for path != filepath.Dir(path) {
-		root := filepath.Join(path, "src")
-		if _, err := os.Stat(root); err != nil {
-			if os.IsNotExist(err) {
-				path = filepath.Dir(path)
-				continue
-			}
-			return "", err
-		}
-		return path, nil
-	}
-	return "", fmt.Errorf(`could not find project root in "%s" or its parents`, start)
-}
 
 // GbJoinPath joins the sequence of path fragments into a single path for build.Default.JoinPath.
 func (ctxt *BuildContext) GbJoinPath(elem ...string) string {
