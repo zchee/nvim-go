@@ -21,7 +21,7 @@ const pkgContext = "context"
 // Context represents a embeded context package and build context.
 type Context struct {
 	context.Context
-	Build
+	Build Build
 
 	Errlist map[string][]*vim.QuickfixError
 }
@@ -56,7 +56,7 @@ func (ctxt *Context) buildContext(p string) build.Context {
 	if gbpath, ok := pathutil.IsGb(filepath.Clean(p)); ok {
 		ctxt.Build.Tool = "gb"
 		ctxt.Build.ProjectRoot = gbpath
-		buildContext.JoinPath = ctxt.GbJoinPath
+		buildContext.JoinPath = ctxt.Build.GbJoinPath
 		buildContext.GOPATH = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")
 	}
 
