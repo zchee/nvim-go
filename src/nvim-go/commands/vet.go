@@ -62,11 +62,12 @@ func (c *Commands) Vet(args []string, eval *cmdVetEval) ([]*vim.QuickfixError, e
 	switch {
 	case len(args) > 0:
 		vetCmd.Args = append(vetCmd.Args, args...)
-		if path := args[len(args)-1]; !strings.HasPrefix(path, "-") {
-			dir := filepath.Join(eval.Cwd, path)
-			if pathutil.IsDir(dir) {
-				eval.Cwd = filepath.Join(eval.Cwd, path)
+		if path := filepath.Join(eval.Cwd, args[len(args)-1]); !strings.HasPrefix(path, "-") {
+			if pathutil.IsDir(path) {
+				eval.Cwd = path
 				vetCmd.Args = append(vetCmd.Args, args[:len(args)-1]...)
+			} else if pathutil.IsExist(path) {
+				eval.Cwd = filepath.Dir(path)
 			} else {
 				err := errors.New("Invalid directory path")
 				return nil, errors.Annotate(err, pkgVet)
