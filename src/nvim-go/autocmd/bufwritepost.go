@@ -32,15 +32,15 @@ func (a *Autocmd) bufWritePost(v *vim.Vim, eval *bufWritePostEval) error {
 				return nvim.ErrorWrap(v, e)
 			}
 		case []*vim.QuickfixError:
+			// Cleanup Errlist
+			a.ctxt.Errlist = make(map[string][]*vim.QuickfixError)
 			a.ctxt.Errlist["Fmt"] = e
-			// Cleanup GoBuild errors
-			a.ctxt.Errlist["Build"] = nil
 			return quickfix.ErrorList(v, a.ctxt.Errlist, true)
 		}
 	}
 
 	if config.BuildAutosave {
-		err := a.c.Build(false, &commands.CmdBuildEval{
+		err := a.c.Build(config.BuildForce, &commands.CmdBuildEval{
 			Cwd: eval.Cwd,
 			Dir: eval.Dir,
 		})
@@ -52,6 +52,8 @@ func (a *Autocmd) bufWritePost(v *vim.Vim, eval *bufWritePostEval) error {
 				nvim.ErrorWrap(v, e)
 			}
 		case []*vim.QuickfixError:
+			// Cleanup Errlist
+			a.ctxt.Errlist = make(map[string][]*vim.QuickfixError)
 			a.ctxt.Errlist["Build"] = e
 			return quickfix.ErrorList(v, a.ctxt.Errlist, true)
 		}
