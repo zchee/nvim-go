@@ -45,7 +45,7 @@ type lintMode string
 
 const (
 	current lintMode = "current"
-	root    lintMode = "root"
+	root             = "root"
 )
 
 // Lint lints a go source file. The argument is a filename or directory path.

@@ -45,7 +45,7 @@ type ErrorListType string
 
 const (
 	Quickfix     ErrorListType = "quickfix"
-	LocationList ErrorListType = "locationlist"
+	LocationList               = "locationlist"
 )
 
 func GetListCmd(v *vim.Vim) {
