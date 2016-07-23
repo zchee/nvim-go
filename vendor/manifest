@@ -288,7 +288,7 @@
 		{
 			"importpath": "golang.org/x/tools/refactor/rename",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "cda5280914a6bccec2b76d8d4341f4f4c5d62592",
+			"revision": "ed69e84b1518b5857a9f4e01d1f9cefdcc45246e",
 			"branch": "master",
 			"path": "/refactor/rename"
 		},
