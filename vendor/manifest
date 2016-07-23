@@ -66,7 +66,7 @@
 		{
 			"importpath": "github.com/derekparker/delve/proc",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "c7f11149d7146427b96be5375aff10d5bc899f5a",
+			"revision": "218c2b953b13c439a645ede821d3aaca7b71ff7b",
 			"branch": "master",
 			"path": "/proc"
 		},
