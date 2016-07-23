@@ -1,22 +1,9 @@
-package context
+package pathutil
 
 import (
 	"fmt"
 	"go/build"
-	"os"
-	"path/filepath"
 	"testing"
-)
-
-var (
-	cwd, _ = os.Getwd()
-
-	projectRoot, _ = filepath.Abs(filepath.Join(cwd, "../../.."))
-	testdata       = filepath.Join(projectRoot, "test", "testdata")
-	testGoPath     = filepath.Join(testdata, "go")
-
-	astdump     = filepath.Join(testGoPath, "src", "astdump")
-	astdumpMain = filepath.Join(astdump, "astdump.go")
 )
 
 func TestBuildContext_PackagePath(t *testing.T) {
@@ -50,11 +37,7 @@ func TestBuildContext_PackagePath(t *testing.T) {
 		case "gb":
 			build.Default.GOPATH = fmt.Sprintf("%s:%s/vendor", projectRoot, projectRoot)
 		}
-		ctxt := &BuildContext{
-			Tool:        tt.fields.Tool,
-			ProjectRoot: tt.fields.ProjectRoot,
-		}
-		got, err := ctxt.PackagePath(tt.args.dir)
+		got, err := PackagePath(tt.args.dir)
 		if (err != nil) != tt.wantErr {
 			t.Errorf("%q. BuildContext.PackagePath(%v) error = %v, wantErr %v", tt.name, tt.args.dir, err, tt.wantErr)
 			continue

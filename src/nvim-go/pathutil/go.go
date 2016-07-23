@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package context
+package pathutil
 
 import (
 	"go/build"
@@ -12,7 +12,7 @@ import (
 )
 
 // PackagePath returns the package import path estimated from the path p directory structure.
-func (ctxt *BuildContext) PackagePath(dir string) (string, error) {
+func PackagePath(dir string) (string, error) {
 	dir = filepath.Clean(dir)
 
 	savePkg := new(build.Package)
@@ -24,7 +24,7 @@ func (ctxt *BuildContext) PackagePath(dir string) (string, error) {
 			// if err == noGoError {
 			return savePkg.ImportPath, nil
 		} else if err != nil {
-			return "", errors.Annotate(err, pkgContext)
+			return "", errors.Annotate(err, pkgPathutil)
 		}
 
 		if pkg.IsCommand() {

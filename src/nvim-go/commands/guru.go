@@ -136,7 +136,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 
 	switch c.ctxt.Build.Tool {
 	case "go":
-		pkgPath, err := c.ctxt.Build.PackagePath(dir)
+		pkgPath, err := pathutil.PackagePath(dir)
 		if err != nil {
 			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
 		}

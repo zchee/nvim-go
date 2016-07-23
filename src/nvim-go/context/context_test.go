@@ -6,8 +6,21 @@ package context
 
 import (
 	"go/build"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
+)
+
+var (
+	cwd, _ = os.Getwd()
+
+	projectRoot, _ = filepath.Abs(filepath.Join(cwd, "../../.."))
+	testdata       = filepath.Join(projectRoot, "test", "testdata")
+	testGoPath     = filepath.Join(testdata, "go")
+
+	astdump     = filepath.Join(testGoPath, "src", "astdump")
+	astdumpMain = filepath.Join(astdump, "astdump.go")
 )
 
 func TestBuildContext_buildContext(t *testing.T) {
