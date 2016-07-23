@@ -36,7 +36,7 @@ type metalinterResult struct {
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
 func (c *Commands) Metalinter(cwd string) error {
 	defer profile.Start(time.Now(), "GoMetaLinter")
-	defer c.ctxt.Build.SetContext(cwd)()
+	defer c.ctxt.SetContext(cwd)()
 
 	var (
 		loclist []*vim.QuickfixError

@@ -59,7 +59,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	}
 
 	dir, _ := filepath.Split(eval.File)
-	defer c.ctxt.Build.SetContext(dir)()
+	defer c.ctxt.SetContext(dir)()
 
 	defer func() {
 		if r := recover(); r != nil {

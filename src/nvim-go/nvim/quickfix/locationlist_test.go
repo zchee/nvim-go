@@ -73,7 +73,7 @@ func TestParseError(t *testing.T) {
 	type args struct {
 		errors []byte
 		cwd    string
-		ctxt   *context.BuildContext
+		ctxt   *context.Build
 	}
 	tests := []struct {
 		name    string
@@ -87,7 +87,7 @@ func TestParseError(t *testing.T) {
 				errors: []byte(`# nvim-go/nvim
 echo.go:79: syntax error: non-declaration statement outside function body`),
 				cwd: cwd,
-				ctxt: &context.BuildContext{
+				ctxt: &context.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -107,7 +107,7 @@ echo.go:79: syntax error: non-declaration statement outside function body`),
 locationlist.go:152: syntax error: unexpected case, expecting }
 locationlist.go:160: syntax error: non-declaration statement outside function body`),
 				cwd: cwd,
-				ctxt: &context.BuildContext{
+				ctxt: &context.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -135,7 +135,7 @@ locationlist.go:160: syntax error: non-declaration statement outside function bo
 locationlist.go:199: ParseError redeclared in this block
         previous declaration at locationlist.go:149`),
 				cwd: cwd,
-				ctxt: &context.BuildContext{
+				ctxt: &context.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -157,7 +157,7 @@ locationlist.go:199: ParseError redeclared in this block
 		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.WalkDir
 		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.DatabasePath`),
 				cwd: filepath.Join(os.Getenv("GOPATH"), "src/github.com/zchee/hyperkitctl"),
-				ctxt: &context.BuildContext{
+				ctxt: &context.Build{
 					Tool: "go",
 				},
 			},
@@ -184,7 +184,7 @@ locationlist.go:199: ParseError redeclared in this block
 		test.go:26: undefined: hyperkitctl.WalkDir
 		test.go:26: undefined: hyperkitctl.DatabasePath`),
 				cwd: filepath.Join(os.Getenv("GOPATH"), "src/github.com/zchee/hyperkitctl/cmd/hyperkitctl"),
-				ctxt: &context.BuildContext{
+				ctxt: &context.Build{
 					Tool: "go",
 				},
 			},

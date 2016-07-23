@@ -1,7 +1,3 @@
-// Copyright 2016 Koichi Shiraishi. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package context
 
 import (
@@ -10,6 +6,9 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/neovim-go/vim"
+	"golang.org/x/net/context"
 )
 
 var (
@@ -23,10 +22,25 @@ var (
 	astdumpMain = filepath.Join(astdump, "astdump.go")
 )
 
-func TestBuildContext_buildContext(t *testing.T) {
+func TestNewContext(t *testing.T) {
+	tests := []struct {
+		name string
+		want *Context
+	}{
+	// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		if got := NewContext(); !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("%q. NewContext() = %v, want %v", tt.name, got, tt.want)
+		}
+	}
+}
+
+func TestContext_buildContext(t *testing.T) {
 	type fields struct {
-		Tool         string
-		GbProjectDir string
+		Context context.Context
+		Build   Build
+		Errlist map[string][]*vim.QuickfixError
 	}
 	type args struct {
 		p string
@@ -40,20 +54,22 @@ func TestBuildContext_buildContext(t *testing.T) {
 	// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		ctxt := &BuildContext{
-			Tool:        tt.fields.Tool,
-			ProjectRoot: tt.fields.GbProjectDir,
+		ctxt := &Context{
+			Context: tt.fields.Context,
+			Build:   tt.fields.Build,
+			Errlist: tt.fields.Errlist,
 		}
 		if got := ctxt.buildContext(tt.args.p); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q. BuildContext.buildContext(%v) = %v, want %v", tt.name, tt.args.p, got, tt.want)
+			t.Errorf("%q. Context.buildContext(%v) = %v, want %v", tt.name, tt.args.p, got, tt.want)
 		}
 	}
 }
 
-func TestBuildContext_SetContext(t *testing.T) {
+func TestContext_SetContext(t *testing.T) {
 	type fields struct {
-		Tool         string
-		GbProjectDir string
+		Context context.Context
+		Build   Build
+		Errlist map[string][]*vim.QuickfixError
 	}
 	type args struct {
 		p string
@@ -67,12 +83,13 @@ func TestBuildContext_SetContext(t *testing.T) {
 	// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		ctxt := &BuildContext{
-			Tool:        tt.fields.Tool,
-			ProjectRoot: tt.fields.GbProjectDir,
+		ctxt := &Context{
+			Context: tt.fields.Context,
+			Build:   tt.fields.Build,
+			Errlist: tt.fields.Errlist,
 		}
 		if got := ctxt.SetContext(tt.args.p); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q. BuildContext.SetContext(%v) = %v, want %v", tt.name, tt.args.p, got, tt.want)
+			t.Errorf("%q. Context.SetContext(%v) = %v, want %v", tt.name, tt.args.p, got, tt.want)
 		}
 	}
 }

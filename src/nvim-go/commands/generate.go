@@ -29,7 +29,7 @@ func (c *Commands) cmdGenerateTest(files []string, dir string) {
 // Needs support -exported, -i, -only flags.
 func (c *Commands) GenerateTest(files []string, dir string) error {
 	defer profile.Start(time.Now(), "GenerateTest")
-	defer c.ctxt.Build.SetContext(filepath.Dir(dir))()
+	defer c.ctxt.SetContext(filepath.Dir(dir))()
 
 	b, err := c.v.CurrentBuffer()
 	if err != nil {

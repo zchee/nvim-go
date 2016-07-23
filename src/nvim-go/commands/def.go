@@ -38,7 +38,7 @@ func Def(v *vim.Vim, file string) error {
 
 	dir, _ := filepath.Split(file)
 	ctxt := new(context.Context)
-	defer ctxt.Build.SetContext(dir)()
+	defer ctxt.SetContext(dir)()
 
 	var (
 		b vim.Buffer

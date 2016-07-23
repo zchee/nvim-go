@@ -32,7 +32,7 @@ func (c *Commands) Iferr(file string) error {
 	defer profile.Start(time.Now(), "GoIferr")
 
 	dir := filepath.Dir(file)
-	defer c.ctxt.Build.SetContext(dir)()
+	defer c.ctxt.SetContext(dir)()
 
 	b, err := c.v.CurrentBuffer()
 	if err != nil {

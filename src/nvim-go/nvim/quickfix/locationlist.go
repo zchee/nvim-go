@@ -200,7 +200,7 @@ var errRe = regexp.MustCompile(`(?m)^([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
 
 // ParseError parses a typical error message of Go compile tools.
 // TODO(zchee): More elegant way
-func ParseError(errors []byte, cwd string, ctxt *context.BuildContext) ([]*vim.QuickfixError, error) {
+func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*vim.QuickfixError, error) {
 	var (
 		parentDir string
 		fpath     string

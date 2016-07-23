@@ -12,7 +12,7 @@ import (
 )
 
 // GbJoinPath joins the sequence of path fragments into a single path for build.Default.JoinPath.
-func (ctxt *BuildContext) GbJoinPath(elem ...string) string {
+func (ctxt *Build) GbJoinPath(elem ...string) string {
 	res := filepath.Join(elem...)
 
 	if gbrel, err := filepath.Rel(ctxt.ProjectRoot, res); err == nil {

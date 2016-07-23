@@ -46,7 +46,7 @@ func (c *Commands) cmdLint(v *vim.Vim, args []string, file string) {
 func (c *Commands) Lint(args []string, file string) ([]*vim.QuickfixError, error) {
 	defer profile.Start(time.Now(), pkgLint)
 	dir := filepath.Dir(file)
-	defer c.ctxt.Build.SetContext(dir)()
+	defer c.ctxt.SetContext(dir)()
 	buildContext = build.Default
 
 	var (

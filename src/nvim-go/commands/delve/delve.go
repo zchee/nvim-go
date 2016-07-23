@@ -101,7 +101,7 @@ func (d *Delve) debug(v *vim.Vim, eval *debugEval) error {
 	d.p = d.v.NewPipeline()
 
 	d.ctxt = new(context.Context)
-	defer d.ctxt.Build.SetContext(eval.Cwd)()
+	defer d.ctxt.SetContext(eval.Cwd)()
 
 	rootDir := pathutil.FindVCSRoot(eval.Dir)
 	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)

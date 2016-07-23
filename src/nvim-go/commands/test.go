@@ -34,7 +34,7 @@ var testTerm *terminal.Terminal
 // the directory structure.
 func (c *Commands) Test(args []string, dir string) error {
 	defer profile.Start(time.Now(), "GoTest")
-	defer c.ctxt.Build.SetContext(dir)()
+	defer c.ctxt.SetContext(dir)()
 
 	cmd := []string{c.ctxt.Build.Tool, "test"}
 	args = append(args, config.TestArgs...)
@@ -99,7 +99,7 @@ func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
 	}
 
 	dir, _ := filepath.Split(fname)
-	defer c.ctxt.Build.SetContext(filepath.Dir(dir))()
+	defer c.ctxt.SetContext(filepath.Dir(dir))()
 
 	var (
 		b vim.Buffer

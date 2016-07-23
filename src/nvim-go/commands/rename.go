@@ -39,7 +39,7 @@ func (c *Commands) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 	defer profile.Start(time.Now(), "GoRename")
 	dir := filepath.Dir(eval.File)
-	defer c.ctxt.Build.SetContext(dir)()
+	defer c.ctxt.SetContext(dir)()
 
 	var (
 		b vim.Buffer

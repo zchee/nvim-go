@@ -47,7 +47,7 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 // determined from the directory structure.
 func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	defer profile.Start(time.Now(), pkgBuild)
-	defer c.ctxt.Build.SetContext(eval.Dir)()
+	defer c.ctxt.SetContext(eval.Dir)()
 
 	if !bang {
 		bang = config.BuildForce

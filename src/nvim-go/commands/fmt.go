@@ -45,7 +45,7 @@ func (c *Commands) cmdFmt(dir string) {
 // Fmt format to the current buffer source uses gofmt behavior.
 func (c *Commands) Fmt(dir string) interface{} {
 	defer profile.Start(time.Now(), pkgFmt)
-	defer c.ctxt.Build.SetContext(dir)()
+	defer c.ctxt.SetContext(dir)()
 
 	var (
 		b vim.Buffer
