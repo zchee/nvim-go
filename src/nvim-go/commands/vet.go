@@ -23,13 +23,13 @@ import (
 
 const pkgVet = "GoVet"
 
-// cmdVetEval struct type for Eval of GoBuild command.
-type cmdVetEval struct {
+// CmdVetEval struct type for Eval of GoBuild command.
+type CmdVetEval struct {
 	Cwd string `msgpack:",array"`
 	Dir string
 }
 
-func (c *Commands) cmdVet(args []string, eval *cmdVetEval) {
+func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
 	go func() {
 		// Cleanup old results
 		c.ctxt.Errlist["Vet"] = nil
@@ -53,8 +53,8 @@ func (c *Commands) cmdVet(args []string, eval *cmdVetEval) {
 }
 
 // Vet is a simple checker for static errors in Go source code use go tool vet command.
-func (c *Commands) Vet(args []string, eval *cmdVetEval) ([]*vim.QuickfixError, error) {
-	defer profile.Start(time.Now(), pkgBuild)
+func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*vim.QuickfixError, error) {
+	defer profile.Start(time.Now(), pkgVet)
 
 	vetCmd := exec.Command("go", "tool", "vet")
 	vetCmd.Dir = eval.Cwd

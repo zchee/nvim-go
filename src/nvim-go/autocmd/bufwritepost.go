@@ -49,7 +49,7 @@ func (a *Autocmd) bufWritePost(v *vim.Vim, eval *bufWritePostEval) error {
 		case error:
 			// normal errros
 			if e != nil {
-				nvim.ErrorWrap(v, e)
+				return nvim.ErrorWrap(v, e)
 			}
 		case []*vim.QuickfixError:
 			// Cleanup Errlist
@@ -60,6 +60,33 @@ func (a *Autocmd) bufWritePost(v *vim.Vim, eval *bufWritePostEval) error {
 		if len(a.ctxt.Errlist) == 0 {
 			quickfix.CloseLoclist(v)
 		}
+	}
+
+	if config.GoVetAutosave {
+		go func() {
+			// Cleanup old results
+			a.ctxt.Errlist["Vet"] = nil
+
+			errlist, err := a.c.Vet(nil, &commands.CmdVetEval{
+				Cwd: eval.Cwd,
+				Dir: eval.Dir,
+			})
+			if err != nil {
+				// normal errros
+				nvim.ErrorWrap(v, err)
+				return
+			}
+			if errlist != nil {
+				a.ctxt.Errlist["Vet"] = errlist
+				if len(a.ctxt.Errlist) > 0 {
+					quickfix.ErrorList(v, a.ctxt.Errlist, true)
+					return
+				}
+			}
+			if a.ctxt.Errlist["Vet"] == nil {
+				quickfix.ClearErrorlist(v, true)
+			}
+		}()
 	}
 
 	if config.MetalinterAutosave {

@@ -73,6 +73,7 @@ type lint struct {
 	GolintIgnore            []string `eval:"g:go#lint#golint#ignore"`
 	GolintMinConfidence     float64  `eval:"g:go#lint#golint#min_confidence"`
 	GolintMode              string   `eval:"g:go#lint#golint#mode"`
+	GoVetAutosave           int64    `eval:"g:go#lint#govet#autosave"`
 	GoVetFlags              []string `eval:"g:go#lint#govet#flags"`
 	MetalinterAutosave      int64    `eval:"g:go#lint#metalinter#autosave"`
 	MetalinterAutosaveTools []string `eval:"g:go#lint#metalinter#autosave#tools"`
@@ -148,6 +149,8 @@ var (
 	GolintMinConfidence float64
 	// GolintMode mode of golint. available value are "root", "current" and "recursive".
 	GolintMode string
+	// GoVetAutosave call the GoVet command automatically at during the BufWritePost.
+	GoVetAutosave bool
 	// GoVetFlags default flags for GoVet commands
 	GoVetFlags []string
 	// MetalinterAutosave call the GoMetaLinter command automatically at during the BufWritePre.
@@ -218,6 +221,7 @@ func GetConfig(v *vim.Vim, cfg *Config) {
 	GolintIgnore = cfg.Lint.GolintIgnore
 	GolintMinConfidence = cfg.Lint.GolintMinConfidence
 	GolintMode = cfg.Lint.GolintMode
+	GoVetAutosave = itob(cfg.Lint.GoVetAutosave)
 	GoVetFlags = cfg.Lint.GoVetFlags
 	MetalinterAutosave = itob(cfg.Lint.MetalinterAutosave)
 	MetalinterAutosaveTools = cfg.Lint.MetalinterAutosaveTools
