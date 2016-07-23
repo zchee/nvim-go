@@ -27,7 +27,8 @@ func (c *Commands) cmdTest(args []string, dir string) {
 	go c.Test(args, dir)
 }
 
-var term *terminal.Terminal
+// testTerm cache terminal.Terminal use global variable.
+var testTerm *terminal.Terminal
 
 // Test run the package test command use compile tool that determined from
 // the directory structure.
@@ -45,12 +46,12 @@ func (c *Commands) Test(args []string, dir string) error {
 		cmd = append(cmd, string("./..."))
 	}
 
-	if term == nil {
-		term = terminal.NewTerminal(c.v, "__GO_TEST__", cmd, config.TerminalMode)
-		term.Dir = pathutil.FindVCSRoot(dir)
+	if testTerm == nil {
+		testTerm = terminal.NewTerminal(c.v, "__GO_TEST__", cmd, config.TerminalMode)
+		testTerm.Dir = pathutil.FindVCSRoot(dir)
 	}
 
-	if err := term.Run(cmd); err != nil {
+	if err := testTerm.Run(cmd); err != nil {
 		return err
 	}
 
