@@ -41,9 +41,11 @@ func Register(p *plugin.Plugin, ctxt *context.Context) *Commands {
 	p.HandleCommand(&plugin.CommandOptions{Name: "Gorun", NArgs: "*", Eval: "expand('%:p')"}, c.cmdRun)
 	p.HandleCommand(&plugin.CommandOptions{Name: "Gotest", NArgs: "*", Eval: "expand('%:p:h')"}, c.cmdTest)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoTestSwitch", Eval: "[getcwd(), expand('%:p')]"}, c.cmdTestSwitch)
+	p.HandleCommand(&plugin.CommandOptions{Name: "Govet", NArgs: "*", Eval: "[getcwd(), expand('%:p:h')]", Complete: "customlist,GoVetCompletion"}, c.cmdVet)
 
 	// Commnad completion
 	p.HandleFunction(&plugin.FunctionOptions{Name: "GoLintCompletion", Eval: "getcwd()"}, c.cmdLintComplete) // list the file, directory and go packages
+	p.HandleFunction(&plugin.FunctionOptions{Name: "GoVetCompletion", Eval: "getcwd()"}, c.cmdVetComplete)   // flag for go tool vet
 
 	// for debug
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoByteOffset", Range: "%", Eval: "expand('%:p')"}, c.cmdByteOffset)
