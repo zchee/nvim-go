@@ -206,6 +206,7 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*vim.Quickfix
 		parentDir string
 		fpath     string
 		errlist   []*vim.QuickfixError
+		hasPrefix bool
 	)
 
 	// m[1]: relative file path of error file
@@ -222,6 +223,7 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*vim.Quickfix
 			// save the parent directory path for the second and subsequent error description
 			parentDir = string(path[0])
 			fpath = filepath.Base(string(bytes.Replace(path[1], []byte{'\t'}, nil, -1)))
+			hasPrefix = true
 		}
 
 		filename := filepath.Join(parentDir, fpath)
@@ -239,6 +241,10 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*vim.Quickfix
 			if frel, err := filepath.Rel(cwd, filename); err == nil {
 				filename = frel
 			}
+		}
+
+		if !hasPrefix {
+			filename = string(bytes.Replace(m[1], []byte{'\t'}, nil, -1))
 		}
 
 		line, err := strconv.Atoi(string(m[2]))
