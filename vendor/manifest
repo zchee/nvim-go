@@ -274,7 +274,7 @@
 		{
 			"importpath": "golang.org/x/tools/imports",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "55296b3bebf97ef1b14b5b86a4ecd6337ef99bb2",
+			"revision": "ed69e84b1518b5857a9f4e01d1f9cefdcc45246e",
 			"branch": "master",
 			"path": "/imports"
 		},

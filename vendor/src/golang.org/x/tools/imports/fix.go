@@ -32,9 +32,19 @@ var (
 	testMu  sync.RWMutex // guards globals reset by tests; used only if inTests
 )
 
+// If set, LocalPrefix instructs Process to sort import paths with the given
+// prefix into another group after 3rd-party packages.
+var LocalPrefix string
+
 // importToGroup is a list of functions which map from an import path to
 // a group number.
 var importToGroup = []func(importPath string) (num int, ok bool){
+	func(importPath string) (num int, ok bool) {
+		if LocalPrefix != "" && strings.HasPrefix(importPath, LocalPrefix) {
+			return 3, true
+		}
+		return
+	},
 	func(importPath string) (num int, ok bool) {
 		if strings.HasPrefix(importPath, "appengine") {
 			return 2, true
@@ -827,11 +837,15 @@ func canUse(filename, dir string) bool {
 	// or bar/vendor or bar/internal.
 	// After stripping all the leading ../, the only okay place to see vendor or internal
 	// is at the very beginning of the path.
-	abs, err := filepath.Abs(filename)
+	absfile, err := filepath.Abs(filename)
 	if err != nil {
 		return false
 	}
-	rel, err := filepath.Rel(abs, dir)
+	absdir, err := filepath.Abs(dir)
+	if err != nil {
+		return false
+	}
+	rel, err := filepath.Rel(absfile, absdir)
 	if err != nil {
 		return false
 	}

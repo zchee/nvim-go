@@ -829,7 +829,7 @@ func TestFixImports(t *testing.T) {
 func TestImportSymlinks(t *testing.T) {
 	switch runtime.GOOS {
 	case "windows", "plan9":
-		t.Skip("skipping test on %q as there are no symlinks", runtime.GOOS)
+		t.Skipf("skipping test on %q as there are no symlinks", runtime.GOOS)
 	}
 
 	newGoPath, err := ioutil.TempDir("", "symlinktest")
@@ -1250,6 +1250,38 @@ func TestRenameWhenPackageNameMismatch(t *testing.T) {
 import bar "foo/bar/v1"
 
 const Y = bar.X
+`
+		if string(buf) != want {
+			t.Errorf("Got:\n%s\nWant:\n%s", buf, want)
+		}
+	})
+}
+
+// Tests that the LocalPrefix option causes imports
+// to be added into a later group (num=3).
+func TestLocalPrefix(t *testing.T) {
+	defer func(s string) { LocalPrefix = s }(LocalPrefix)
+	LocalPrefix = "foo/"
+
+	testConfig{
+		gopathFiles: map[string]string{
+			"foo/bar/bar.go": "package bar \n const X = 1",
+		},
+	}.test(t, func(t *goimportTest) {
+		buf, err := Process(t.gopath+"/src/test/t.go", []byte("package main \n const Y = bar.X \n const _ = runtime.GOOS"), &Options{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		const want = `package main
+
+import (
+	"runtime"
+
+	"foo/bar"
+)
+
+const Y = bar.X
+const _ = runtime.GOOS
 `
 		if string(buf) != want {
 			t.Errorf("Got:\n%s\nWant:\n%s", buf, want)
