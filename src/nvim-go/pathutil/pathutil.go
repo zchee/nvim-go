@@ -42,7 +42,7 @@ func Rel(f, cwd string) string {
 
 // ExpandGoRoot expands the "$GOROOT" include from p.
 func ExpandGoRoot(p string) string {
-	if strings.Index(p, "$GOROOT") != 1 {
+	if strings.Index(p, "$GOROOT") != -1 {
 		return strings.Replace(p, "$GOROOT", runtime.GOROOT(), 1)
 	}
 
