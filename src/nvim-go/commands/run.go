@@ -34,7 +34,7 @@ func (c *Commands) cmdRun(args []string, file string) {
 
 func (c *Commands) cmdRunLast(file string) {
 	if len(lastCmd) == 0 {
-		err := errors.New("not found last args")
+		err := errors.New("not found GoRun last arguments")
 		nvim.ErrorWrap(c.v, errors.Annotate(err, "GoRun"))
 		return
 	}
