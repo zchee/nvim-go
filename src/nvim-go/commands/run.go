@@ -50,7 +50,7 @@ func (c *Commands) Run(cmd []string, file string) error {
 	defer profile.Start(time.Now(), "GoRun")
 
 	if runTerm == nil {
-		runTerm = terminal.NewTerminal(c.v, "__GO_TEST__", cmd, config.TerminalMode)
+		runTerm = terminal.NewTerminal(c.v, "__GO_RUN__", cmd, config.TerminalMode)
 	}
 	dir, _ := filepath.Split(file)
 	rootDir := pathutil.FindVCSRoot(dir)
