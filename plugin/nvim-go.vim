@@ -130,6 +130,7 @@ call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'command', 'name': 'Gometalinter', 'sync': 0, 'opts': {'eval': 'getcwd()'}},
 \ {'type': 'command', 'name': 'Gorename', 'sync': 0, 'opts': {'bang': '', 'eval': '[getcwd(), expand(''%:p''), expand(''<cword>'')]', 'nargs': '?'}},
 \ {'type': 'command', 'name': 'Gorun', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')', 'nargs': '*'}},
+\ {'type': 'command', 'name': 'GorunLast', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')'}},
 \ {'type': 'command', 'name': 'Gotest', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'Govet', 'sync': 0, 'opts': {'complete': 'customlist,GoVetCompletion', 'eval': '[getcwd(), expand(''%:p:h'')]', 'nargs': '*'}},
 \ {'type': 'function', 'name': 'DlvListFunctions', 'sync': 1, 'opts': {}},

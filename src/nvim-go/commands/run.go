@@ -9,18 +9,38 @@ import (
 	"time"
 
 	"nvim-go/config"
+	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/terminal"
 	"nvim-go/pathutil"
+
+	"github.com/juju/errors"
 )
 
-var runTerm *terminal.Terminal
+var (
+	runTerm *terminal.Terminal
+	lastCmd []string
+)
 
 func (c *Commands) cmdRun(args []string, file string) {
 	cmd := []string{"go", "run", file}
 	if len(args) != 0 {
+		lastCmd = args
 		cmd = append(cmd, args...)
 	}
+
+	go c.Run(cmd, file)
+}
+
+func (c *Commands) cmdRunLast(file string) {
+	if len(lastCmd) == 0 {
+		err := errors.New("not found last args")
+		nvim.ErrorWrap(c.v, errors.Annotate(err, "GoRun"))
+		return
+	}
+
+	cmd := []string{"go", "run", file}
+	cmd = append(cmd, lastCmd...)
 
 	go c.Run(cmd, file)
 }

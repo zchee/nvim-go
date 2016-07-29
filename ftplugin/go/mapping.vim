@@ -38,7 +38,8 @@ nnoremap <silent><Plug>(nvim-go-test-switch)  :<C-u>GoTestSwitch<CR>
 nnoremap <silent><Plug>(nvim-go-rename)  :<C-u>Gorename<CR>
 
 " GoRun
-nnoremap <silent><Plug>(nvim-go-run)  :<C-u>Gorun<CR>
+nnoremap <silent><Plug>(nvim-go-run)      :<C-u>Gorun<CR>
+nnoremap <silent><Plug>(nvim-go-runlast)  :<C-u>GorunLast<CR>
 
 
 " Dlv
