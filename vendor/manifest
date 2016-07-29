@@ -155,8 +155,8 @@
 		{
 			"importpath": "github.com/rogpeppe/godef/go",
 			"repository": "https://github.com/rogpeppe/godef",
-			"revision": "ee532b944160bb27b6f23e4f5ef38b8fdaa2a6bd",
-			"branch": "master",
+			"revision": "953c2cecd6096c8093d0103062190afac0e09b02",
+			"branch": "HEAD",
 			"path": "/go"
 		},
 		{

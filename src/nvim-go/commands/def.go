@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"nvim-go/context"
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
@@ -27,54 +26,54 @@ import (
 	"github.com/rogpeppe/godef/go/types"
 )
 
-func cmdDef(v *vim.Vim, file string) {
-	go Def(v, file)
+func (c *Commands) cmdDef(file string) {
+	go c.Def(file)
 }
 
 // Def definition to current cursor word.
 // DEPRECATED: godef no longer mantained.
-func Def(v *vim.Vim, file string) error {
+func (c *Commands) Def(file string) error {
 	defer profile.Start(time.Now(), "GoDef")
+	defer c.ctxt.SetContext(filepath.Dir(file))()
 
-	dir, _ := filepath.Split(file)
-	ctxt := new(context.Context)
-	defer ctxt.SetContext(dir)()
+	// types.Debug = true
 
 	var (
 		b vim.Buffer
 		w vim.Window
 	)
-	p := v.NewPipeline()
-	p.CurrentBuffer(&b)
-	p.CurrentWindow(&w)
-	if err := p.Wait(); err != nil {
+	if c.p == nil {
+		c.p = c.v.NewPipeline()
+	}
+	c.p.CurrentBuffer(&b)
+	c.p.CurrentWindow(&w)
+	if err := c.p.Wait(); err != nil {
 		return err
 	}
 
-	buf, err := v.BufferLines(b, 0, -1, true)
+	buf, err := c.v.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return err
 	}
 	src := bytes.Join(buf, []byte{'\n'})
 
-	searchpos, err := nvim.ByteOffsetPipe(p, b, w)
+	searchpos, err := nvim.ByteOffsetPipe(c.p, b, w)
 	if err != nil {
-		return v.WriteErr("cannot get current buffer byte offset")
+		return c.v.WriteErr("cannot get current buffer byte offset")
 	}
 
 	pkgScope := ast.NewScope(parser.Universe)
 	f, err := parser.ParseFile(types.FileSet, file, src, 0, pkgScope, types.DefaultImportPathToName)
 	if f == nil {
-		nvim.Echomsg(v, "Godef: cannot parse %s: %v", file, err)
+		nvim.Echomsg(c.v, "Godef: cannot parse %s: %v", file, err)
 	}
 
-	o := findIdentifier(v, f, searchpos)
+	o := findIdentifier(c.v, f, searchpos)
 
 	switch e := o.(type) {
-
 	case ast.Expr:
 		if err := parseLocalPackage(file, f, pkgScope); err != nil {
-			nvim.Echomsg(v, "Godef: error parseLocalPackage %v", err)
+			nvim.Echomsg(c.v, "Godef: error parseLocalPackage %v", err)
 		}
 		obj, _ := types.ExprType(e, types.DefaultImporter, types.FileSet)
 		if obj != nil {
@@ -86,20 +85,20 @@ func Def(v *vim.Vim, file string) error {
 				Col:      pos.Column,
 				Text:     pos.Filename,
 			})
-			if err := quickfix.SetLoclist(v, loclist); err != nil {
-				nvim.Echomsg(v, "Godef: %s", err)
+			if err := quickfix.SetLoclist(c.v, loclist); err != nil {
+				nvim.Echomsg(c.v, "Godef: %s", err)
 			}
 
-			p.Command(fmt.Sprintf("edit %s", pos.Filename))
-			p.SetWindowCursor(w, [2]int{pos.Line, pos.Column - 1})
-			p.Command("normal zz")
+			c.p.Command(fmt.Sprintf("edit %s", pos.Filename))
+			c.p.SetWindowCursor(w, [2]int{pos.Line, pos.Column - 1})
+			c.p.Command("normal zz")
 
 			return nil
 		}
-		nvim.Echomsg(v, "Godef: not found of obj")
+		nvim.Echomsg(c.v, "Godef: not found of obj")
 
 	default:
-		nvim.Echomsg(v, "Godef: no declaration found for %v", pretty{e})
+		nvim.Echomsg(c.v, "Godef: no declaration found for %v", pretty{e})
 	}
 	return nil
 }
@@ -268,7 +267,12 @@ func (f defVisitor) Visit(n ast.Node) ast.Visitor {
 // itself, which will already have been parsed.
 //
 func parseLocalPackage(filename string, src *ast.File, pkgScope *ast.Scope) error {
-	pkg := &ast.Package{src.Name.Name, pkgScope, nil, map[string]*ast.File{filename: src}}
+	pkg := &ast.Package{
+		Name:    src.Name.Name,
+		Scope:   pkgScope,
+		Imports: nil,
+		Files:   map[string]*ast.File{filename: src},
+	}
 	d, f := filepath.Split(filename)
 	if d == "" {
 		d = "./"
