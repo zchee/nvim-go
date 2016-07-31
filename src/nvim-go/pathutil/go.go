@@ -8,7 +8,7 @@ import (
 	"go/build"
 	"path/filepath"
 
-	"github.com/juju/errors"
+	"github.com/pkg/errors"
 )
 
 // PackagePath returns the package import path estimated from the path p directory structure.
@@ -24,7 +24,7 @@ func PackagePath(dir string) (string, error) {
 			// if err == noGoError {
 			return savePkg.ImportPath, nil
 		} else if err != nil {
-			return "", errors.Annotate(err, pkgPathutil)
+			return "", errors.Wrap(err, pkgPathutil)
 		}
 
 		if pkg.IsCommand() {

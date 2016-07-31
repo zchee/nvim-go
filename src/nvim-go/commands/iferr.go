@@ -16,8 +16,8 @@ import (
 	"nvim-go/nvim"
 	"nvim-go/nvim/profile"
 
-	"github.com/juju/errors"
 	"github.com/motemen/go-iferr"
+	"github.com/pkg/errors"
 	"golang.org/x/tools/go/loader"
 )
 
@@ -36,12 +36,12 @@ func (c *Commands) Iferr(file string) error {
 
 	b, err := c.v.CurrentBuffer()
 	if err != nil {
-		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgIferr))
+		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
 	}
 
 	buflines, err := c.v.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgIferr))
+		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
 	}
 
 	conf := loader.Config{
@@ -57,13 +57,13 @@ func (c *Commands) Iferr(file string) error {
 
 	f, err := conf.ParseFile(file, src.Bytes())
 	if err != nil {
-		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgIferr))
+		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
 	}
 
 	conf.CreateFromFiles(file, f)
 	prog, err := conf.Load()
 	if err != nil {
-		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgIferr))
+		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
 	}
 
 	// Reuse src variable

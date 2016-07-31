@@ -7,8 +7,8 @@ package nvim
 import (
 	"fmt"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 )
 
 const pkgNvimSign = "nvim.sign"
@@ -75,7 +75,7 @@ func (s *Sign) Place(v *vim.Vim, id, line int, file string, clearLastSign bool) 
 	}
 	place := fmt.Sprintf("sign place %d name=%s line=%d file=%s", id, s.Name, line, file)
 	if err := v.Command(place); err != nil {
-		return errors.Annotate(err, pkgNvimSign)
+		return errors.Wrap(err, pkgNvimSign)
 	}
 	s.LastID = id
 	s.LastFile = file
@@ -87,7 +87,7 @@ func (s *Sign) Place(v *vim.Vim, id, line int, file string, clearLastSign bool) 
 func (s *Sign) Unplace(v *vim.Vim, id int, file string) error {
 	place := fmt.Sprintf("sign unplace %d file=%s", id, file)
 	if err := v.Command(place); err != nil {
-		return errors.Annotate(err, pkgNvimSign)
+		return errors.Wrap(err, pkgNvimSign)
 	}
 
 	return nil
@@ -97,7 +97,7 @@ func (s *Sign) Unplace(v *vim.Vim, id int, file string) error {
 func (s *Sign) UnplaceAll(v *vim.Vim, file string) error {
 	place := fmt.Sprintf("sign unplace * file=%s", file)
 	if err := v.Command(place); err != nil {
-		return errors.Annotate(err, pkgNvimSign)
+		return errors.Wrap(err, pkgNvimSign)
 	}
 
 	return nil

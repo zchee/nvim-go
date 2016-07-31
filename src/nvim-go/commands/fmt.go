@@ -14,8 +14,8 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 	"golang.org/x/tools/imports"
 )
 
@@ -57,12 +57,12 @@ func (c *Commands) Fmt(dir string) interface{} {
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		return errors.Annotate(err, pkgFmt)
+		return errors.Wrap(err, pkgFmt)
 	}
 
 	in, err := c.v.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return errors.Annotate(err, pkgFmt)
+		return errors.Wrap(err, pkgFmt)
 	}
 
 	switch config.FmtMode {
@@ -71,14 +71,14 @@ func (c *Commands) Fmt(dir string) interface{} {
 	case "goimports":
 		// nothing to do
 	default:
-		return errors.Annotate(errors.New("invalid value of go#fmt#mode option"), pkgFmt)
+		return errors.Wrap(errors.New("invalid value of go#fmt#mode option"), pkgFmt)
 	}
 
 	buf, formatErr := imports.Process("", nvim.ToByteSlice(in), &importsOptions)
 	if formatErr != nil {
 		bufName, err := c.v.BufferName(b)
 		if err != nil {
-			return errors.Annotate(err, pkgFmt)
+			return errors.Wrap(err, pkgFmt)
 		}
 
 		var errlist []*vim.QuickfixError

@@ -7,8 +7,8 @@ package delve
 import (
 	"log"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 )
 
 func (d *Delve) cmdDetach(v *vim.Vim) {
@@ -20,7 +20,7 @@ func (d *Delve) detach(v *vim.Vim) error {
 	if d.processPid != 0 {
 		err := d.client.Detach(true)
 		if err != nil {
-			return errors.Annotate(err, pkgDelve)
+			return errors.Wrap(err, pkgDelve)
 		}
 		log.Printf("Detached delve client\n")
 	}
@@ -32,7 +32,7 @@ func (d *Delve) kill() error {
 	if d.server != nil {
 		err := d.server.Process.Kill()
 		if err != nil {
-			return errors.Annotate(err, pkgDelve)
+			return errors.Wrap(err, pkgDelve)
 		}
 		log.Printf("Killed delve server\n")
 	}

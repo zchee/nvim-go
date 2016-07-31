@@ -18,8 +18,8 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 	"golang.org/x/tools/refactor/rename"
 )
 
@@ -51,13 +51,13 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		err = errors.Annotate(err, pkgRename)
+		err = errors.Wrap(err, pkgRename)
 		return nvim.ErrorWrap(c.v, err)
 	}
 
 	offset, err := nvim.ByteOffset(c.v, b, w)
 	if err != nil {
-		err = errors.Annotate(err, pkgRename)
+		err = errors.Wrap(err, pkgRename)
 		return nvim.ErrorWrap(c.v, err)
 	}
 	pos := fmt.Sprintf("%s:#%d", eval.File, offset)
@@ -111,7 +111,7 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 			quickfix.OpenLoclist(c.v, w, loclist, true)
 		}()
 
-		err = errors.Annotate(err, pkgRename)
+		err = errors.Wrap(err, pkgRename)
 		return nvim.ErrorWrap(c.v, err)
 	}
 

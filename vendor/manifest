@@ -105,12 +105,6 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/juju/errors",
-			"repository": "https://github.com/juju/errors",
-			"revision": "b2c7a7da5b2995941048f60146e67702a292e468",
-			"branch": "master"
-		},
-		{
 			"importpath": "github.com/k0kubun/pp",
 			"repository": "https://github.com/k0kubun/pp",
 			"revision": "f5dce6ed0ccf6c350f1679964ff6b61f3d6d2033",
@@ -150,6 +144,12 @@
 			"importpath": "github.com/peterh/liner",
 			"repository": "https://github.com/peterh/liner",
 			"revision": "8975875355a81d612fafb9f5a6037bdcc2d9b073",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/pkg/errors",
+			"repository": "https://github.com/pkg/errors",
+			"revision": "1d2e60385a13aaa66134984235061c2f9302520e",
 			"branch": "master"
 		},
 		{

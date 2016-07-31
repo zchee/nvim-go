@@ -17,8 +17,8 @@ import (
 	"nvim-go/nvim/quickfix"
 	"nvim-go/pathutil"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 )
 
 const pkgVet = "GoVet"
@@ -70,7 +70,7 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*vim.QuickfixError, e
 				eval.Cwd = filepath.Dir(path)
 			} else {
 				err := errors.New("Invalid directory path")
-				return nil, errors.Annotate(err, pkgVet)
+				return nil, errors.Wrap(err, pkgVet)
 			}
 		}
 	case len(config.GoVetFlags) > 0:
@@ -87,7 +87,7 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*vim.QuickfixError, e
 	if vetErr != nil {
 		errlist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
 		if err != nil {
-			return nil, errors.Annotate(err, pkgVet)
+			return nil, errors.Wrap(err, pkgVet)
 		}
 		return errlist, nil
 	}

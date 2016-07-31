@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 )
 
 const pkgBuffer = "nvim.buffer"
@@ -49,11 +49,11 @@ func (b *Buf) Create(name, filetype, mode string, option map[NvimOption]map[stri
 
 	err := b.v.Command(fmt.Sprintf("silent %s %s", b.Mode, b.Name))
 	if err != nil {
-		return errors.Annotate(err, pkgBuffer)
+		return errors.Wrap(err, pkgBuffer)
 	}
 
 	if err := b.GetBufferContext(); err != nil {
-		return errors.Annotate(err, pkgBuffer)
+		return errors.Wrap(err, pkgBuffer)
 	}
 
 	b.p.BufferNumber(b.Buffer, &b.Bufnr)
@@ -157,7 +157,7 @@ func (b *Buf) SetLocalMapping(mode string, mapping map[string]string) error {
 	if mapping != nil {
 		cwin, err := b.v.CurrentWindow()
 		if err != nil {
-			return errors.Annotate(err, "nvim/buffer.SetMapping")
+			return errors.Wrap(err, "nvim/buffer.SetMapping")
 		}
 
 		b.p.SetCurrentWindow(b.Window)
@@ -176,13 +176,13 @@ func (b *Buf) SetLocalMapping(mode string, mapping map[string]string) error {
 func (b *Buf) lineCount() (int, error) {
 	lineCount, err := b.v.BufferLineCount(b.Buffer)
 	if err != nil {
-		return 0, errors.Annotate(err, pkgBuffer)
+		return 0, errors.Wrap(err, pkgBuffer)
 	}
 
 	if lineCount == 1 {
 		line, err := b.v.CurrentLine()
 		if err != nil {
-			return 0, errors.Annotate(err, pkgBuffer)
+			return 0, errors.Wrap(err, pkgBuffer)
 		}
 		// Set 0 to lineCount if buffer is empty
 		if len(line) == 0 {
@@ -197,7 +197,7 @@ func (b *Buf) lineCount() (int, error) {
 func (b *Buf) Write(p []byte) (int, error) {
 	lineCount, err := b.lineCount()
 	if err != nil {
-		return 0, errors.Annotate(err, pkgBuffer)
+		return 0, errors.Wrap(err, pkgBuffer)
 	}
 
 	buf := bytes.NewBuffer(p)
@@ -210,7 +210,7 @@ func (b *Buf) Write(p []byte) (int, error) {
 func (b *Buf) WriteString(s string) error {
 	lineCount, err := b.lineCount()
 	if err != nil {
-		return errors.Annotate(err, pkgBuffer)
+		return errors.Wrap(err, pkgBuffer)
 	}
 
 	buf := bytes.NewBufferString(s)
@@ -328,7 +328,7 @@ func ByteOffsetPipe(p *vim.Pipeline, b vim.Buffer, w vim.Window) (int, error) {
 	p.BufferLines(b, 0, -1, true, &byteBuf)
 
 	if err := p.Wait(); err != nil {
-		return 0, errors.Annotate(err, "nvim/buffer.ByteOffsetPipe")
+		return 0, errors.Wrap(err, "nvim/buffer.ByteOffsetPipe")
 	}
 
 	if cursor[0] == 1 {

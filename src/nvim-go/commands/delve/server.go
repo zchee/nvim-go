@@ -10,15 +10,15 @@ import (
 
 	"nvim-go/nvim"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 )
 
 // startServer starts the delve headless server and replace server Stdout & Stderr.
 func (d *Delve) startServer(cmd, path string) error {
 	dlvBin, err := exec.LookPath("dlv")
 	if err != nil {
-		return errors.Annotate(err, pkgDelve)
+		return errors.Wrap(err, pkgDelve)
 	}
 
 	// TODO(zchee): costomizable build flag
@@ -31,7 +31,7 @@ func (d *Delve) startServer(cmd, path string) error {
 	if err := d.server.Start(); err != nil {
 		err = errors.New(d.serverOut.String())
 		d.serverOut.Reset()
-		return errors.Annotate(err, "delve/server.startServer")
+		return errors.Wrap(err, "delve/server.startServer")
 	}
 
 	return nil
@@ -54,7 +54,7 @@ func (d *Delve) waitServer(v *vim.Vim) error {
 	}
 
 	if err := d.setupDelve(v); err != nil {
-		return errors.Annotate(err, "delve/server.waitServer")
+		return errors.Wrap(err, "delve/server.waitServer")
 	}
 
 	return d.printTerminal("", []byte("Type 'help' for list of commands."))

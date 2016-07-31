@@ -26,6 +26,7 @@ _testmain.go
 # neovim go rplugin
 bin
 pkg
+!vendor/src/github.com/pkg
 
 # workaround for github.com/pkg
 !test/testdata/gb/gsftp/vendor/src/github.com/pkg/

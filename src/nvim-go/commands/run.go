@@ -14,7 +14,7 @@ import (
 	"nvim-go/nvim/terminal"
 	"nvim-go/pathutil"
 
-	"github.com/juju/errors"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -35,7 +35,7 @@ func (c *Commands) cmdRun(args []string, file string) {
 func (c *Commands) cmdRunLast(file string) {
 	if len(lastCmd) == 0 {
 		err := errors.New("not found GoRun last arguments")
-		nvim.ErrorWrap(c.v, errors.Annotate(err, "GoRun"))
+		nvim.ErrorWrap(c.v, errors.Wrap(err, "GoRun"))
 		return
 	}
 

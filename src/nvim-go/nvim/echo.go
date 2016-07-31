@@ -10,8 +10,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -47,19 +47,27 @@ func Echoerr(v *vim.Vim, format string, a ...interface{}) error {
 	return v.Command("echoerr '" + fmt.Sprintf(format, a...) + "'")
 }
 
-// ErrorWrap splits the errors.Annotate's cause and error messages,
+type stackTracer interface {
+	StackTrace() errors.StackTrace
+}
+
+// ErrorWrap splits the errors.Wrap's cause and error messages,
 // and provide the vim 'echo' message with 'echohl' highlighting to cause text.
 func ErrorWrap(v *vim.Vim, err error) error {
 	if err == nil {
 		return nil
 	}
 	v.Command("redraw")
-	er := strings.SplitAfterN(fmt.Sprintf("%s", err), ": ", 2)
+	er := strings.SplitAfterN(err.Error(), ": ", 2)
 	if strings.Contains(er[1], `"`) {
 		er[1] = strings.Replace(er[1], `"`, "", -1)
 	}
 	if os.Getenv("NVIM_GO_DEBUG") != "" {
-		log.Printf("Error stack\n%s", errors.ErrorStack(err))
+		err, ok := errors.Cause(err).(stackTracer)
+		if ok {
+			st := err.StackTrace()
+			log.Printf("Error stack%+v", st[:])
+		}
 	}
 	return v.Command("echo \"" + er[0] + "\" | echohl " + ErrorColor + " | echon \"" + er[1] + "\" | echohl None")
 }

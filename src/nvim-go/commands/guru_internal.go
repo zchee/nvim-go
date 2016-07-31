@@ -15,7 +15,7 @@ import (
 	"nvim-go/internal/guru"
 	"nvim-go/internal/guru/serial"
 
-	"github.com/juju/errors"
+	"github.com/pkg/errors"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"

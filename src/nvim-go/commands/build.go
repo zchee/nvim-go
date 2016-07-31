@@ -17,8 +17,8 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 )
 
 const pkgBuild = "GoBuild"
@@ -55,7 +55,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 
 	cmd, err := c.compileCmd(bang, eval.Cwd)
 	if err != nil {
-		return errors.Annotate(err, pkgBuild)
+		return errors.Wrap(err, pkgBuild)
 	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -63,7 +63,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	if buildErr := cmd.Run(); buildErr != nil && buildErr.(*exec.ExitError) != nil {
 		errlist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
 		if err != nil {
-			return errors.Annotate(err, pkgBuild)
+			return errors.Wrap(err, pkgBuild)
 		}
 		return errlist
 	}

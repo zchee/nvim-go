@@ -9,8 +9,8 @@ import (
 	"nvim-go/nvim"
 	"time"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 )
 
 // Fade represents a Fade highlighting.
@@ -44,14 +44,14 @@ func NewFader(v *vim.Vim, buffer vim.Buffer, hlGroup string, startLine, endLine,
 func (f *Fade) SetHighlight() error {
 	if f.startLine == f.endLine {
 		if _, err := f.v.AddBufferHighlight(f.buffer, 0, f.hlGroup, f.startLine, f.startCol, f.endCol); err != nil {
-			return nvim.ErrorWrap(f.v, errors.Annotate(err, "highlight.FadeOut"))
+			return nvim.ErrorWrap(f.v, errors.Wrap(err, "highlight.FadeOut"))
 		}
 		return nil
 	}
 
 	for i := f.startLine; i < f.endLine; i++ {
 		if _, err := f.v.AddBufferHighlight(f.buffer, 0, f.hlGroup, f.startLine, f.startCol, f.endCol); err != nil {
-			return nvim.ErrorWrap(f.v, errors.Annotate(err, "highlight.FadeOut"))
+			return nvim.ErrorWrap(f.v, errors.Wrap(err, "highlight.FadeOut"))
 		}
 	}
 	return nil

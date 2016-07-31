@@ -10,7 +10,7 @@ import (
 	"nvim-go/config"
 	"nvim-go/nvim"
 
-	"github.com/juju/errors"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -26,14 +26,14 @@ func (d *Delve) createDebugBuffer() error {
 	d.p.CurrentBuffer(&d.cb)
 	d.p.CurrentWindow(&d.cw)
 	if err := d.p.Wait(); err != nil {
-		return errors.Annotate(err, "delve/createDebugBuffer")
+		return errors.Wrap(err, "delve/createDebugBuffer")
 	}
 
 	var height, width int
 	d.p.WindowHeight(d.cw, &height)
 	d.p.WindowWidth(d.cw, &width)
 	if err := d.p.Wait(); err != nil {
-		return errors.Annotate(err, "delve/createDebugBuffer")
+		return errors.Wrap(err, "delve/createDebugBuffer")
 	}
 
 	go func() {
@@ -59,7 +59,7 @@ func (d *Delve) createDebugBuffer() error {
 	var err error
 	d.pcSign, err = nvim.NewSign(d.v, "delve_pc", nvim.ProgramCounterSymbol, "delvePCSign", "delvePCLine") // *nvim.Sign
 	if err != nil {
-		return errors.Annotate(err, "delve/createDebugBuffer")
+		return errors.Wrap(err, "delve/createDebugBuffer")
 	}
 
 	return d.p.Wait()

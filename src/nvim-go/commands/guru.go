@@ -30,8 +30,8 @@ import (
 	"nvim-go/nvim/quickfix"
 	"nvim-go/pathutil"
 
-	"github.com/juju/errors"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 	"github.com/ugorji/go/codec"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
@@ -78,7 +78,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
+		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 	}
 
 	guruContext := &build.Default
@@ -90,7 +90,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 
 		c.p.BufferLines(b, 0, -1, true, &buf)
 		if err := c.p.Wait(); err != nil {
-			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
+			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
 
 		overlay[eval.File] = bytes.Join(buf, []byte{'\n'})
@@ -107,7 +107,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	if mode == "definition" {
 		obj, err := definition(&query)
 		if err != nil {
-			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
+			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
 		fname, line, col := quickfix.SplitPos(obj.ObjPos, eval.Cwd)
 		text := obj.Desc
@@ -116,7 +116,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		}
 		c.p.SetWindowCursor(w, [2]int{line, col - 1})
 		if err := c.p.Wait(); err != nil {
-			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
+			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
 		c.p.Command(`lclose`)
 		c.p.Command(`normal! zz`)
@@ -138,7 +138,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	case "go":
 		pkgPath, err := pathutil.PackagePath(dir)
 		if err != nil {
-			return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
+			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
 		query.Scope = []string{strings.TrimPrefix(pkgPath, "src"+string(filepath.Separator))}
 	case "gb":
@@ -151,21 +151,21 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		outputMu.Lock()
 		defer outputMu.Unlock()
 		if loclist, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
-			nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
+			nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
 	}
 	query.Output = output
 
 	nvim.EchoProgress(c.v, pkgGuru, fmt.Sprintf("analysing %s", mode))
 	if err := guru.Run(mode, &query); err != nil {
-		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
+		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 	}
 	defer nvim.ClearMsg(c.v)
 	if len(loclist) == 0 {
 		return fmt.Errorf("%s not fount", mode)
 	}
 	if err := quickfix.SetLoclist(c.v, loclist); err != nil {
-		return nvim.ErrorWrap(c.v, errors.Annotate(err, pkgGuru))
+		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 	}
 
 	// jumpfirst or definition mode
