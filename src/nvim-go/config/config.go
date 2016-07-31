@@ -188,7 +188,7 @@ var (
 )
 
 // GetConfig gets the user config variables and convert to global varialble.
-func GetConfig(v *vim.Vim, cfg *Config) {
+func Get(v *vim.Vim, cfg *Config) {
 	// Client
 	ChannelID = cfg.Global.ChannelID
 	ServerName = cfg.Global.ServerName

@@ -27,7 +27,7 @@ func vimEnter(v *vim.Vim, cfg *config.Config) (err error) {
 		return err
 	}
 
-	config.GetConfig(v, cfg)
+	config.Get(v, cfg)
 
 	if config.DebugPprof {
 		addr := "127.0.0.1:6060"

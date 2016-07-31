@@ -30,8 +30,8 @@ func Register(p *plugin.Plugin, ctxt *context.Context, c *commands.Commands) {
 	autocmd.ctxt = ctxt
 	autocmd.c = c
 
-	autocmd.bufWritePreChan = make(chan interface{}, 2)
-	autocmd.bufWritePostChan = make(chan error, 2)
+	autocmd.bufWritePreChan = make(chan interface{})
+	autocmd.bufWritePostChan = make(chan error)
 
 	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p')]"}, autocmd.cmdBufWritePre)
 	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h')]"}, autocmd.cmdBufWritePost)

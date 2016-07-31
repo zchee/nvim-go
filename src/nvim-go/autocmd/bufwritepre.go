@@ -34,12 +34,8 @@ func (a *Autocmd) bufWritePre(v *vim.Vim, eval *bufWritePreEval) {
 	}
 
 	if config.FmtAutosave {
-		a.wg.Add(1)
 		go func() {
-			defer a.wg.Done()
 			a.bufWritePreChan <- a.c.Fmt(dir)
 		}()
 	}
-
-	a.wg.Wait()
 }
