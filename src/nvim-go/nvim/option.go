@@ -53,6 +53,6 @@ const (
 	FiletypeDelve    = "delve"
 	FiletypeGas      = "gas"
 	FiletypeGo       = "go"
+	FiletypeSh       = "sh"
 	FiletypeTerminal = "terminal"
-	FiletypeAnalyze  = "goanalyze"
 )
