@@ -43,24 +43,20 @@ func NewContext() *Context {
 }
 
 // buildContext return the new build context estimated from the path p directory structure.
-func (ctxt *Context) buildContext(p string) build.Context {
-	buildContext := build.Default
-
+func (ctxt *Context) buildContext(p string, defaultContext build.Context) build.Context {
 	ctxt.Build.Tool = "go"
 	ctxt.Build.ProjectRoot, _ = pathutil.PackagePath(p)
-	// Get original $GOPATH path.
-	buildContext.GOPATH = os.Getenv("GOPATH")
 
 	// Check the path p are Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
 	if gbpath, ok := pathutil.IsGb(filepath.Clean(p)); ok {
 		ctxt.Build.Tool = "gb"
 		ctxt.Build.ProjectRoot = gbpath
-		buildContext.JoinPath = ctxt.Build.GbJoinPath
-		buildContext.GOPATH = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")
+		defaultContext.JoinPath = ctxt.Build.GbJoinPath
+		defaultContext.GOPATH = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")
 	}
 
-	return buildContext
+	return defaultContext
 }
 
 // contextMu Mutex lock for SetContext.
@@ -76,7 +72,7 @@ func (ctxt *Context) SetContext(p string) func() {
 	contextMu.Lock()
 	original := build.Default
 
-	build.Default = ctxt.buildContext(p)
+	build.Default = ctxt.buildContext(p, original)
 	os.Setenv("GOPATH", build.Default.GOPATH)
 
 	return func() {
