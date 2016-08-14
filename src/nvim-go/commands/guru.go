@@ -18,7 +18,6 @@ import (
 	"go/token"
 	"go/types"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
@@ -58,7 +57,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		return guruHelp(c.v, mode)
 	}
 
-	dir, _ := filepath.Split(eval.File)
+	dir := filepath.Dir(eval.File)
 	defer c.ctxt.SetContext(dir)()
 
 	defer func() {
@@ -140,9 +139,10 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		if err != nil {
 			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
-		query.Scope = []string{strings.TrimPrefix(pkgID, "src"+string(filepath.Separator))}
+		query.Scope = append(query.Scope, pkgID)
 	case "gb":
-		query.Scope = []string{pathutil.GbProjectName(c.ctxt.Build.ProjectRoot) + string(filepath.Separator) + "..."}
+		scope := pathutil.GbProjectName(c.ctxt.Build.ProjectRoot) + string(filepath.Separator) + "..."
+		query.Scope = append(query.Scope, scope)
 	}
 
 	var outputMu sync.Mutex
