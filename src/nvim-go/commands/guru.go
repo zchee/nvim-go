@@ -136,11 +136,11 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 
 	switch c.ctxt.Build.Tool {
 	case "go":
-		pkgPath, err := pathutil.PackagePath(dir)
+		pkgID, err := pathutil.PackageID(dir)
 		if err != nil {
 			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
-		query.Scope = []string{strings.TrimPrefix(pkgPath, "src"+string(filepath.Separator))}
+		query.Scope = []string{strings.TrimPrefix(pkgID, "src"+string(filepath.Separator))}
 	case "gb":
 		query.Scope = []string{pathutil.GbProjectName(c.ctxt.Build.ProjectRoot) + string(filepath.Separator) + "..."}
 	}
