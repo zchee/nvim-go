@@ -412,19 +412,21 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		})
 
 	case "implements":
-		var value = serial.Implements{}
-		err := dec.Decode(&value)
+		var typ = serial.Implements{}
+		err := dec.Decode(&typ)
 		if err != nil {
 			return loclist, err
 		}
-		fname, line, col := quickfix.SplitPos(value.T.Pos, cwd)
-		text = value.T.Kind + " " + value.T.Name
-		loclist = append(loclist, &vim.QuickfixError{
-			FileName: fname,
-			LNum:     line,
-			Col:      col,
-			Text:     text,
-		})
+		for _, value := range typ.AssignableFromPtr {
+			fname, line, col := quickfix.SplitPos(value.Pos, cwd)
+			text = value.Kind + " " + value.Name
+			loclist = append(loclist, &vim.QuickfixError{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     text,
+			})
+		}
 
 	case "peers":
 		var value = serial.Peers{}
