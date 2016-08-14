@@ -49,8 +49,6 @@ func PackagePath(dir string) (string, error) {
 //  return "github.com/pkg/errors", nil
 // TODO(zchee): duplicate function behavior of PackagePath.
 func PackageID(dir string) (string, error) {
-	dir = filepath.Clean(dir)
-
 	savePkg := new(build.Package)
 	for {
 		// Get the current files package information
@@ -63,10 +61,10 @@ func PackageID(dir string) (string, error) {
 			return "", errors.Wrap(err, pkgPathutil)
 		}
 
-		if pkg.IsCommand() {
-			return pkg.ImportPath, nil
-		} else if savePkg.Name != "" && pkg.Name != savePkg.Name {
+		if savePkg.Name != "" && pkg.Name != savePkg.Name {
 			return savePkg.ImportPath, nil
+		} else if pkg.IsCommand() {
+			return pkg.ImportPath, nil
 		}
 
 		if dir == "/" {
