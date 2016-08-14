@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestBuildContext_PackagePath(t *testing.T) {
+func TestBuildContext_PackageID(t *testing.T) {
 	type fields struct {
 		Tool        string
 		ProjectRoot string
@@ -37,7 +37,7 @@ func TestBuildContext_PackagePath(t *testing.T) {
 		case "gb":
 			build.Default.GOPATH = fmt.Sprintf("%s:%s/vendor", projectRoot, projectRoot)
 		}
-		got, err := PackagePath(tt.args.dir)
+		got, err := PackageID(tt.args.dir)
 		if (err != nil) != tt.wantErr {
 			t.Errorf("%q. BuildContext.PackagePath(%v) error = %v, wantErr %v", tt.name, tt.args.dir, err, tt.wantErr)
 			continue
