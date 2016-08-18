@@ -27,20 +27,6 @@ func TestCommands_Build(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nvim-go projectRoot",
-			fields: fields{
-				v:    testVim(t, projectRoot),
-				ctxt: context.NewContext(),
-			},
-			args: args{
-				eval: &CmdBuildEval{
-					Cwd: projectRoot,
-					Dir: projectRoot,
-				},
-			},
-			wantErr: false,
-		},
-		{
 			name: "nvim-go Dir: filepath.Join(projectRoot, \"src/nvim-go/commands\")",
 			fields: fields{
 				v:    testVim(t, projectRoot),
