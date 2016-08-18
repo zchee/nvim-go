@@ -92,10 +92,12 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 	}
 
 	// TODO(zchee): More elegant way
+	// save original stdout and stderr
 	saveStdout, saveStderr := os.Stdout, os.Stderr
-	os.Stderr = os.Stdout
 	read, write, _ := os.Pipe()
-	os.Stdout, os.Stderr = write, write
+	// migrate stderr and stdout
+	os.Stderr = os.Stdout
+	os.Stderr = write
 	defer func() {
 		os.Stderr = saveStdout
 		os.Stderr = saveStderr
@@ -103,10 +105,15 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 
 	if err := rename.Main(&build.Default, pos, "", renameTo); err != nil {
 		write.Close()
-		er, _ := ioutil.ReadAll(read)
-		log.Printf("er: %+v\n", string(er))
+		renameErr, err := ioutil.ReadAll(read)
+		if err != nil {
+			err = errors.Wrap(err, pkgRename)
+			return nvim.ErrorWrap(c.v, err)
+		}
+
+		log.Printf("er: %+v\n", string(renameErr))
 		go func() {
-			loclist, _ := quickfix.ParseError(er, eval.Cwd, &c.ctxt.Build)
+			loclist, _ := quickfix.ParseError(renameErr, eval.Cwd, &c.ctxt.Build)
 			quickfix.SetLoclist(c.v, loclist)
 			quickfix.OpenLoclist(c.v, w, loclist, true)
 		}()
