@@ -23,6 +23,7 @@ import (
 
 	"github.com/golang/lint"
 	"github.com/neovim-go/vim"
+	"github.com/pkg/errors"
 )
 
 const pkgLint = "GoLint"
@@ -69,7 +70,11 @@ func (c *Commands) Lint(args []string, file string) ([]*vim.QuickfixError, error
 			var rootDir string
 			switch c.ctxt.Build.Tool {
 			case "go":
-				rootDir = c.ctxt.Build.ProjectRoot
+				root, err := pathutil.PackageID(c.ctxt.Build.ProjectRoot)
+				if err != nil {
+					return nil, errors.Wrap(err, pkgLint)
+				}
+				rootDir = root
 			case "gb":
 				rootDir = filepath.Base(c.ctxt.Build.ProjectRoot)
 			}
