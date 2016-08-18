@@ -27,6 +27,9 @@ nnoremap <silent><Plug>(nvim-go-whicherrs)     :<C-u>call GoGuru('whicherrs')<CR
 " GoIferr
 nnoremap <silent><Plug>(nvim-go-iferr)  :<C-u>GoIferr<CR>
 
+" GoLint
+nnoremap <silent><Plug>(nvim-go-lint)  :<C-u>Golint<CR>
+
 " GoMetaLinker
 nnoremap <silent><Plug>(nvim-go-metalinter)  :<C-u>Gometalinter<CR>
 
@@ -40,6 +43,9 @@ nnoremap <silent><Plug>(nvim-go-rename)  :<C-u>Gorename<CR>
 " GoRun
 nnoremap <silent><Plug>(nvim-go-run)      :<C-u>Gorun<CR>
 nnoremap <silent><Plug>(nvim-go-runlast)  :<C-u>GorunLast<CR>
+
+" GoVet
+nnoremap <silent><Plug>(nvim-go-vet)  :<C-u>Govet<CR>
 
 
 " Dlv
