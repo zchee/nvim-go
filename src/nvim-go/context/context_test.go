@@ -59,7 +59,7 @@ func TestContext_buildContext(t *testing.T) {
 			Build:   tt.fields.Build,
 			Errlist: tt.fields.Errlist,
 		}
-		if got := ctxt.buildContext(tt.args.p); !reflect.DeepEqual(got, tt.want) {
+		if got := ctxt.buildContext(tt.args.p, build.Default); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%q. Context.buildContext(%v) = %v, want %v", tt.name, tt.args.p, got, tt.want)
 		}
 	}
