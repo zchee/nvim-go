@@ -9,14 +9,12 @@ machine:
 dependencies:
   cache_directories:
     - "~/docker"
-  override:
-    - echo 0
 
 test:
   override:
     - docker version
     - docker info
-    - if [[ -e ~/docker/golang_1.7rc1.tar ]]; then docker load -i ~/docker/golang_1.7rc1.tar; fi
+    - if [[ -e ~/docker/golang_1.7.0.tar ]]; then docker load -i ~/docker/golang_1.7.0.tar; fi
     - docker build --rm -t "zchee/nvim-go:latest" .
-    - mkdir -p ~/docker; docker save golang:1.7rc1 > ~/docker/golang_1.7rc1.tar
+    - mkdir -p ~/docker; docker save golang:1.7.0 > ~/docker/golang_1.7.0.tar
     - docker run --rm "zchee/nvim-go:latest"

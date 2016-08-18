@@ -1,4 +1,4 @@
-FROM golang:1.7rc1
+FROM golang:1.7.0
 MAINTAINER Koichi Shiraishi <k@zchee.io>
 
 ENV VIM=/usr/local/share/nvim
