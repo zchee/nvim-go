@@ -12,7 +12,7 @@ import (
 )
 
 // PackagePath returns the package full directory path estimated from the path p directory structure.
-//  return "github.com/pkg/errors", nil
+// return "/Users/zchee/go/src/github.com/pkg/errors", nil
 // TODO(zchee): duplicate function behavior of PackageID.
 func PackagePath(dir string) (string, error) {
 	dir = filepath.Clean(dir)
@@ -29,10 +29,10 @@ func PackagePath(dir string) (string, error) {
 			return "", errors.Wrap(err, pkgPathutil)
 		}
 
-		if pkg.IsCommand() {
-			return pkg.Dir, nil
-		} else if savePkg.Name != "" && pkg.Name != savePkg.Name {
+		if savePkg.Name != "" && pkg.Name != savePkg.Name {
 			return savePkg.Dir, nil
+		} else if pkg.IsCommand() {
+			return pkg.Dir, nil
 		}
 
 		if dir == "/" {
