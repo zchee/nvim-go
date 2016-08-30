@@ -7,7 +7,6 @@ package nvim
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/neovim-go/vim"
@@ -57,18 +56,18 @@ func ErrorWrap(v *vim.Vim, err error) error {
 	if err == nil {
 		return nil
 	}
-	v.Command("redraw")
-	er := strings.SplitAfterN(err.Error(), ": ", 2)
-	if strings.Contains(er[1], `"`) {
-		er[1] = strings.Replace(er[1], `"`, "", -1)
-	}
-	if os.Getenv("NVIM_GO_DEBUG") != "" {
-		err, ok := errors.Cause(err).(stackTracer)
+	if IsDebug() {
+		err, ok := err.(stackTracer)
 		if ok {
 			st := err.StackTrace()
 			log.Printf("Error stack%+v", st[:])
 		}
 	}
+	er := strings.SplitAfterN(err.Error(), ": ", 2)
+	if strings.Contains(er[1], `"`) {
+		er[1] = strings.Replace(er[1], `"`, "", -1)
+	}
+	v.Command("redraw")
 	return v.Command("echo \"" + er[0] + "\" | echohl " + ErrorColor + " | echon \"" + er[1] + "\" | echohl None")
 }
 
