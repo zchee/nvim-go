@@ -427,6 +427,16 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 				Text:     text,
 			})
 		}
+		for _, value := range typ.AssignableFromPtr {
+			fname, line, col := quickfix.SplitPos(value.Pos, cwd)
+			text = value.Kind + " " + value.Name
+			loclist = append(loclist, &vim.QuickfixError{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     text,
+			})
+		}
 
 	case "peers":
 		var value = serial.Peers{}
