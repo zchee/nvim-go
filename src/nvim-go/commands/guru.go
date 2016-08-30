@@ -417,7 +417,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		if err != nil {
 			return loclist, err
 		}
-		for _, value := range typ.AssignableFromPtr {
+		for _, value := range typ.AssignableFrom {
 			fname, line, col := quickfix.SplitPos(value.Pos, cwd)
 			text = value.Kind + " " + value.Name
 			loclist = append(loclist, &vim.QuickfixError{
