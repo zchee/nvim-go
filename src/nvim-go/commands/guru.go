@@ -16,6 +16,7 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"log"
 	"path/filepath"
 	"sync"
 	"time"
@@ -315,6 +316,9 @@ func definitionFallback(q *guru.Query, c chan fallback) {
 
 // TODO(zchee): Should not use json.
 func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*vim.QuickfixError, error) {
+	if nvim.IsDebug() {
+		log.Printf("data: %+s", string(data))
+	}
 	var (
 		loclist []*vim.QuickfixError
 		fname   string
