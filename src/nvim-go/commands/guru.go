@@ -133,17 +133,18 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		return c.p.Wait()
 	}
 
+	var scope string
 	switch c.ctxt.Build.Tool {
 	case "go":
 		pkgID, err := pathutil.PackageID(dir)
 		if err != nil {
 			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
-		query.Scope = append(query.Scope, pkgID)
+		scope = pkgID
 	case "gb":
-		scope := pathutil.GbProjectName(c.ctxt.Build.ProjectRoot) + string(filepath.Separator) + "..."
-		query.Scope = append(query.Scope, scope)
+		scope = pathutil.GbProjectName(c.ctxt.Build.ProjectRoot)
 	}
+	query.Scope = append(query.Scope, filepath.Join(scope, "..."))
 
 	var outputMu sync.Mutex
 	output := func(fset *token.FileSet, qr guru.QueryResult) {
