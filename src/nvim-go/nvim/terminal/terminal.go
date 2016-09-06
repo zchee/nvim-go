@@ -13,7 +13,6 @@ import (
 	"nvim-go/pathutil"
 
 	"github.com/neovim-go/vim"
-	"github.com/pkg/errors"
 )
 
 var pkgTerminal = "GoTerminal"
@@ -63,8 +62,7 @@ func (t *Terminal) Create() (err error) {
 	case t.mode == "vsplit":
 		t.Size = int(config.TerminalWidth)
 	default:
-		err := errors.Errorf("%s mode is not supported", t.mode)
-		return nvim.ErrorWrap(t.v, errors.Wrap(err, pkgTerminal))
+		// nothing to do
 	}
 
 	option := t.setTerminalOption()
