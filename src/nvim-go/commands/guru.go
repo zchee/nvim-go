@@ -160,10 +160,11 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	if err := guru.Run(mode, &query); err != nil {
 		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 	}
-	defer nvim.ClearMsg(c.v)
 	if len(loclist) == 0 {
 		return fmt.Errorf("%s not fount", mode)
 	}
+
+	defer nvim.ClearMsg(c.v)
 	if err := quickfix.SetLoclist(c.v, loclist); err != nil {
 		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 	}
