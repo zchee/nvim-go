@@ -119,6 +119,19 @@ type EncodeOptions struct {
 	// This is opt-in, as there may be a performance hit to checking circular references.
 	CheckCircularRef bool
 
+	// RecursiveEmptyCheck controls whether we descend into interfaces, structs and pointers
+	// when checking if a value is empty.
+	//
+	// Note that this may make OmitEmpty more expensive, as it incurs a lot more reflect calls.
+	RecursiveEmptyCheck bool
+
+	// Raw controls whether we encode Raw values.
+	// This is a "dangerous" option and must be explicitly set.
+	// If set, we blindly encode Raw values as-is, without checking
+	// if they are a correct representation of a value in that format.
+	// If unset, we error out.
+	Raw bool
+
 	// AsSymbols defines what should be encoded as symbols.
 	//
 	// Encoding as symbols can reduce the encoded size significantly.
@@ -280,6 +293,10 @@ type encFnInfo struct {
 
 func (f *encFnInfo) builtin(rv reflect.Value) {
 	f.e.e.EncodeBuiltin(f.ti.rtid, rv.Interface())
+}
+
+func (f *encFnInfo) raw(rv reflect.Value) {
+	f.e.raw(rv.Interface().(Raw))
 }
 
 func (f *encFnInfo) rawExt(rv reflect.Value) {
@@ -524,20 +541,20 @@ func (f *encFnInfo) kStruct(rv reflect.Value) {
 	}
 	newlen = 0
 	var kv stringRv
+	recur := e.h.RecursiveEmptyCheck
 	for _, si := range tisfi {
 		kv.r = si.field(rv, false)
 		if toMap {
-			if si.omitEmpty && isEmptyValue(kv.r) {
+			if si.omitEmpty && isEmptyValue(kv.r, recur, recur) {
 				continue
 			}
 			kv.v = si.encName
 		} else {
 			// use the zero value.
 			// if a reference or struct, set to nil (so you do not output too much)
-			if si.omitEmpty && isEmptyValue(kv.r) {
+			if si.omitEmpty && isEmptyValue(kv.r, recur, recur) {
 				switch kv.r.Kind() {
-				case reflect.Struct, reflect.Interface, reflect.Ptr, reflect.Array,
-					reflect.Map, reflect.Slice:
+				case reflect.Struct, reflect.Interface, reflect.Ptr, reflect.Array, reflect.Map, reflect.Slice:
 					kv.r = reflect.Value{} //encode as nil
 				}
 			}
@@ -1067,7 +1084,8 @@ func (e *Encoder) encode(iv interface{}) {
 		e.e.EncodeNil()
 	case Selfer:
 		v.CodecEncodeSelf(e)
-
+	case Raw:
+		e.raw(v)
 	case reflect.Value:
 		e.encodeValue(v, nil)
 
@@ -1252,6 +1270,8 @@ func (e *Encoder) getEncFn(rtid uintptr, rt reflect.Type, checkFastpath, checkCo
 
 	if checkCodecSelfer && ti.cs {
 		fn.f = (*encFnInfo).selferMarshal
+	} else if rtid == rawTypId {
+		fn.f = (*encFnInfo).raw
 	} else if rtid == rawExtTypId {
 		fn.f = (*encFnInfo).rawExt
 	} else if e.e.IsBuiltinType(rtid) {
@@ -1349,6 +1369,18 @@ func (e *Encoder) marshal(bs []byte, fnerr error, asis bool, c charEncoding) {
 }
 
 func (e *Encoder) asis(v []byte) {
+	if e.as == nil {
+		e.w.writeb(v)
+	} else {
+		e.as.EncodeAsis(v)
+	}
+}
+
+func (e *Encoder) raw(vv Raw) {
+	v := []byte(vv)
+	if !e.h.Raw {
+		e.errorf("Raw values cannot be encoded: %v", v)
+	}
 	if e.as == nil {
 		e.w.writeb(v)
 	} else {

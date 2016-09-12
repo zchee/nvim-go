@@ -14,10 +14,10 @@ import (
 	"strings"
 	"sync"
 
-	"golang.org/x/debug/dwarf"
 	"github.com/derekparker/delve/dwarf/frame"
 	"github.com/derekparker/delve/dwarf/line"
 	"github.com/derekparker/delve/dwarf/reader"
+	"golang.org/x/debug/dwarf"
 )
 
 // Process represents all of the information the debugger
@@ -78,6 +78,11 @@ func New(pid int) *Process {
 		os:             new(OSProcessDetails),
 		ptraceChan:     make(chan func()),
 		ptraceDoneChan: make(chan interface{}),
+	}
+	// TODO: find better way to determine proc arch (perhaps use executable file info)
+	switch runtime.GOARCH {
+	case "amd64":
+		dbp.arch = AMD64Arch()
 	}
 	go dbp.handlePtraceFuncs()
 	return dbp
@@ -702,11 +707,6 @@ func initializeDebugProcess(dbp *Process, path string, attach bool) (*Process, e
 	err = dbp.LoadInformation(path)
 	if err != nil {
 		return nil, err
-	}
-
-	switch runtime.GOARCH {
-	case "amd64":
-		dbp.arch = AMD64Arch()
 	}
 
 	if err := dbp.updateThreadList(); err != nil {
