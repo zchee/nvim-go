@@ -123,12 +123,6 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/motemen/go-iferr",
-			"repository": "https://github.com/motemen/go-iferr",
-			"revision": "a52028a70bbb348075c03a4c09c9597baa50253c",
-			"branch": "master"
-		},
-		{
 			"importpath": "github.com/neovim-go/msgpack",
 			"repository": "https://github.com/neovim-go/msgpack",
 			"revision": "b8a9f492dc4eaa3c3d58ae6764af642f5331f0d2",
