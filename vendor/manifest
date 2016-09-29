@@ -123,15 +123,9 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/neovim-go/msgpack",
-			"repository": "https://github.com/neovim-go/msgpack",
-			"revision": "b8a9f492dc4eaa3c3d58ae6764af642f5331f0d2",
-			"branch": "master"
-		},
-		{
-			"importpath": "github.com/neovim-go/vim",
-			"repository": "https://github.com/neovim-go/vim",
-			"revision": "1e4217641f89197e36ecc0fbcf62d8c07e2d72b7",
+			"importpath": "github.com/neovim/go-client",
+			"repository": "https://github.com/neovim/go-client",
+			"revision": "e03b4546e4f74dbe31c6591d897bc707ead0b8f4",
 			"branch": "master"
 		},
 		{
