@@ -5,6 +5,8 @@
 nvim-go original behavior
 =========================
 
+-	[ ] Implements `echo` error & warning message when move cursor to this line
+
 Compile error
 -------------
 
@@ -15,7 +17,6 @@ Compile error
 	-	[x] `GoTest`
 	-	[ ] `GoLint`
 -	[ ] Implements highlight `sign` to error & warning (like YCM, vim-flake8)
--	[ ] Implements `echo` error & warning message when move cursor to this line
 
 `GoAnalyze`
 -----------
@@ -66,16 +67,6 @@ https://blog.gopheracademy.com/advent-2015/debugging-with-delve/
 	-	https://github.com/Microsoft/vscode-go
 -	Ref: go-debug - go debugger for atom
 	-	https://github.com/lloiser/go-debug
-
-`lldb` debugging
-----------------
-
-http://ribrdb.github.io/lldb/
-
--	[ ] Debugging use lldb for cgo and more low level debug
--	[ ] Use lldb bindings for Go
--	[ ] Needs create `go-lldb` package
--	[ ] Set breakpoint with `sign` and key mapping
 
 Full cgo support
 ----------------
