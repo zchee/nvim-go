@@ -8,12 +8,12 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 func TestCommands_Build(t *testing.T) {
 	type fields struct {
-		v    *vim.Vim
+		v    *vim.Nvim
 		ctxt *context.Context
 	}
 	type args struct {
@@ -128,7 +128,7 @@ func BenchmarkBuildGb(b *testing.B) {
 
 func TestCommands_compileCmd(t *testing.T) {
 	type fields struct {
-		Vim  *vim.Vim
+		Vim  *vim.Nvim
 		ctxt *context.Context
 	}
 	type args struct {

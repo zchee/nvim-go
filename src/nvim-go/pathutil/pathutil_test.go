@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 	astdumpMain = filepath.Join(astdump, "astdump.go")
 )
 
-func testVim(t *testing.T, file string) *vim.Vim {
+func testVim(t *testing.T, file string) *vim.Nvim {
 	tmpdir := filepath.Join(os.TempDir(), "nvim-go-test")
 	setXDGEnv(tmpdir)
 	defer os.RemoveAll(tmpdir)
@@ -57,7 +57,7 @@ func setXDGEnv(tmpdir string) {
 
 func TestChdir(t *testing.T) {
 	type args struct {
-		v   *vim.Vim
+		v   *vim.Nvim
 		dir string
 	}
 	tests := []struct {

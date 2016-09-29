@@ -7,14 +7,14 @@ import (
 
 	"nvim-go/context"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 var testLintDir = filepath.Join(testGoPath, "src", "lint")
 
 func TestCommands_Lint(t *testing.T) {
 	type fields struct {
-		v    *vim.Vim
+		v    *vim.Nvim
 		p    *vim.Pipeline
 		ctxt *context.Context
 	}
@@ -66,7 +66,7 @@ func TestCommands_Lint(t *testing.T) {
 	for _, tt := range tests {
 		ctxt := context.NewContext()
 		c := NewCommands(tt.fields.v, ctxt)
-		c.v.ChangeDirectory(filepath.Dir(tt.args.file))
+		c.v.SetCurrentDirectory(filepath.Dir(tt.args.file))
 
 		got, err := c.Lint(tt.args.args, tt.args.file)
 		if (err != nil) != tt.wantErr {
@@ -82,7 +82,7 @@ func TestCommands_Lint(t *testing.T) {
 
 func TestCommands_cmdLintComplete(t *testing.T) {
 	type fields struct {
-		v    *vim.Vim
+		v    *vim.Nvim
 		p    *vim.Pipeline
 		ctxt *context.Context
 	}

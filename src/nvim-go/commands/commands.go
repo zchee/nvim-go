@@ -7,18 +7,18 @@ package commands
 import (
 	"nvim-go/context"
 
-	"github.com/neovim-go/vim"
-	"github.com/neovim-go/vim/plugin"
+	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim/plugin"
 )
 
 type Commands struct {
-	v *vim.Vim
+	v *vim.Nvim
 	p *vim.Pipeline
 
 	ctxt *context.Context
 }
 
-func NewCommands(v *vim.Vim, ctxt *context.Context) *Commands {
+func NewCommands(v *vim.Nvim, ctxt *context.Context) *Commands {
 	return &Commands{
 		v:    v,
 		ctxt: ctxt,
@@ -26,7 +26,7 @@ func NewCommands(v *vim.Vim, ctxt *context.Context) *Commands {
 }
 
 func Register(p *plugin.Plugin, ctxt *context.Context) *Commands {
-	c := NewCommands(p.Vim, ctxt)
+	c := NewCommands(p.Nvim, ctxt)
 
 	// Register command and function
 	p.HandleCommand(&plugin.CommandOptions{Name: "Gobuild", Bang: true, Eval: "[getcwd(), expand('%:p:h')]"}, c.cmdBuild)

@@ -22,13 +22,13 @@ import (
 	"nvim-go/pathutil"
 
 	"github.com/golang/lint"
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
 const pkgLint = "GoLint"
 
-func (c *Commands) cmdLint(v *vim.Vim, args []string, file string) {
+func (c *Commands) cmdLint(v *vim.Nvim, args []string, file string) {
 	// Cleanup error list
 	delete(c.ctxt.Errlist, "Lint")
 

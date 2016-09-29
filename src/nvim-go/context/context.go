@@ -12,7 +12,7 @@ import (
 
 	"nvim-go/pathutil"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"golang.org/x/net/context"
 )
 

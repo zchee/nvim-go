@@ -7,12 +7,12 @@ import (
 
 	"nvim-go/context"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 func TestCommands_Vet(t *testing.T) {
 	type fields struct {
-		v    *vim.Vim
+		v    *vim.Nvim
 		p    *vim.Pipeline
 		ctxt *context.Context
 	}

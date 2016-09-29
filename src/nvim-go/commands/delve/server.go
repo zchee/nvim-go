@@ -10,7 +10,7 @@ import (
 
 	"nvim-go/nvim"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
@@ -40,7 +40,7 @@ func (d *Delve) startServer(cmd, path string) error {
 // waitServer Waits for dlv launch the headless server.
 // `net.Dial` is better way?
 // http://stackoverflow.com/a/30838807/5228839
-func (d *Delve) waitServer(v *vim.Vim) error {
+func (d *Delve) waitServer(v *vim.Nvim) error {
 	defer nvim.EchohlAfter(v, "Delve", nvim.ProgressColor, "Ready")
 	nvim.EchoProgress(v, "Delve", "Wait for running dlv server")
 

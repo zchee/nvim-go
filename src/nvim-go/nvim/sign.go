@@ -7,7 +7,7 @@ package nvim
 import (
 	"fmt"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
@@ -37,7 +37,7 @@ type Sign struct {
 }
 
 // NewSign define new sign and return the Sign type structure.
-func NewSign(v *vim.Vim, name, text, texthl, linehl string) (*Sign, error) {
+func NewSign(v *vim.Nvim, name, text, texthl, linehl string) (*Sign, error) {
 	cmd := fmt.Sprintf("sign define %s", name)
 	switch {
 	case text != "":
@@ -63,7 +63,7 @@ func NewSign(v *vim.Vim, name, text, texthl, linehl string) (*Sign, error) {
 }
 
 // Place places the sign to any file.
-func (s *Sign) Place(v *vim.Vim, id, line int, file string, clearLastSign bool) error {
+func (s *Sign) Place(v *vim.Nvim, id, line int, file string, clearLastSign bool) error {
 	if clearLastSign && s.LastID != 0 {
 		place := fmt.Sprintf("sign unplace %d file=%s", s.LastID, file)
 		v.Command(place)
@@ -84,7 +84,7 @@ func (s *Sign) Place(v *vim.Vim, id, line int, file string, clearLastSign bool) 
 }
 
 // Unplace unplace the sign.
-func (s *Sign) Unplace(v *vim.Vim, id int, file string) error {
+func (s *Sign) Unplace(v *vim.Nvim, id int, file string) error {
 	place := fmt.Sprintf("sign unplace %d file=%s", id, file)
 	if err := v.Command(place); err != nil {
 		return errors.Wrap(err, pkgNvimSign)
@@ -94,7 +94,7 @@ func (s *Sign) Unplace(v *vim.Vim, id int, file string) error {
 }
 
 // UnplaceAll unplace all sign on any file.
-func (s *Sign) UnplaceAll(v *vim.Vim, file string) error {
+func (s *Sign) UnplaceAll(v *vim.Nvim, file string) error {
 	place := fmt.Sprintf("sign unplace * file=%s", file)
 	if err := v.Command(place); err != nil {
 		return errors.Wrap(err, pkgNvimSign)

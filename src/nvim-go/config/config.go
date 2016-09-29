@@ -4,7 +4,9 @@
 
 package config
 
-import "github.com/neovim-go/vim"
+import (
+	vim "github.com/neovim/go-client/nvim"
+)
 
 // Config represents a config variable for nvim-go.
 // Each type must be exported for plugin.HandleAutocmd Eval option.
@@ -188,7 +190,7 @@ var (
 )
 
 // GetConfig gets the user config variables and convert to global varialble.
-func Get(v *vim.Vim, cfg *Config) {
+func Get(v *vim.Nvim, cfg *Config) {
 	// Client
 	ChannelID = cfg.Global.ChannelID
 	ServerName = cfg.Global.ServerName

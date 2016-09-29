@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +19,7 @@ const pkgBuffer = "nvim.buffer"
 // Buf represents a Neovim buffer.
 // TODO(zchee): Ugly type name because of a conflict in vim.Buffer.
 type Buf struct {
-	v *vim.Vim
+	v *vim.Nvim
 	p *vim.Pipeline
 
 	vim.Buffer
@@ -34,7 +34,7 @@ type Buf struct {
 }
 
 // NewBuffer return the new Buf instance with goroutine pipeline.
-func NewBuffer(v *vim.Vim) *Buf {
+func NewBuffer(v *vim.Nvim) *Buf {
 	return &Buf{
 		v: v,
 		p: v.NewPipeline(),
@@ -66,7 +66,7 @@ func (b *Buf) Create(name, filetype, mode string, option map[NvimOption]map[stri
 		}
 		if option[BufferVar] != nil {
 			for k, op := range option[BufferVar] {
-				b.p.SetBufferVar(b.Buffer, k, op, nil)
+				b.p.SetBufferVar(b.Buffer, k, op)
 			}
 		}
 		if option[WindowOption] != nil {
@@ -76,12 +76,12 @@ func (b *Buf) Create(name, filetype, mode string, option map[NvimOption]map[stri
 		}
 		if option[WindowVar] != nil {
 			for k, op := range option[WindowVar] {
-				b.p.SetWindowVar(b.Window, k, op, nil)
+				b.p.SetWindowVar(b.Window, k, op)
 			}
 		}
 		if option[TabpageVar] != nil {
 			for k, op := range option[TabpageVar] {
-				b.p.SetTabpageVar(b.Tabpage, k, op, nil)
+				b.p.SetTabpageVar(b.Tabpage, k, op)
 			}
 		}
 	}
@@ -233,7 +233,7 @@ func (b *Buf) Reset() { b.Truncate(0) }
 // Utility
 
 // IsBufferValid wrapper of v.IsBufferValid function.
-func IsBufferValid(v *vim.Vim, b vim.Buffer) bool {
+func IsBufferValid(v *vim.Nvim, b vim.Buffer) bool {
 	res, err := v.IsBufferValid(b)
 	if err != nil {
 		return false
@@ -242,7 +242,7 @@ func IsBufferValid(v *vim.Vim, b vim.Buffer) bool {
 }
 
 // BufContains reports whether buffer list is within b.
-func IsBufferContains(v *vim.Vim, b vim.Buffer) bool {
+func IsBufferContains(v *vim.Nvim, b vim.Buffer) bool {
 	bufs, _ := v.Buffers()
 	for _, buf := range bufs {
 		if buf == b {
@@ -253,7 +253,7 @@ func IsBufferContains(v *vim.Vim, b vim.Buffer) bool {
 }
 
 // BufExists reports whether buffer list is within bufnr use vim bufexists function.
-func IsBufExists(v *vim.Vim, bufnr int) bool {
+func IsBufExists(v *vim.Nvim, bufnr int) bool {
 	var res interface{}
 	v.Call("bufexists", &res, bufnr)
 
@@ -262,7 +262,7 @@ func IsBufExists(v *vim.Vim, bufnr int) bool {
 
 // IsVisible reports whether buffer list within buffer that &ft has filetype.
 // Useful for Check qf, preview or any specific buffer is whether the opened.
-func IsVisible(v *vim.Vim, filetype string) bool {
+func IsVisible(v *vim.Nvim, filetype string) bool {
 	buffers, err := v.Buffers()
 	if err != nil {
 		return false
@@ -282,7 +282,7 @@ func IsVisible(v *vim.Vim, filetype string) bool {
 
 // Modifiable sets modifiable to true,
 // The returned function restores modifiable to false.
-func Modifiable(v *vim.Vim, b vim.Buffer) func() {
+func Modifiable(v *vim.Nvim, b vim.Buffer) func() {
 	v.SetBufferOption(b, BufOptionModifiable, true)
 
 	return func() {
@@ -297,7 +297,7 @@ func ToByteSlice(byt [][]byte) []byte { return bytes.Join(byt, []byte{'\n'}) }
 func ToBufferLines(byt []byte) [][]byte { return bytes.Split(byt, []byte{'\n'}) }
 
 // ByteOffset calculates the byte-offset of current cursor position.
-func ByteOffset(v *vim.Vim, b vim.Buffer, w vim.Window) (int, error) {
+func ByteOffset(v *vim.Nvim, b vim.Buffer, w vim.Window) (int, error) {
 	cursor, _ := v.WindowCursor(w)
 	byteBuf, _ := v.BufferLines(b, 0, -1, true)
 

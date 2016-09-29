@@ -14,7 +14,7 @@ import (
 	"nvim-go/commands/delve"
 	"nvim-go/context"
 
-	"github.com/neovim-go/vim/plugin"
+	"github.com/neovim/go-client/nvim/plugin"
 )
 
 func main() {

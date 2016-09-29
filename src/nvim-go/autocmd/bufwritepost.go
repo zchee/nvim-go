@@ -10,7 +10,7 @@ import (
 	"nvim-go/nvim"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 type bufWritePostEval struct {
@@ -18,11 +18,11 @@ type bufWritePostEval struct {
 	Dir string
 }
 
-func (a *Autocmd) cmdBufWritePost(v *vim.Vim, eval *bufWritePostEval) {
+func (a *Autocmd) cmdBufWritePost(v *vim.Nvim, eval *bufWritePostEval) {
 	go a.bufWritePost(v, eval)
 }
 
-func (a *Autocmd) bufWritePost(v *vim.Vim, eval *bufWritePostEval) error {
+func (a *Autocmd) bufWritePost(v *vim.Nvim, eval *bufWritePostEval) error {
 	if config.FmtAutosave {
 		err := <-a.bufWritePreChan
 		switch e := err.(type) {

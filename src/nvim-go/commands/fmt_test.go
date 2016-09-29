@@ -8,12 +8,12 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 func TestCommands_Fmt(t *testing.T) {
 	type fields struct {
-		Vim  *vim.Vim
+		Vim  *vim.Nvim
 		p    *vim.Pipeline
 		ctxt *context.Context
 	}

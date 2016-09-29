@@ -7,13 +7,13 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 // NewSocketClient creates the Neovim client over the socket session.
-func NewSocketClient() *vim.Vim {
+func NewSocketClient() *vim.Nvim {
 	var (
-		v   *vim.Vim
+		v   *vim.Nvim
 		err error
 	)
 
@@ -32,7 +32,7 @@ func NewSocketClient() *vim.Vim {
 }
 
 // NewEmbedClient creates the Neovim client over the embed api.
-func NewEmbedClient(args []string, dir string, env []string) *vim.Vim {
+func NewEmbedClient(args []string, dir string, env []string) *vim.Nvim {
 	options := &vim.EmbedOptions{
 		Args: args,
 		Dir:  dir,
@@ -49,7 +49,7 @@ func NewEmbedClient(args []string, dir string, env []string) *vim.Vim {
 }
 
 // NewStdioClient creates the Neovim client over the stdio.
-func NewStdioClient() *vim.Vim {
+func NewStdioClient() *vim.Nvim {
 	v, err := vim.New(os.Stdin, os.Stdout, os.Stdout, log.Printf)
 	if err != nil {
 		log.Println(err)
@@ -63,7 +63,7 @@ func NewStdioClient() *vim.Vim {
 
 var tcpAddrRe = regexp.MustCompile(`:\d+$`)
 
-func dialNvim(addr string) (*vim.Vim, error) {
+func dialNvim(addr string) (*vim.Nvim, error) {
 	network := "unix"
 	if tcpAddrRe.MatchString(addr) {
 		network = "tcp"

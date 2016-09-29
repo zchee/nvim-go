@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 var (
@@ -24,7 +24,7 @@ var (
 	gsftpMain   = filepath.Join(gsftpRoot, "src", "cmd", "gsftp", "main.go")
 )
 
-func testVim(t *testing.T, file string) *vim.Vim {
+func testVim(t *testing.T, file string) *vim.Nvim {
 	tmpdir := filepath.Join(os.TempDir(), "nvim-go-test")
 	setXDGEnv(tmpdir)
 	defer os.RemoveAll(tmpdir)
@@ -49,7 +49,7 @@ func testVim(t *testing.T, file string) *vim.Vim {
 	return v
 }
 
-func benchVim(b *testing.B, file string) *vim.Vim {
+func benchVim(b *testing.B, file string) *vim.Nvim {
 	tmpdir := filepath.Join(os.TempDir(), "nvim-go-test")
 	setXDGEnv(tmpdir)
 	defer os.RemoveAll(tmpdir)

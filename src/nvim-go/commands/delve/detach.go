@@ -7,15 +7,15 @@ package delve
 import (
 	"log"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
-func (d *Delve) cmdDetach(v *vim.Vim) {
+func (d *Delve) cmdDetach(v *vim.Nvim) {
 	go d.detach(v)
 }
 
-func (d *Delve) detach(v *vim.Vim) error {
+func (d *Delve) detach(v *vim.Nvim) error {
 	defer d.kill()
 	if d.processPid != 0 {
 		err := d.client.Detach(true)

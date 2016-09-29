@@ -14,7 +14,7 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/imports"
 )
@@ -118,7 +118,7 @@ func (c *Commands) Fmt(dir string) interface{} {
 	return c.v.Command("noautocmd write")
 }
 
-func minUpdate(v *vim.Vim, b vim.Buffer, in [][]byte, out [][]byte) error {
+func minUpdate(v *vim.Nvim, b vim.Buffer, in [][]byte, out [][]byte) error {
 	// Find matching head lines.
 	n := len(out)
 	if len(in) < len(out) {

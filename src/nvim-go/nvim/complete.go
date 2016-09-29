@@ -12,11 +12,11 @@ import (
 
 	"nvim-go/pathutil"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 // CompleteFiles provides a "-complete=file" completion exclude the non go files.
-func CompleteFiles(v *vim.Vim, a *vim.CommandCompletionArgs, dir string) (filelist []string, err error) {
+func CompleteFiles(v *vim.Nvim, a *vim.CommandCompletionArgs, dir string) (filelist []string, err error) {
 	switch {
 	case len(a.ArgLead) > 0:
 		a.ArgLead = filepath.Clean(a.ArgLead)

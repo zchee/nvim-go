@@ -19,7 +19,7 @@ import (
 	"nvim-go/nvim/terminal"
 	"nvim-go/pathutil"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"golang.org/x/tools/go/ast/astutil"
 )
 

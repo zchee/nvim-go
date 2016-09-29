@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 
 	"nvim-go/context"
 )

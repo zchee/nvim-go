@@ -29,7 +29,7 @@ import (
 	"nvim-go/nvim/quickfix"
 	"nvim-go/pathutil"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"github.com/ugorji/go/codec"
 	"golang.org/x/tools/go/buildutil"
@@ -316,6 +316,8 @@ func definitionFallback(q *guru.Query, c chan fallback) {
 	return
 }
 
+var null = []byte{110, 117, 108, 108}
+
 // TODO(zchee): Should not use json.
 func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*vim.QuickfixError, error) {
 	if nvim.IsDebug() {
@@ -353,6 +355,10 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		}
 
 	case "callers":
+		if bytes.Equal(data, null) {
+			err := errors.New("not reachable in this program")
+			return nil, err
+		}
 		var value = []serial.Caller{}
 		err := dec.Decode(&value)
 		if err != nil {
@@ -580,7 +586,7 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 	return loclist, nil
 }
 
-func guruHelp(v *vim.Vim, mode string) error {
+func guruHelp(v *vim.Nvim, mode string) error {
 	switch mode {
 	case "callees":
 		return nvim.EchohlBefore(v, "GoGuruCallees", "Function", "Show possible targets of selected function call")

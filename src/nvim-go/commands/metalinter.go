@@ -17,7 +17,7 @@ import (
 	"nvim-go/nvim/quickfix"
 	"nvim-go/pathutil"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 func (c *Commands) cmdMetalinter(cwd string) {

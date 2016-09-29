@@ -9,13 +9,13 @@ import (
 	"nvim-go/nvim"
 	"time"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
 // Fade represents a Fade highlighting.
 type Fade struct {
-	v              *vim.Vim
+	v              *vim.Nvim
 	buffer         vim.Buffer
 	hlGroup        string
 	startLine      int
@@ -27,7 +27,7 @@ type Fade struct {
 }
 
 // NewFader returns a new Fade.
-func NewFader(v *vim.Vim, buffer vim.Buffer, hlGroup string, startLine, endLine, startCol, endCol int, duration int) *Fade {
+func NewFader(v *vim.Nvim, buffer vim.Buffer, hlGroup string, startLine, endLine, startCol, endCol int, duration int) *Fade {
 	return &Fade{
 		v:         v,
 		buffer:    buffer,

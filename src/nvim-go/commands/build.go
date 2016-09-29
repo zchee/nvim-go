@@ -17,7 +17,7 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 

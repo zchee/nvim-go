@@ -7,11 +7,11 @@ package delve
 import (
 	"nvim-go/context"
 
-	"github.com/neovim-go/vim/plugin"
+	"github.com/neovim/go-client/nvim/plugin"
 )
 
 func Register(p *plugin.Plugin, ctxt *context.Context) {
-	d := NewDelve(p.Vim, ctxt)
+	d := NewDelve(p.Nvim, ctxt)
 
 	// Launch
 	p.HandleCommand(&plugin.CommandOptions{Name: "DlvDebug", Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug) // Compile and begin debugging program.

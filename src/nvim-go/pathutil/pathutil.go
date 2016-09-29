@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 var pkgPathutil = "pathutil"
@@ -15,7 +15,7 @@ var pkgPathutil = "pathutil"
 // Chdir changes the vim current working directory.
 // The returned function restores working directory to `getcwd()` result path
 // and unlocks the mutex.
-func Chdir(v *vim.Vim, dir string) func() {
+func Chdir(v *vim.Nvim, dir string) func() {
 	var (
 		m   sync.Mutex
 		cwd interface{}
@@ -24,9 +24,9 @@ func Chdir(v *vim.Vim, dir string) func() {
 	if err := v.Eval("getcwd()", &cwd); err != nil {
 		return nil
 	}
-	v.ChangeDirectory(dir)
+	v.SetCurrentDirectory(dir)
 	return func() {
-		v.ChangeDirectory(cwd.(string))
+		v.SetCurrentDirectory(cwd.(string))
 		m.Unlock()
 	}
 }

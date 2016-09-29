@@ -9,7 +9,7 @@ import (
 
 	"nvim-go/config"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 type bufWritePreEval struct {
@@ -17,11 +17,11 @@ type bufWritePreEval struct {
 	File string
 }
 
-func (a *Autocmd) cmdBufWritePre(v *vim.Vim, eval *bufWritePreEval) {
+func (a *Autocmd) cmdBufWritePre(v *vim.Nvim, eval *bufWritePreEval) {
 	go a.bufWritePre(v, eval)
 }
 
-func (a *Autocmd) bufWritePre(v *vim.Vim, eval *bufWritePreEval) {
+func (a *Autocmd) bufWritePre(v *vim.Nvim, eval *bufWritePreEval) {
 	dir := filepath.Dir(eval.File)
 
 	// Iferr need execute before Fmt function because that function calls "noautocmd write"

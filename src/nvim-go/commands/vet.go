@@ -17,7 +17,7 @@ import (
 	"nvim-go/nvim/quickfix"
 	"nvim-go/pathutil"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
@@ -95,7 +95,7 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*vim.QuickfixError, e
 	return nil, nil
 }
 
-func (c *Commands) cmdVetComplete(v *vim.Vim, a *vim.CommandCompletionArgs, dir string) ([]string, error) {
+func (c *Commands) cmdVetComplete(v *vim.Nvim, a *vim.CommandCompletionArgs, dir string) ([]string, error) {
 	// Flags:
 	//  -all
 	//        enable all non-experimental checks

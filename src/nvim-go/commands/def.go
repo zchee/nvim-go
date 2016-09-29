@@ -18,7 +18,7 @@ import (
 	"nvim-go/nvim/profile"
 	"nvim-go/nvim/quickfix"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 	"github.com/rogpeppe/godef/go/ast"
 	"github.com/rogpeppe/godef/go/parser"
 	"github.com/rogpeppe/godef/go/printer"
@@ -164,7 +164,7 @@ func (o orderedObjects) Less(i, j int) bool { return o[i].Name < o[j].Name }
 func (o orderedObjects) Len() int           { return len(o) }
 func (o orderedObjects) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
 
-func importPath(v *vim.Vim, n *ast.ImportSpec) string {
+func importPath(v *vim.Nvim, n *ast.ImportSpec) string {
 	p, err := strconv.Unquote(n.Path.Value)
 	if err != nil {
 		nvim.Echomsg(v, "Godef: invalid string literal %q in ast.ImportSpec", n.Path.Value)
@@ -178,7 +178,7 @@ func importPath(v *vim.Vim, n *ast.ImportSpec) string {
 // that expression rather than the identifier itself.
 //
 // As a special case, if it finds an import spec, it returns ImportSpec.
-func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
+func findIdentifier(v *vim.Nvim, f *ast.File, searchpos int) ast.Node {
 	ec := make(chan ast.Node)
 	found := func(startPos, endPos token.Pos) bool {
 		start := types.FileSet.Position(startPos).Offset
@@ -237,7 +237,7 @@ func findIdentifier(v *vim.Vim, f *ast.File, searchpos int) ast.Node {
 	return ev
 }
 
-func parseExpr(v *vim.Vim, s *ast.Scope, expr string) ast.Expr {
+func parseExpr(v *vim.Nvim, s *ast.Scope, expr string) ast.Expr {
 	n, err := parser.ParseExpr(types.FileSet, "<arg>", expr, s, types.DefaultImportPathToName)
 	if err != nil {
 		nvim.Echomsg(v, "Godef: cannot parse expression: %v", err)

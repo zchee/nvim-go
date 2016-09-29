@@ -9,12 +9,12 @@ import (
 	"nvim-go/internal/guru"
 	"nvim-go/internal/guru/serial"
 
-	"github.com/neovim-go/vim"
+	vim "github.com/neovim/go-client/nvim"
 )
 
 func TestCommands_Guru(t *testing.T) {
 	type fields struct {
-		Vim  *vim.Vim
+		Vim  *vim.Nvim
 		p    *vim.Pipeline
 		ctxt *context.Context
 	}
@@ -130,7 +130,7 @@ func Test_parseResult(t *testing.T) {
 
 func Test_guruHelp(t *testing.T) {
 	type args struct {
-		v    *vim.Vim
+		v    *vim.Nvim
 		mode string
 	}
 	tests := []struct {
