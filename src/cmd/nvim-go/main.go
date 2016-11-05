@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // nvim-go is a msgpack remote plugin for Neovim
-package main
+package main // import "github.com/zchee/nvim-go/src/cmd/nvim-go"
 
 import (
 	// For pprof debugging.
