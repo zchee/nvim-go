@@ -1,7 +1,3 @@
-|                 | **TravisCI** | **CircleCI**                                                                                                                                                    |
-|:---------------:|:------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| **CI Services** |   not yet    | [![CircleCI](https://circleci.com/gh/zchee/nvim-go.svg?style=svg&circle-token=0c7419d90f365191e05f0e8c713d20ff986587bc)](https://circleci.com/gh/zchee/nvim-go) |
-
 nvim-go original behavior
 =========================
 
