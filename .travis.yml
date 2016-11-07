@@ -1,0 +1,25 @@
+sudo: required
+
+language: go
+go:
+  - 1.7.3
+services: docker
+cache: 
+  - "~/docker"
+
+env:
+  - GO_VERSION=1.7.3
+
+before_install:
+  - if [[ -e ~/docker/golang_$TRAVIS_GO_VERSION.tar ]]; then docker load -i ~/docker/golang_$TRAVIS_GO_VERSION.tar; fi
+  - go get github.com/mattn/goveralls
+
+install:
+  - docker build --rm -t zchee/nvim-go .
+
+script:
+  - docker run --rm -v $PWD:/nvim-go zchee/nvim-go
+
+after_success:
+  - goveralls -coverprofile=coverage.out -service=travis-ci
+  - mkdir -p ~/docker; docker save golang:$TRAVIS_GO_VERSION > ~/docker/golang_$TRAVIS_GO_VERSION.tar
