@@ -86,6 +86,9 @@ func (c *Commands) Iferr(file string) error {
 	return c.v.SetBufferLines(b, 0, -1, true, nvim.ToBufferLines(buf))
 }
 
+// The below code is copied from
+// https://github.com/motemen/go-iferr/blob/master/api.go
+
 var (
 	panicCode    = "panic(err.Error())"
 	logFatalCode = "log.Fatal(err)"
