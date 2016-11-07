@@ -1,11 +1,16 @@
+// Copyright 2016 The nvim-go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package nvim
 
 import (
 	"log"
 	"net"
-	"nvim-go/config"
 	"os"
 	"regexp"
+
+	"nvim-go/config"
 
 	vim "github.com/neovim/go-client/nvim"
 )
