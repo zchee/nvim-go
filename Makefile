@@ -28,8 +28,8 @@ CGO_CPPFLAGS ?=
 CGO_CXXFLAGS ?=
 CGO_LDFLAGS ?=
 
-GO_TEST_FLAGS ?= -v
-test/bench: GO_TEST_FLAGS += -race -bench=. -benchmem
+GO_TEST_FLAGS ?= -v -race
+test/bench: GO_TEST_FLAGS += -bench=. -benchmem
 
 GO_BUILD := ${GB_CMD} build
 GO_BUILD_RACE := ${GB_CMD} build -race
@@ -70,13 +70,12 @@ vendor-all: ## update the all vendor packages
 	${VENDOR_CMD} update -all
 
 vendor-guru: ## update the internal guru package
-	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru
+	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go
 	${VENDOR_CMD} fetch golang.org/x/tools/cmd/guru
 	cp -r ${PACKAGE_DIR}/vendor/src/golang.org/x/tools/cmd/guru ${PACKAGE_DIR}/src/nvim-go/internal/guru
 	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/{main.go,*_test.go,serial,testdata,*.bash,*.vim,*.el}
 	grep "package main" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
 	${VENDOR_CMD} delete golang.org/x/tools/cmd/guru
-	${VENDOR_CMD} update golang.org/x/tools/cmd/guru/serial
 
 docker: docker/run ## run the docker container test on Linux
 
