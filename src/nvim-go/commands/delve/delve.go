@@ -254,6 +254,9 @@ func (d *Delve) cmdContinue(v *nvim.Nvim, eval *continueEval) {
 func (d *Delve) cont(v *nvim.Nvim, eval *continueEval) error {
 	stateCh := d.client.Continue()
 	state := <-stateCh
+	if err := d.printServerStderr(); err != nil {
+		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+	}
 	if state == nil || state.Exited {
 		return nvimutil.ErrorWrap(v, errors.Wrap(state.Err, pkgDelve))
 	}
@@ -321,6 +324,10 @@ func (d *Delve) cmdNext(v *nvim.Nvim, eval *nextEval) {
 // marker to current stopping position.
 func (d *Delve) next(v *nvim.Nvim, eval *nextEval) error {
 	state, err := d.client.Next()
+	if err := d.printServerStderr(); err != nil {
+		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+	}
+	// handle the d.client.Next() error
 	if err != nil {
 		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 	}

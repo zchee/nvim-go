@@ -18,6 +18,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// printTerminal prints the message to terminal buffer with cmd prefix.
+// also sets the next line "(dlv) " terminal header.
 func (d *Delve) printTerminal(cmd string, message []byte) error {
 	d.v.SetBufferOption(d.buffer[Terminal].Buffer, "modifiable", true)
 	defer d.v.SetBufferOption(d.buffer[Terminal].Buffer, "modifiable", false)
@@ -53,6 +55,19 @@ func (d *Delve) printTerminal(cmd string, message []byte) error {
 	return d.v.SetWindowCursor(d.buffer[Terminal].Window, [2]int{len(afterBuf), 7})
 }
 
+// printServerStdout prints the server stdout results to terminal buffer.
+func (d *Delve) printServerStdout() error {
+	return d.printTerminal("", d.serverOut.Bytes())
+}
+
+// printServerStderr prints the server stderr results to terminal buffer.
+func (d *Delve) printServerStderr() error {
+	return d.printTerminal("", d.serverErr.Bytes())
+}
+
+// ----------------------------------------------------------------------------
+// context
+
 func (d *Delve) printContext(cwd string, cThread *delveapi.Thread, goroutines []*delveapi.Goroutine) error {
 	d.v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", true)
 	defer d.v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", false)
@@ -68,6 +83,9 @@ func (d *Delve) printContext(cwd string, cThread *delveapi.Thread, goroutines []
 
 	return nil
 }
+
+// ----------------------------------------------------------------------------
+// stacktrace
 
 // byGroutineID sorts the []*delveapi.Groutine slice by groutine ID
 type byGroutineID []*delveapi.Goroutine
@@ -151,6 +169,9 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 	return end, nil
 }
 
+// ----------------------------------------------------------------------------
+// locals
+
 func (d *Delve) printLocals(cwd string, locals []delveapi.Variable, stackHeight int) error {
 	localsMsg := []byte("Local Variables\n")
 	for _, l := range locals {
@@ -174,6 +195,9 @@ func (d *Delve) printThread(v *nvim.Nvim, cwd string, threads []*delveapi.Thread
 
 	return nil
 }
+
+// ----------------------------------------------------------------------------
+// for debugging
 
 func printDebug(prefix string, data interface{}) error {
 	d, err := json.MarshalIndent(data, "", "    ")
