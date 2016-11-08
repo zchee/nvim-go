@@ -47,22 +47,22 @@ func TestCommands_Lint(t *testing.T) {
 		{
 			name: "2 suggest(go)",
 			fields: fields{
-				v: testVim(t, filepath.Join(testLintDir, "make.go")),
+				v: testVim(t, filepath.Join(testLintDir, "time.go")),
 			},
 			args: args{
 				args: []string{"%"},
-				file: filepath.Join(testLintDir, "make.go"),
+				file: filepath.Join(testLintDir, "time.go"),
 			},
 			want: []*nvim.QuickfixError{&nvim.QuickfixError{
-				FileName: "make.go",
-				LNum:     14,
-				Col:      2,
-				Text:     "can probably use \"var x []T\" instead",
+				FileName: "time.go",
+				LNum:     11,
+				Col:      5,
+				Text:     "var rpcTimeoutMsec is of type *time.Duration; don't use unit-specific suffix \"Msec\"",
 			}, &nvim.QuickfixError{
-				FileName: "make.go",
-				LNum:     15,
-				Col:      2,
-				Text:     "can probably use \"var y []http.Request\" instead",
+				FileName: "time.go",
+				LNum:     13,
+				Col:      5,
+				Text:     "var timeoutSecs is of type time.Duration; don't use unit-specific suffix \"Secs\"",
 			}},
 			wantErr: false,
 		},
