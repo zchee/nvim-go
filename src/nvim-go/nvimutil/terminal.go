@@ -2,14 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package terminal
+package nvimutil
 
 import (
 	"fmt"
 	"strings"
 
 	"nvim-go/config"
-	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -35,7 +34,7 @@ type Terminal struct {
 
 	cw vim.Window
 
-	*nvimutil.Buf
+	*Buf
 }
 
 // NewTerminal return the Neovim terminal buffer.
@@ -68,10 +67,10 @@ func (t *Terminal) Create() (err error) {
 	option := t.setTerminalOption()
 	name := fmt.Sprintf("| terminal %s", strings.Join(t.cmd, " "))
 	mode := fmt.Sprintf("%s %d%s", config.TerminalPosition, t.Size, t.mode)
-	t.Buf = nvimutil.NewBuffer(t.v)
-	t.Buf.Create(name, nvimutil.FiletypeTerminal, mode, option)
+	t.Buf = NewBuffer(t.v)
+	t.Buf.Create(name, FiletypeTerminal, mode, option)
 	t.Buf.Name = t.Name
-	t.Buf.UpdateSyntax(nvimutil.FiletypeTerminal)
+	t.Buf.UpdateSyntax(FiletypeTerminal)
 
 	// Get terminal buffer and windows information.
 	t.p.CurrentBuffer(&t.Buffer)
@@ -99,10 +98,10 @@ func (t *Terminal) Run(cmd []string) error {
 		defer pathutil.Chdir(t.v, t.Dir)()
 	}
 
-	if t.Buf != nil && nvimutil.IsBufferValid(t.v, t.Buffer) {
+	if t.Buf != nil && IsBufferValid(t.v, t.Buffer) {
 		defer t.switchFocus()()
 
-		t.v.SetBufferOption(t.Buffer, nvimutil.BufOptionModified, false)
+		t.v.SetBufferOption(t.Buffer, BufOptionModified, false)
 		t.v.Call("termopen", nil, cmd)
 		t.v.SetBufferName(t.Buffer, t.Buf.Name)
 	} else {
@@ -125,29 +124,29 @@ func (t *Terminal) switchFocus() func() {
 	}
 }
 
-func (t *Terminal) setTerminalOption() map[nvimutil.NvimOption]map[string]interface{} {
-	option := make(map[nvimutil.NvimOption]map[string]interface{})
+func (t *Terminal) setTerminalOption() map[NvimOption]map[string]interface{} {
+	option := make(map[NvimOption]map[string]interface{})
 	bufoption := make(map[string]interface{})
 	bufvar := make(map[string]interface{})
 	windowoption := make(map[string]interface{})
 
-	bufoption[nvimutil.BufOptionBufhidden] = nvimutil.BufhiddenDelete
-	bufoption[nvimutil.BufOptionBuflisted] = false
-	bufoption[nvimutil.BufOptionBuftype] = nvimutil.BuftypeNofile
-	bufoption[nvimutil.BufOptionFiletype] = nvimutil.FiletypeTerminal
-	bufoption[nvimutil.BufOptionModifiable] = false
-	bufoption[nvimutil.BufOptionSwapfile] = false
+	bufoption[BufOptionBufhidden] = BufhiddenDelete
+	bufoption[BufOptionBuflisted] = false
+	bufoption[BufOptionBuftype] = BuftypeNofile
+	bufoption[BufOptionFiletype] = FiletypeTerminal
+	bufoption[BufOptionModifiable] = false
+	bufoption[BufOptionSwapfile] = false
 
-	bufvar[nvimutil.BufVarColorcolumn] = ""
+	bufvar[BufVarColorcolumn] = ""
 
-	windowoption[nvimutil.WinOptionList] = false
-	windowoption[nvimutil.WinOptionNumber] = false
-	windowoption[nvimutil.WinOptionRelativenumber] = false
-	windowoption[nvimutil.WinOptionWinfixheight] = true
+	windowoption[WinOptionList] = false
+	windowoption[WinOptionNumber] = false
+	windowoption[WinOptionRelativenumber] = false
+	windowoption[WinOptionWinfixheight] = true
 
-	option[nvimutil.BufferOption] = bufoption
-	option[nvimutil.BufferVar] = bufvar
-	option[nvimutil.WindowOption] = windowoption
+	option[BufferOption] = bufoption
+	option[BufferVar] = bufvar
+	option[WindowOption] = windowoption
 
 	return option
 }

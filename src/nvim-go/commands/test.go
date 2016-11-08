@@ -18,7 +18,6 @@ import (
 	"nvim-go/nvimutil"
 	"nvim-go/nvimutil/profile"
 	"nvim-go/nvimutil/quickfix"
-	"nvim-go/nvimutil/terminal"
 	"nvim-go/pathutil"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -29,8 +28,8 @@ func (c *Commands) cmdTest(args []string, dir string) {
 	go c.Test(args, dir)
 }
 
-// testTerm cache terminal.Terminal use global variable.
-var testTerm *terminal.Terminal
+// testTerm cache nvimutil.Terminal use global variable.
+var testTerm *nvimutil.Terminal
 
 // Test run the package test command use compile tool that determined from
 // the directory structure.
@@ -49,7 +48,7 @@ func (c *Commands) Test(args []string, dir string) error {
 	}
 
 	if testTerm == nil {
-		testTerm = terminal.NewTerminal(c.v, "__GO_TEST__", cmd, config.TerminalMode)
+		testTerm = nvimutil.NewTerminal(c.v, "__GO_TEST__", cmd, config.TerminalMode)
 		testTerm.Dir = pathutil.FindVCSRoot(dir)
 	}
 

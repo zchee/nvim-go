@@ -11,14 +11,13 @@ import (
 	"nvim-go/config"
 	"nvim-go/nvimutil"
 	"nvim-go/nvimutil/profile"
-	"nvim-go/nvimutil/terminal"
 	"nvim-go/pathutil"
 
 	"github.com/pkg/errors"
 )
 
 var (
-	runTerm *terminal.Terminal
+	runTerm *nvimutil.Terminal
 	lastCmd []string
 )
 
@@ -50,7 +49,7 @@ func (c *Commands) Run(cmd []string, file string) error {
 	defer profile.Start(time.Now(), "GoRun")
 
 	if runTerm == nil {
-		runTerm = terminal.NewTerminal(c.v, "__GO_RUN__", cmd, config.TerminalMode)
+		runTerm = nvimutil.NewTerminal(c.v, "__GO_RUN__", cmd, config.TerminalMode)
 	}
 	dir, _ := filepath.Split(file)
 	rootDir := pathutil.FindVCSRoot(dir)
