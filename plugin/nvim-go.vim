@@ -96,7 +96,7 @@ endif
 
 function! s:RequireNvimGo(host) abort
   try
-    return jobstart([s:plugin_binary], {'rpc': v:true})
+    return jobstart([s:plugin_binary, s:plugin_root], {'rpc': v:true})
   catch
     echomsg v:throwpoint
     echomsg v:exception
