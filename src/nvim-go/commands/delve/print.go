@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/highlight"
 	"sort"
 
 	delveapi "github.com/derekparker/delve/service/api"
@@ -82,7 +81,7 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 	sort.Sort(byGroutineID(goroutines))
 
 	var locals []delveapi.Variable
-	var fade *highlight.Fade
+	var fade *nvimutil.Fade
 
 	stacksMsg := []byte("Stacktraces\n")
 	end, _ := d.v.BufferLineCount(d.buffer[Context].Buffer)
@@ -92,7 +91,7 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 		if g.CurrentLoc.Function.Name == currentFunc.Name {
 			stacksMsg = append(stacksMsg, byte('*'))
 			hlLine := len(nvimutil.ToBufferLines(stacksMsg))
-			fade = highlight.NewFader(d.v, d.buffer[Context].Buffer, "delveFade", hlLine, hlLine, 3, -1, 80)
+			fade = nvimutil.NewFader(d.v, d.buffer[Context].Buffer, "delveFade", hlLine, hlLine, 3, -1, 80)
 		} else {
 			stacksMsg = append(stacksMsg, []byte(fmt.Sprintf("\t\u25B6 %s\n", g.CurrentLoc.Function.Name))...) // \u25B6: ▶
 			continue

@@ -2,11 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package highlight
+package nvimutil
 
 import (
 	"fmt"
-	"nvim-go/nvimutil"
 	"time"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -44,14 +43,14 @@ func NewFader(v *vim.Nvim, buffer vim.Buffer, hlGroup string, startLine, endLine
 func (f *Fade) SetHighlight() error {
 	if f.startLine == f.endLine {
 		if _, err := f.v.AddBufferHighlight(f.buffer, 0, f.hlGroup, f.startLine, f.startCol, f.endCol); err != nil {
-			return nvimutil.ErrorWrap(f.v, errors.Wrap(err, "highlight.FadeOut"))
+			return ErrorWrap(f.v, errors.Wrap(err, "highlight.FadeOut"))
 		}
 		return nil
 	}
 
 	for i := f.startLine; i < f.endLine; i++ {
 		if _, err := f.v.AddBufferHighlight(f.buffer, 0, f.hlGroup, f.startLine, f.startCol, f.endCol); err != nil {
-			return nvimutil.ErrorWrap(f.v, errors.Wrap(err, "highlight.FadeOut"))
+			return ErrorWrap(f.v, errors.Wrap(err, "highlight.FadeOut"))
 		}
 	}
 	return nil
