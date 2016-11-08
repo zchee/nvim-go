@@ -24,9 +24,9 @@ import (
 	"nvim-go/config"
 	"nvim-go/internal/guru"
 	"nvim-go/internal/guru/serial"
-	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
-	"nvim-go/nvim/quickfix"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/profile"
+	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -63,7 +63,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = errors.Errorf("guru internal panic.\nMaybe your set 'g:go#guru#reflection' to 1. Please retry with disable it option.\nOriginal panic message:\n\t%v", r.(error))
-			nvim.ErrorWrap(c.v, err)
+			nvimutil.ErrorWrap(c.v, err)
 		}
 	}()
 
@@ -77,7 +77,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 	}
 
 	guruContext := &build.Default
@@ -89,7 +89,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 
 		c.p.BufferLines(b, 0, -1, true, &buf)
 		if err := c.p.Wait(); err != nil {
-			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+			return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
 
 		overlay[eval.File] = bytes.Join(buf, []byte{'\n'})
@@ -106,7 +106,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	if mode == "definition" {
 		obj, err := definition(&query)
 		if err != nil {
-			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+			return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
 		fname, line, col := quickfix.SplitPos(obj.ObjPos, eval.Cwd)
 		text := obj.Desc
@@ -115,7 +115,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		}
 		c.p.SetWindowCursor(w, [2]int{line, col - 1})
 		if err := c.p.Wait(); err != nil {
-			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+			return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
 		c.p.Command(`lclose`)
 		c.p.Command(`normal! zz`)
@@ -138,7 +138,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	case "go":
 		pkgID, err := pathutil.PackageID(dir)
 		if err != nil {
-			return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+			return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
 		scope = pkgID
 	case "gb":
@@ -152,22 +152,22 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		outputMu.Lock()
 		defer outputMu.Unlock()
 		if loclist, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
-			nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+			nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 		}
 	}
 	query.Output = output
 
-	nvim.EchoProgress(c.v, pkgGuru, fmt.Sprintf("analysing %s", mode))
+	nvimutil.EchoProgress(c.v, pkgGuru, fmt.Sprintf("analysing %s", mode))
 	if err := guru.Run(mode, &query); err != nil {
-		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 	}
 	if len(loclist) == 0 {
 		return fmt.Errorf("%s not fount", mode)
 	}
 
-	defer nvim.ClearMsg(c.v)
+	defer nvimutil.ClearMsg(c.v)
 	if err := quickfix.SetLoclist(c.v, loclist); err != nil {
-		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
 	}
 
 	// jumpfirst or definition mode
@@ -320,7 +320,7 @@ var null = []byte{110, 117, 108, 108}
 
 // TODO(zchee): Should not use json.
 func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*vim.QuickfixError, error) {
-	if nvim.IsDebug() {
+	if nvimutil.IsDebug() {
 		log.Printf("data: %+s", string(data))
 	}
 	var (
@@ -589,30 +589,30 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 func guruHelp(v *vim.Nvim, mode string) error {
 	switch mode {
 	case "callees":
-		return nvim.EchohlBefore(v, "GoGuruCallees", "Function", "Show possible targets of selected function call")
+		return nvimutil.EchohlBefore(v, "GoGuruCallees", "Function", "Show possible targets of selected function call")
 	case "callers":
-		return nvim.EchohlBefore(v, "GoGuruCallers", "Function", "Show possible callers of selected function")
+		return nvimutil.EchohlBefore(v, "GoGuruCallers", "Function", "Show possible callers of selected function")
 	case "callstack":
-		return nvim.EchohlBefore(v, "GoGuruCallstack", "Function", "Show path from callgraph root to selected function")
+		return nvimutil.EchohlBefore(v, "GoGuruCallstack", "Function", "Show path from callgraph root to selected function")
 	case "definition":
-		return nvim.EchohlBefore(v, "GoGuruDefinition", "Function", "Show declaration of selected identifier")
+		return nvimutil.EchohlBefore(v, "GoGuruDefinition", "Function", "Show declaration of selected identifier")
 	case "describe":
-		return nvim.EchohlBefore(v, "GoGuruDescribe", "Function", "Describe selected syntax: definition, methods, etc")
+		return nvimutil.EchohlBefore(v, "GoGuruDescribe", "Function", "Describe selected syntax: definition, methods, etc")
 	case "freevars":
-		return nvim.EchohlBefore(v, "GoGurufreevars", "Function", "Show free variables of selection")
+		return nvimutil.EchohlBefore(v, "GoGurufreevars", "Function", "Show free variables of selection")
 	case "implements":
-		return nvim.EchohlBefore(v, "GoGuruImplements", "Function", "Show 'implements' relation for selected type or method")
+		return nvimutil.EchohlBefore(v, "GoGuruImplements", "Function", "Show 'implements' relation for selected type or method")
 	case "peers":
-		return nvim.EchohlBefore(v, "GoGuruChannelPeers", "Function", "Show send/receive corresponding to selected channel op")
+		return nvimutil.EchohlBefore(v, "GoGuruChannelPeers", "Function", "Show send/receive corresponding to selected channel op")
 	case "pointsto":
-		return nvim.EchohlBefore(v, "GoGuruPointsto", "Function", "Show variables the selected pointer may point to")
+		return nvimutil.EchohlBefore(v, "GoGuruPointsto", "Function", "Show variables the selected pointer may point to")
 	case "referrers":
-		return nvim.EchohlBefore(v, "GoGuruReferrers", "Function", "Show all refs to entity denoted by selected identifier")
+		return nvimutil.EchohlBefore(v, "GoGuruReferrers", "Function", "Show all refs to entity denoted by selected identifier")
 	case "what":
-		return nvim.EchohlBefore(v, "GoGuruWhat", "Function", "Show basic information about the selected syntax node")
+		return nvimutil.EchohlBefore(v, "GoGuruWhat", "Function", "Show basic information about the selected syntax node")
 	case "whicherrs":
-		return nvim.EchohlBefore(v, "GoGuruWhicherrs", "Function", "Show possible values of the selected error variable")
+		return nvimutil.EchohlBefore(v, "GoGuruWhicherrs", "Function", "Show possible values of the selected error variable")
 	default:
-		return nvim.Echoerr(v, "Invalid arguments")
+		return nvimutil.Echoerr(v, "Invalid arguments")
 	}
 }

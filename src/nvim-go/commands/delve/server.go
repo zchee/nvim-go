@@ -8,7 +8,7 @@ import (
 	"net"
 	"os/exec"
 
-	"nvim-go/nvim"
+	"nvim-go/nvimutil"
 
 	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -41,8 +41,8 @@ func (d *Delve) startServer(cmd, path string) error {
 // `net.Dial` is better way?
 // http://stackoverflow.com/a/30838807/5228839
 func (d *Delve) waitServer(v *vim.Nvim) error {
-	defer nvim.EchohlAfter(v, "Delve", nvim.ProgressColor, "Ready")
-	nvim.EchoProgress(v, "Delve", "Wait for running dlv server")
+	defer nvimutil.EchohlAfter(v, "Delve", nvimutil.ProgressColor, "Ready")
+	nvimutil.EchoProgress(v, "Delve", "Wait for running dlv server")
 
 	for {
 		conn, err := net.Dial("tcp", addr)

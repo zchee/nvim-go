@@ -17,8 +17,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/profile"
 
 	astmanip "github.com/motemen/go-astmanip"
 	"github.com/pkg/errors"
@@ -41,12 +41,12 @@ func (c *Commands) Iferr(file string) error {
 
 	b, err := c.v.CurrentBuffer()
 	if err != nil {
-		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
+		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
 	}
 
 	buflines, err := c.v.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
+		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
 	}
 
 	conf := loader.Config{
@@ -58,17 +58,17 @@ func (c *Commands) Iferr(file string) error {
 	}
 
 	var src bytes.Buffer
-	src.Write(nvim.ToByteSlice(buflines))
+	src.Write(nvimutil.ToByteSlice(buflines))
 
 	f, err := conf.ParseFile(file, src.Bytes())
 	if err != nil {
-		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
+		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
 	}
 
 	conf.CreateFromFiles(file, f)
 	prog, err := conf.Load()
 	if err != nil {
-		return nvim.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
+		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
 	}
 
 	// Reuse src variable
@@ -83,7 +83,7 @@ func (c *Commands) Iferr(file string) error {
 
 	// format.Node() will added pointless newline
 	buf := bytes.TrimSuffix(src.Bytes(), []byte{'\n'})
-	return c.v.SetBufferLines(b, 0, -1, true, nvim.ToBufferLines(buf))
+	return c.v.SetBufferLines(b, 0, -1, true, nvimutil.ToBufferLines(buf))
 }
 
 // The below code is copied from

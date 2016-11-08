@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
-	"nvim-go/nvim/quickfix"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/profile"
+	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
 	"github.com/golang/lint"
@@ -35,7 +35,7 @@ func (c *Commands) cmdLint(v *vim.Nvim, args []string, file string) {
 	go func() {
 		errlist, err := c.Lint(args, file)
 		if err != nil {
-			nvim.ErrorWrap(c.v, err)
+			nvimutil.ErrorWrap(c.v, err)
 		}
 		c.ctxt.Errlist["Lint"] = errlist
 		quickfix.ErrorList(c.v, c.ctxt.Errlist, true)
@@ -112,7 +112,7 @@ func (c *Commands) Lint(args []string, file string) ([]*vim.QuickfixError, error
 
 // TODO(zchee): Support list of go packages.
 func (c *Commands) cmdLintComplete(a *vim.CommandCompletionArgs, cwd string) (filelist []string, err error) {
-	files, err := nvim.CompleteFiles(c.v, a, cwd)
+	files, err := nvimutil.CompleteFiles(c.v, a, cwd)
 	if err != nil {
 		return nil, err
 	}
@@ -137,12 +137,12 @@ func (c *Commands) lintFiles(filenames ...string) ([]*vim.QuickfixError, error) 
 	l := new(lint.Linter)
 	ps, err := l.LintFiles(files)
 	if err != nil {
-		return nil, nvim.ErrorWrap(c.v, err)
+		return nil, nvimutil.ErrorWrap(c.v, err)
 	}
 
 	var cwdRes interface{}
 	if err := c.v.Eval("getcwd()", &cwdRes); err != nil {
-		return nil, nvim.ErrorWrap(c.v, err)
+		return nil, nvimutil.ErrorWrap(c.v, err)
 	}
 	cwd := cwdRes.(string)
 

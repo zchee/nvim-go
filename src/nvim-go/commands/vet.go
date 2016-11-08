@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
-	"nvim-go/nvim/quickfix"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/profile"
+	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -36,7 +36,7 @@ func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
 
 		errlist, err := c.Vet(args, eval)
 		if err != nil {
-			nvim.ErrorWrap(c.v, err)
+			nvimutil.ErrorWrap(c.v, err)
 			return
 		}
 		if errlist != nil {
@@ -153,7 +153,7 @@ func (c *Commands) cmdVetComplete(v *vim.Nvim, a *vim.CommandCompletionArgs, dir
 	//        comma-separated list of names of methods of type func() string whose results must be used (default "Error,String")
 	//  -v
 	//        verbose
-	complete, err := nvim.CompleteFiles(v, a, dir)
+	complete, err := nvimutil.CompleteFiles(v, a, dir)
 	if err != nil {
 		return nil, err
 	}

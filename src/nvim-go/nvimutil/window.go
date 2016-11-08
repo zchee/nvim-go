@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package nvim
+package nvimutil
 
 import vim "github.com/neovim/go-client/nvim"
 
-// TabpageContext represents a Neovim tabpage context.
-type TabpageContext struct {
-	vim.Tabpage
+// WindowContext represents a Neovim window context.
+type WindowContext struct {
+	vim.Window
 }

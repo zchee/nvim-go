@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
-	"nvim-go/nvim/terminal"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/profile"
+	"nvim-go/nvimutil/terminal"
 	"nvim-go/pathutil"
 
 	"github.com/pkg/errors"
@@ -35,7 +35,7 @@ func (c *Commands) cmdRun(args []string, file string) {
 func (c *Commands) cmdRunLast(file string) {
 	if len(lastCmd) == 0 {
 		err := errors.New("not found GoRun last arguments")
-		nvim.ErrorWrap(c.v, errors.Wrap(err, "GoRun"))
+		nvimutil.ErrorWrap(c.v, errors.Wrap(err, "GoRun"))
 		return
 	}
 

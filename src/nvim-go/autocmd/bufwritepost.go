@@ -7,8 +7,8 @@ package autocmd
 import (
 	"nvim-go/commands"
 	"nvim-go/config"
-	"nvim-go/nvim"
-	"nvim-go/nvim/quickfix"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
 )
@@ -29,7 +29,7 @@ func (a *Autocmd) bufWritePost(v *vim.Nvim, eval *bufWritePostEval) error {
 		case error:
 			if e != nil {
 				// normal errros
-				return nvim.ErrorWrap(v, e)
+				return nvimutil.ErrorWrap(v, e)
 			}
 		case []*vim.QuickfixError:
 			// Cleanup Errlist
@@ -49,7 +49,7 @@ func (a *Autocmd) bufWritePost(v *vim.Nvim, eval *bufWritePostEval) error {
 		case error:
 			// normal errros
 			if e != nil {
-				return nvim.ErrorWrap(v, e)
+				return nvimutil.ErrorWrap(v, e)
 			}
 		case []*vim.QuickfixError:
 			// Cleanup Errlist
@@ -73,7 +73,7 @@ func (a *Autocmd) bufWritePost(v *vim.Nvim, eval *bufWritePostEval) error {
 			})
 			if err != nil {
 				// normal errros
-				nvim.ErrorWrap(v, err)
+				nvimutil.ErrorWrap(v, err)
 				return
 			}
 			if errlist != nil {

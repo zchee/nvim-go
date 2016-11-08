@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
-	"nvim-go/nvim/quickfix"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/profile"
+	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -35,7 +35,7 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 
 		switch e := err.(type) {
 		case error:
-			nvim.ErrorWrap(c.v, e)
+			nvimutil.ErrorWrap(c.v, e)
 		case []*vim.QuickfixError:
 			c.ctxt.Errlist["Build"] = e
 			quickfix.ErrorList(c.v, c.ctxt.Errlist, true)
@@ -69,7 +69,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	}
 	delete(c.ctxt.Errlist, "Build")
 
-	return nvim.EchoSuccess(c.v, pkgBuild, fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
+	return nvimutil.EchoSuccess(c.v, pkgBuild, fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
 }
 
 func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {

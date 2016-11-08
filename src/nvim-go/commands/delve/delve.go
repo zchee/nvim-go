@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"nvim-go/context"
-	"nvim-go/nvim"
+	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
 	delveapi "github.com/derekparker/delve/service/api"
@@ -58,13 +58,13 @@ type Delve struct {
 type BufferContext struct {
 	cb     vim.Buffer
 	cw     vim.Window
-	buffer map[string]*nvim.Buf
+	buffer map[string]*nvimutil.Buf
 }
 
 // SignContext represents a breakpoint and program counter sign.
 type SignContext struct {
-	bpSign map[int]*nvim.Sign // map[breakPoint.id]*nvim.Sign
-	pcSign *nvim.Sign
+	bpSign map[int]*nvimutil.Sign // map[breakPoint.id]*nvim.Sign
+	pcSign *nvimutil.Sign
 }
 
 // NewDelve represents a delve client interface.
@@ -108,7 +108,7 @@ func (d *Delve) debug(v *vim.Nvim, eval *debugEval) error {
 	path := filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
 
 	if err := d.startServer("debug", path); err != nil {
-		nvim.ErrorWrap(v, err)
+		nvimutil.ErrorWrap(v, err)
 	}
 	defer d.waitServer(v)
 
@@ -160,26 +160,26 @@ func (d *Delve) cmdCreateBreakpoint(v *vim.Nvim, args []string, eval *createBrea
 func (d *Delve) createBreakpoint(v *vim.Nvim, args []string, eval *createBreakpointEval) error {
 	bpInfo, err := d.parseArgs(v, args, eval)
 	if err != nil {
-		nvim.ErrorWrap(v, err)
+		nvimutil.ErrorWrap(v, err)
 	}
 
 	if d.bpSign == nil {
-		d.bpSign = make(map[int]*nvim.Sign)
+		d.bpSign = make(map[int]*nvimutil.Sign)
 	}
 
 	bp, err := d.client.CreateBreakpoint(bpInfo) // *delveapi.Breakpoint
 	if err != nil {
-		return nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 	}
 
-	d.bpSign[bp.ID], err = nvim.NewSign(v, "delve_bp", nvim.BreakpointSymbol, "delveBreakpointSign", "") // *nvim.Sign
+	d.bpSign[bp.ID], err = nvimutil.NewSign(v, "delve_bp", nvimutil.BreakpointSymbol, "delveBreakpointSign", "") // *nvim.Sign
 	if err != nil {
-		return nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 	}
 	d.bpSign[bp.ID].Place(v, bp.ID, bp.Line, bp.File, false)
 
 	if err := d.printTerminal("break "+bp.FunctionName, []byte{}); err != nil {
-		return nvim.ErrorWrap(d.v, err)
+		return nvimutil.ErrorWrap(d.v, err)
 	}
 
 	return nil
@@ -199,7 +199,7 @@ func (d *Delve) cont(v *vim.Nvim, eval *continueEval) error {
 	stateCh := d.client.Continue()
 	state := <-stateCh
 	if state == nil || state.Exited {
-		return nvim.ErrorWrap(v, errors.Wrap(state.Err, pkgDelve))
+		return nvimutil.ErrorWrap(v, errors.Wrap(state.Err, pkgDelve))
 	}
 
 	cThread := state.CurrentThread
@@ -207,7 +207,7 @@ func (d *Delve) cont(v *vim.Nvim, eval *continueEval) error {
 	go func() {
 		goroutines, err := d.client.ListGoroutines()
 		if err != nil {
-			nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+			nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 			return
 		}
 		d.printContext(eval.Dir, cThread, goroutines)
@@ -217,11 +217,11 @@ func (d *Delve) cont(v *vim.Nvim, eval *continueEval) error {
 
 	go func() {
 		if err := v.SetWindowCursor(d.cw, [2]int{cThread.Line, 0}); err != nil {
-			nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+			nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 			return
 		}
 		if err := v.Command("silent normal zz"); err != nil {
-			nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+			nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 			return
 		}
 	}()
@@ -261,7 +261,7 @@ func (d *Delve) cmdNext(v *vim.Nvim, eval *nextEval) {
 func (d *Delve) next(v *vim.Nvim, eval *nextEval) error {
 	state, err := d.client.Next()
 	if err != nil {
-		return nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 	}
 
 	cThread := state.CurrentThread
@@ -269,7 +269,7 @@ func (d *Delve) next(v *vim.Nvim, eval *nextEval) error {
 	go func() {
 		goroutines, err := d.client.ListGoroutines()
 		if err != nil {
-			nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+			nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 			return
 		}
 		d.printContext(eval.Dir, cThread, goroutines)
@@ -279,11 +279,11 @@ func (d *Delve) next(v *vim.Nvim, eval *nextEval) error {
 
 	go func() {
 		if err := v.SetWindowCursor(d.cw, [2]int{cThread.Line, 0}); err != nil {
-			nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+			nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 			return
 		}
 		if err := v.Command("silent normal zz"); err != nil {
-			nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+			nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 			return
 		}
 	}()
@@ -305,7 +305,7 @@ func (d *Delve) cmdRestart(v *vim.Nvim) {
 func (d *Delve) restart(v *vim.Nvim) error {
 	err := d.client.Restart()
 	if err != nil {
-		return nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve+"restart"))
+		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve+"restart"))
 	}
 
 	d.processPid = d.client.ProcessPid()
@@ -353,7 +353,7 @@ func (d *Delve) stdin(v *vim.Nvim) error {
 
 	err = d.debugger.Call(cmd[0], args, d.term)
 	if err != nil {
-		return nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 	}
 
 	// Close the w file and restore os.Stdout to original.
@@ -363,7 +363,7 @@ func (d *Delve) stdin(v *vim.Nvim) error {
 	// Read all the lines of r file.
 	out, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nvim.ErrorWrap(v, errors.Wrap(err, pkgDelve))
+		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 	}
 
 	return d.printTerminal(stdin.(string), out)

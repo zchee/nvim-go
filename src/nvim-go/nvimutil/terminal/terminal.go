@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"nvim-go/config"
-	"nvim-go/nvim"
+	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -35,7 +35,7 @@ type Terminal struct {
 
 	cw vim.Window
 
-	*nvim.Buf
+	*nvimutil.Buf
 }
 
 // NewTerminal return the Neovim terminal buffer.
@@ -68,10 +68,10 @@ func (t *Terminal) Create() (err error) {
 	option := t.setTerminalOption()
 	name := fmt.Sprintf("| terminal %s", strings.Join(t.cmd, " "))
 	mode := fmt.Sprintf("%s %d%s", config.TerminalPosition, t.Size, t.mode)
-	t.Buf = nvim.NewBuffer(t.v)
-	t.Buf.Create(name, nvim.FiletypeTerminal, mode, option)
+	t.Buf = nvimutil.NewBuffer(t.v)
+	t.Buf.Create(name, nvimutil.FiletypeTerminal, mode, option)
 	t.Buf.Name = t.Name
-	t.Buf.UpdateSyntax(nvim.FiletypeTerminal)
+	t.Buf.UpdateSyntax(nvimutil.FiletypeTerminal)
 
 	// Get terminal buffer and windows information.
 	t.p.CurrentBuffer(&t.Buffer)
@@ -99,10 +99,10 @@ func (t *Terminal) Run(cmd []string) error {
 		defer pathutil.Chdir(t.v, t.Dir)()
 	}
 
-	if t.Buf != nil && nvim.IsBufferValid(t.v, t.Buffer) {
+	if t.Buf != nil && nvimutil.IsBufferValid(t.v, t.Buffer) {
 		defer t.switchFocus()()
 
-		t.v.SetBufferOption(t.Buffer, nvim.BufOptionModified, false)
+		t.v.SetBufferOption(t.Buffer, nvimutil.BufOptionModified, false)
 		t.v.Call("termopen", nil, cmd)
 		t.v.SetBufferName(t.Buffer, t.Buf.Name)
 	} else {
@@ -125,29 +125,29 @@ func (t *Terminal) switchFocus() func() {
 	}
 }
 
-func (t *Terminal) setTerminalOption() map[nvim.NvimOption]map[string]interface{} {
-	option := make(map[nvim.NvimOption]map[string]interface{})
+func (t *Terminal) setTerminalOption() map[nvimutil.NvimOption]map[string]interface{} {
+	option := make(map[nvimutil.NvimOption]map[string]interface{})
 	bufoption := make(map[string]interface{})
 	bufvar := make(map[string]interface{})
 	windowoption := make(map[string]interface{})
 
-	bufoption[nvim.BufOptionBufhidden] = nvim.BufhiddenDelete
-	bufoption[nvim.BufOptionBuflisted] = false
-	bufoption[nvim.BufOptionBuftype] = nvim.BuftypeNofile
-	bufoption[nvim.BufOptionFiletype] = nvim.FiletypeTerminal
-	bufoption[nvim.BufOptionModifiable] = false
-	bufoption[nvim.BufOptionSwapfile] = false
+	bufoption[nvimutil.BufOptionBufhidden] = nvimutil.BufhiddenDelete
+	bufoption[nvimutil.BufOptionBuflisted] = false
+	bufoption[nvimutil.BufOptionBuftype] = nvimutil.BuftypeNofile
+	bufoption[nvimutil.BufOptionFiletype] = nvimutil.FiletypeTerminal
+	bufoption[nvimutil.BufOptionModifiable] = false
+	bufoption[nvimutil.BufOptionSwapfile] = false
 
-	bufvar[nvim.BufVarColorcolumn] = ""
+	bufvar[nvimutil.BufVarColorcolumn] = ""
 
-	windowoption[nvim.WinOptionList] = false
-	windowoption[nvim.WinOptionNumber] = false
-	windowoption[nvim.WinOptionRelativenumber] = false
-	windowoption[nvim.WinOptionWinfixheight] = true
+	windowoption[nvimutil.WinOptionList] = false
+	windowoption[nvimutil.WinOptionNumber] = false
+	windowoption[nvimutil.WinOptionRelativenumber] = false
+	windowoption[nvimutil.WinOptionWinfixheight] = true
 
-	option[nvim.BufferOption] = bufoption
-	option[nvim.BufferVar] = bufvar
-	option[nvim.WindowOption] = windowoption
+	option[nvimutil.BufferOption] = bufoption
+	option[nvimutil.BufferVar] = bufvar
+	option[nvimutil.WindowOption] = windowoption
 
 	return option
 }

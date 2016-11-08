@@ -6,7 +6,7 @@ package highlight
 
 import (
 	"fmt"
-	"nvim-go/nvim"
+	"nvim-go/nvimutil"
 	"time"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -44,14 +44,14 @@ func NewFader(v *vim.Nvim, buffer vim.Buffer, hlGroup string, startLine, endLine
 func (f *Fade) SetHighlight() error {
 	if f.startLine == f.endLine {
 		if _, err := f.v.AddBufferHighlight(f.buffer, 0, f.hlGroup, f.startLine, f.startCol, f.endCol); err != nil {
-			return nvim.ErrorWrap(f.v, errors.Wrap(err, "highlight.FadeOut"))
+			return nvimutil.ErrorWrap(f.v, errors.Wrap(err, "highlight.FadeOut"))
 		}
 		return nil
 	}
 
 	for i := f.startLine; i < f.endLine; i++ {
 		if _, err := f.v.AddBufferHighlight(f.buffer, 0, f.hlGroup, f.startLine, f.startCol, f.endCol); err != nil {
-			return nvim.ErrorWrap(f.v, errors.Wrap(err, "highlight.FadeOut"))
+			return nvimutil.ErrorWrap(f.v, errors.Wrap(err, "highlight.FadeOut"))
 		}
 	}
 	return nil

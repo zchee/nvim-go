@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
-	"nvim-go/nvim/quickfix"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/profile"
+	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
 	"github.com/rogpeppe/godef/go/ast"
@@ -57,7 +57,7 @@ func (c *Commands) Def(file string) error {
 	}
 	src := bytes.Join(buf, []byte{'\n'})
 
-	searchpos, err := nvim.ByteOffsetPipe(c.p, b, w)
+	searchpos, err := nvimutil.ByteOffsetPipe(c.p, b, w)
 	if err != nil {
 		return c.v.WriteErr("cannot get current buffer byte offset")
 	}
@@ -65,7 +65,7 @@ func (c *Commands) Def(file string) error {
 	pkgScope := ast.NewScope(parser.Universe)
 	f, err := parser.ParseFile(types.FileSet, file, src, 0, pkgScope, types.DefaultImportPathToName)
 	if f == nil {
-		nvim.Echomsg(c.v, "Godef: cannot parse %s: %v", file, err)
+		nvimutil.Echomsg(c.v, "Godef: cannot parse %s: %v", file, err)
 	}
 
 	o := findIdentifier(c.v, f, searchpos)
@@ -73,7 +73,7 @@ func (c *Commands) Def(file string) error {
 	switch e := o.(type) {
 	case ast.Expr:
 		if err := parseLocalPackage(file, f, pkgScope); err != nil {
-			nvim.Echomsg(c.v, "Godef: error parseLocalPackage %v", err)
+			nvimutil.Echomsg(c.v, "Godef: error parseLocalPackage %v", err)
 		}
 		obj, _ := types.ExprType(e, types.DefaultImporter, types.FileSet)
 		if obj != nil {
@@ -86,7 +86,7 @@ func (c *Commands) Def(file string) error {
 				Text:     pos.Filename,
 			})
 			if err := quickfix.SetLoclist(c.v, loclist); err != nil {
-				nvim.Echomsg(c.v, "Godef: %s", err)
+				nvimutil.Echomsg(c.v, "Godef: %s", err)
 			}
 
 			c.p.Command(fmt.Sprintf("edit %s", pos.Filename))
@@ -95,10 +95,10 @@ func (c *Commands) Def(file string) error {
 
 			return nil
 		}
-		nvim.Echomsg(c.v, "Godef: not found of obj")
+		nvimutil.Echomsg(c.v, "Godef: not found of obj")
 
 	default:
-		nvim.Echomsg(c.v, "Godef: no declaration found for %v", pretty{e})
+		nvimutil.Echomsg(c.v, "Godef: no declaration found for %v", pretty{e})
 	}
 	return nil
 }
@@ -167,7 +167,7 @@ func (o orderedObjects) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
 func importPath(v *vim.Nvim, n *ast.ImportSpec) string {
 	p, err := strconv.Unquote(n.Path.Value)
 	if err != nil {
-		nvim.Echomsg(v, "Godef: invalid string literal %q in ast.ImportSpec", n.Path.Value)
+		nvimutil.Echomsg(v, "Godef: invalid string literal %q in ast.ImportSpec", n.Path.Value)
 	}
 	return p
 }
@@ -232,7 +232,7 @@ func findIdentifier(v *vim.Nvim, f *ast.File, searchpos int) ast.Node {
 	}()
 	ev := <-ec
 	if ev == nil {
-		nvim.Echomsg(v, "Godef: no identifier found")
+		nvimutil.Echomsg(v, "Godef: no identifier found")
 	}
 	return ev
 }
@@ -240,13 +240,13 @@ func findIdentifier(v *vim.Nvim, f *ast.File, searchpos int) ast.Node {
 func parseExpr(v *vim.Nvim, s *ast.Scope, expr string) ast.Expr {
 	n, err := parser.ParseExpr(types.FileSet, "<arg>", expr, s, types.DefaultImportPathToName)
 	if err != nil {
-		nvim.Echomsg(v, "Godef: cannot parse expression: %v", err)
+		nvimutil.Echomsg(v, "Godef: cannot parse expression: %v", err)
 	}
 	switch n := n.(type) {
 	case *ast.Ident, *ast.SelectorExpr:
 		return n
 	}
-	nvim.Echomsg(v, "Godef: no identifier found in expression")
+	nvimutil.Echomsg(v, "Godef: no identifier found in expression")
 	return nil
 }
 

@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
-	"nvim-go/nvim/quickfix"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/profile"
+	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -52,13 +52,13 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
 		err = errors.Wrap(err, pkgRename)
-		return nvim.ErrorWrap(c.v, err)
+		return nvimutil.ErrorWrap(c.v, err)
 	}
 
-	offset, err := nvim.ByteOffset(c.v, b, w)
+	offset, err := nvimutil.ByteOffset(c.v, b, w)
 	if err != nil {
 		err = errors.Wrap(err, pkgRename)
-		return nvim.ErrorWrap(c.v, err)
+		return nvimutil.ErrorWrap(c.v, err)
 	}
 	pos := fmt.Sprintf("%s:#%d", eval.File, offset)
 
@@ -71,16 +71,16 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 		if config.RenamePrefill {
 			err := c.v.Call("input", &toResult, askMessage, eval.RenameFrom)
 			if err != nil {
-				return nvim.EchohlErr(c.v, pkgRename, "Keyboard interrupt")
+				return nvimutil.EchohlErr(c.v, pkgRename, "Keyboard interrupt")
 			}
 		} else {
 			err := c.v.Call("input", &toResult, askMessage)
 			if err != nil {
-				return nvim.EchohlErr(c.v, pkgRename, "Keyboard interrupt")
+				return nvimutil.EchohlErr(c.v, pkgRename, "Keyboard interrupt")
 			}
 		}
 		if toResult.(string) == "" {
-			return nvim.EchohlErr(c.v, pkgRename, "Not enough arguments for rename destination name")
+			return nvimutil.EchohlErr(c.v, pkgRename, "Not enough arguments for rename destination name")
 		}
 		renameTo = fmt.Sprintf("%s", toResult)
 	}
@@ -108,7 +108,7 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 		renameErr, err := ioutil.ReadAll(read)
 		if err != nil {
 			err = errors.Wrap(err, pkgRename)
-			return nvim.ErrorWrap(c.v, err)
+			return nvimutil.ErrorWrap(c.v, err)
 		}
 
 		log.Printf("er: %+v\n", string(renameErr))
@@ -119,12 +119,12 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 		}()
 
 		err = errors.Wrap(err, pkgRename)
-		return nvim.ErrorWrap(c.v, err)
+		return nvimutil.ErrorWrap(c.v, err)
 	}
 
 	write.Close()
 	out, _ := ioutil.ReadAll(read)
-	defer nvim.EchoSuccess(c.v, pkgRename, fmt.Sprintf("%s", out))
+	defer nvimutil.EchoSuccess(c.v, pkgRename, fmt.Sprintf("%s", out))
 
 	// TODO(zchee): 'edit' command is ugly.
 	// Should create tempfile and use SetBufferLines.

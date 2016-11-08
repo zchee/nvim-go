@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/profile"
 
 	"github.com/cweill/gotests/gotests/process"
 )
@@ -33,13 +33,13 @@ func (c *Commands) GenerateTest(files []string, dir string) error {
 
 	b, err := c.v.CurrentBuffer()
 	if err != nil {
-		return nvim.Echoerr(c.v, "GoGenerateTest: %v", err)
+		return nvimutil.Echoerr(c.v, "GoGenerateTest: %v", err)
 	}
 
 	if len(files) == 0 {
 		f, err := c.v.BufferName(b)
 		if err != nil {
-			return nvim.Echoerr(c.v, "GoGenerateTest: %v", err)
+			return nvimutil.Echoerr(c.v, "GoGenerateTest: %v", err)
 		}
 		files = []string{f}
 	}

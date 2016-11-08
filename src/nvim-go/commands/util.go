@@ -7,7 +7,7 @@ package commands
 import (
 	"fmt"
 
-	"nvim-go/nvim"
+	"nvim-go/nvimutil"
 )
 
 func (c *Commands) cmdBuffers() error {
@@ -17,7 +17,7 @@ func (c *Commands) cmdBuffers() error {
 		nr, _ := c.v.BufferNumber(buf)
 		b = append(b, fmt.Sprintf("%d", nr))
 	}
-	return nvim.Echomsg(c.v, "Buffers:", b)
+	return nvimutil.Echomsg(c.v, "Buffers:", b)
 }
 
 func (c *Commands) cmdWindows() error {
@@ -26,7 +26,7 @@ func (c *Commands) cmdWindows() error {
 	for _, win := range wins {
 		w = append(w, win.String())
 	}
-	return nvim.Echomsg(c.v, "Windows:", w)
+	return nvimutil.Echomsg(c.v, "Windows:", w)
 }
 
 func (c *Commands) cmdTabpagas() error {
@@ -35,7 +35,7 @@ func (c *Commands) cmdTabpagas() error {
 	for _, tab := range tabs {
 		t = append(t, tab.String())
 	}
-	return nvim.Echomsg(c.v, "Tabpages:", t)
+	return nvimutil.Echomsg(c.v, "Tabpages:", t)
 }
 
 func (c *Commands) cmdByteOffset() error {
@@ -48,6 +48,6 @@ func (c *Commands) cmdByteOffset() error {
 		return err
 	}
 
-	offset, _ := nvim.ByteOffset(c.v, b, w)
-	return nvim.Echomsg(c.v, offset)
+	offset, _ := nvimutil.ByteOffset(c.v, b, w)
+	return nvimutil.Echomsg(c.v, offset)
 }

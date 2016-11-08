@@ -9,8 +9,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"nvim-go/nvim"
-	"nvim-go/nvim/highlight"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/highlight"
 	"sort"
 
 	delveapi "github.com/derekparker/delve/service/api"
@@ -91,7 +91,7 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 		// Get the each threads function name.
 		if g.CurrentLoc.Function.Name == currentFunc.Name {
 			stacksMsg = append(stacksMsg, byte('*'))
-			hlLine := len(nvim.ToBufferLines(stacksMsg))
+			hlLine := len(nvimutil.ToBufferLines(stacksMsg))
 			fade = highlight.NewFader(d.v, d.buffer[Context].Buffer, "delveFade", hlLine, hlLine, 3, -1, 80)
 		} else {
 			stacksMsg = append(stacksMsg, []byte(fmt.Sprintf("\t\u25B6 %s\n", g.CurrentLoc.Function.Name))...) // \u25B6: ▶
@@ -104,7 +104,7 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 		if g.ID != 0 {
 			stacks, err := d.client.Stacktrace(g.ID, goroutineDepth, &delveapi.LoadConfig{FollowPointers: true}) // []delveapi.Stackframe
 			if err != nil {
-				return end, nvim.ErrorWrap(d.v, errors.Wrap(err, pkgDelve))
+				return end, nvimutil.ErrorWrap(d.v, errors.Wrap(err, pkgDelve))
 			}
 			for _, s := range stacks {
 				stacksMsg = append(stacksMsg, []byte(
@@ -117,7 +117,7 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 		}
 	}
 
-	stackData := nvim.ToBufferLines(stacksMsg)
+	stackData := nvimutil.ToBufferLines(stacksMsg)
 
 	// Saves and calculates the last stacktrace message height, and check the whether the first appned to buffer.
 	if end == 1 {

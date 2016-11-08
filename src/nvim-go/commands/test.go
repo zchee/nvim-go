@@ -15,10 +15,10 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/nvim"
-	"nvim-go/nvim/profile"
-	"nvim-go/nvim/quickfix"
-	"nvim-go/nvim/terminal"
+	"nvim-go/nvimutil"
+	"nvim-go/nvimutil/profile"
+	"nvim-go/nvimutil/quickfix"
+	"nvim-go/nvimutil/terminal"
 	"nvim-go/pathutil"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -97,7 +97,7 @@ func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
 
 	// Check the exists of switch destination file.
 	if _, err := os.Stat(switchfile); err != nil {
-		return nvim.EchohlErr(c.v, "GoTestSwitch", "Switch destination file does not exist")
+		return nvimutil.EchohlErr(c.v, "GoTestSwitch", "Switch destination file does not exist")
 	}
 
 	dir, _ := filepath.Split(fname)
@@ -120,7 +120,7 @@ func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
 
 	// Get the byte offset of current cursor position from buffer.
 	// TODO(zchee): Eval 'line2byte(line('.'))+(col('.')-2)' is faster and safer?
-	byteOffset, err := nvim.ByteOffset(c.v, b, w)
+	byteOffset, err := nvimutil.ByteOffset(c.v, b, w)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
 		return err
 	}
 
-	f, err := parse(fname, fset, nvim.ToByteSlice(buf)) // *ast.File
+	f, err := parse(fname, fset, nvimutil.ToByteSlice(buf)) // *ast.File
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
 	ast.Walk(visitorFunc(parseFunc), fswitch)
 
 	if !pos.IsValid() {
-		return nvim.EchohlErr(c.v, "GoTestSwitch", "Not found the switch destination function")
+		return nvimutil.EchohlErr(c.v, "GoTestSwitch", "Not found the switch destination function")
 	}
 
 	// Jump to the corresponds function.
