@@ -13,7 +13,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
@@ -35,7 +34,7 @@ type metalinterResult struct {
 
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
 func (c *Commands) Metalinter(cwd string) error {
-	defer profile.Start(time.Now(), "GoMetaLinter")
+	defer nvimutil.Profile(time.Now(), "GoMetaLinter")
 	defer c.ctxt.SetContext(cwd)()
 
 	var (

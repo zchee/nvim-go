@@ -17,7 +17,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
@@ -52,7 +51,7 @@ const (
 // Lint lints a go source file. The argument is a filename or directory path.
 // TODO(zchee): Support go packages.
 func (c *Commands) Lint(args []string, file string) ([]*vim.QuickfixError, error) {
-	defer profile.Start(time.Now(), pkgLint)
+	defer nvimutil.Profile(time.Now(), pkgLint)
 	dir := filepath.Dir(file)
 	defer c.ctxt.SetContext(dir)()
 	buildContext = build.Default

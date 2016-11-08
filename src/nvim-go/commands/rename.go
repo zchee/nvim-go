@@ -15,7 +15,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -37,7 +36,7 @@ func (c *Commands) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
 func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
-	defer profile.Start(time.Now(), "GoRename")
+	defer nvimutil.Profile(time.Now(), "GoRename")
 	dir := filepath.Dir(eval.File)
 	defer c.ctxt.SetContext(dir)()
 

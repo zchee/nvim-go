@@ -13,7 +13,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
@@ -54,7 +53,7 @@ func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
 
 // Vet is a simple checker for static errors in Go source code use go tool vet command.
 func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*vim.QuickfixError, error) {
-	defer profile.Start(time.Now(), pkgVet)
+	defer nvimutil.Profile(time.Now(), pkgVet)
 
 	vetCmd := exec.Command("go", "tool", "vet")
 	vetCmd.Dir = eval.Cwd

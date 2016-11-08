@@ -11,7 +11,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -44,7 +43,7 @@ func (c *Commands) cmdFmt(dir string) {
 
 // Fmt format to the current buffer source uses gofmt behavior.
 func (c *Commands) Fmt(dir string) interface{} {
-	defer profile.Start(time.Now(), pkgFmt)
+	defer nvimutil.Profile(time.Now(), pkgFmt)
 	defer c.ctxt.SetContext(dir)()
 
 	var (

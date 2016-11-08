@@ -14,7 +14,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -46,7 +45,7 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 // Build builds the current buffer's package use compile tool that
 // determined from the directory structure.
 func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
-	defer profile.Start(time.Now(), pkgBuild)
+	defer nvimutil.Profile(time.Now(), pkgBuild)
 	defer c.ctxt.SetContext(eval.Dir)()
 
 	if !bang {

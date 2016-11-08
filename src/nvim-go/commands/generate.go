@@ -14,7 +14,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 
 	"github.com/cweill/gotests/gotests/process"
 )
@@ -28,7 +27,7 @@ func (c *Commands) cmdGenerateTest(files []string, dir string) {
 // TODO(zchee): Currently Support '-all' flag only.
 // Needs support -exported, -i, -only flags.
 func (c *Commands) GenerateTest(files []string, dir string) error {
-	defer profile.Start(time.Now(), "GenerateTest")
+	defer nvimutil.Profile(time.Now(), "GenerateTest")
 	defer c.ctxt.SetContext(filepath.Dir(dir))()
 
 	b, err := c.v.CurrentBuffer()

@@ -16,7 +16,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
@@ -34,7 +33,7 @@ var testTerm *nvimutil.Terminal
 // Test run the package test command use compile tool that determined from
 // the directory structure.
 func (c *Commands) Test(args []string, dir string) error {
-	defer profile.Start(time.Now(), "GoTest")
+	defer nvimutil.Profile(time.Now(), "GoTest")
 	defer c.ctxt.SetContext(dir)()
 
 	cmd := []string{c.ctxt.Build.Tool, "test"}

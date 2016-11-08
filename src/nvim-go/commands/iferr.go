@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 
 	astmanip "github.com/motemen/go-astmanip"
 	"github.com/pkg/errors"
@@ -34,7 +33,7 @@ func (c *Commands) cmdIferr(file string) {
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func (c *Commands) Iferr(file string) error {
-	defer profile.Start(time.Now(), "GoIferr")
+	defer nvimutil.Profile(time.Now(), "GoIferr")
 
 	dir := filepath.Dir(file)
 	defer c.ctxt.SetContext(dir)()

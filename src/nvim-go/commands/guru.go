@@ -25,7 +25,6 @@ import (
 	"nvim-go/internal/guru"
 	"nvim-go/internal/guru/serial"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
@@ -51,7 +50,7 @@ func (c *Commands) funcGuru(args []string, eval *funcGuruEval) {
 
 // Guru go source analysis and output result to the quickfix or locationlist.
 func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
-	defer profile.Start(time.Now(), "Guru")
+	defer nvimutil.Profile(time.Now(), "Guru")
 	mode := args[0]
 	if len(args) > 1 {
 		return guruHelp(c.v, mode)
@@ -194,7 +193,7 @@ type fallback struct {
 // Imported by golang.org/x/tools/cmd/guru/definition.go
 // Modify use goroutine and channel.
 func definition(q *guru.Query) (*serial.Definition, error) {
-	defer profile.Start(time.Now(), "definition")
+	defer nvimutil.Profile(time.Now(), "definition")
 
 	c := make(chan fallback)
 	go definitionFallback(q, c)
@@ -252,7 +251,7 @@ func fallbackChan(obj *serial.Definition, err error) fallback {
 
 // definitionFallback fall back on the type checker.
 func definitionFallback(q *guru.Query, c chan fallback) {
-	defer profile.Start(time.Now(), "definitionFallback")
+	defer nvimutil.Profile(time.Now(), "definitionFallback")
 
 	// Run the type checker.
 	lconf := loader.Config{

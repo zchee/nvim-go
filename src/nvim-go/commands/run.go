@@ -10,7 +10,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 	"nvim-go/pathutil"
 
 	"github.com/pkg/errors"
@@ -46,7 +45,7 @@ func (c *Commands) cmdRunLast(file string) {
 
 // Run runs the go run command for current buffer's packages.
 func (c *Commands) Run(cmd []string, file string) error {
-	defer profile.Start(time.Now(), "GoRun")
+	defer nvimutil.Profile(time.Now(), "GoRun")
 
 	if runTerm == nil {
 		runTerm = nvimutil.NewTerminal(c.v, "__GO_RUN__", cmd, config.TerminalMode)

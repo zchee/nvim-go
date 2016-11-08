@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/profile"
 	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -33,7 +32,7 @@ func (c *Commands) cmdDef(file string) {
 // Def definition to current cursor word.
 // DEPRECATED: godef no longer mantained.
 func (c *Commands) Def(file string) error {
-	defer profile.Start(time.Now(), "GoDef")
+	defer nvimutil.Profile(time.Now(), "GoDef")
 	defer c.ctxt.SetContext(filepath.Dir(file))()
 
 	// types.Debug = true
