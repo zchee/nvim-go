@@ -38,6 +38,10 @@ type Debugger struct {
 type Config struct {
 	// ProcessArgs are the arguments to launch a new process.
 	ProcessArgs []string
+	// WorkingDir is working directory of the new process. This field is used
+	// only when launching a new process.
+	WorkingDir string
+
 	// AttachPid is the PID of an existing process to which the debugger should
 	// attach.
 	AttachPid int
@@ -59,7 +63,7 @@ func New(config *Config) (*Debugger, error) {
 		d.process = p
 	} else {
 		log.Printf("launching process with args: %v", d.config.ProcessArgs)
-		p, err := proc.Launch(d.config.ProcessArgs)
+		p, err := proc.Launch(d.config.ProcessArgs, d.config.WorkingDir)
 		if err != nil {
 			if err != proc.NotExecutableErr && err != proc.UnsupportedArchErr {
 				err = fmt.Errorf("could not launch process: %s", err)
@@ -112,7 +116,7 @@ func (d *Debugger) Restart() error {
 			return err
 		}
 	}
-	p, err := proc.Launch(d.config.ProcessArgs)
+	p, err := proc.Launch(d.config.ProcessArgs, d.config.WorkingDir)
 	if err != nil {
 		return fmt.Errorf("could not launch process: %s", err)
 	}
@@ -120,7 +124,7 @@ func (d *Debugger) Restart() error {
 		if oldBp.ID < 0 {
 			continue
 		}
-		newBp, err := p.SetBreakpoint(oldBp.Addr)
+		newBp, err := p.SetBreakpoint(oldBp.Addr, proc.UserBreakpoint, nil)
 		if err != nil {
 			return err
 		}
@@ -167,7 +171,7 @@ func (d *Debugger) state() (*api.DebuggerState, error) {
 	}
 
 	for _, bp := range d.process.Breakpoints {
-		if bp.Temp {
+		if bp.Internal() {
 			state.NextInProgress = true
 			break
 		}
@@ -224,7 +228,7 @@ func (d *Debugger) CreateBreakpoint(requestedBp *api.Breakpoint) (*api.Breakpoin
 		return nil, err
 	}
 
-	bp, err := d.process.SetBreakpoint(addr)
+	bp, err := d.process.SetBreakpoint(addr, proc.UserBreakpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +258,7 @@ func (d *Debugger) AmendBreakpoint(amend *api.Breakpoint) error {
 }
 
 func (d *Debugger) CancelNext() error {
-	return d.process.ClearTempBreakpoints()
+	return d.process.ClearInternalBreakpoints()
 }
 
 func copyBreakpointInfo(bp *proc.Breakpoint, requested *api.Breakpoint) (err error) {
@@ -297,7 +301,7 @@ func (d *Debugger) Breakpoints() []*api.Breakpoint {
 func (d *Debugger) breakpoints() []*api.Breakpoint {
 	bps := []*api.Breakpoint{}
 	for _, bp := range d.process.Breakpoints {
-		if bp.Temp {
+		if bp.Internal() {
 			continue
 		}
 		bps = append(bps, api.ConvertBreakpoint(bp))
@@ -418,6 +422,9 @@ func (d *Debugger) Command(command *api.DebuggerCommand) (*api.DebuggerState, er
 	case api.StepInstruction:
 		log.Print("single stepping")
 		err = d.process.StepInstruction()
+	case api.StepOut:
+		log.Print("step out")
+		err = d.process.StepOut()
 	case api.SwitchThread:
 		log.Printf("switching to thread %d", command.ThreadID)
 		err = d.process.SwitchThread(command.ThreadID)

@@ -22,6 +22,7 @@ type Options struct {
 	ExportedFuncs bool   // Only include exported functions.
 	AllFuncs      bool   // Include all non-tested functions.
 	PrintInputs   bool   // Print function parameters as part of error messages.
+	Subtests      bool   // Print tests using Go 1.7 subtests
 	WriteOutput   bool   // Write output to test file(s).
 }
 
@@ -65,6 +66,7 @@ func parseOptions(out io.Writer, opt *Options) *gotests.Options {
 		Exclude:     exclRE,
 		Exported:    opt.ExportedFuncs,
 		PrintInputs: opt.PrintInputs,
+		Subtests:    opt.Subtests,
 	}
 }
 
