@@ -1,4 +1,4 @@
-" Copyright 2016 Koichi Shiraishi. All rights reserved.
+" Copyright 2016 The nvim-go Authors. All rights reserved.
 " Use of this source code is governed by a BSD-style
 " license that can be found in the LICENSE file.
 
@@ -8,7 +8,8 @@ endif
 let g:loaded_nvim_go = 1
 
 
-" Define default config variables
+" -----------------------------------------------------------------------------
+" define default config variables
 
 " Global
 let g:go#global#errorlisttype = get(g:, 'go#global#errorlisttype', 'locationlist')
@@ -80,19 +81,22 @@ let g:go#debug       = get(g:, 'go#debug', 0)
 let g:go#debug#pprof = get(g:, 'go#debug#pprof', 0)
 
 
-" Register remote plugin
-
-" plugin informations {{{
+" -----------------------------------------------------------------------------
+" register remote plugin {{{
 let s:plugin_name   = 'nvim-go'
 let s:plugin_root   = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
 let s:plugin_dir    = s:plugin_root . '/rplugin/go/' . s:plugin_name
-let s:plugin_binary = s:plugin_root . '/bin/' . s:plugin_name
-" }}}
 
-" register function {{{
+" wrapper of debug logging script
+if g:go#debug == 0
+  let s:plugin_binary = s:plugin_root . '/bin/' . s:plugin_name
+else 
+  let s:plugin_binary  = s:plugin_root . '/scripts/debug.sh'
+endif
+
 function! s:RequireNvimGo(host) abort
   try
-    return rpcstart(s:plugin_binary, [s:plugin_dir])
+    return jobstart([s:plugin_binary], {'rpc': v:true})
   catch
     echomsg v:throwpoint
     echomsg v:exception
@@ -101,6 +105,7 @@ function! s:RequireNvimGo(host) abort
 endfunction
 " }}}
 
+" -----------------------------------------------------------------------------
 " plugin manifest
 call remote#host#Register(s:plugin_name, '*', function('s:RequireNvimGo'))
 call remote#host#RegisterPlugin('nvim-go', '0', [
