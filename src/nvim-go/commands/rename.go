@@ -16,7 +16,7 @@ import (
 	"nvim-go/config"
 	"nvim-go/nvimutil"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/refactor/rename"
 )
@@ -40,8 +40,8 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 	defer c.ctxt.SetContext(dir)()
 
 	var (
-		b vim.Buffer
-		w vim.Window
+		b nvim.Buffer
+		w nvim.Window
 	)
 	if c.p == nil {
 		c.p = c.v.NewPipeline()

@@ -13,7 +13,7 @@ import (
 	"sort"
 
 	delveapi "github.com/derekparker/delve/service/api"
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
@@ -163,7 +163,7 @@ func (d *Delve) printLocals(cwd string, locals []delveapi.Variable, stackHeight 
 	return nil
 }
 
-func (d *Delve) printThread(v *vim.Nvim, cwd string, threads []*delveapi.Thread) error {
+func (d *Delve) printThread(v *nvim.Nvim, cwd string, threads []*delveapi.Thread) error {
 	v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", true)
 	defer v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", false)
 

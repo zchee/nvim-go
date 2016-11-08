@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 var (
@@ -28,7 +28,7 @@ var (
 	gsftpMain   = filepath.Join(gsftpRoot, "src", "cmd", "gsftp", "main.go")
 )
 
-func testVim(t *testing.T, file string) *vim.Nvim {
+func testVim(t *testing.T, file string) *nvim.Nvim {
 	tmpdir := filepath.Join(os.TempDir(), "nvim-go-test")
 	setXDGEnv(tmpdir)
 	defer os.RemoveAll(tmpdir)
@@ -41,7 +41,7 @@ func testVim(t *testing.T, file string) *vim.Nvim {
 	if file != "" {
 		nvimArgs = append(nvimArgs, file)
 	}
-	v, err := vim.NewEmbedded(&vim.EmbedOptions{
+	v, err := nvim.NewEmbedded(&nvim.EmbedOptions{
 		Args: nvimArgs,
 		Logf: t.Logf,
 	})
@@ -53,7 +53,7 @@ func testVim(t *testing.T, file string) *vim.Nvim {
 	return v
 }
 
-func benchVim(b *testing.B, file string) *vim.Nvim {
+func benchVim(b *testing.B, file string) *nvim.Nvim {
 	tmpdir := filepath.Join(os.TempDir(), "nvim-go-test")
 	setXDGEnv(tmpdir)
 	defer os.RemoveAll(tmpdir)
@@ -66,7 +66,7 @@ func benchVim(b *testing.B, file string) *vim.Nvim {
 	if file != "" {
 		nvimArgs = append(nvimArgs, file)
 	}
-	v, err := vim.NewEmbedded(&vim.EmbedOptions{
+	v, err := nvim.NewEmbedded(&nvim.EmbedOptions{
 		Args: nvimArgs,
 		Logf: b.Logf,
 	})

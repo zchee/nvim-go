@@ -20,13 +20,13 @@ import (
 	"nvim-go/pathutil"
 
 	"github.com/golang/lint"
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
 const pkgLint = "GoLint"
 
-func (c *Commands) cmdLint(v *vim.Nvim, args []string, file string) {
+func (c *Commands) cmdLint(v *nvim.Nvim, args []string, file string) {
 	// Cleanup error list
 	delete(c.ctxt.Errlist, "Lint")
 
@@ -49,14 +49,14 @@ const (
 
 // Lint lints a go source file. The argument is a filename or directory path.
 // TODO(zchee): Support go packages.
-func (c *Commands) Lint(args []string, file string) ([]*vim.QuickfixError, error) {
+func (c *Commands) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
 	defer nvimutil.Profile(time.Now(), pkgLint)
 	dir := filepath.Dir(file)
 	defer c.ctxt.SetContext(dir)()
 	buildContext = build.Default
 
 	var (
-		errlist []*vim.QuickfixError
+		errlist []*nvim.QuickfixError
 		err     error
 	)
 	switch {
@@ -109,7 +109,7 @@ func (c *Commands) Lint(args []string, file string) ([]*vim.QuickfixError, error
 }
 
 // TODO(zchee): Support list of go packages.
-func (c *Commands) cmdLintComplete(a *vim.CommandCompletionArgs, cwd string) (filelist []string, err error) {
+func (c *Commands) cmdLintComplete(a *nvim.CommandCompletionArgs, cwd string) (filelist []string, err error) {
 	files, err := nvimutil.CompleteFiles(c.v, a, cwd)
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (c *Commands) cmdLintComplete(a *vim.CommandCompletionArgs, cwd string) (fi
 // ----------------------------------------------------------------------------
 // The below code is based by github.com/golang/lint/golint/golint.go
 
-func (c *Commands) lintFiles(filenames ...string) ([]*vim.QuickfixError, error) {
+func (c *Commands) lintFiles(filenames ...string) ([]*nvim.QuickfixError, error) {
 	files := make(map[string][]byte)
 	for _, filename := range filenames {
 		src, err := ioutil.ReadFile(filename)
@@ -144,7 +144,7 @@ func (c *Commands) lintFiles(filenames ...string) ([]*vim.QuickfixError, error) 
 	}
 	cwd := cwdRes.(string)
 
-	var errlist []*vim.QuickfixError
+	var errlist []*nvim.QuickfixError
 	for _, p := range ps {
 		if p.Confidence >= config.GolintMinConfidence {
 			file := p.Position.Filename
@@ -156,7 +156,7 @@ func (c *Commands) lintFiles(filenames ...string) ([]*vim.QuickfixError, error) 
 				file = frel
 			}
 
-			errlist = append(errlist, &vim.QuickfixError{
+			errlist = append(errlist, &nvim.QuickfixError{
 				FileName: file,
 				LNum:     p.Position.Line,
 				Col:      p.Position.Column,
@@ -177,17 +177,17 @@ func contain(s string, ignore []string) bool {
 	return false
 }
 
-func (c *Commands) lintDir(dirname string) ([]*vim.QuickfixError, error) {
+func (c *Commands) lintDir(dirname string) ([]*nvim.QuickfixError, error) {
 	pkg, err := build.ImportDir(dirname, 0)
 	return c.lintImportedPackage(pkg, err)
 }
 
-func (c *Commands) lintPackage(pkgname string) ([]*vim.QuickfixError, error) {
+func (c *Commands) lintPackage(pkgname string) ([]*nvim.QuickfixError, error) {
 	pkg, err := build.Import(pkgname, ".", 0)
 	return c.lintImportedPackage(pkg, err)
 }
 
-func (c *Commands) lintImportedPackage(pkg *build.Package, err error) ([]*vim.QuickfixError, error) {
+func (c *Commands) lintImportedPackage(pkg *build.Package, err error) ([]*nvim.QuickfixError, error) {
 	if err != nil {
 		if _, nogo := err.(*build.NoGoError); nogo {
 			// Don't complain if the failure is due to no Go source files.

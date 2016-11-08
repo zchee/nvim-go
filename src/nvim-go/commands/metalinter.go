@@ -15,7 +15,7 @@ import (
 	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 func (c *Commands) cmdMetalinter(cwd string) {
@@ -37,9 +37,9 @@ func (c *Commands) Metalinter(cwd string) error {
 	defer c.ctxt.SetContext(cwd)()
 
 	var (
-		loclist []*vim.QuickfixError
-		b       vim.Buffer
-		w       vim.Window
+		loclist []*nvim.QuickfixError
+		b       nvim.Buffer
+		w       nvim.Window
 	)
 	if c.p == nil {
 		c.p = c.v.NewPipeline()
@@ -82,7 +82,7 @@ func (c *Commands) Metalinter(cwd string) error {
 	sort.Sort(byPath(result))
 
 	for _, r := range result {
-		loclist = append(loclist, &vim.QuickfixError{
+		loclist = append(loclist, &nvim.QuickfixError{
 			FileName: pathutil.Rel(r.Path, cwd),
 			LNum:     r.Line,
 			Col:      r.Col,

@@ -18,7 +18,7 @@ import (
 	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"golang.org/x/tools/go/ast/astutil"
 )
 
@@ -101,8 +101,8 @@ func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
 	defer c.ctxt.SetContext(filepath.Dir(dir))()
 
 	var (
-		b vim.Buffer
-		w vim.Window
+		b nvim.Buffer
+		w nvim.Window
 	)
 
 	// Gets the current buffer information.

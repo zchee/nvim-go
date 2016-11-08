@@ -12,12 +12,12 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 func TestCommands_Build(t *testing.T) {
 	type fields struct {
-		v    *vim.Nvim
+		v    *nvim.Nvim
 		ctxt *context.Context
 	}
 	type args struct {
@@ -92,7 +92,7 @@ func TestCommands_Build(t *testing.T) {
 		config.ErrorListType = "locationlist"
 
 		err := c.Build(tt.args.bang, tt.args.eval)
-		if errlist, ok := err.([]*vim.QuickfixError); !ok {
+		if errlist, ok := err.([]*nvim.QuickfixError); !ok {
 			if (len(errlist) != 0) != tt.wantErr {
 				t.Errorf("%q. Commands.Build(%v, %v) wantErr %v", tt.name, tt.args.bang, tt.args.eval, tt.wantErr)
 			}
@@ -132,7 +132,7 @@ func BenchmarkBuildGb(b *testing.B) {
 
 func TestCommands_compileCmd(t *testing.T) {
 	type fields struct {
-		Vim  *vim.Nvim
+		Vim  *nvim.Nvim
 		ctxt *context.Context
 	}
 	type args struct {

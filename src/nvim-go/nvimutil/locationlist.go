@@ -17,11 +17,11 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 // SetLoclist set the error results data to current buffer's locationlist.
-func SetLoclist(v *vim.Nvim, loclist []*vim.QuickfixError) error {
+func SetLoclist(v *nvim.Nvim, loclist []*nvim.QuickfixError) error {
 	// setloclist({nr}, {list} [, {action}])
 	// v.Call(fname string, result interface{}, args ...interface{})
 	if len(loclist) > 0 {
@@ -38,7 +38,7 @@ var (
 	openlistCmd  func() error
 	closelistCmd func() error
 	clearlistCmd func() error
-	setlistCmd   func(errlist []*vim.QuickfixError) error
+	setlistCmd   func(errlist []*nvim.QuickfixError) error
 )
 
 type ErrorListType string
@@ -48,7 +48,7 @@ const (
 	LocationList               = "locationlist"
 )
 
-func getListCmd(v *vim.Nvim) {
+func getListCmd(v *nvim.Nvim) {
 	if listtype == "" {
 		listtype = ErrorListType(config.ErrorListType)
 	}
@@ -57,12 +57,12 @@ func getListCmd(v *vim.Nvim) {
 		openlistCmd = func() error { return v.Command("copen") }
 		closelistCmd = func() error { return v.Command("cclose") }
 		clearlistCmd = func() error { return v.Command("cgetexpr ''") }
-		setlistCmd = func(errlist []*vim.QuickfixError) error { return v.Call("setqflist", nil, errlist, "r") }
+		setlistCmd = func(errlist []*nvim.QuickfixError) error { return v.Call("setqflist", nil, errlist, "r") }
 	case LocationList:
 		openlistCmd = func() error { return v.Command("lopen") }
 		closelistCmd = func() error { return v.Command("lclose") }
 		clearlistCmd = func() error { return v.Command("lgetexpr ''") }
-		setlistCmd = func(errlist []*vim.QuickfixError) error { return v.Call("setloclist", nil, 0, errlist, "r") }
+		setlistCmd = func(errlist []*nvim.QuickfixError) error { return v.Call("setloclist", nil, 0, errlist, "r") }
 	}
 }
 
@@ -70,7 +70,7 @@ func getListCmd(v *vim.Nvim) {
 // TODO(zchee): This function will reports the errors with open the quickfix window, but will close
 // the quickfix window if no errors.
 // Do ErrorList function name is appropriate?
-func ErrorList(v *vim.Nvim, errors map[string][]*vim.QuickfixError, keep bool) error {
+func ErrorList(v *nvim.Nvim, errors map[string][]*nvim.QuickfixError, keep bool) error {
 	if listtype == "" {
 		getListCmd(v)
 	}
@@ -80,7 +80,7 @@ func ErrorList(v *vim.Nvim, errors map[string][]*vim.QuickfixError, keep bool) e
 		return closelistCmd()
 	}
 
-	var errlist []*vim.QuickfixError
+	var errlist []*nvim.QuickfixError
 	for _, err := range errors {
 		errlist = append(errlist, err...)
 	}
@@ -99,7 +99,7 @@ func ErrorList(v *vim.Nvim, errors map[string][]*vim.QuickfixError, keep bool) e
 }
 
 // SetErrorlist set the error results data to Neovim error list.
-func SetErrorlist(v *vim.Nvim, errlist []*vim.QuickfixError) error {
+func SetErrorlist(v *nvim.Nvim, errlist []*nvim.QuickfixError) error {
 	if setlistCmd == nil {
 		getListCmd(v)
 	}
@@ -108,7 +108,7 @@ func SetErrorlist(v *vim.Nvim, errlist []*vim.QuickfixError) error {
 }
 
 // ClearErrorlist clear the Neovim error list.
-func ClearErrorlist(v *vim.Nvim, close bool) error {
+func ClearErrorlist(v *nvim.Nvim, close bool) error {
 	if clearlistCmd == nil {
 		getListCmd(v)
 	}
@@ -120,7 +120,7 @@ func ClearErrorlist(v *vim.Nvim, close bool) error {
 }
 
 // OpenLoclist open or close the current buffer's locationlist window.
-func OpenLoclist(v *vim.Nvim, w vim.Window, loclist []*vim.QuickfixError, keep bool) error {
+func OpenLoclist(v *nvim.Nvim, w nvim.Window, loclist []*nvim.QuickfixError, keep bool) error {
 	if len(loclist) == 0 {
 		return v.Command("lclose")
 	}
@@ -133,19 +133,19 @@ func OpenLoclist(v *vim.Nvim, w vim.Window, loclist []*vim.QuickfixError, keep b
 }
 
 // CloseLoclist close the current buffer's locationlist window.
-func CloseLoclist(v *vim.Nvim) error {
+func CloseLoclist(v *nvim.Nvim) error {
 	return v.Command("lclose")
 }
 
 // SetQuickfix set the error results data to quickfix list.
-func SetQuickfix(p *vim.Pipeline, qflist []*vim.QuickfixError) error {
+func SetQuickfix(p *nvim.Pipeline, qflist []*nvim.QuickfixError) error {
 	p.Call("setqflist", nil, qflist)
 
 	return nil
 }
 
 // OpenOuickfix open the quickfix list window.
-func OpenOuickfix(p *vim.Pipeline, w vim.Window, keep bool) error {
+func OpenOuickfix(p *nvim.Pipeline, w nvim.Window, keep bool) error {
 	p.Command("copen")
 	if keep {
 		p.SetCurrentWindow(w)
@@ -158,11 +158,11 @@ func OpenOuickfix(p *vim.Pipeline, w vim.Window, keep bool) error {
 }
 
 // CloseQuickfix close the quickfix list window.
-func CloseQuickfix(v *vim.Nvim) error {
+func CloseQuickfix(v *nvim.Nvim) error {
 	return v.Command("cclose")
 }
 
-func GotoPos(v *vim.Nvim, w vim.Window, pos token.Position, cwd string) error {
+func GotoPos(v *nvim.Nvim, w nvim.Window, pos token.Position, cwd string) error {
 	fname, line, col := SplitPos(pos.String(), cwd)
 
 	v.Command(fmt.Sprintf("edit %s", fname))
@@ -201,11 +201,11 @@ var errRe = regexp.MustCompile(`(?m)^([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
 
 // ParseError parses a typical error message of Go compile tools.
 // TODO(zchee): More elegant way
-func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*vim.QuickfixError, error) {
+func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixError, error) {
 	var (
 		parentDir string
 		fpath     string
-		errlist   []*vim.QuickfixError
+		errlist   []*nvim.QuickfixError
 		hasPrefix bool
 	)
 
@@ -259,7 +259,7 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*vim.Quickfix
 			col = 0
 		}
 
-		errlist = append(errlist, &vim.QuickfixError{
+		errlist = append(errlist, &nvim.QuickfixError{
 			FileName: filename,
 			LNum:     line,
 			Col:      col,

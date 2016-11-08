@@ -7,18 +7,18 @@ package commands
 import (
 	"nvim-go/context"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
 )
 
 type Commands struct {
-	v *vim.Nvim
-	p *vim.Pipeline
+	v *nvim.Nvim
+	p *nvim.Pipeline
 
 	ctxt *context.Context
 }
 
-func NewCommands(v *vim.Nvim, ctxt *context.Context) *Commands {
+func NewCommands(v *nvim.Nvim, ctxt *context.Context) *Commands {
 	return &Commands{
 		v:    v,
 		ctxt: ctxt,

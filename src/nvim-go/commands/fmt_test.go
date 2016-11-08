@@ -12,13 +12,13 @@ import (
 	"nvim-go/config"
 	"nvim-go/context"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 func TestCommands_Fmt(t *testing.T) {
 	type fields struct {
-		Vim  *vim.Nvim
-		p    *vim.Pipeline
+		Vim  *nvim.Nvim
+		p    *nvim.Pipeline
 		ctxt *context.Context
 	}
 	type args struct {
@@ -67,7 +67,7 @@ func TestCommands_Fmt(t *testing.T) {
 		config.FmtMode = "goimports"
 
 		err := c.Fmt(tt.args.dir)
-		if errlist, ok := err.([]*vim.QuickfixError); !ok {
+		if errlist, ok := err.([]*nvim.QuickfixError); !ok {
 			if (len(errlist) != 0) != tt.wantErr {
 				t.Errorf("%q. Commands.Fmt(%v), wantErr %v", tt.name, tt.args.dir, tt.wantErr)
 			}

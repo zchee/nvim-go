@@ -4,15 +4,15 @@
 
 package delve
 
-import vim "github.com/neovim/go-client/nvim"
+import "github.com/neovim/go-client/nvim"
 
-func (d *Delve) readServerStdout(v *vim.Nvim, cmd, args string) error {
+func (d *Delve) readServerStdout(v *nvim.Nvim, cmd, args string) error {
 	command := cmd + " " + args
 
 	return d.printTerminal(command, d.serverOut.Bytes())
 }
 
-func (d *Delve) readServerStderr(v *vim.Nvim, cmd, args string) error {
+func (d *Delve) readServerStderr(v *nvim.Nvim, cmd, args string) error {
 	command := cmd + " " + args
 
 	return d.printTerminal(command, d.serverErr.Bytes())

@@ -11,15 +11,15 @@ import (
 
 	"nvim-go/context"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 var testLintDir = filepath.Join(testGoPath, "src", "lint")
 
 func TestCommands_Lint(t *testing.T) {
 	type fields struct {
-		v    *vim.Nvim
-		p    *vim.Pipeline
+		v    *nvim.Nvim
+		p    *nvim.Pipeline
 		ctxt *context.Context
 	}
 	type args struct {
@@ -30,7 +30,7 @@ func TestCommands_Lint(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    []*vim.QuickfixError
+		want    []*nvim.QuickfixError
 		wantErr bool
 	}{
 		{
@@ -53,12 +53,12 @@ func TestCommands_Lint(t *testing.T) {
 				args: []string{"%"},
 				file: filepath.Join(testLintDir, "make.go"),
 			},
-			want: []*vim.QuickfixError{&vim.QuickfixError{
+			want: []*nvim.QuickfixError{&nvim.QuickfixError{
 				FileName: "make.go",
 				LNum:     14,
 				Col:      2,
 				Text:     "can probably use \"var x []T\" instead",
-			}, &vim.QuickfixError{
+			}, &nvim.QuickfixError{
 				FileName: "make.go",
 				LNum:     15,
 				Col:      2,
@@ -86,12 +86,12 @@ func TestCommands_Lint(t *testing.T) {
 
 func TestCommands_cmdLintComplete(t *testing.T) {
 	type fields struct {
-		v    *vim.Nvim
-		p    *vim.Pipeline
+		v    *nvim.Nvim
+		p    *nvim.Pipeline
 		ctxt *context.Context
 	}
 	type args struct {
-		a   *vim.CommandCompletionArgs
+		a   *nvim.CommandCompletionArgs
 		cwd string
 	}
 	tests := []struct {
@@ -107,7 +107,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 				v: testVim(t, filepath.Join(testLintDir, "make.go")),
 			},
 			args: args{
-				a:   new(vim.CommandCompletionArgs),
+				a:   new(nvim.CommandCompletionArgs),
 				cwd: testLintDir,
 			},
 			wantFilelist: []string{"blank-import-main.go", "make.go", "time.go"},
@@ -118,7 +118,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 				v: testVim(t, filepath.Join(testLintDir, "make.go")),
 			},
 			args: args{
-				a: &vim.CommandCompletionArgs{
+				a: &nvim.CommandCompletionArgs{
 					ArgLead: "ma",
 				},
 				cwd: testLintDir,
@@ -131,7 +131,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 				v: testVim(t, astdumpMain),
 			},
 			args: args{
-				a:   new(vim.CommandCompletionArgs),
+				a:   new(nvim.CommandCompletionArgs),
 				cwd: astdump,
 			},
 			wantFilelist: []string{"astdump.go"},
@@ -142,7 +142,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 				v: testVim(t, gsftpMain),
 			},
 			args: args{
-				a:   new(vim.CommandCompletionArgs),
+				a:   new(nvim.CommandCompletionArgs),
 				cwd: gsftp,
 			},
 			wantFilelist: []string{"main.go"},

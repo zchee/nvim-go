@@ -11,13 +11,13 @@ import (
 
 	"nvim-go/context"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 func TestCommands_Vet(t *testing.T) {
 	type fields struct {
-		v    *vim.Nvim
-		p    *vim.Pipeline
+		v    *nvim.Nvim
+		p    *nvim.Pipeline
 		ctxt *context.Context
 	}
 	type args struct {
@@ -28,7 +28,7 @@ func TestCommands_Vet(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    []*vim.QuickfixError
+		want    []*nvim.QuickfixError
 		wantErr bool
 	}{
 		{
@@ -43,12 +43,12 @@ func TestCommands_Vet(t *testing.T) {
 					Dir: filepath.Join(testGoPath, "src/vet"),
 				},
 			},
-			want: []*vim.QuickfixError{&vim.QuickfixError{
+			want: []*nvim.QuickfixError{&nvim.QuickfixError{
 				FileName: "method.go",
 				LNum:     17,
 				Col:      0,
 				Text:     "method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error",
-			}, &vim.QuickfixError{
+			}, &nvim.QuickfixError{
 				FileName: "method.go",
 				LNum:     21,
 				Col:      0,
@@ -68,42 +68,42 @@ func TestCommands_Vet(t *testing.T) {
 					Dir: filepath.Join(testGoPath, "src/vet"),
 				},
 			},
-			want: []*vim.QuickfixError{&vim.QuickfixError{
+			want: []*nvim.QuickfixError{&nvim.QuickfixError{
 				FileName: "method.go",
 				LNum:     17,
 				Col:      0,
 				Text:     "method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error",
-			}, &vim.QuickfixError{
+			}, &nvim.QuickfixError{
 				FileName: "method.go",
 				LNum:     21,
 				Col:      0,
 				Text:     "method ReadByte() byte should have signature ReadByte() (byte, error)",
-			}, &vim.QuickfixError{
+			}, &nvim.QuickfixError{
 				FileName: "unused.go",
 				LNum:     16,
 				Col:      0,
 				Text:     "result of fmt.Errorf call not used",
-			}, &vim.QuickfixError{
+			}, &nvim.QuickfixError{
 				FileName: "unused.go",
 				LNum:     19,
 				Col:      0,
 				Text:     "result of errors.New call not used",
-			}, &vim.QuickfixError{
+			}, &nvim.QuickfixError{
 				FileName: "unused.go",
 				LNum:     22,
 				Col:      0,
 				Text:     "result of (error).Error call not used",
-			}, &vim.QuickfixError{
+			}, &nvim.QuickfixError{
 				FileName: "unused.go",
 				LNum:     25,
 				Col:      0,
 				Text:     "result of (bytes.Buffer).String call not used",
-			}, &vim.QuickfixError{
+			}, &nvim.QuickfixError{
 				FileName: "unused.go",
 				LNum:     27,
 				Col:      0,
 				Text:     "result of fmt.Sprint call not used",
-			}, &vim.QuickfixError{
+			}, &nvim.QuickfixError{
 				FileName: "unused.go",
 				LNum:     28,
 				Col:      0,

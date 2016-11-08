@@ -13,13 +13,13 @@ import (
 	"nvim-go/internal/guru"
 	"nvim-go/internal/guru/serial"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 func TestCommands_Guru(t *testing.T) {
 	type fields struct {
-		Vim  *vim.Nvim
-		p    *vim.Pipeline
+		Vim  *nvim.Nvim
+		p    *nvim.Pipeline
 		ctxt *context.Context
 	}
 	type args struct {
@@ -115,7 +115,7 @@ func Test_parseResult(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []*vim.QuickfixError
+		want    []*nvim.QuickfixError
 		wantErr bool
 	}{
 	// TODO: Add test cases.
@@ -134,7 +134,7 @@ func Test_parseResult(t *testing.T) {
 
 func Test_guruHelp(t *testing.T) {
 	type args struct {
-		v    *vim.Nvim
+		v    *nvim.Nvim
 		mode string
 	}
 	tests := []struct {

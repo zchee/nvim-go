@@ -16,7 +16,7 @@ import (
 
 	"nvim-go/nvimutil"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"github.com/rogpeppe/godef/go/ast"
 	"github.com/rogpeppe/godef/go/parser"
 	"github.com/rogpeppe/godef/go/printer"
@@ -37,8 +37,8 @@ func (c *Commands) Def(file string) error {
 	// types.Debug = true
 
 	var (
-		b vim.Buffer
-		w vim.Window
+		b nvim.Buffer
+		w nvim.Window
 	)
 	if c.p == nil {
 		c.p = c.v.NewPipeline()
@@ -76,8 +76,8 @@ func (c *Commands) Def(file string) error {
 		obj, _ := types.ExprType(e, types.DefaultImporter, types.FileSet)
 		if obj != nil {
 			pos := types.FileSet.Position(types.DeclPos(obj))
-			var loclist []*vim.QuickfixError
-			loclist = append(loclist, &vim.QuickfixError{
+			var loclist []*nvim.QuickfixError
+			loclist = append(loclist, &nvim.QuickfixError{
 				FileName: pos.Filename,
 				LNum:     pos.Line,
 				Col:      pos.Column,
@@ -162,7 +162,7 @@ func (o orderedObjects) Less(i, j int) bool { return o[i].Name < o[j].Name }
 func (o orderedObjects) Len() int           { return len(o) }
 func (o orderedObjects) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
 
-func importPath(v *vim.Nvim, n *ast.ImportSpec) string {
+func importPath(v *nvim.Nvim, n *ast.ImportSpec) string {
 	p, err := strconv.Unquote(n.Path.Value)
 	if err != nil {
 		nvimutil.Echomsg(v, "Godef: invalid string literal %q in ast.ImportSpec", n.Path.Value)
@@ -176,7 +176,7 @@ func importPath(v *vim.Nvim, n *ast.ImportSpec) string {
 // that expression rather than the identifier itself.
 //
 // As a special case, if it finds an import spec, it returns ImportSpec.
-func findIdentifier(v *vim.Nvim, f *ast.File, searchpos int) ast.Node {
+func findIdentifier(v *nvim.Nvim, f *ast.File, searchpos int) ast.Node {
 	ec := make(chan ast.Node)
 	found := func(startPos, endPos token.Pos) bool {
 		start := types.FileSet.Position(startPos).Offset
@@ -235,7 +235,7 @@ func findIdentifier(v *vim.Nvim, f *ast.File, searchpos int) ast.Node {
 	return ev
 }
 
-func parseExpr(v *vim.Nvim, s *ast.Scope, expr string) ast.Expr {
+func parseExpr(v *nvim.Nvim, s *ast.Scope, expr string) ast.Expr {
 	n, err := parser.ParseExpr(types.FileSet, "<arg>", expr, s, types.DefaultImportPathToName)
 	if err != nil {
 		nvimutil.Echomsg(v, "Godef: cannot parse expression: %v", err)

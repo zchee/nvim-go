@@ -9,7 +9,7 @@ import (
 	"nvim-go/config"
 	"nvim-go/nvimutil"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 type bufWritePostEval struct {
@@ -17,11 +17,11 @@ type bufWritePostEval struct {
 	Dir string
 }
 
-func (a *Autocmd) cmdBufWritePost(v *vim.Nvim, eval *bufWritePostEval) {
+func (a *Autocmd) cmdBufWritePost(v *nvim.Nvim, eval *bufWritePostEval) {
 	go a.bufWritePost(v, eval)
 }
 
-func (a *Autocmd) bufWritePost(v *vim.Nvim, eval *bufWritePostEval) error {
+func (a *Autocmd) bufWritePost(v *nvim.Nvim, eval *bufWritePostEval) error {
 	if config.FmtAutosave {
 		err := <-a.bufWritePreChan
 		switch e := err.(type) {
@@ -30,9 +30,9 @@ func (a *Autocmd) bufWritePost(v *vim.Nvim, eval *bufWritePostEval) error {
 				// normal errros
 				return nvimutil.ErrorWrap(v, e)
 			}
-		case []*vim.QuickfixError:
+		case []*nvim.QuickfixError:
 			// Cleanup Errlist
-			a.ctxt.Errlist = make(map[string][]*vim.QuickfixError)
+			a.ctxt.Errlist = make(map[string][]*nvim.QuickfixError)
 			a.ctxt.Errlist["Fmt"] = e
 			return nvimutil.ErrorList(v, a.ctxt.Errlist, true)
 		}
@@ -50,9 +50,9 @@ func (a *Autocmd) bufWritePost(v *vim.Nvim, eval *bufWritePostEval) error {
 			if e != nil {
 				return nvimutil.ErrorWrap(v, e)
 			}
-		case []*vim.QuickfixError:
+		case []*nvim.QuickfixError:
 			// Cleanup Errlist
-			a.ctxt.Errlist = make(map[string][]*vim.QuickfixError)
+			a.ctxt.Errlist = make(map[string][]*nvim.QuickfixError)
 			a.ctxt.Errlist["Build"] = e
 			return nvimutil.ErrorList(v, a.ctxt.Errlist, true)
 		}

@@ -12,7 +12,7 @@ import (
 	"nvim-go/config"
 	"nvim-go/nvimutil"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/imports"
 )
@@ -33,7 +33,7 @@ func (c *Commands) cmdFmt(dir string) {
 		switch e := err.(type) {
 		case error:
 			nvimutil.ErrorWrap(c.v, e)
-		case []*vim.QuickfixError:
+		case []*nvim.QuickfixError:
 			c.ctxt.Errlist["Fmt"] = e
 			nvimutil.ErrorList(c.v, c.ctxt.Errlist, true)
 		}
@@ -46,8 +46,8 @@ func (c *Commands) Fmt(dir string) interface{} {
 	defer c.ctxt.SetContext(dir)()
 
 	var (
-		b vim.Buffer
-		w vim.Window
+		b nvim.Buffer
+		w nvim.Window
 	)
 	if c.p == nil {
 		c.p = c.v.NewPipeline()
@@ -79,9 +79,9 @@ func (c *Commands) Fmt(dir string) interface{} {
 			return errors.Wrap(err, pkgFmt)
 		}
 
-		var errlist []*vim.QuickfixError
+		var errlist []*nvim.QuickfixError
 		if e, ok := formatErr.(scanner.Error); ok {
-			errlist = append(errlist, &vim.QuickfixError{
+			errlist = append(errlist, &nvim.QuickfixError{
 				FileName: bufName,
 				LNum:     e.Pos.Line,
 				Col:      e.Pos.Column,
@@ -89,7 +89,7 @@ func (c *Commands) Fmt(dir string) interface{} {
 			})
 		} else if el, ok := formatErr.(scanner.ErrorList); ok {
 			for _, e := range el {
-				errlist = append(errlist, &vim.QuickfixError{
+				errlist = append(errlist, &nvim.QuickfixError{
 					FileName: bufName,
 					LNum:     e.Pos.Line,
 					Col:      e.Pos.Column,
@@ -116,7 +116,7 @@ func (c *Commands) Fmt(dir string) interface{} {
 	return c.v.Command("noautocmd write")
 }
 
-func minUpdate(v *vim.Nvim, b vim.Buffer, in [][]byte, out [][]byte) error {
+func minUpdate(v *nvim.Nvim, b nvim.Buffer, in [][]byte, out [][]byte) error {
 	// Find matching head lines.
 	n := len(out)
 	if len(in) < len(out) {

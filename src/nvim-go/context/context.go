@@ -12,7 +12,7 @@ import (
 
 	"nvim-go/pathutil"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"golang.org/x/net/context"
 )
 
@@ -23,7 +23,7 @@ type Context struct {
 	context.Context
 	Build Build
 
-	Errlist map[string][]*vim.QuickfixError
+	Errlist map[string][]*nvim.QuickfixError
 }
 
 // Build represents a compile tool information.
@@ -38,7 +38,7 @@ type Build struct {
 // NewContext return the Context type with initialize Context.Errlist.
 func NewContext() *Context {
 	return &Context{
-		Errlist: make(map[string][]*vim.QuickfixError),
+		Errlist: make(map[string][]*nvim.QuickfixError),
 	}
 }
 

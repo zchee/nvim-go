@@ -11,7 +11,7 @@ import (
 	"reflect"
 	"testing"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"golang.org/x/net/context"
 )
 
@@ -44,7 +44,7 @@ func TestContext_buildContext(t *testing.T) {
 	type fields struct {
 		Context context.Context
 		Build   Build
-		Errlist map[string][]*vim.QuickfixError
+		Errlist map[string][]*nvim.QuickfixError
 	}
 	type args struct {
 		p string
@@ -73,7 +73,7 @@ func TestContext_SetContext(t *testing.T) {
 	type fields struct {
 		Context context.Context
 		Build   Build
-		Errlist map[string][]*vim.QuickfixError
+		Errlist map[string][]*nvim.QuickfixError
 	}
 	type args struct {
 		p string

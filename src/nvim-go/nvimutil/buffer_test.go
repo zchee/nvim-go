@@ -8,12 +8,12 @@ import (
 	"reflect"
 	"testing"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 func TestNewBuffer(t *testing.T) {
 	type args struct {
-		v *vim.Nvim
+		v *nvim.Nvim
 	}
 	tests := []struct {
 		name string
@@ -31,9 +31,9 @@ func TestNewBuffer(t *testing.T) {
 
 func TestBuf_Create(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -77,9 +77,9 @@ func TestBuf_Create(t *testing.T) {
 
 func TestBuf_GetBufferContext(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -116,9 +116,9 @@ func TestBuf_GetBufferContext(t *testing.T) {
 
 func TestBuf_BufferLines(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -158,9 +158,9 @@ func TestBuf_BufferLines(t *testing.T) {
 
 func TestBuf_SetBufferLines(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -204,9 +204,9 @@ func TestBuf_SetBufferLines(t *testing.T) {
 
 func TestBuf_SetBufferLinesAll(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -247,9 +247,9 @@ func TestBuf_SetBufferLinesAll(t *testing.T) {
 
 func TestBuf_UpdateSyntax(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -287,9 +287,9 @@ func TestBuf_UpdateSyntax(t *testing.T) {
 
 func TestBuf_SetLocalMapping(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -331,9 +331,9 @@ func TestBuf_SetLocalMapping(t *testing.T) {
 
 func TestBuf_lineCount(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -376,9 +376,9 @@ func TestBuf_lineCount(t *testing.T) {
 
 func TestBuf_Write(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -425,9 +425,9 @@ func TestBuf_Write(t *testing.T) {
 
 func TestBuf_WriteString(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -468,9 +468,9 @@ func TestBuf_WriteString(t *testing.T) {
 
 func TestBuf_Truncate(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -508,9 +508,9 @@ func TestBuf_Truncate(t *testing.T) {
 
 func TestBuf_Reset(t *testing.T) {
 	type fields struct {
-		v              *vim.Nvim
-		p              *vim.Pipeline
-		Buffer         vim.Buffer
+		v              *nvim.Nvim
+		p              *nvim.Pipeline
+		Buffer         nvim.Buffer
 		Name           string
 		Filetype       string
 		Bufnr          int
@@ -544,8 +544,8 @@ func TestBuf_Reset(t *testing.T) {
 
 func TestIsBufferValid(t *testing.T) {
 	type args struct {
-		v *vim.Nvim
-		b vim.Buffer
+		v *nvim.Nvim
+		b nvim.Buffer
 	}
 	tests := []struct {
 		name string
@@ -563,8 +563,8 @@ func TestIsBufferValid(t *testing.T) {
 
 func TestIsBufferContains(t *testing.T) {
 	type args struct {
-		v *vim.Nvim
-		b vim.Buffer
+		v *nvim.Nvim
+		b nvim.Buffer
 	}
 	tests := []struct {
 		name string
@@ -582,7 +582,7 @@ func TestIsBufferContains(t *testing.T) {
 
 func TestIsBufExists(t *testing.T) {
 	type args struct {
-		v     *vim.Nvim
+		v     *nvim.Nvim
 		bufnr int
 	}
 	tests := []struct {
@@ -601,7 +601,7 @@ func TestIsBufExists(t *testing.T) {
 
 func TestIsVisible(t *testing.T) {
 	type args struct {
-		v        *vim.Nvim
+		v        *nvim.Nvim
 		filetype string
 	}
 	tests := []struct {
@@ -675,9 +675,9 @@ func TestToBufferLines(t *testing.T) {
 
 func TestByteOffset(t *testing.T) {
 	type args struct {
-		v *vim.Nvim
-		b vim.Buffer
-		w vim.Window
+		v *nvim.Nvim
+		b nvim.Buffer
+		w nvim.Window
 	}
 	tests := []struct {
 		name    string
@@ -701,9 +701,9 @@ func TestByteOffset(t *testing.T) {
 
 func TestByteOffsetPipe(t *testing.T) {
 	type args struct {
-		p *vim.Pipeline
-		b vim.Buffer
-		w vim.Window
+		p *nvim.Pipeline
+		b nvim.Buffer
+		w nvim.Window
 	}
 	tests := []struct {
 		name    string

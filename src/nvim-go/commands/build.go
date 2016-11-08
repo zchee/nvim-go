@@ -15,7 +15,7 @@ import (
 	"nvim-go/config"
 	"nvim-go/nvimutil"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
@@ -34,7 +34,7 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 		switch e := err.(type) {
 		case error:
 			nvimutil.ErrorWrap(c.v, e)
-		case []*vim.QuickfixError:
+		case []*nvim.QuickfixError:
 			c.ctxt.Errlist["Build"] = e
 			nvimutil.ErrorList(c.v, c.ctxt.Errlist, true)
 		}

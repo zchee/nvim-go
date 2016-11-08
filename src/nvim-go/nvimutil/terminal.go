@@ -11,7 +11,7 @@ import (
 	"nvim-go/config"
 	"nvim-go/pathutil"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 var pkgTerminal = "GoTerminal"
@@ -20,8 +20,8 @@ var bufName = "__GO_TERMINAL__"
 
 // Terminal represents a Neovim terminal.
 type Terminal struct {
-	v *vim.Nvim
-	p *vim.Pipeline
+	v *nvim.Nvim
+	p *nvim.Pipeline
 
 	cmd  []string
 	mode string
@@ -32,13 +32,13 @@ type Terminal struct {
 	// Size open the terminal window size.
 	Size int
 
-	cw vim.Window
+	cw nvim.Window
 
 	*Buf
 }
 
 // NewTerminal return the Neovim terminal buffer.
-func NewTerminal(vim *vim.Nvim, name string, command []string, mode string) *Terminal {
+func NewTerminal(vim *nvim.Nvim, name string, command []string, mode string) *Terminal {
 	return &Terminal{
 		v:    vim,
 		p:    vim.NewPipeline(),

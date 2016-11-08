@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 
 	"nvim-go/context"
 )
@@ -78,7 +78,7 @@ func TestParseError(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []*vim.QuickfixError
+		want    []*nvim.QuickfixError
 		wantErr bool
 	}{
 		{
@@ -92,7 +92,7 @@ echo.go:79: syntax error: non-declaration statement outside function body`),
 					ProjectRoot: gbProjectDir,
 				},
 			},
-			want: []*vim.QuickfixError{&vim.QuickfixError{
+			want: []*nvim.QuickfixError{&nvim.QuickfixError{
 				FileName: "../src/nvim-go/nvim/echo.go",
 				LNum:     79,
 				Col:      0,
@@ -112,14 +112,14 @@ locationlist.go:160: syntax error: non-declaration statement outside function bo
 					ProjectRoot: gbProjectDir,
 				},
 			},
-			want: []*vim.QuickfixError{
-				&vim.QuickfixError{
+			want: []*nvim.QuickfixError{
+				&nvim.QuickfixError{
 					FileName: "../src/nvim-go/nvim/quickfix/locationlist.go",
 					LNum:     152,
 					Col:      0,
 					Text:     "syntax error: unexpected case, expecting }",
 				},
-				&vim.QuickfixError{
+				&nvim.QuickfixError{
 					FileName: "../src/nvim-go/nvim/quickfix/locationlist.go",
 					LNum:     160,
 					Col:      0,
@@ -140,8 +140,8 @@ locationlist.go:199: ParseError redeclared in this block
 					ProjectRoot: gbProjectDir,
 				},
 			},
-			want: []*vim.QuickfixError{
-				&vim.QuickfixError{
+			want: []*nvim.QuickfixError{
+				&nvim.QuickfixError{
 					FileName: "../src/nvim-go/nvim/quickfix/locationlist.go",
 					LNum:     199,
 					Col:      0,
@@ -161,14 +161,14 @@ locationlist.go:199: ParseError redeclared in this block
 					Tool: "go",
 				},
 			},
-			want: []*vim.QuickfixError{
-				&vim.QuickfixError{
+			want: []*nvim.QuickfixError{
+				&nvim.QuickfixError{
 					FileName: "cmd/hyperkitctl/test.go",
 					LNum:     26,
 					Col:      0,
 					Text:     "undefined: hyperkitctl.WalkDir",
 				},
-				&vim.QuickfixError{
+				&nvim.QuickfixError{
 					FileName: "cmd/hyperkitctl/test.go",
 					LNum:     26,
 					Col:      0,
@@ -188,14 +188,14 @@ locationlist.go:199: ParseError redeclared in this block
 					Tool: "go",
 				},
 			},
-			want: []*vim.QuickfixError{
-				&vim.QuickfixError{
+			want: []*nvim.QuickfixError{
+				&nvim.QuickfixError{
 					FileName: "test.go",
 					LNum:     26,
 					Col:      0,
 					Text:     "undefined: hyperkitctl.WalkDir",
 				},
-				&vim.QuickfixError{
+				&nvim.QuickfixError{
 					FileName: "test.go",
 					LNum:     26,
 					Col:      0,

@@ -21,7 +21,7 @@ import (
 	delveapi "github.com/derekparker/delve/service/api"
 	delverpc2 "github.com/derekparker/delve/service/rpc2"
 	delveterm "github.com/derekparker/delve/terminal"
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
@@ -33,8 +33,8 @@ const (
 
 // Delve represents a delve client.
 type Delve struct {
-	v *vim.Nvim
-	p *vim.Pipeline
+	v *nvim.Nvim
+	p *nvim.Pipeline
 
 	ctxt *context.Context
 
@@ -56,8 +56,8 @@ type Delve struct {
 
 // BufferContext represents a each debug information buffers.
 type BufferContext struct {
-	cb     vim.Buffer
-	cw     vim.Window
+	cb     nvim.Buffer
+	cw     nvim.Window
 	buffer map[string]*nvimutil.Buf
 }
 
@@ -68,7 +68,7 @@ type SignContext struct {
 }
 
 // NewDelve represents a delve client interface.
-func NewDelve(v *vim.Nvim, ctxt *context.Context) *Delve {
+func NewDelve(v *nvim.Nvim, ctxt *context.Context) *Delve {
 	return &Delve{
 		v:    v,
 		ctxt: ctxt,
@@ -77,7 +77,7 @@ func NewDelve(v *vim.Nvim, ctxt *context.Context) *Delve {
 
 // setupDelveClient setup the delve client. Separate the NewDelveClient() function.
 // caused by neovim-go can't call the rpc2.NewClient?
-func (d *Delve) setupDelve(v *vim.Nvim) error {
+func (d *Delve) setupDelve(v *nvim.Nvim) error {
 	d.client = delverpc2.NewClient(addr)           // *rpc2.RPCClient
 	d.term = delveterm.New(d.client, nil)          // *terminal.Term
 	d.debugger = delveterm.DebugCommands(d.client) // *terminal.Commands
@@ -92,12 +92,12 @@ type debugEval struct {
 	Dir string
 }
 
-func (d *Delve) cmdDebug(v *vim.Nvim, eval *debugEval) {
+func (d *Delve) cmdDebug(v *nvim.Nvim, eval *debugEval) {
 	go d.debug(v, eval)
 }
 
 // TODO(zchee): If failed debug(build), even create each buffers.
-func (d *Delve) debug(v *vim.Nvim, eval *debugEval) error {
+func (d *Delve) debug(v *nvim.Nvim, eval *debugEval) error {
 	d.p = d.v.NewPipeline()
 
 	d.ctxt = new(context.Context)
@@ -115,7 +115,7 @@ func (d *Delve) debug(v *vim.Nvim, eval *debugEval) error {
 	return d.createDebugBuffer()
 }
 
-func (d *Delve) parseArgs(v *vim.Nvim, args []string, eval *createBreakpointEval) (*delveapi.Breakpoint, error) {
+func (d *Delve) parseArgs(v *nvim.Nvim, args []string, eval *createBreakpointEval) (*delveapi.Breakpoint, error) {
 	var bpInfo *delveapi.Breakpoint
 
 	// TODO(zchee): Now support function only.
@@ -153,11 +153,11 @@ type createBreakpointEval struct {
 	File string `msgpack:",array"`
 }
 
-func (d *Delve) cmdCreateBreakpoint(v *vim.Nvim, args []string, eval *createBreakpointEval) {
+func (d *Delve) cmdCreateBreakpoint(v *nvim.Nvim, args []string, eval *createBreakpointEval) {
 	go d.createBreakpoint(v, args, eval)
 }
 
-func (d *Delve) createBreakpoint(v *vim.Nvim, args []string, eval *createBreakpointEval) error {
+func (d *Delve) createBreakpoint(v *nvim.Nvim, args []string, eval *createBreakpointEval) error {
 	bpInfo, err := d.parseArgs(v, args, eval)
 	if err != nil {
 		nvimutil.ErrorWrap(v, err)
@@ -190,12 +190,12 @@ type continueEval struct {
 	Dir string `msgpack:",array"`
 }
 
-func (d *Delve) cmdContinue(v *vim.Nvim, eval *continueEval) {
+func (d *Delve) cmdContinue(v *nvim.Nvim, eval *continueEval) {
 	go d.cont(v, eval)
 }
 
 // cont sends the 'continue' signals to the delve headless server over the client use json-rpc2 protocol.
-func (d *Delve) cont(v *vim.Nvim, eval *continueEval) error {
+func (d *Delve) cont(v *nvim.Nvim, eval *continueEval) error {
 	stateCh := d.client.Continue()
 	state := <-stateCh
 	if state == nil || state.Exited {
@@ -254,11 +254,11 @@ type nextEval struct {
 	Dir string `msgpack:",array"`
 }
 
-func (d *Delve) cmdNext(v *vim.Nvim, eval *nextEval) {
+func (d *Delve) cmdNext(v *nvim.Nvim, eval *nextEval) {
 	go d.next(v, eval)
 }
 
-func (d *Delve) next(v *vim.Nvim, eval *nextEval) error {
+func (d *Delve) next(v *nvim.Nvim, eval *nextEval) error {
 	state, err := d.client.Next()
 	if err != nil {
 		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
@@ -298,11 +298,11 @@ func (d *Delve) next(v *vim.Nvim, eval *nextEval) error {
 	return d.printTerminal("next", msg)
 }
 
-func (d *Delve) cmdRestart(v *vim.Nvim) {
+func (d *Delve) cmdRestart(v *nvim.Nvim) {
 	go d.restart(v)
 }
 
-func (d *Delve) restart(v *vim.Nvim) error {
+func (d *Delve) restart(v *nvim.Nvim) error {
 	err := d.client.Restart()
 	if err != nil {
 		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve+"restart"))
@@ -312,12 +312,12 @@ func (d *Delve) restart(v *vim.Nvim) error {
 	return d.printTerminal("restart", []byte(fmt.Sprintf("Process restarted with PID %d", d.processPid)))
 }
 
-func (d *Delve) cmdStdin(v *vim.Nvim) {
+func (d *Delve) cmdStdin(v *nvim.Nvim) {
 	go d.stdin(v)
 }
 
 // ListFunctions return the debug target functions with filtering "main".
-func (d *Delve) ListFunctions(v *vim.Nvim) ([]string, error) {
+func (d *Delve) ListFunctions(v *nvim.Nvim) ([]string, error) {
 	funcs, err := d.client.ListFunctions("main")
 	if err != nil {
 		return []string{}, err
@@ -332,7 +332,7 @@ func (d *Delve) ListFunctions(v *vim.Nvim) ([]string, error) {
 // More information of input() funciton and word completion are
 //  :help input()
 //  :help command-completion-custom
-func (d *Delve) stdin(v *vim.Nvim) error {
+func (d *Delve) stdin(v *nvim.Nvim) error {
 	var stdin interface{}
 	err := v.Call("input", &stdin, "(dlv) ", "")
 	if err != nil {
@@ -373,11 +373,11 @@ func shortFilePath(p, cwd string) string {
 	return strings.Replace(p, cwd, ".", 1)
 }
 
-func (d *Delve) cmdState(v *vim.Nvim) {
+func (d *Delve) cmdState(v *nvim.Nvim) {
 	go d.state(v)
 }
 
-func (d *Delve) state(v *vim.Nvim) error {
+func (d *Delve) state(v *nvim.Nvim) error {
 	state, err := d.client.GetState()
 	if err != nil {
 		return errors.Wrap(err, pkgDelve)

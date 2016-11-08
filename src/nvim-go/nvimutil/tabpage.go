@@ -4,9 +4,9 @@
 
 package nvimutil
 
-import vim "github.com/neovim/go-client/nvim"
+import "github.com/neovim/go-client/nvim"
 
 // TabpageContext represents a Neovim tabpage context.
 type TabpageContext struct {
-	vim.Tabpage
+	nvim.Tabpage
 }

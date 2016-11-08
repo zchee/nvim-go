@@ -15,7 +15,7 @@ import (
 	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
@@ -51,7 +51,7 @@ func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
 }
 
 // Vet is a simple checker for static errors in Go source code use go tool vet command.
-func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*vim.QuickfixError, error) {
+func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, error) {
 	defer nvimutil.Profile(time.Now(), pkgVet)
 
 	vetCmd := exec.Command("go", "tool", "vet")
@@ -93,7 +93,7 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*vim.QuickfixError, e
 	return nil, nil
 }
 
-func (c *Commands) cmdVetComplete(v *vim.Nvim, a *vim.CommandCompletionArgs, dir string) ([]string, error) {
+func (c *Commands) cmdVetComplete(v *nvim.Nvim, a *nvim.CommandCompletionArgs, dir string) ([]string, error) {
 	// Flags:
 	//  -all
 	//        enable all non-experimental checks

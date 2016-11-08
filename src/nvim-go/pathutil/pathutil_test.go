@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	vim "github.com/neovim/go-client/nvim"
+	"github.com/neovim/go-client/nvim"
 )
 
 var (
@@ -22,7 +22,7 @@ var (
 	astdumpMain = filepath.Join(astdump, "astdump.go")
 )
 
-func testVim(t *testing.T, file string) *vim.Nvim {
+func testVim(t *testing.T, file string) *nvim.Nvim {
 	tmpdir := filepath.Join(os.TempDir(), "nvim-go-test")
 	setXDGEnv(tmpdir)
 	defer os.RemoveAll(tmpdir)
@@ -34,7 +34,7 @@ func testVim(t *testing.T, file string) *vim.Nvim {
 	if file != "" {
 		nvimArgs = append(nvimArgs, file)
 	}
-	v, err := vim.NewEmbedded(&vim.EmbedOptions{
+	v, err := nvim.NewEmbedded(&nvim.EmbedOptions{
 		Args: nvimArgs,
 		Logf: t.Logf,
 	})
@@ -61,7 +61,7 @@ func setXDGEnv(tmpdir string) {
 
 func TestChdir(t *testing.T) {
 	type args struct {
-		v   *vim.Nvim
+		v   *nvim.Nvim
 		dir string
 	}
 	tests := []struct {
