@@ -45,7 +45,7 @@ Plug 'zchee/nvim-go', { 'do': 'gb build'}
 Features
 --------
 
-- First goal is fully compatible vim-go. See [TODO.md](TODO.md#vim-go-compatible).
+- First goal is fully compatible vim-go. See [TODO.md](doc/TODO.md#vim-go-compatible).
 - Delve debugger GUI interface.
 
 Acknowledgement
