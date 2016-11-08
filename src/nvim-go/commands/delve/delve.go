@@ -227,8 +227,10 @@ func (d *Delve) breakpoint(v *nvim.Nvim, args []string, eval *breakpointEval) er
 	}
 	d.bpSign[bp.ID].Place(v, bp.ID, bp.Line, bp.File, false)
 
-	if err := d.printTerminal("break "+bp.FunctionName, []byte{}); err != nil {
-		return nvimutil.ErrorWrap(d.v, err)
+	filename := pathutil.ShortFilePath(bp.File, filepath.Dir(eval.File))
+	msg := fmt.Sprintf("Breakpoint %d set at %#v for %s() %s:%d", bp.ID, bp.Addr, bp.FunctionName, filename, bp.Line)
+	if err := d.printTerminal("break "+bp.FunctionName, nvimutil.StrToByteSlice(msg)); err != nil {
+		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 	}
 
 	return nil
