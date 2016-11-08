@@ -144,11 +144,11 @@ func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
 				// If the function has a struct, gotests will be generated the
 				// mixed camel case test function name include struct name for prefix.
 				if !isTest {
-					funcName = fmt.Sprintf("%s%s", testPrefix, ToPascalCase(x.Name.Name))
+					funcName = fmt.Sprintf("%s%s", testPrefix, nvimutil.ToPascalCase(x.Name.Name))
 				} else {
 					funcName = strings.Replace(x.Name.Name, testPrefix, "", 1)
 				}
-				funcNameNoExport = ToMixedCase(funcName)
+				funcNameNoExport = nvimutil.ToMixedCase(funcName)
 			}
 		}
 	}

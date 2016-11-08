@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package nvimutil
 
 import (
 	"reflect"
@@ -18,9 +18,9 @@ func ToPascalCase(s string) string { return strings.ToUpper(s[:1]) + s[1:] }
 // This function assumes that the character of the beginning is A-Z.
 func ToMixedCase(s string) string { return strings.ToLower(s[:1]) + s[1:] }
 
-// ToByteSlice convert string to byte slice use unsafe.
+// StrToByteSlice convert string to byte slice use unsafe.
 // https://gist.github.com/dgryski/65d632958e4d88c7f79aaa7e1d2b10c0
-func ToByteSlice(s string) []byte {
+func StrToByteSlice(s string) []byte {
 	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
 	bh := &reflect.SliceHeader{
 		Data: sh.Data,

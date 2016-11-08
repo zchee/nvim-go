@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package nvimutil
 
 import (
 	"reflect"
@@ -63,7 +63,7 @@ func TestToMixedCase(t *testing.T) {
 	}
 }
 
-func TestToByteSlice(t *testing.T) {
+func TestStrToByteSlice(t *testing.T) {
 	type args struct {
 		s string
 	}
@@ -79,7 +79,7 @@ func TestToByteSlice(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		if got := ToByteSlice(tt.args.s); !reflect.DeepEqual(got, tt.want) {
+		if got := StrToByteSlice(tt.args.s); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%q. StringToByteslice(%v) = %v, want %v", tt.name, tt.args.s, got, tt.want)
 		}
 	}
