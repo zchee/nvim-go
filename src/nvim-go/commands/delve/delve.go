@@ -26,9 +26,8 @@ import (
 )
 
 const (
-	addr string = "localhost:41222" // d:4 l:12 v:22
-
-	pkgDelve string = "Delve"
+	defaultAddr = "localhost:41222" // d:4 l:12 v:22
+	pkgDelve    = "Delve"
 )
 
 // Delve represents a delve client.
@@ -75,29 +74,42 @@ func NewDelve(v *nvim.Nvim, ctxt *context.Context) *Delve {
 	}
 }
 
-// setupDelveClient setup the delve client. Separate the NewDelveClient() function.
+// setupDelve setup the delve client. Separate the NewDelveClient() function.
 // caused by neovim-go can't call the rpc2.NewClient?
-func (d *Delve) setupDelve(v *nvim.Nvim) error {
+func (d *Delve) setupDelve(v *nvim.Nvim, addr string) error {
+	if !strings.Contains(addr, ":") {
+		addr = "localhost:" + addr
+	}
 	d.client = delverpc2.NewClient(addr)           // *rpc2.RPCClient
 	d.term = delveterm.New(d.client, nil)          // *terminal.Term
 	d.debugger = delveterm.DebugCommands(d.client) // *terminal.Commands
 	d.processPid = d.client.ProcessPid()           // int
+	if d.processPid == 0 {
+		return errors.New("Cannot setup delve server")
+	}
 
 	return nil
 }
 
-// debugEval represent a debug commands Eval args.
-type debugEval struct {
+// ----------------------------------------------------------------------------
+// delveEval
+
+// delveEval represent a setup delve server commands Eval args.
+type delveEval struct {
 	Cwd string `msgpack:",array"`
 	Dir string
 }
 
-func (d *Delve) cmdDebug(v *nvim.Nvim, eval *debugEval) {
+// ----------------------------------------------------------------------------
+// debug
+
+func (d *Delve) cmdDebug(v *nvim.Nvim, eval *delveEval) {
 	go d.debug(v, eval)
 }
 
+// debug setup the debugging with "dlv debug".
 // TODO(zchee): If failed debug(build), even create each buffers.
-func (d *Delve) debug(v *nvim.Nvim, eval *debugEval) error {
+func (d *Delve) debug(v *nvim.Nvim, eval *delveEval) error {
 	d.p = d.v.NewPipeline()
 
 	d.ctxt = new(context.Context)
@@ -107,18 +119,61 @@ func (d *Delve) debug(v *nvim.Nvim, eval *debugEval) error {
 	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
 	path := filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
 
-	if err := d.startServer("debug", path); err != nil {
+	if err := d.startServer("debug", path, defaultAddr); err != nil {
 		nvimutil.ErrorWrap(v, err)
 	}
-	defer d.waitServer(v)
+	defer d.waitServer(v, defaultAddr)
 
 	return d.createDebugBuffer()
 }
 
-func (d *Delve) parseArgs(v *nvim.Nvim, args []string, eval *createBreakpointEval) (*delveapi.Breakpoint, error) {
+// ----------------------------------------------------------------------------
+// connect
+
+func (d *Delve) cmdConnect(v *nvim.Nvim, args []string, eval *delveEval) {
+	go d.connect(v, args, eval)
+}
+
+// connect connect to dlv headless server.
+// This command useful for debug the Google Application Engine for Go.
+func (d *Delve) connect(v *nvim.Nvim, args []string, eval *delveEval) error {
+	d.p = d.v.NewPipeline()
+
+	d.ctxt = new(context.Context)
+	defer d.ctxt.SetContext(eval.Cwd)()
+
+	rootDir := pathutil.FindVCSRoot(eval.Dir)
+	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
+	path := filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
+
+	addr := args[0]
+	if !strings.Contains(addr, ":") {
+		addr = "localhost:" + addr
+	}
+	if err := d.startServer("connect", path, addr); err != nil {
+		nvimutil.ErrorWrap(v, err)
+	}
+	defer d.waitServer(v, addr)
+
+	return d.createDebugBuffer()
+}
+
+// ----------------------------------------------------------------------------
+// break(breakpoint)
+
+// breakpointEval represent a breakpoint commands Eval args.
+type breakpointEval struct {
+	File string `msgpack:",array"`
+}
+
+func (d *Delve) cmdBreakpoint(v *nvim.Nvim, args []string, eval *breakpointEval) {
+	go d.breakpoint(v, args, eval)
+}
+
+// parseArgs parses the "DlvBreak" command args.
+func (d *Delve) parseArgs(v *nvim.Nvim, args []string, eval *breakpointEval) (*delveapi.Breakpoint, error) {
 	var bpInfo *delveapi.Breakpoint
 
-	// TODO(zchee): Now support function only.
 	// Ref: https://github.com/derekparker/delve/blob/master/Documentation/cli/locspec.md
 	switch len(args) {
 	case 0:
@@ -141,6 +196,7 @@ func (d *Delve) parseArgs(v *nvim.Nvim, args []string, eval *createBreakpointEva
 			Name:         name,
 			FunctionName: args[0],
 		}
+	// TODO(zchee): Now support function only.
 	default:
 		return nil, errors.Wrap(errors.New("Too many arguments"), pkgDelve)
 	}
@@ -148,16 +204,9 @@ func (d *Delve) parseArgs(v *nvim.Nvim, args []string, eval *createBreakpointEva
 	return bpInfo, nil
 }
 
-// breakpointEval represent a breakpoint commands Eval args.
-type createBreakpointEval struct {
-	File string `msgpack:",array"`
-}
-
-func (d *Delve) cmdCreateBreakpoint(v *nvim.Nvim, args []string, eval *createBreakpointEval) {
-	go d.createBreakpoint(v, args, eval)
-}
-
-func (d *Delve) createBreakpoint(v *nvim.Nvim, args []string, eval *createBreakpointEval) error {
+// breakpoint sets a breakpoint, and sets marker to Nvim sign area.
+// Note that 'break' name is reverved Go language spec.
+func (d *Delve) breakpoint(v *nvim.Nvim, args []string, eval *breakpointEval) error {
 	bpInfo, err := d.parseArgs(v, args, eval)
 	if err != nil {
 		nvimutil.ErrorWrap(v, err)
@@ -185,6 +234,9 @@ func (d *Delve) createBreakpoint(v *nvim.Nvim, args []string, eval *createBreakp
 	return nil
 }
 
+// ----------------------------------------------------------------------------
+// continue
+
 // breakpointEval represent a breakpoint commands Eval args.
 type continueEval struct {
 	Dir string `msgpack:",array"`
@@ -194,7 +246,9 @@ func (d *Delve) cmdContinue(v *nvim.Nvim, eval *continueEval) {
 	go d.cont(v, eval)
 }
 
-// cont sends the 'continue' signals to the delve headless server over the client use json-rpc2 protocol.
+// cont sends the 'continue' signals to the delve headless server, and update
+// sign marker to current stopping position.
+// Note that 'continue' name is reverved Go language spec.
 func (d *Delve) cont(v *nvim.Nvim, eval *continueEval) error {
 	stateCh := d.client.Continue()
 	state := <-stateCh
@@ -231,7 +285,7 @@ func (d *Delve) cont(v *nvim.Nvim, eval *continueEval) error {
 		msg = []byte(
 			fmt.Sprintf("> %s() %s:%d (hits goroutine(%d):%d total:%d) (PC: %#v)",
 				cThread.Function.Name,
-				shortFilePath(cThread.File, eval.Dir),
+				pathutil.ShortFilePath(cThread.File, eval.Dir),
 				cThread.Line,
 				cThread.GoroutineID,
 				hitCount,
@@ -241,13 +295,16 @@ func (d *Delve) cont(v *nvim.Nvim, eval *continueEval) error {
 		msg = []byte(
 			fmt.Sprintf("> %s() %s:%d (hits total:%d) (PC: %#v)",
 				cThread.Function.Name,
-				shortFilePath(cThread.File, eval.Dir),
+				pathutil.ShortFilePath(cThread.File, eval.Dir),
 				cThread.Line,
 				cThread.Breakpoint.TotalHitCount,
 				cThread.PC))
 	}
 	return d.printTerminal("continue", msg)
 }
+
+// ----------------------------------------------------------------------------
+// next
 
 // breakpointEval represent a breakpoint commands Eval args.
 type nextEval struct {
@@ -258,6 +315,8 @@ func (d *Delve) cmdNext(v *nvim.Nvim, eval *nextEval) {
 	go d.next(v, eval)
 }
 
+// next sends the 'next' signals to the delve headless server, and update sign
+// marker to current stopping position.
 func (d *Delve) next(v *nvim.Nvim, eval *nextEval) error {
 	state, err := d.client.Next()
 	if err != nil {
@@ -291,12 +350,15 @@ func (d *Delve) next(v *nvim.Nvim, eval *nextEval) error {
 	msg := []byte(
 		fmt.Sprintf("> %s() %s:%d goroutine(%d) (PC: %d)",
 			cThread.Function.Name,
-			shortFilePath(cThread.File, eval.Dir),
+			pathutil.ShortFilePath(cThread.File, eval.Dir),
 			cThread.Line,
 			cThread.GoroutineID,
 			cThread.PC))
 	return d.printTerminal("next", msg)
 }
+
+// ----------------------------------------------------------------------------
+// restart
 
 func (d *Delve) cmdRestart(v *nvim.Nvim) {
 	go d.restart(v)
@@ -305,25 +367,34 @@ func (d *Delve) cmdRestart(v *nvim.Nvim) {
 func (d *Delve) restart(v *nvim.Nvim) error {
 	err := d.client.Restart()
 	if err != nil {
-		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve+"restart"))
+		return nvimutil.ErrorWrap(v, errors.Wrap(err, pkgDelve))
 	}
 
 	d.processPid = d.client.ProcessPid()
 	return d.printTerminal("restart", []byte(fmt.Sprintf("Process restarted with PID %d", d.processPid)))
 }
 
-func (d *Delve) cmdStdin(v *nvim.Nvim) {
-	go d.stdin(v)
+// ----------------------------------------------------------------------------
+// state
+
+func (d *Delve) cmdState(v *nvim.Nvim) {
+	go d.state(v)
 }
 
-// ListFunctions return the debug target functions with filtering "main".
-func (d *Delve) ListFunctions(v *nvim.Nvim) ([]string, error) {
-	funcs, err := d.client.ListFunctions("main")
+func (d *Delve) state(v *nvim.Nvim) error {
+	state, err := d.client.GetState()
 	if err != nil {
-		return []string{}, err
+		return errors.Wrap(err, pkgDelve)
 	}
+	printDebug("state: %+v\n", state)
+	return nil
+}
 
-	return funcs, nil
+// ----------------------------------------------------------------------------
+// stdin
+
+func (d *Delve) cmdStdin(v *nvim.Nvim) {
+	go d.stdin(v)
 }
 
 // stdin sends the users input command to the internal delve terminal.
@@ -369,19 +440,15 @@ func (d *Delve) stdin(v *nvim.Nvim) error {
 	return d.printTerminal(stdin.(string), out)
 }
 
-func shortFilePath(p, cwd string) string {
-	return strings.Replace(p, cwd, ".", 1)
-}
+// ----------------------------------------------------------------------------
+// command line completion
 
-func (d *Delve) cmdState(v *nvim.Nvim) {
-	go d.state(v)
-}
-
-func (d *Delve) state(v *nvim.Nvim) error {
-	state, err := d.client.GetState()
+// FunctionsCompletion return the debug target functions with filtering "main".
+func (d *Delve) FunctionsCompletion(v *nvim.Nvim) ([]string, error) {
+	funcs, err := d.client.ListFunctions("main")
 	if err != nil {
-		return errors.Wrap(err, pkgDelve)
+		return []string{}, err
 	}
-	printDebug("state: %+v\n", state)
-	return nil
+
+	return funcs, nil
 }

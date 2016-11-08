@@ -26,14 +26,14 @@ func (d *Delve) createDebugBuffer() error {
 	d.p.CurrentBuffer(&d.cb)
 	d.p.CurrentWindow(&d.cw)
 	if err := d.p.Wait(); err != nil {
-		return errors.Wrap(err, "delve/createDebugBuffer")
+		return errors.Wrap(err, pkgDelve)
 	}
 
 	var height, width int
 	d.p.WindowHeight(d.cw, &height)
 	d.p.WindowWidth(d.cw, &width)
 	if err := d.p.Wait(); err != nil {
-		return errors.Wrap(err, "delve/createDebugBuffer")
+		return errors.Wrap(err, pkgDelve)
 	}
 
 	go func() {
@@ -59,7 +59,7 @@ func (d *Delve) createDebugBuffer() error {
 	var err error
 	d.pcSign, err = nvimutil.NewSign(d.v, "delve_pc", nvimutil.ProgramCounterSymbol, "delvePCSign", "delvePCLine") // *nvim.Sign
 	if err != nil {
-		return errors.Wrap(err, "delve/createDebugBuffer")
+		return errors.Wrap(err, pkgDelve)
 	}
 
 	return d.p.Wait()

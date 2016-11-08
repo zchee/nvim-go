@@ -35,6 +35,11 @@ func Chdir(v *nvim.Nvim, dir string) func() {
 	}
 }
 
+// ShortFilePath return the simply trim cwd into p.
+func ShortFilePath(p, cwd string) string {
+	return strings.Replace(p, cwd, ".", 1)
+}
+
 // Rel return the f relative path from cwd.
 func Rel(f, cwd string) string {
 	if filepath.HasPrefix(f, cwd) {

@@ -15,15 +15,24 @@ import (
 )
 
 // startServer starts the delve headless server and replace server Stdout & Stderr.
-func (d *Delve) startServer(cmd, path string) error {
+func (d *Delve) startServer(cmd, arg string, addr string) error {
 	dlvBin, err := exec.LookPath("dlv")
 	if err != nil {
 		return errors.Wrap(err, pkgDelve)
 	}
 
 	// TODO(zchee): costomizable build flag
-	args := []string{cmd, path, "--headless=true", "--accept-multiclient=true", "--api-version=2", "--log", "--listen=" + addr}
-	d.server = exec.Command(dlvBin, args...)
+	cmdArgs := []string{cmd, arg, "--log"}
+	switch cmd {
+	case "exec":
+		// TODO(zchee): implements
+	case "debug":
+		cmdArgs = append(cmdArgs, "--headless=true", "--accept-multiclient=true", "--api-version=2", "--listen="+addr)
+	case "connect":
+		// nothing to do
+	}
+
+	d.server = exec.Command(dlvBin, cmdArgs...)
 
 	d.server.Stdout = &d.serverOut
 	d.server.Stderr = &d.serverErr
@@ -40,7 +49,7 @@ func (d *Delve) startServer(cmd, path string) error {
 // waitServer Waits for dlv launch the headless server.
 // `net.Dial` is better way?
 // http://stackoverflow.com/a/30838807/5228839
-func (d *Delve) waitServer(v *nvim.Nvim) error {
+func (d *Delve) waitServer(v *nvim.Nvim, addr string) error {
 	defer nvimutil.EchohlAfter(v, "Delve", nvimutil.ProgressColor, "Ready")
 	nvimutil.EchoProgress(v, "Delve", "Wait for running dlv server")
 
@@ -53,8 +62,8 @@ func (d *Delve) waitServer(v *nvim.Nvim) error {
 		break
 	}
 
-	if err := d.setupDelve(v); err != nil {
-		return errors.Wrap(err, "delve/server.waitServer")
+	if err := d.setupDelve(v, addr); err != nil {
+		return errors.Wrap(err, pkgDelve)
 	}
 
 	return d.printTerminal("", []byte("Type 'help' for list of commands."))

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"nvim-go/nvimutil"
+	"nvim-go/pathutil"
 	"sort"
 
 	delveapi "github.com/derekparker/delve/service/api"
@@ -109,7 +110,7 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 				stacksMsg = append(stacksMsg, []byte(
 					fmt.Sprintf("\t\t\t%s()\t%s:%d\n",
 						s.Function.Name,
-						shortFilePath(s.File, cwd),
+						pathutil.ShortFilePath(s.File, cwd),
 						s.Line))...)
 				locals = append(locals, s.Locals...)
 			}
