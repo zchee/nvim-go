@@ -13,7 +13,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -41,12 +40,12 @@ func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
 		if errlist != nil {
 			c.ctxt.Errlist["Vet"] = errlist
 			if len(c.ctxt.Errlist) > 0 {
-				quickfix.ErrorList(c.v, c.ctxt.Errlist, true)
+				nvimutil.ErrorList(c.v, c.ctxt.Errlist, true)
 				return
 			}
 		}
 		if c.ctxt.Errlist["Vet"] == nil {
-			quickfix.ClearErrorlist(c.v, true)
+			nvimutil.ClearErrorlist(c.v, true)
 		}
 	}()
 }
@@ -84,7 +83,7 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*vim.QuickfixError, e
 
 	vetErr := vetCmd.Run()
 	if vetErr != nil {
-		errlist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
+		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
 		if err != nil {
 			return nil, errors.Wrap(err, pkgVet)
 		}

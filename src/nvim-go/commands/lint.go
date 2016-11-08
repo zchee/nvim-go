@@ -17,7 +17,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
 	"github.com/golang/lint"
@@ -37,7 +36,7 @@ func (c *Commands) cmdLint(v *vim.Nvim, args []string, file string) {
 			nvimutil.ErrorWrap(c.v, err)
 		}
 		c.ctxt.Errlist["Lint"] = errlist
-		quickfix.ErrorList(c.v, c.ctxt.Errlist, true)
+		nvimutil.ErrorList(c.v, c.ctxt.Errlist, true)
 	}()
 }
 

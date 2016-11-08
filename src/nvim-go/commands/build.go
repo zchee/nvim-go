@@ -14,7 +14,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -37,7 +36,7 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 			nvimutil.ErrorWrap(c.v, e)
 		case []*vim.QuickfixError:
 			c.ctxt.Errlist["Build"] = e
-			quickfix.ErrorList(c.v, c.ctxt.Errlist, true)
+			nvimutil.ErrorList(c.v, c.ctxt.Errlist, true)
 		}
 	}()
 }
@@ -60,7 +59,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	cmd.Stderr = &stderr
 
 	if buildErr := cmd.Run(); buildErr != nil && buildErr.(*exec.ExitError) != nil {
-		errlist, err := quickfix.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
+		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
 		if err != nil {
 			return errors.Wrap(err, pkgBuild)
 		}

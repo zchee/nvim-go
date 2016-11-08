@@ -11,7 +11,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -36,7 +35,7 @@ func (c *Commands) cmdFmt(dir string) {
 			nvimutil.ErrorWrap(c.v, e)
 		case []*vim.QuickfixError:
 			c.ctxt.Errlist["Fmt"] = e
-			quickfix.ErrorList(c.v, c.ctxt.Errlist, true)
+			nvimutil.ErrorList(c.v, c.ctxt.Errlist, true)
 		}
 	}()
 }

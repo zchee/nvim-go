@@ -8,7 +8,6 @@ import (
 	"nvim-go/commands"
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
 )
@@ -35,7 +34,7 @@ func (a *Autocmd) bufWritePost(v *vim.Nvim, eval *bufWritePostEval) error {
 			// Cleanup Errlist
 			a.ctxt.Errlist = make(map[string][]*vim.QuickfixError)
 			a.ctxt.Errlist["Fmt"] = e
-			return quickfix.ErrorList(v, a.ctxt.Errlist, true)
+			return nvimutil.ErrorList(v, a.ctxt.Errlist, true)
 		}
 	}
 
@@ -55,10 +54,10 @@ func (a *Autocmd) bufWritePost(v *vim.Nvim, eval *bufWritePostEval) error {
 			// Cleanup Errlist
 			a.ctxt.Errlist = make(map[string][]*vim.QuickfixError)
 			a.ctxt.Errlist["Build"] = e
-			return quickfix.ErrorList(v, a.ctxt.Errlist, true)
+			return nvimutil.ErrorList(v, a.ctxt.Errlist, true)
 		}
 		if len(a.ctxt.Errlist) == 0 {
-			quickfix.CloseLoclist(v)
+			nvimutil.CloseLoclist(v)
 		}
 	}
 
@@ -79,12 +78,12 @@ func (a *Autocmd) bufWritePost(v *vim.Nvim, eval *bufWritePostEval) error {
 			if errlist != nil {
 				a.ctxt.Errlist["Vet"] = errlist
 				if len(a.ctxt.Errlist) > 0 {
-					quickfix.ErrorList(v, a.ctxt.Errlist, true)
+					nvimutil.ErrorList(v, a.ctxt.Errlist, true)
 					return
 				}
 			}
 			if a.ctxt.Errlist["Vet"] == nil {
-				quickfix.ClearErrorlist(v, true)
+				nvimutil.ClearErrorlist(v, true)
 			}
 		}()
 	}

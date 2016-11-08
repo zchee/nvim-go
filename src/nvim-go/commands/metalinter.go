@@ -13,7 +13,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -92,10 +91,10 @@ func (c *Commands) Metalinter(cwd string) error {
 		})
 	}
 
-	if err := quickfix.SetLoclist(c.v, loclist); err != nil {
+	if err := nvimutil.SetLoclist(c.v, loclist); err != nil {
 		return nvimutil.Echomsg(c.v, "Gometalinter: %v", err)
 	}
-	return quickfix.OpenLoclist(c.v, w, loclist, true)
+	return nvimutil.OpenLoclist(c.v, w, loclist, true)
 }
 
 type byPath []metalinterResult

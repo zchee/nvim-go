@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package quickfix
+package nvimutil
 
 import (
 	"bytes"
@@ -48,7 +48,7 @@ const (
 	LocationList               = "locationlist"
 )
 
-func GetListCmd(v *vim.Nvim) {
+func getListCmd(v *vim.Nvim) {
 	if listtype == "" {
 		listtype = ErrorListType(config.ErrorListType)
 	}
@@ -72,7 +72,7 @@ func GetListCmd(v *vim.Nvim) {
 // Do ErrorList function name is appropriate?
 func ErrorList(v *vim.Nvim, errors map[string][]*vim.QuickfixError, keep bool) error {
 	if listtype == "" {
-		GetListCmd(v)
+		getListCmd(v)
 	}
 
 	if errors == nil || len(errors) == 0 {
@@ -101,7 +101,7 @@ func ErrorList(v *vim.Nvim, errors map[string][]*vim.QuickfixError, keep bool) e
 // SetErrorlist set the error results data to Neovim error list.
 func SetErrorlist(v *vim.Nvim, errlist []*vim.QuickfixError) error {
 	if setlistCmd == nil {
-		GetListCmd(v)
+		getListCmd(v)
 	}
 
 	return setlistCmd(errlist)
@@ -110,7 +110,7 @@ func SetErrorlist(v *vim.Nvim, errlist []*vim.QuickfixError) error {
 // ClearErrorlist clear the Neovim error list.
 func ClearErrorlist(v *vim.Nvim, close bool) error {
 	if clearlistCmd == nil {
-		GetListCmd(v)
+		getListCmd(v)
 	}
 
 	if close {

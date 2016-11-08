@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
 	"github.com/rogpeppe/godef/go/ast"
@@ -84,7 +83,7 @@ func (c *Commands) Def(file string) error {
 				Col:      pos.Column,
 				Text:     pos.Filename,
 			})
-			if err := quickfix.SetLoclist(c.v, loclist); err != nil {
+			if err := nvimutil.SetLoclist(c.v, loclist); err != nil {
 				nvimutil.Echomsg(c.v, "Godef: %s", err)
 			}
 

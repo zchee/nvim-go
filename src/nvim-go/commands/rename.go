@@ -15,7 +15,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/quickfix"
 
 	vim "github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -112,9 +111,9 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 
 		log.Printf("er: %+v\n", string(renameErr))
 		go func() {
-			loclist, _ := quickfix.ParseError(renameErr, eval.Cwd, &c.ctxt.Build)
-			quickfix.SetLoclist(c.v, loclist)
-			quickfix.OpenLoclist(c.v, w, loclist, true)
+			loclist, _ := nvimutil.ParseError(renameErr, eval.Cwd, &c.ctxt.Build)
+			nvimutil.SetLoclist(c.v, loclist)
+			nvimutil.OpenLoclist(c.v, w, loclist, true)
 		}()
 
 		err = errors.Wrap(err, pkgRename)

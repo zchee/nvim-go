@@ -16,7 +16,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/nvimutil/quickfix"
 	"nvim-go/pathutil"
 
 	vim "github.com/neovim/go-client/nvim"
@@ -172,7 +171,7 @@ func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
 	}
 
 	// Jump to the corresponds function.
-	return quickfix.GotoPos(c.v, w, fset.Position(pos), eval.Cwd)
+	return nvimutil.GotoPos(c.v, w, fset.Position(pos), eval.Cwd)
 }
 
 // Wrapper of the parser.ParseFile()
