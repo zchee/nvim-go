@@ -42,6 +42,7 @@ Debugging command
 | <ul><li>[ ] </li></ul> | `stack`            |   `bt`    | `DlvStack`           |
 | <ul><li>[ ] </li></ul> | `step-instruction` |   `si`    | `DlvStepInstruction` |
 | <ul><li>[ ] </li></ul> | `step`             |    `s`    | `DlvStep`            |
+| <ul><li>[ ] </li></ul> | `stepout`          |    \-     | `DlvStepOut`         |
 | <ul><li>[ ] </li></ul> | `thread`           |   `tr`    | `DlvThread`          |
 | <ul><li>[ ] </li></ul> | `threads`          |    \-     | `DlvThreads`         |
 | <ul><li>[ ] </li></ul> | `trace`            |    `t`    | `DlvTrace`           |
@@ -87,6 +88,7 @@ The following commands are available:
     stack (alias: bt) ----------- Print stack trace.
     step (alias: s) ------------- Single step through program.
     step-instruction (alias: si)  Single step a single cpu instruction.
+    stepout --------------------- Step out of the current function.
     thread (alias: tr) ---------- Switch to the specified thread.
     threads --------------------- Print out info for every traced thread.
     trace (alias: t) ------------ Set tracepoint.
