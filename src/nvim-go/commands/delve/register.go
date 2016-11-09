@@ -14,7 +14,7 @@ func Register(p *plugin.Plugin, ctxt *context.Context) {
 	d := NewDelve(p.Nvim, ctxt)
 
 	// Debug compile and begin debugging program.
-	p.HandleCommand(&plugin.CommandOptions{Name: "DlvDebug", Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug)
+	p.HandleCommand(&plugin.CommandOptions{Name: "DlvDebug", NArgs: "*", Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug)
 	// Connect connect to a headless debug server.
 	p.HandleCommand(&plugin.CommandOptions{Name: "DlvConnect", NArgs: "*", Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdConnect)
 
@@ -23,7 +23,7 @@ func Register(p *plugin.Plugin, ctxt *context.Context) {
 
 	// Stepping execution control
 	// Continue run until breakpoint or program termination.
-	p.HandleCommand(&plugin.CommandOptions{Name: "DlvContinue", Eval: "[expand('%:p:h')]"}, d.cmdContinue)
+	p.HandleCommand(&plugin.CommandOptions{Name: "DlvContinue", NArgs: "*", Eval: "[expand('%:p:h')]"}, d.cmdContinue)
 	// Next step over to next source line.
 	p.HandleCommand(&plugin.CommandOptions{Name: "DlvNext", Eval: "[expand('%:p:h')]"}, d.cmdNext)
 

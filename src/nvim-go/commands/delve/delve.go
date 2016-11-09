@@ -34,6 +34,7 @@ const (
 type Delve struct {
 	v *nvim.Nvim
 	p *nvim.Pipeline
+	b *nvim.Batch
 
 	ctxt *context.Context
 
@@ -74,9 +75,9 @@ func NewDelve(v *nvim.Nvim, ctxt *context.Context) *Delve {
 	}
 }
 
-// setupDelve setup the delve client. Separate the NewDelveClient() function.
+// init setup the delve client. Separate the NewDelveClient() function.
 // caused by neovim-go can't call the rpc2.NewClient?
-func (d *Delve) setupDelve(v *nvim.Nvim, addr string) error {
+func (d *Delve) init(v *nvim.Nvim, addr string) error {
 	if !strings.Contains(addr, ":") {
 		addr = "localhost:" + addr
 	}
@@ -87,12 +88,15 @@ func (d *Delve) setupDelve(v *nvim.Nvim, addr string) error {
 	if d.processPid == 0 {
 		return errors.New("Cannot setup delve server")
 	}
+	// avoid setup logs by assigning after server starts up
+	d.server.Stdout = &d.serverOut
+	d.server.Stderr = &d.serverErr
 
 	return nil
 }
 
 // ----------------------------------------------------------------------------
-// delveEval
+// start
 
 // delveEval represent a setup delve server commands Eval args.
 type delveEval struct {
@@ -100,62 +104,89 @@ type delveEval struct {
 	Dir string
 }
 
-// ----------------------------------------------------------------------------
-// debug
+func (d *Delve) waitServer(addr string) error {
+	d.dialServer(d.v, defaultAddr)
 
-func (d *Delve) cmdDebug(v *nvim.Nvim, eval *delveEval) {
-	go d.debug(v, eval)
+	if err := d.init(d.v, addr); err != nil {
+		return errors.Wrap(err, pkgDelve)
+	}
+
+	// TODO(zchee): check whether the exists terminal buffer created by d.createDebugBuffer()
+	return d.printTerminal("", []byte("Type 'help' for list of commands."))
 }
 
-// debug setup the debugging with "dlv debug".
-// TODO(zchee): If failed debug(build), even create each buffers.
-func (d *Delve) debug(v *nvim.Nvim, eval *delveEval) error {
-	d.p = d.v.NewPipeline()
-
-	d.ctxt = new(context.Context)
+// start starts the dlv debugging.
+func (d *Delve) start(cmd string, cfg Config, eval *delveEval) error {
 	defer d.ctxt.SetContext(eval.Cwd)()
 
-	rootDir := pathutil.FindVCSRoot(eval.Dir)
-	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
-	path := filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
-
-	if err := d.startServer("debug", path, defaultAddr); err != nil {
-		nvimutil.ErrorWrap(v, err)
+	if err := d.startServer(cmd, cfg); err != nil {
+		nvimutil.ErrorWrap(d.v, err)
 	}
-	defer d.waitServer(v, defaultAddr)
+	defer d.waitServer(cfg.addr)
 
 	return d.createDebugBuffer()
+}
+
+// ----------------------------------------------------------------------------
+// attach
+
+// cmdAttach setup the debugging.
+func (d *Delve) cmdAttach(v *nvim.Nvim, args []string, eval *delveEval) {
+	d.p = v.NewPipeline()
+	d.b = v.NewBatch()
+
+	pid, err := strconv.ParseInt(args[0], 10, 64)
+	if err != nil {
+		nvimutil.ErrorWrap(v, err)
+	}
+	cfg := Config{
+		pid:   int(pid),
+		flags: args[1:],
+	}
+	go d.start("attach", cfg, eval)
 }
 
 // ----------------------------------------------------------------------------
 // connect
 
-func (d *Delve) cmdConnect(v *nvim.Nvim, args []string, eval *delveEval) {
-	go d.connect(v, args, eval)
-}
-
-// connect connect to dlv headless server.
+// cmdConnect connect to dlv headless server.
 // This command useful for debug the Google Application Engine for Go.
-func (d *Delve) connect(v *nvim.Nvim, args []string, eval *delveEval) error {
-	d.p = d.v.NewPipeline()
-
-	d.ctxt = new(context.Context)
-	defer d.ctxt.SetContext(eval.Cwd)()
-
-	rootDir := pathutil.FindVCSRoot(eval.Dir)
-	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
-	path := filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
+func (d *Delve) cmdConnect(v *nvim.Nvim, args []string, eval *delveEval) {
+	d.p = v.NewPipeline()
+	d.b = v.NewBatch()
 
 	addr := args[0]
 	if !strings.Contains(addr, ":") {
 		addr = "localhost:" + addr
 	}
-	if err := d.startServer("connect", path, addr); err != nil {
-		nvimutil.ErrorWrap(v, err)
+	cfg := Config{
+		addr:  addr,
+		flags: args[1:],
 	}
-	defer d.waitServer(v, addr)
+	go d.start("connect", cfg, eval)
+}
 
-	return d.createDebugBuffer()
+// ----------------------------------------------------------------------------
+// debug
+
+func (d *Delve) findRootDir(dir string) string {
+	rootDir := pathutil.FindVCSRoot(dir)
+	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
+	return filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
+}
+
+// cmdDebug setup the debugging.
+// TODO(zchee): If failed debug(build), even create each buffers.
+func (d *Delve) cmdDebug(v *nvim.Nvim, args []string, eval *delveEval) {
+	d.p = v.NewPipeline()
+	d.b = v.NewBatch()
+
+	cfg := Config{
+		path:  d.findRootDir(eval.Dir),
+		addr:  defaultAddr,
+		flags: args,
+	}
+	go d.start("debug", cfg, eval)
 }
 
 // ----------------------------------------------------------------------------
@@ -244,14 +275,14 @@ type continueEval struct {
 	Dir string `msgpack:",array"`
 }
 
-func (d *Delve) cmdContinue(v *nvim.Nvim, eval *continueEval) {
-	go d.cont(v, eval)
+func (d *Delve) cmdContinue(v *nvim.Nvim, args []string, eval *continueEval) {
+	go d.cont(v, args, eval)
 }
 
 // cont sends the 'continue' signals to the delve headless server, and update
 // sign marker to current stopping position.
 // Note that 'continue' name is reverved Go language spec.
-func (d *Delve) cont(v *nvim.Nvim, eval *continueEval) error {
+func (d *Delve) cont(v *nvim.Nvim, args []string, eval *continueEval) error {
 	stateCh := d.client.Continue()
 	state := <-stateCh
 	if err := d.printServerStderr(); err != nil {
@@ -450,7 +481,7 @@ func (d *Delve) stdin(v *nvim.Nvim) error {
 }
 
 // ----------------------------------------------------------------------------
-// command line completion
+// command-line completion
 
 // FunctionsCompletion return the debug target functions with filtering "main".
 func (d *Delve) FunctionsCompletion(v *nvim.Nvim) ([]string, error) {

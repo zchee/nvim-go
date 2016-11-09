@@ -14,28 +14,38 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Config struct {
+	addr  string
+	flags []string
+	path  string
+	pid   int
+}
+
 // startServer starts the delve headless server and replace server Stdout & Stderr.
-func (d *Delve) startServer(cmd, arg string, addr string) error {
+func (d *Delve) startServer(cmd string, cfg Config) error {
 	dlvBin, err := exec.LookPath("dlv")
 	if err != nil {
 		return errors.Wrap(err, pkgDelve)
 	}
 
-	// TODO(zchee): costomizable build flag
-	cmdArgs := []string{cmd, arg, "--log"}
 	switch cmd {
+	case "attach":
+		// TODO(zchee): implements
+	case "connect":
+		// connect command must be addr to the second argument
+		d.server = exec.Command(dlvBin, cmd, cfg.addr, "--log")
+	case "debug":
+		// debug command must be package path to the second argument, and need "--accept-multiclient" flag
+		d.server = exec.Command(dlvBin, cmd, cfg.path, "--headless", "--listen="+cfg.addr, "--accept-multiclient", "--api-version=2", "--log")
 	case "exec":
 		// TODO(zchee): implements
-	case "debug":
-		cmdArgs = append(cmdArgs, "--headless=true", "--accept-multiclient=true", "--api-version=2", "--listen="+addr)
-	case "connect":
-		// nothing to do
+	case "test":
+		// TODO(zchee): implements
+	case "trace":
+		// TODO(zchee): implements
 	}
-
-	d.server = exec.Command(dlvBin, cmdArgs...)
-
-	d.server.Stdout = &d.serverOut
-	d.server.Stderr = &d.serverErr
+	// append other flags such as build flags
+	d.server.Args = append(d.server.Args, cfg.flags...)
 
 	if err := d.server.Start(); err != nil {
 		err = errors.New(d.serverOut.String())
@@ -46,10 +56,10 @@ func (d *Delve) startServer(cmd, arg string, addr string) error {
 	return nil
 }
 
-// waitServer Waits for dlv launch the headless server.
+// dialServer dial the dlv launch the headless server.
 // `net.Dial` is better way?
 // http://stackoverflow.com/a/30838807/5228839
-func (d *Delve) waitServer(v *nvim.Nvim, addr string) error {
+func (d *Delve) dialServer(v *nvim.Nvim, addr string) error {
 	defer nvimutil.EchohlAfter(v, "Delve", nvimutil.ProgressColor, "Ready")
 	nvimutil.EchoProgress(v, "Delve", "Wait for running dlv server")
 
@@ -62,9 +72,5 @@ func (d *Delve) waitServer(v *nvim.Nvim, addr string) error {
 		break
 	}
 
-	if err := d.setupDelve(v, addr); err != nil {
-		return errors.Wrap(err, pkgDelve)
-	}
-
-	return d.printTerminal("", []byte("Type 'help' for list of commands."))
+	return nil
 }
