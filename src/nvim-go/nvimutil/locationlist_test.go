@@ -154,8 +154,8 @@ locationlist.go:199: ParseError redeclared in this block
 			name: "go build(hyperkitctl)",
 			args: args{
 				errors: []byte(`# github.com/zchee/hyperkitctl/cmd/hyperkitctl
-		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.WalkDir
-		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.DatabasePath`),
+cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.WalkDir
+cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.DatabasePath`),
 				cwd: filepath.Join(os.Getenv("GOPATH"), "src/github.com/zchee/hyperkitctl"),
 				ctxt: &context.Build{
 					Tool: "go",
@@ -181,8 +181,8 @@ locationlist.go:199: ParseError redeclared in this block
 			name: "go build(hyperkitctl) 2",
 			args: args{
 				errors: []byte(`# github.com/zchee/hyperkitctl/cmd/hyperkitctl
-		test.go:26: undefined: hyperkitctl.WalkDir
-		test.go:26: undefined: hyperkitctl.DatabasePath`),
+test.go:26: undefined: hyperkitctl.WalkDir
+test.go:26: undefined: hyperkitctl.DatabasePath`),
 				cwd: filepath.Join(os.Getenv("GOPATH"), "src/github.com/zchee/hyperkitctl/cmd/hyperkitctl"),
 				ctxt: &context.Build{
 					Tool: "go",
@@ -200,6 +200,88 @@ locationlist.go:199: ParseError redeclared in this block
 					LNum:     26,
 					Col:      0,
 					Text:     "undefined: hyperkitctl.DatabasePath",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "have want type suggestion",
+			args: args{
+				errors: []byte(`# nvim-go/commands/delve
+delve.go:129: too many arguments in call to d.startServer
+	 have (string, []string, string)
+	 want (serverConfig, serverConfig)
+delve.go:159: too many arguments in call to d.startServer
+	 have (string, nil, string)
+	 want (serverConfig, serverConfig)
+server.go:31: cannot use cmd (type serverConfig) as type string in argument to exec.Command
+server.go:33: cannot switch on cmd (type serverConfig) (struct containing []string cannot be compared)
+server.go:34: invalid case "exec" in switch on cmd (mismatched types string and serverConfig)
+server.go:36: invalid case "debug" in switch on cmd (mismatched types string and serverConfig)
+server.go:37: cannot use cfg.flags (type []string) as type string in append
+server.go:38: invalid case "connect" in switch on cmd (mismatched types string and serverConfig)
+server.go:40: cannot use cfg.flags (type []string) as type string in append
+FATAL: command "build" failed: exit status 2`),
+				cwd: cwd,
+				ctxt: &context.Build{
+					Tool:        "gb",
+					ProjectRoot: gbProjectDir,
+				},
+			},
+			want: []*nvim.QuickfixError{
+				&nvim.QuickfixError{
+					FileName: "../src/nvim-go/commands/delve/delve.go",
+					LNum:     129,
+					Col:      0,
+					Text:     "too many arguments in call to d.startServer",
+				},
+				&nvim.QuickfixError{
+					FileName: "../src/nvim-go/commands/delve/delve.go",
+					LNum:     159,
+					Col:      0,
+					Text:     "too many arguments in call to d.startServer",
+				},
+				&nvim.QuickfixError{
+					FileName: "../src/nvim-go/commands/delve/server.go",
+					LNum:     31,
+					Col:      0,
+					Text:     "cannot use cmd (type serverConfig) as type string in argument to exec.Command",
+				},
+				&nvim.QuickfixError{
+					FileName: "../src/nvim-go/commands/delve/server.go",
+					LNum:     33,
+					Col:      0,
+					Text:     "cannot switch on cmd (type serverConfig) (struct containing []string cannot be compared)",
+				},
+				&nvim.QuickfixError{
+					FileName: "../src/nvim-go/commands/delve/server.go",
+					LNum:     34,
+					Col:      0,
+					Text:     "invalid case \"exec\" in switch on cmd (mismatched types string and serverConfig)",
+				},
+				&nvim.QuickfixError{
+					FileName: "../src/nvim-go/commands/delve/server.go",
+					LNum:     36,
+					Col:      0,
+					Text:     "invalid case \"debug\" in switch on cmd (mismatched types string and serverConfig)",
+				},
+				&nvim.QuickfixError{
+					FileName: "../src/nvim-go/commands/delve/server.go",
+					LNum:     37,
+					Col:      0,
+					Text:     "cannot use cfg.flags (type []string) as type string in append",
+				},
+				&nvim.QuickfixError{
+					FileName: "../src/nvim-go/commands/delve/server.go",
+					LNum:     38,
+					Col:      0,
+					Text:     "invalid case \"connect\" in switch on cmd (mismatched types string and serverConfig)",
+				},
+				&nvim.QuickfixError{
+					FileName: "../src/nvim-go/commands/delve/server.go",
+					LNum:     40,
+					Col:      0,
+					Text:     "cannot use cfg.flags (type []string) as type string in append",
 				},
 			},
 			wantErr: false,

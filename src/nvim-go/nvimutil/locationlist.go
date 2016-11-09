@@ -197,7 +197,7 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 	return fname, int(line), int(col)
 }
 
-var errRe = regexp.MustCompile(`(?m)^([^:]+):(\d+)(?::(\d+))?:\s(.*)`)
+var errRe = regexp.MustCompile(`(?m)^([^\t:]+):(\d+)(?::(\d+))?:\s(.*)`)
 
 // ParseError parses a typical error message of Go compile tools.
 // TODO(zchee): More elegant way
