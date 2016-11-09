@@ -106,7 +106,8 @@ type test struct {
 
 // Debug represents a debug of nvim-go config variable.
 type debug struct {
-	Pprof int64 `eval:"g:go#debug#pprof"`
+	Enable int64 `eval:"g:go#debug"`
+	Pprof  int64 `eval:"g:go#debug#pprof"`
 }
 
 var (
@@ -185,6 +186,8 @@ var (
 	// TestArgs test command default args.
 	TestArgs []string
 
+	// DebugEnable Enable debugging.
+	DebugEnable bool
 	// DebugPprof Enable net/http/pprof debugging.
 	DebugPprof bool
 )
