@@ -28,9 +28,8 @@ CGO_CPPFLAGS ?=
 CGO_CXXFLAGS ?=
 CGO_LDFLAGS ?=
 
-GO_TEST_FLAGS ?= -v
-test/bench: GO_TEST_FLAGS += -bench=. -benchmem
-docker-run: GO_TEST_FLAGS += -race
+GO_TEST_FLAGS ?= -v -race
+test-bench: GO_TEST_FLAGS += -bench=. -benchmem
 
 GO_BUILD := ${GB_CMD} build
 GO_BUILD_RACE := ${GB_CMD} build -race
