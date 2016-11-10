@@ -1,12 +1,10 @@
 sudo: required
+dist: trusty
 
+services: docker
 language: go
 go:
   - 1.7.3
-services: docker
-
-env:
-  - GO_VERSION=1.7.3
 
 before_install:
   - go get github.com/mattn/goveralls
