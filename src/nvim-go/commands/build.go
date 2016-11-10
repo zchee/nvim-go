@@ -72,8 +72,8 @@ func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 	cmd := exec.Command(c.ctxt.Build.Tool)
 	args := []string{"build"}
 
-	if len(config.BuildArgs) > 0 {
-		args = append(args, config.BuildArgs...)
+	if len(config.BuildFlags) > 0 {
+		args = append(args, config.BuildFlags...)
 	}
 
 	switch c.ctxt.Build.Tool {

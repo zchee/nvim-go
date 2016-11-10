@@ -42,7 +42,7 @@ type analyze struct {
 type build struct {
 	Autosave int64    `eval:"g:go#build#autosave"`
 	Force    int64    `eval:"g:go#build#force"`
-	Args     []string `eval:"g:go#build#args"`
+	Flags    []string `eval:"g:go#build#flags"`
 }
 
 // fmt represents a GoFmt command config variable.
@@ -99,7 +99,7 @@ type terminal struct {
 // Test represents a GoTest command config variables.
 type test struct {
 	Autosave int64    `eval:"g:go#test#autosave"`
-	Args     []string `eval:"g:go#test#args"`
+	Flags    []string `eval:"g:go#test#flags"`
 }
 
 // Debug represents a debug of nvim-go config variable.
@@ -124,7 +124,7 @@ var (
 	// BuildForce builds the binary instead of fake(use ioutil.TempFiile) build.
 	BuildForce bool
 	// BuildArgs force build args.
-	BuildArgs []string
+	BuildFlags []string
 
 	// FmtAutosave call the GoFmt command automatically at during the BufWritePre.
 	FmtAutosave bool
@@ -182,7 +182,7 @@ var (
 	// TestAutosave call the GoBuild command automatically at during the BufWritePost.
 	TestAutosave bool
 	// TestArgs test command default args.
-	TestArgs []string
+	TestFlags []string
 
 	// DebugEnable Enable debugging.
 	DebugEnable bool
@@ -203,7 +203,7 @@ func Get(v *nvim.Nvim, cfg *Config) {
 	// Build
 	BuildAutosave = itob(cfg.Build.Autosave)
 	BuildForce = itob(cfg.Build.Force)
-	BuildArgs = cfg.Build.Args
+	BuildFlags = cfg.Build.Flags
 
 	// Fmt
 	FmtAutosave = itob(cfg.Fmt.Autosave)
@@ -244,7 +244,7 @@ func Get(v *nvim.Nvim, cfg *Config) {
 
 	// Test
 	TestAutosave = itob(cfg.Test.Autosave)
-	TestArgs = cfg.Test.Args
+	TestFlags = cfg.Test.Flags
 
 	// Debug
 	DebugEnable = itob(cfg.Debug.Enable)

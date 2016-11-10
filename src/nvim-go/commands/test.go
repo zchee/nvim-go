@@ -37,7 +37,7 @@ func (c *Commands) Test(args []string, dir string) error {
 	defer c.ctxt.SetContext(dir)()
 
 	cmd := []string{c.ctxt.Build.Tool, "test"}
-	args = append(args, config.TestArgs...)
+	args = append(args, config.TestFlags...)
 	if len(args) > 0 {
 		cmd = append(cmd, args...)
 	}
