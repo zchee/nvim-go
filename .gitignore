@@ -33,3 +33,8 @@ pkg
 
 # manifest write script
 plugin/manifest
+
+# habit
+_*
+# temporarily ignore for development
+syntax/go.vim
