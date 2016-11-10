@@ -28,16 +28,15 @@ CGO_CPPFLAGS ?=
 CGO_CXXFLAGS ?=
 CGO_LDFLAGS ?=
 
-GO_TEST_FLAGS ?= -v -race
+GO_TEST_FLAGS ?= -v
 test/bench: GO_TEST_FLAGS += -bench=. -benchmem
+docker-run: GO_TEST_FLAGS += -race
 
 GO_BUILD := ${GB_CMD} build
 GO_BUILD_RACE := ${GB_CMD} build -race
 GO_TEST := ${GB_CMD} test
 GO_LINT := golint
 
-
-.PHONY: clean test
 
 default: build
 
@@ -60,6 +59,8 @@ $(PACKAGE_DIR)/plugin/manifest: ## build the auto writing neovim manifest utilit
 test: ## test the nvim-go package
 	${GO_TEST} $(GO_TEST_FLAGS) || exit 1
 
+test-docker: docker-run ## run the docker container test on Linux
+
 test-bench: ## test the nvim-go package with benchmark
 	${GO_TEST} $(GO_TEST_FLAGS) || exit 1
 
@@ -77,7 +78,7 @@ vendor-guru: ## update the internal guru package
 	grep "package main" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
 	${VENDOR_CMD} delete golang.org/x/tools/cmd/guru
 
-docker: docker/run ## run the docker container test on Linux
+docker: docker-run ## run the docker container test on Linux
 
 docker-build: ## build the zchee/nvim-go docker container for testing on the Linux
 	${DOCKER_CMD} build --rm -t ${GITHUB_USER}/${PACKAGE_NAME} .
@@ -85,8 +86,8 @@ docker-build: ## build the zchee/nvim-go docker container for testing on the Lin
 docker-build-nocache: ## build the zchee/nvim-go docker container for testing on the Linux without cache
 	${DOCKER_CMD} build --rm --no-cache -t ${GITHUB_USER}/${PACKAGE_NAME} .
 
-docker-run: docker/build ## run the zchee/nvim-go docker container test
-	${DOCKER_CMD} run --rm -it ${GITHUB_USER}/${PACKAGE_NAME}
+docker-run: docker-build ## run the zchee/nvim-go docker container test
+	${DOCKER_CMD} run --rm -it ${GITHUB_USER}/${PACKAGE_NAME} ${GO_TEST} $(GO_TEST_FLAGS)
 
 clean: ## clean the ./bin and ./pkg directory
 	${RM} -r ./bin ./pkg
@@ -100,3 +101,5 @@ todo: ## print the all of TODO,BUG,XXX,FIXME,NOTE in nvim-go package sources
 
 help: ## print this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+.PHONY: clean test build build-race rebuild test test-docker test-bench test-run vendor-all vendor-guru docker docker-build docker-build-nocache todo help
