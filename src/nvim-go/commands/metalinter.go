@@ -16,6 +16,7 @@ import (
 	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
+	"github.com/pkg/errors"
 )
 
 func (c *Commands) cmdMetalinter(cwd string) {
@@ -47,7 +48,7 @@ func (c *Commands) Metalinter(cwd string) error {
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	var args []string
@@ -75,7 +76,7 @@ func (c *Commands) Metalinter(cwd string) error {
 	var result = []metalinterResult{}
 	if err != nil {
 		if err := json.Unmarshal(stdout, &result); err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 	}
 
@@ -92,7 +93,7 @@ func (c *Commands) Metalinter(cwd string) error {
 	}
 
 	if err := nvimutil.SetLoclist(c.v, loclist); err != nil {
-		return nvimutil.Echomsg(c.v, "Gometalinter: %v", err)
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 	return nvimutil.OpenLoclist(c.v, w, loclist, true)
 }

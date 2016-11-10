@@ -19,8 +19,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const pkgBuild = "GoBuild"
-
 // CmdBuildEval struct type for Eval of GoBuild command.
 type CmdBuildEval struct {
 	Cwd string `msgpack:",array"`
@@ -44,7 +42,7 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 // Build builds the current buffer's package use compile tool that
 // determined from the directory structure.
 func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
-	defer nvimutil.Profile(time.Now(), pkgBuild)
+	defer nvimutil.Profile(time.Now(), "GoBuild")
 	defer c.ctxt.SetContext(eval.Dir)()
 
 	if !bang {
@@ -53,7 +51,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 
 	cmd, err := c.compileCmd(bang, eval.Cwd)
 	if err != nil {
-		return errors.Wrap(err, pkgBuild)
+		return errors.WithStack(err)
 	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -61,13 +59,13 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	if buildErr := cmd.Run(); buildErr != nil && buildErr.(*exec.ExitError) != nil {
 		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
 		if err != nil {
-			return errors.Wrap(err, pkgBuild)
+			return errors.WithStack(err)
 		}
 		return errlist
 	}
 	delete(c.ctxt.Errlist, "Build")
 
-	return nvimutil.EchoSuccess(c.v, pkgBuild, fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
+	return nvimutil.EchoSuccess(c.v, "GoBuild", fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
 }
 
 func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {

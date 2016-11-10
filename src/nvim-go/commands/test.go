@@ -19,6 +19,7 @@ import (
 	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
+	"github.com/pkg/errors"
 	"golang.org/x/tools/go/ast/astutil"
 )
 
@@ -51,7 +52,7 @@ func (c *Commands) Test(args []string, dir string) error {
 	}
 
 	if err := testTerm.Run(cmd); err != nil {
-		return err
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	return nil
@@ -94,7 +95,8 @@ func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
 
 	// Check the exists of switch destination file.
 	if _, err := os.Stat(switchfile); err != nil {
-		return nvimutil.EchohlErr(c.v, "GoTestSwitch", "Switch destination file does not exist")
+		errors.New("Switch destination file does not exist")
+		return nvimutil.ErrorWrap(c.v, err)
 	}
 
 	dir, _ := filepath.Split(fname)

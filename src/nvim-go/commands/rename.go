@@ -49,14 +49,12 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		err = errors.Wrap(err, pkgRename)
-		return nvimutil.ErrorWrap(c.v, err)
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	offset, err := nvimutil.ByteOffset(c.v, b, w)
 	if err != nil {
-		err = errors.Wrap(err, pkgRename)
-		return nvimutil.ErrorWrap(c.v, err)
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 	pos := fmt.Sprintf("%s:#%d", eval.File, offset)
 
@@ -105,8 +103,7 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 		write.Close()
 		renameErr, err := ioutil.ReadAll(read)
 		if err != nil {
-			err = errors.Wrap(err, pkgRename)
-			return nvimutil.ErrorWrap(c.v, err)
+			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 		}
 
 		log.Printf("er: %+v\n", string(renameErr))
@@ -116,8 +113,7 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 			nvimutil.OpenLoclist(c.v, w, loclist, true)
 		}()
 
-		err = errors.Wrap(err, pkgRename)
-		return nvimutil.ErrorWrap(c.v, err)
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	write.Close()

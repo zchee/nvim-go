@@ -25,8 +25,6 @@ import (
 	"golang.org/x/tools/go/loader"
 )
 
-const pkgIferr = "GoIferr"
-
 func (c *Commands) cmdIferr(file string) {
 	go c.Iferr(file)
 }
@@ -40,12 +38,12 @@ func (c *Commands) Iferr(file string) error {
 
 	b, err := c.v.CurrentBuffer()
 	if err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	buflines, err := c.v.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	conf := loader.Config{
@@ -61,13 +59,13 @@ func (c *Commands) Iferr(file string) error {
 
 	f, err := conf.ParseFile(file, src.Bytes())
 	if err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	conf.CreateFromFiles(file, f)
 	prog, err := conf.Load()
 	if err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgIferr))
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	// Reuse src variable

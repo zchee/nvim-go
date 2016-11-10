@@ -12,6 +12,7 @@ import (
 	"nvim-go/config"
 
 	"github.com/neovim/go-client/nvim"
+	"github.com/pkg/errors"
 )
 
 // autocmdVimEnter wrapper vimEnter function use goroutine.
@@ -24,7 +25,7 @@ func autocmdVimEnter(v *nvim.Nvim, cfg *config.Config) {
 func vimEnter(v *nvim.Nvim, cfg *config.Config) (err error) {
 	cfg.Global.ChannelID = v.ChannelID()
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	config.Get(v, cfg)

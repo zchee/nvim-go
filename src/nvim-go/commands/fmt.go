@@ -17,8 +17,6 @@ import (
 	"golang.org/x/tools/imports"
 )
 
-const pkgFmt = "GoFmt"
-
 var importsOptions = imports.Options{
 	AllErrors: true,
 	Comments:  true,
@@ -42,7 +40,7 @@ func (c *Commands) cmdFmt(dir string) {
 
 // Fmt format to the current buffer source uses gofmt behavior.
 func (c *Commands) Fmt(dir string) interface{} {
-	defer nvimutil.Profile(time.Now(), pkgFmt)
+	defer nvimutil.Profile(time.Now(), "GoFmt")
 	defer c.ctxt.SetContext(dir)()
 
 	var (
@@ -55,12 +53,12 @@ func (c *Commands) Fmt(dir string) interface{} {
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		return errors.Wrap(err, pkgFmt)
+		return errors.WithStack(err)
 	}
 
 	in, err := c.v.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return errors.Wrap(err, pkgFmt)
+		return errors.WithStack(err)
 	}
 
 	switch config.FmtMode {
@@ -69,14 +67,14 @@ func (c *Commands) Fmt(dir string) interface{} {
 	case "goimports":
 		// nothing to do
 	default:
-		return errors.Wrap(errors.New("invalid value of go#fmt#mode option"), pkgFmt)
+		return errors.WithStack(errors.New("invalid value of go#fmt#mode option"))
 	}
 
 	buf, formatErr := imports.Process("", nvimutil.ToByteSlice(in), &importsOptions)
 	if formatErr != nil {
 		bufName, err := c.v.BufferName(b)
 		if err != nil {
-			return errors.Wrap(err, pkgFmt)
+			return errors.WithStack(err)
 		}
 
 		var errlist []*nvim.QuickfixError

@@ -16,6 +16,7 @@ import (
 	"nvim-go/nvimutil"
 
 	"github.com/cweill/gotests/gotests/process"
+	"github.com/pkg/errors"
 )
 
 func (c *Commands) cmdGenerateTest(files []string, dir string) {
@@ -32,13 +33,13 @@ func (c *Commands) GenerateTest(files []string, dir string) error {
 
 	b, err := c.v.CurrentBuffer()
 	if err != nil {
-		return nvimutil.Echoerr(c.v, "GoGenerateTest: %v", err)
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	if len(files) == 0 {
 		f, err := c.v.BufferName(b)
 		if err != nil {
-			return nvimutil.Echoerr(c.v, "GoGenerateTest: %v", err)
+			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 		}
 		files = []string{f}
 	}
@@ -79,7 +80,7 @@ func (c *Commands) GenerateTest(files []string, dir string) error {
 	ask := fmt.Sprintf("%s\nGoGenerateTest: Generated %s\nGoGenerateTest: Open it? (y, n): ", genFuncs, ftestsRel)
 	var answer interface{}
 	if err := c.v.Call("input", &answer, ask); err != nil {
-		return err
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	// TODO(zchee): Support open the ftests[0] file only.

@@ -24,8 +24,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const pkgLint = "GoLint"
-
 func (c *Commands) cmdLint(v *nvim.Nvim, args []string, file string) {
 	// Cleanup error list
 	delete(c.ctxt.Errlist, "Lint")
@@ -50,7 +48,7 @@ const (
 // Lint lints a go source file. The argument is a filename or directory path.
 // TODO(zchee): Support go packages.
 func (c *Commands) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
-	defer nvimutil.Profile(time.Now(), pkgLint)
+	defer nvimutil.Profile(time.Now(), "GoLint")
 	dir := filepath.Dir(file)
 	defer c.ctxt.SetContext(dir)()
 	buildContext = build.Default
@@ -70,7 +68,7 @@ func (c *Commands) Lint(args []string, file string) ([]*nvim.QuickfixError, erro
 			case "go":
 				root, err := pathutil.PackageID(c.ctxt.Build.ProjectRoot)
 				if err != nil {
-					return nil, errors.Wrap(err, pkgLint)
+					return nil, errors.WithStack(err)
 				}
 				rootDir = root
 			case "gb":
@@ -105,7 +103,7 @@ func (c *Commands) Lint(args []string, file string) ([]*nvim.QuickfixError, erro
 		errlist, err = c.lintFiles(args...)
 	}
 
-	return errlist, err
+	return errlist, errors.WithStack(err)
 }
 
 // TODO(zchee): Support list of go packages.

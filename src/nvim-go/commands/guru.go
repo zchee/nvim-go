@@ -34,8 +34,6 @@ import (
 	"golang.org/x/tools/go/loader"
 )
 
-var pkgGuru = "Guru"
-
 type funcGuruEval struct {
 	Cwd      string `msgpack:",array"`
 	File     string
@@ -75,7 +73,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	guruContext := &build.Default
@@ -87,7 +85,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 
 		c.p.BufferLines(b, 0, -1, true, &buf)
 		if err := c.p.Wait(); err != nil {
-			return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 		}
 
 		overlay[eval.File] = bytes.Join(buf, []byte{'\n'})
@@ -104,7 +102,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	if mode == "definition" {
 		obj, err := definition(&query)
 		if err != nil {
-			return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 		}
 		fname, line, col := nvimutil.SplitPos(obj.ObjPos, eval.Cwd)
 		text := obj.Desc
@@ -113,7 +111,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		}
 		c.p.SetWindowCursor(w, [2]int{line, col - 1})
 		if err := c.p.Wait(); err != nil {
-			return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 		}
 		c.p.Command(`lclose`)
 		c.p.Command(`normal! zz`)
@@ -136,7 +134,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	case "go":
 		pkgID, err := pathutil.PackageID(dir)
 		if err != nil {
-			return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 		}
 		scope = pkgID
 	case "gb":
@@ -150,14 +148,14 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		outputMu.Lock()
 		defer outputMu.Unlock()
 		if loclist, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
-			nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+			nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 		}
 	}
 	query.Output = output
 
-	nvimutil.EchoProgress(c.v, pkgGuru, fmt.Sprintf("analysing %s", mode))
+	nvimutil.EchoProgress(c.v, "Guru", fmt.Sprintf("analysing %s", mode))
 	if err := guru.Run(mode, &query); err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 	if len(loclist) == 0 {
 		return fmt.Errorf("%s not fount", mode)
@@ -165,7 +163,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 
 	defer nvimutil.ClearMsg(c.v)
 	if err := nvimutil.SetLoclist(c.v, loclist); err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.Wrap(err, pkgGuru))
+		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
 	}
 
 	// jumpfirst or definition mode

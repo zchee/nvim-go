@@ -19,8 +19,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const pkgVet = "GoVet"
-
 // CmdVetEval struct type for Eval of GoBuild command.
 type CmdVetEval struct {
 	Cwd string `msgpack:",array"`
@@ -52,7 +50,7 @@ func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
 
 // Vet is a simple checker for static errors in Go source code use go tool vet command.
 func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, error) {
-	defer nvimutil.Profile(time.Now(), pkgVet)
+	defer nvimutil.Profile(time.Now(), "GoVet")
 
 	vetCmd := exec.Command("go", "tool", "vet")
 	vetCmd.Dir = eval.Cwd
@@ -68,7 +66,7 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, 
 				eval.Cwd = filepath.Dir(path)
 			} else {
 				err := errors.New("Invalid directory path")
-				return nil, errors.Wrap(err, pkgVet)
+				return nil, errors.WithStack(err)
 			}
 		}
 	case len(config.GoVetFlags) > 0:
@@ -85,7 +83,7 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, 
 	if vetErr != nil {
 		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
 		if err != nil {
-			return nil, errors.Wrap(err, pkgVet)
+			return nil, errors.WithStack(err)
 		}
 		return errlist, nil
 	}

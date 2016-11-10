@@ -33,7 +33,7 @@ func (c *Commands) cmdRun(args []string, file string) {
 func (c *Commands) cmdRunLast(file string) {
 	if len(lastCmd) == 0 {
 		err := errors.New("not found GoRun last arguments")
-		nvimutil.ErrorWrap(c.v, errors.Wrap(err, "GoRun"))
+		nvimutil.ErrorWrap(c.v, err)
 		return
 	}
 
@@ -55,7 +55,7 @@ func (c *Commands) Run(cmd []string, file string) error {
 	runTerm.Dir = rootDir
 
 	if err := runTerm.Run(cmd); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	return nil
