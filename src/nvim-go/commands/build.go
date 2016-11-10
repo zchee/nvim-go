@@ -7,7 +7,6 @@ package commands
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"time"
@@ -80,12 +79,7 @@ func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 	case "go":
 		cmd.Dir = dir
 		if !bang {
-			tmpfile, err := ioutil.TempFile(os.TempDir(), "nvim-go")
-			if err != nil {
-				return nil, err
-			}
-			defer os.Remove(tmpfile.Name())
-			args = append(args, "-o", tmpfile.Name())
+			args = append(args, "-o", os.DevNull)
 		}
 	case "gb":
 		cmd.Dir = c.ctxt.Build.ProjectRoot
