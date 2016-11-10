@@ -6,8 +6,7 @@
 package main // import "github.com/zchee/nvim-go/src/cmd/nvim-go"
 
 import (
-	// For pprof debugging.
-	_ "net/http/pprof"
+	_ "net/http/pprof" // For pprof debugging.
 
 	"nvim-go/autocmd"
 	"nvim-go/commands"
