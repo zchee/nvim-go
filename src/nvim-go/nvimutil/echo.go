@@ -56,19 +56,22 @@ func ErrorWrap(v *nvim.Nvim, err error) error {
 	if err == nil {
 		return nil
 	}
-	if IsDebug() {
-		err, ok := err.(stackTracer)
-		if ok {
-			st := err.StackTrace()
+
+	var funcName string
+	if err, ok := err.(stackTracer); ok {
+		st := err.StackTrace()
+		// "%n" verb is function name
+		funcName = fmt.Sprintf("%n", st[0])
+		if IsDebug() {
 			log.Printf("Error stack%+v", st[:])
 		}
 	}
-	er := strings.SplitAfterN(err.Error(), ": ", 2)
-	if strings.Contains(er[1], `"`) {
-		er[1] = strings.Replace(er[1], `"`, "", -1)
+	// fallback use plugin name
+	if funcName == "" {
+		funcName = "nvim-go"
 	}
-	v.Command("redraw")
-	return v.Command("echo \"" + er[0] + "\" | echohl " + ErrorColor + " | echon \"" + er[1] + "\" | echohl None")
+
+	return v.Command("redraw | echo \"" + funcName + ": \" | echohl " + ErrorColor + " | echon \"" + err.Error() + "\" | echohl None")
 }
 
 // EchohlErr provide the vim 'echo' command with the 'echohl' highlighting prefix text.
