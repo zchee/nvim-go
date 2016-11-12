@@ -108,7 +108,7 @@ func (t *Terminal) Run(cmd []string) error {
 		t.Create()
 	}
 	// Workaround for "autocmd BufEnter term://* startinsert"
-	if config.TerminalStartInsert {
+	if config.TerminalStopInsert {
 		t.v.Command("stopinsert")
 	}
 

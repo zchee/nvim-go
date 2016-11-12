@@ -89,11 +89,11 @@ type rename struct {
 
 // terminal represents a configure of Neovim terminal buffer.
 type terminal struct {
-	Mode         string `eval:"g:go#terminal#mode"`
-	Position     string `eval:"g:go#terminal#position"`
-	Height       int64  `eval:"g:go#terminal#height"`
-	Width        int64  `eval:"g:go#terminal#width"`
-	StartInsetrt int64  `eval:"g:go#terminal#start_insert"`
+	Mode       string `eval:"g:go#terminal#mode"`
+	Position   string `eval:"g:go#terminal#position"`
+	Height     int64  `eval:"g:go#terminal#height"`
+	Width      int64  `eval:"g:go#terminal#width"`
+	StopInsert int64  `eval:"g:go#terminal#stop_insert"`
 }
 
 // Test represents a GoTest command config variables.
@@ -176,8 +176,8 @@ var (
 	TerminalHeight int64
 	// TerminalWidth open the terminal window width.
 	TerminalWidth int64
-	// TerminalStartInsert workaround if users set "autocmd BufEnter term://* startinsert".
-	TerminalStartInsert bool
+	// TerminalStopInsert workaround if users set "autocmd BufEnter term://* startinsert".
+	TerminalStopInsert bool
 
 	// TestAutosave call the GoBuild command automatically at during the BufWritePost.
 	TestAutosave bool
@@ -240,7 +240,7 @@ func Get(v *nvim.Nvim, cfg *Config) {
 	TerminalPosition = cfg.Terminal.Position
 	TerminalHeight = cfg.Terminal.Height
 	TerminalWidth = cfg.Terminal.Width
-	TerminalStartInsert = itob(cfg.Terminal.StartInsetrt)
+	TerminalStopInsert = itob(cfg.Terminal.StopInsert)
 
 	// Test
 	TestAutosave = itob(cfg.Test.Autosave)
