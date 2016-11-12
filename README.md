@@ -33,13 +33,13 @@ After installed gb, add your init.vim:
 
 ```vim
 " dein.vim
-call dein#add('zchee/nvim-go', {'build': 'gb build'})
+call dein#add('zchee/nvim-go', {'build': 'make'})
 
 " NeoBundle
-NeoBundle 'zchee/nvim-go', {'build': {'unix': 'gb build'}}
+NeoBundle 'zchee/nvim-go', {'build': {'unix': 'make'}}
 
 " vim-plug
-Plug 'zchee/nvim-go', { 'do': 'gb build'}
+Plug 'zchee/nvim-go', { 'do': 'make'}
 ```
 
 Features
