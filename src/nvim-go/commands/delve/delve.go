@@ -55,7 +55,7 @@ type Delve struct {
 type BufferContext struct {
 	cb     nvim.Buffer
 	cw     nvim.Window
-	buffer map[string]*nvimutil.Buf
+	buffer map[nvimutil.BufferName]*nvimutil.Buf
 }
 
 // SignContext represents a breakpoint and program counter sign.

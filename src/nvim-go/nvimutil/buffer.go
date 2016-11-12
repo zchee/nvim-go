@@ -16,6 +16,8 @@ import (
 
 const pkgBuffer = "nvim.buffer"
 
+type BufferName string
+
 // Buf represents a Neovim buffer.
 // TODO(zchee): Ugly type name because of a conflict in vim.Buffer.
 type Buf struct {
