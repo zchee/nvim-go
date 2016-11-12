@@ -57,9 +57,9 @@ func (t *Terminal) Create() (err error) {
 
 	switch {
 	case t.mode == "split":
-		t.Size = int(config.TerminalHeight)
+		t.Size = t.getWindowSize(config.TerminalHeight, t.v.WindowHeight)
 	case t.mode == "vsplit":
-		t.Size = int(config.TerminalWidth)
+		t.Size = t.getWindowSize(config.TerminalWidth, t.v.WindowWidth)
 	default:
 		// nothing to do
 	}
@@ -113,6 +113,18 @@ func (t *Terminal) Run(cmd []string) error {
 	}
 
 	return nil
+}
+
+// getWindowSize return the one third of window (height|width) size if cfg is 0
+func (t *Terminal) getWindowSize(cfg int64, fn func(nvim.Window) (int, error)) int {
+	if cfg == 0 {
+		i, err := fn(t.cw)
+		if err != nil {
+			return 0
+		}
+		return i / 3
+	}
+	return int(cfg)
 }
 
 // TODO(zchee): flashing when switch the window.
