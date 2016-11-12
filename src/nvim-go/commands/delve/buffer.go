@@ -25,18 +25,22 @@ const (
 func (d *Delve) createDebugBuffer() error {
 	d.p.CurrentBuffer(&d.cb)
 	d.p.CurrentWindow(&d.cw)
-	if err := d.p.Wait(); err != nil {
-		return errors.Wrap(err, pkgDelve)
+	err := d.p.Wait()
+	if err != nil {
+		return errors.WithStack(err)
 	}
 
 	var height, width int
 	d.p.WindowHeight(d.cw, &height)
 	d.p.WindowWidth(d.cw, &width)
-	if err := d.p.Wait(); err != nil {
-		return errors.Wrap(err, pkgDelve)
+	err = d.p.Wait()
+	if err != nil {
+		return errors.WithStack(err)
 	}
 
 	go func() {
+		defer d.v.SetCurrentWindow(d.cw)
+
 		option := d.setTerminalOption()
 		d.buffer = make(map[string]*nvimutil.Buf)
 		nnoremap := make(map[string]string)
@@ -53,13 +57,11 @@ func (d *Delve) createDebugBuffer() error {
 		d.buffer[Threads].Create(Threads, nvimutil.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*1/5)), option)
 		d.v.SetWindowOption(d.buffer[Threads].Window, "winfixheight", true)
 
-		defer d.v.SetCurrentWindow(d.cw)
 	}()
 
-	var err error
 	d.pcSign, err = nvimutil.NewSign(d.v, "delve_pc", nvimutil.ProgramCounterSymbol, "delvePCSign", "delvePCLine") // *nvim.Sign
 	if err != nil {
-		return errors.Wrap(err, pkgDelve)
+		return errors.WithStack(err)
 	}
 
 	return d.p.Wait()

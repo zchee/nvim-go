@@ -25,7 +25,7 @@ type Config struct {
 func (d *Delve) startServer(cmd string, cfg Config) error {
 	dlvBin, err := exec.LookPath("dlv")
 	if err != nil {
-		return errors.Wrap(err, pkgDelve)
+		return errors.WithStack(err)
 	}
 
 	switch cmd {
@@ -50,7 +50,7 @@ func (d *Delve) startServer(cmd string, cfg Config) error {
 	if err := d.server.Start(); err != nil {
 		err = errors.New(d.serverOut.String())
 		d.serverOut.Reset()
-		return errors.Wrap(err, "delve/server.startServer")
+		return errors.WithStack(err)
 	}
 
 	return nil

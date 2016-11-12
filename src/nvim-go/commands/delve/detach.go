@@ -6,6 +6,7 @@ package delve
 
 import (
 	"log"
+	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -20,7 +21,7 @@ func (d *Delve) detach(v *nvim.Nvim) error {
 	if d.processPid != 0 {
 		err := d.client.Detach(true)
 		if err != nil {
-			return errors.Wrap(err, pkgDelve)
+			return nvimutil.ErrorWrap(d.v, errors.WithStack(err))
 		}
 		log.Printf("Detached delve client\n")
 	}
@@ -32,7 +33,7 @@ func (d *Delve) kill() error {
 	if d.server != nil {
 		err := d.server.Process.Kill()
 		if err != nil {
-			return errors.Wrap(err, pkgDelve)
+			return errors.WithStack(err)
 		}
 		log.Printf("Killed delve server\n")
 	}

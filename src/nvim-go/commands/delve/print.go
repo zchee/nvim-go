@@ -26,7 +26,7 @@ func (d *Delve) printTerminal(cmd string, message []byte) error {
 
 	lcount, err := d.v.BufferLineCount(d.buffer[Terminal].Buffer)
 	if err != nil {
-		return errors.Wrap(err, pkgDelve)
+		return errors.WithStack(err)
 	}
 	if lcount == 1 {
 		lcount = 0
@@ -44,12 +44,12 @@ func (d *Delve) printTerminal(cmd string, message []byte) error {
 	msg = append(msg, []byte("(dlv)  ")...)
 
 	if err := d.v.SetBufferLines(d.buffer[Terminal].Buffer, lcount, -1, true, bytes.Split(msg, []byte{'\n'})); err != nil {
-		return errors.Wrap(err, pkgDelve)
+		return errors.WithStack(err)
 	}
 
 	afterBuf, err := d.v.BufferLines(d.buffer[Terminal].Buffer, 0, -1, true)
 	if err != nil {
-		return errors.Wrap(err, pkgDelve)
+		return errors.WithStack(err)
 	}
 
 	return d.v.SetWindowCursor(d.buffer[Terminal].Window, [2]int{len(afterBuf), 7})
@@ -74,11 +74,11 @@ func (d *Delve) printContext(cwd string, cThread *delveapi.Thread, goroutines []
 
 	stackHeight, err := d.printStacktrace(cwd, cThread.Function, goroutines)
 	if err != nil {
-		return errors.Wrap(err, pkgDelve)
+		return errors.WithStack(err)
 	}
 
 	if err := d.printLocals(cwd, d.Locals, stackHeight); err != nil {
-		return errors.Wrap(err, pkgDelve)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -122,7 +122,7 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 		if g.ID != 0 {
 			stacks, err := d.client.Stacktrace(g.ID, goroutineDepth, &delveapi.LoadConfig{FollowPointers: true}) // []delveapi.Stackframe
 			if err != nil {
-				return end, nvimutil.ErrorWrap(d.v, errors.Wrap(err, pkgDelve))
+				return end, errors.WithStack(err)
 			}
 			for _, s := range stacks {
 				stacksMsg = append(stacksMsg, []byte(
@@ -145,11 +145,11 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 	}
 
 	if err := d.v.SetBufferLines(d.buffer[Context].Buffer, 0, end, true, stackData); err != nil {
-		return end, errors.Wrap(err, pkgDelve)
+		return end, errors.WithStack(err)
 	}
 
 	if err := fade.FadeOut(); err != nil {
-		return end, errors.Wrap(err, pkgDelve)
+		return end, errors.WithStack(err)
 	}
 
 	// TODO(zchee): Comparison and cacheing.
@@ -179,7 +179,7 @@ func (d *Delve) printLocals(cwd string, locals []delveapi.Variable, stackHeight 
 
 	}
 	if err := d.v.SetBufferLines(d.buffer[Context].Buffer, stackHeight, -1, true, bytes.Split(localsMsg, []byte{'\n'})); err != nil {
-		return errors.Wrap(err, pkgDelve)
+		return errors.WithStack(err)
 	}
 
 	return nil
