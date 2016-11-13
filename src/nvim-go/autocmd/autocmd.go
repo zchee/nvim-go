@@ -16,24 +16,24 @@ import (
 // Autocmd represents a autocmd context.
 type Autocmd struct {
 	ctxt *context.Context
-	c    *commands.Commands
+	cmds *commands.Commands
 
 	bufWritePostChan chan error
 	bufWritePreChan  chan interface{}
+	mu               sync.Mutex
 	wg               sync.WaitGroup
-
-	errors []error
+	errors           []error
 }
 
-func Register(p *plugin.Plugin, ctxt *context.Context, c *commands.Commands) {
+func Register(p *plugin.Plugin, ctxt *context.Context, cmds *commands.Commands) {
 	autocmd := new(Autocmd)
 	autocmd.ctxt = ctxt
-	autocmd.c = c
+	autocmd.cmds = cmds
 
 	autocmd.bufWritePreChan = make(chan interface{})
 	autocmd.bufWritePostChan = make(chan error)
 
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p')]"}, autocmd.cmdBufWritePre)
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h')]"}, autocmd.cmdBufWritePost)
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimEnter", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmdVimEnter)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimEnter", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.VimEnter)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p')]"}, autocmd.BufWritePre)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p:h')]"}, autocmd.BufWritePost)
 }

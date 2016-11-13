@@ -17,7 +17,7 @@ type bufWritePostEval struct {
 	Dir string
 }
 
-func (a *Autocmd) cmdBufWritePost(v *nvim.Nvim, eval *bufWritePostEval) {
+func (a *Autocmd) BufWritePost(v *nvim.Nvim, eval *bufWritePostEval) {
 	go a.bufWritePost(v, eval)
 }
 
@@ -39,7 +39,7 @@ func (a *Autocmd) bufWritePost(v *nvim.Nvim, eval *bufWritePostEval) error {
 	}
 
 	if config.BuildAutosave {
-		err := a.c.Build(config.BuildForce, &commands.CmdBuildEval{
+		err := a.cmds.Build(config.BuildForce, &commands.CmdBuildEval{
 			Cwd: eval.Cwd,
 			Dir: eval.Dir,
 		})
@@ -66,7 +66,7 @@ func (a *Autocmd) bufWritePost(v *nvim.Nvim, eval *bufWritePostEval) error {
 			// Cleanup old results
 			a.ctxt.Errlist["Vet"] = nil
 
-			errlist, err := a.c.Vet(nil, &commands.CmdVetEval{
+			errlist, err := a.cmds.Vet(nil, &commands.CmdVetEval{
 				Cwd: eval.Cwd,
 				Dir: eval.Dir,
 			})
@@ -92,7 +92,7 @@ func (a *Autocmd) bufWritePost(v *nvim.Nvim, eval *bufWritePostEval) error {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			a.c.Metalinter(eval.Cwd)
+			a.cmds.Metalinter(eval.Cwd)
 		}()
 	}
 
@@ -100,7 +100,7 @@ func (a *Autocmd) bufWritePost(v *nvim.Nvim, eval *bufWritePostEval) error {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			a.c.Test([]string{}, eval.Dir)
+			a.cmds.Test([]string{}, eval.Dir)
 		}()
 	}
 
