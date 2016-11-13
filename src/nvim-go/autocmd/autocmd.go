@@ -10,11 +10,13 @@ import (
 	"nvim-go/commands"
 	"nvim-go/context"
 
+	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
 )
 
 // Autocmd represents a autocmd context.
 type Autocmd struct {
+	v    *nvim.Nvim
 	ctxt *context.Context
 	cmds *commands.Commands
 
@@ -26,12 +28,13 @@ type Autocmd struct {
 }
 
 func Register(p *plugin.Plugin, ctxt *context.Context, cmds *commands.Commands) {
-	autocmd := new(Autocmd)
-	autocmd.ctxt = ctxt
-	autocmd.cmds = cmds
-
-	autocmd.bufWritePreChan = make(chan interface{})
-	autocmd.bufWritePostChan = make(chan error)
+	autocmd := &Autocmd{
+		v:                p.Nvim,
+		ctxt:             ctxt,
+		cmds:             cmds,
+		bufWritePreChan:  make(chan interface{}),
+		bufWritePostChan: make(chan error),
+	}
 
 	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimEnter", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.VimEnter)
 	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "[getcwd(), expand('%:p')]"}, autocmd.BufWritePre)
