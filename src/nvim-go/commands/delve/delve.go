@@ -352,6 +352,7 @@ func (d *Delve) cmdNext(v *nvim.Nvim, eval *nextEval) {
 // marker to current stopping position.
 func (d *Delve) next(v *nvim.Nvim, eval *nextEval) error {
 	state, err := d.client.Next()
+	// prints server stderr before the prints the error messages
 	if err := d.printServerStderr(); err != nil {
 		return nvimutil.ErrorWrap(v, errors.WithStack(err))
 	}
