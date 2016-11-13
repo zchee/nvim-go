@@ -9,8 +9,8 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -59,161 +59,157 @@ func (c *Commands) Test(args []string, dir string) error {
 }
 
 var (
-	fset       = token.NewFileSet() // *token.FileSet
-	parserMode parser.Mode          // uint
+	fset       = token.NewFileSet()
+	parserMode parser.Mode
 	pos        token.Pos
 
-	testPrefix       = "Test"
-	testSuffix       = "_test"
-	isTest           bool
-	funcName         string
-	funcNameNoExport string
+	testPrefix = "Test"
+	testSuffix = "_test.go"
+	isTest     bool
+	funcName   string
+
+	testFileRe = regexp.MustCompile(`Test`)
 )
 
 type cmdTestSwitchEval struct {
-	Cwd  string `msgpack:",array"`
-	File string
+	Cwd    string `msgpack:",array"`
+	File   string
+	Offset int
 }
 
-func (c *Commands) cmdTestSwitch(eval cmdTestSwitchEval) {
-	go c.TestSwitch(eval)
+func (c *Commands) cmdSwitchTest(eval *cmdTestSwitchEval) {
+	go c.SwitchTest(eval)
 }
 
-// TestSwitch switch to corresponds current cursor (test)function.
-func (c *Commands) TestSwitch(eval cmdTestSwitchEval) error {
-	// Check the current buffer name whether '*_test.go'.
+// SwitchTest switch to the corresponds current cursor (Test)function.
+func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
+	defer nvimutil.Profile(time.Now(), "GoSwitchTest")
+
 	fname := eval.File
-	exp := filepath.Ext(fname)
-	var switchfile string
-	if strings.Index(fname, testSuffix) == -1 {
-		isTest = false
-		switchfile = strings.Replace(fname, exp, testSuffix+exp, 1) // not testfile
+	ext := filepath.Ext(fname)
+
+	// Checks whether the current buffer name contains '_test.go' and assign
+	// destination filename to switchFile
+	var switchFile string
+	if isTest = strings.Contains(fname, testSuffix); !isTest {
+		// code file
+		switchFile = strings.Replace(fname, ext, testSuffix, 1)
 	} else {
-		isTest = true
-		switchfile = strings.Replace(fname, testSuffix+exp, exp, 1) // testfile
+		// test file
+		switchFile = strings.Replace(fname, testSuffix, ext, 1)
 	}
 
-	// Check the exists of switch destination file.
-	if _, err := os.Stat(switchfile); err != nil {
-		errors.New("Switch destination file does not exist")
-		return nvimutil.ErrorWrap(c.v, err)
+	// Check exists of switch destination file
+	if !pathutil.IsExist(switchFile) {
+		return errors.New("Does not exist the switching destination file")
 	}
 
-	dir, _ := filepath.Split(fname)
-	defer c.ctxt.SetContext(filepath.Dir(dir))()
+	// Get the current buffer package context
+	defer c.ctxt.SetContext(filepath.Dir(fname))()
 
 	var (
 		b nvim.Buffer
 		w nvim.Window
 	)
 
-	// Gets the current buffer information.
+	// Get the current buffer and windows
 	if c.p == nil {
 		c.p = c.v.NewPipeline()
 	}
 	c.p.CurrentBuffer(&b)
 	c.p.CurrentWindow(&w)
 	if err := c.p.Wait(); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
-	// Get the byte offset of current cursor position from buffer.
-	// TODO(zchee): Eval 'line2byte(line('.'))+(col('.')-2)' is faster and safer?
-	byteOffset, err := nvimutil.ByteOffset(c.v, b, w)
+	// Get the 2D byte slice of current buffer
+	buf, err := c.v.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return err
-	}
-	// Get the 2d byte slice of current buffer.
-	var buf [][]byte
-	c.p.BufferLines(b, 0, -1, true, &buf)
-	if err := c.p.Wait(); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
-	f, err := parse(fname, fset, nvimutil.ToByteSlice(buf)) // *ast.File
-	if err != nil {
-		return err
+	f := parse(fname, fset, nvimutil.ToByteSlice(buf))
+	if f == nil {
+		return errors.New("couldn't parse of the current buffer")
 	}
-	offset := fset.File(f.Pos()).Pos(byteOffset) // token.Pos
+	offset := fset.File(f.Pos()).Pos(eval.Offset)
 
-	// Parses the function ast node from the current cursor position.
-	qpos, _ := astutil.PathEnclosingInterval(f, offset, offset) // path []ast.Node, exact bool
+	// Parses the AST node from the current cursor position
+	qpos, _ := astutil.PathEnclosingInterval(f, offset, offset)
 	for _, q := range qpos {
 		switch x := q.(type) {
 		case *ast.FuncDecl:
-			if x.Name != nil { // *ast.Ident
-				// TODO(zchee): Support parses the function struct name.
-				// If the function has a struct, gotests will be generated the
-				// mixed camel case test function name include struct name for prefix.
+			if x.Name != nil {
 				if !isTest {
-					funcName = fmt.Sprintf("%s%s", testPrefix, nvimutil.ToPascalCase(x.Name.Name))
+					funcName = x.Name.Name
 				} else {
-					funcName = strings.Replace(x.Name.Name, testPrefix, "", 1)
+					funcName = strings.TrimPrefix(x.Name.Name, testPrefix)
 				}
-				funcNameNoExport = nvimutil.ToMixedCase(funcName)
 			}
 		}
 	}
 
-	// Get the switch destination file ast node.
-	fswitch, err := parse(switchfile, fset, nil) // *ast.File
-	if err != nil {
-		return err
+	fswitch := parse(switchFile, fset, nil)
+	if fswitch == nil {
+		return errors.New("couldn't parse of the destination file")
 	}
 
-	// Reset pos value.
+	// Reset pos value
 	if pos != token.NoPos {
 		pos = 0
 	}
-	// Parses the switch destination file ast node.
-	ast.Walk(visitorFunc(parseFunc), fswitch)
+
+	// Find the destination function
+	ast.Walk(visitorFunc(matchFunc), fswitch)
 
 	if !pos.IsValid() {
 		return nvimutil.EchohlErr(c.v, "GoTestSwitch", "Not found the switch destination function")
 	}
 
-	// Jump to the corresponds function.
+	// Goto the destination file and function position
 	return nvimutil.GotoPos(c.v, w, fset.Position(pos), eval.Cwd)
 }
 
-// Wrapper of the parser.ParseFile()
-func parse(filename string, fset *token.FileSet, src interface{}) (*ast.File, error) {
+// parse wrapper of the parser.ParseFile()
+func parse(filename string, fset *token.FileSet, src interface{}) *ast.File {
 	file, err := parser.ParseFile(fset, filename, src, parserMode)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
-	return file, err
+	return file
 }
 
 // visitorFunc for ast.Visit type.
 type visitorFunc func(n ast.Node) ast.Visitor
 
-// visit for ast.Visit function.
+// Visit for ast.Visit function.
 func (f visitorFunc) Visit(n ast.Node) ast.Visitor {
 	return f(n)
 }
 
-// Core of the parser of the ast node.
-func parseFunc(node ast.Node) ast.Visitor {
+// matchFunc checks whether the matching funcName in the node.
+func matchFunc(node ast.Node) ast.Visitor {
 	switch x := node.(type) {
 	case *ast.FuncDecl:
-		if x.Name.Name == funcName || x.Name.Name == funcNameNoExport || indexFuncName(x.Name.Name, funcName, funcNameNoExport) { // x.Name.Name: *ast.Ident.string
+		if isTest && x.Recv != nil {
+			if recv, ok := x.Recv.List[0].Type.(*ast.StarExpr); ok {
+				funcName = strings.TrimPrefix(funcName, recv.X.(*ast.Ident).Name+"_")
+			}
+		}
+		if x.Name.Name == funcName || matchFuncName(x.Name.Name, funcName) {
 			pos = x.Name.NamePos
 			return nil
 		}
 	}
 
-	return visitorFunc(parseFunc)
+	return visitorFunc(matchFunc)
 }
 
-func indexFuncName(s string, sep ...string) bool {
-	for _, fn := range sep {
-		i := strings.Index(fn, s)
-		if i > -1 {
-			return true
-		}
+// matchFuncName returns whether the matches the function name.
+func matchFuncName(s, fn string) bool {
+	if ok, err := regexp.MatchString(fmt.Sprintf(`(?i)%s(?:[[:graph:]]*)%s`, testPrefix, fn), s); err == nil && ok {
+		return true
 	}
-
 	return false
 }

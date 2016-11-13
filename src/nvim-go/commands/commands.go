@@ -41,7 +41,7 @@ func Register(p *plugin.Plugin, ctxt *context.Context) *Commands {
 	p.HandleCommand(&plugin.CommandOptions{Name: "Gorun", NArgs: "*", Eval: "expand('%:p')"}, c.cmdRun)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GorunLast", Eval: "expand('%:p')"}, c.cmdRunLast)
 	p.HandleCommand(&plugin.CommandOptions{Name: "Gotest", NArgs: "*", Eval: "expand('%:p:h')"}, c.cmdTest)
-	p.HandleCommand(&plugin.CommandOptions{Name: "GoTestSwitch", Eval: "[getcwd(), expand('%:p')]"}, c.cmdTestSwitch)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoSwitchTest", Eval: "[getcwd(), expand('%:p'), line2byte(line('.')) + (col('.')-2)]"}, c.cmdSwitchTest)
 	p.HandleCommand(&plugin.CommandOptions{Name: "Govet", NArgs: "*", Eval: "[getcwd(), expand('%:p:h')]", Complete: "customlist,GoVetCompletion"}, c.cmdVet)
 
 	// Commnad completion
