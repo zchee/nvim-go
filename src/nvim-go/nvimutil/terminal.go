@@ -55,11 +55,15 @@ func (t *Terminal) Create() (err error) {
 		return err
 	}
 
+	t.Buf = NewBuffer(t.v)
+
 	switch {
 	case t.mode == "split":
 		t.Size = t.getWindowSize(config.TerminalHeight, t.v.WindowHeight)
+		t.Buf.Height = t.Size
 	case t.mode == "vsplit":
 		t.Size = t.getWindowSize(config.TerminalWidth, t.v.WindowWidth)
+		t.Buf.Width = t.Size
 	default:
 		// nothing to do
 	}
@@ -67,17 +71,11 @@ func (t *Terminal) Create() (err error) {
 	option := t.setTerminalOption()
 	name := fmt.Sprintf("| terminal %s", strings.Join(t.cmd, " "))
 	mode := fmt.Sprintf("%s %d%s", config.TerminalPosition, t.Size, t.mode)
-	t.Buf = NewBuffer(t.v)
+
 	t.Buf.Create(name, FiletypeTerminal, mode, option)
 	t.Buf.Name = t.Name
 	t.Buf.UpdateSyntax(FiletypeTerminal)
 
-	// Get terminal buffer and windows information.
-	t.p.CurrentBuffer(&t.Buffer)
-	t.p.CurrentWindow(&t.Window)
-	if err := t.p.Wait(); err != nil {
-		return err
-	}
 	defer t.switchFocus()()
 
 	// Cleanup cursor highlighting

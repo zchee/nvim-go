@@ -29,6 +29,8 @@ type Buf struct {
 	Filetype string
 	Bufnr    int
 	Mode     string
+	Height   int
+	Width    int
 	Data     []byte
 
 	WindowContext
@@ -56,6 +58,13 @@ func (b *Buf) Create(name, filetype, mode string, option map[NvimOption]map[stri
 
 	if err := b.GetBufferContext(); err != nil {
 		return errors.Wrap(err, pkgBuffer)
+	}
+
+	if b.Height != 0 {
+		b.p.SetWindowHeight(b.Window, b.Height)
+	}
+	if b.Width != 0 {
+		b.p.SetWindowWidth(b.Window, b.Width)
 	}
 
 	b.p.BufferNumber(b.Buffer, &b.Bufnr)
