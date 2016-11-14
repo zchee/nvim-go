@@ -1,9 +1,9 @@
 nvim-go
 =======
 
-| Travis CI                           | coveralls.io                                  | Releases                              |
-|:-----------------------------------:|:---------------------------------------------:|:-------------------------------------:|
-| [![TravisCI][travis-badge]][travis] | [![coveralls.io][coveralls-badge]][coveralls] | [![Releases][release-badge]][release] |
+| Travis CI                           | codecov.io                              | Releases                              |
+|:-----------------------------------:|:---------------------------------------:|:-------------------------------------:|
+| [![TravisCI][travis-badge]][travis] | [![codecov.io][codecov-badge]][codecov] | [![Releases][release-badge]][release] |
 
 Go development plugin for Neovim written in pure Go.
 
@@ -71,7 +71,7 @@ nvim-go is released under the BSD 3-Clause License.
 
 [travis-badge]: https://img.shields.io/travis/zchee/nvim-go.svg?style=flat-square
 [travis]: https://travis-ci.org/zchee/nvim-go
-[coveralls-badge]: https://img.shields.io/coveralls/zchee/nvim-go.svg?style=flat-square
-[coveralls]: https://coveralls.io/github/zchee/nvim-go?branch=master
+[codecov-badge]: https://img.shields.io/codecov/c/github/zchee/nvim-go.svg?style=flat-square
+[codecov]: https://codecov.io/gh/zchee/nvim-go
 [release-badge]: https://img.shields.io/github/release/zchee/nvim-go.svg?style=flat-square
 [release]: https://github.com/zchee/nvim-go/releases
