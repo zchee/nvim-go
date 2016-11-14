@@ -70,7 +70,7 @@ let g:go#terminal#mode        = get(g:, 'go#terminal#mode', 'vsplit')
 let g:go#terminal#position    = get(g:, 'go#terminal#position', 'belowright')
 let g:go#terminal#height      = get(g:, 'go#terminal#height', 0)
 let g:go#terminal#width       = get(g:, 'go#terminal#width', 0)
-let g:go#terminal#stop_insert = get(g:, 'go#terminal#stop_insert', 0)
+let g:go#terminal#stop_insert = get(g:, 'go#terminal#stop_insert', 1)
 
 " GoTest
 let g:go#test#autosave = get(g:, 'go#test#autosave', 0)
