@@ -23,48 +23,48 @@ const (
 )
 
 func (d *Delve) createDebugBuffer() error {
-	d.p.CurrentBuffer(&d.cb)
-	d.p.CurrentWindow(&d.cw)
-	err := d.p.Wait()
+	d.Pipeline.CurrentBuffer(&d.cb)
+	d.Pipeline.CurrentWindow(&d.cw)
+	err := d.Pipeline.Wait()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	var height, width int
-	d.p.WindowHeight(d.cw, &height)
-	d.p.WindowWidth(d.cw, &width)
-	err = d.p.Wait()
+	d.Pipeline.WindowHeight(d.cw, &height)
+	d.Pipeline.WindowWidth(d.cw, &width)
+	err = d.Pipeline.Wait()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	go func() {
-		defer d.v.SetCurrentWindow(d.cw)
+		defer d.Nvim.SetCurrentWindow(d.cw)
 
 		option := d.setTerminalOption()
 		d.buffer = make(map[nvimutil.BufferName]*nvimutil.Buf)
 		nnoremap := make(map[string]string)
 
-		d.buffer[Terminal] = nvimutil.NewBuffer(d.v)
+		d.buffer[Terminal] = nvimutil.NewBuffer(d.Nvim)
 		d.buffer[Terminal].Create(string(Terminal), nvimutil.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
 		nnoremap["i"] = fmt.Sprintf(":<C-u>call rpcrequest(%d, 'DlvStdin')<CR>", config.ChannelID)
 		d.buffer[Terminal].SetLocalMapping(nvimutil.NoremapNormal, nnoremap)
 
-		d.buffer[Context] = nvimutil.NewBuffer(d.v)
+		d.buffer[Context] = nvimutil.NewBuffer(d.Nvim)
 		d.buffer[Context].Create(string(Context), nvimutil.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*2/3)), option)
 
-		d.buffer[Threads] = nvimutil.NewBuffer(d.v)
+		d.buffer[Threads] = nvimutil.NewBuffer(d.Nvim)
 		d.buffer[Threads].Create(string(Threads), nvimutil.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*1/5)), option)
-		d.v.SetWindowOption(d.buffer[Threads].Window, "winfixheight", true)
+		d.Nvim.SetWindowOption(d.buffer[Threads].Window, "winfixheight", true)
 
 	}()
 
-	d.pcSign, err = nvimutil.NewSign(d.v, "delve_pc", nvimutil.ProgramCounterSymbol, "delvePCSign", "delvePCLine") // *nvim.Sign
+	d.pcSign, err = nvimutil.NewSign(d.Nvim, "delve_pc", nvimutil.ProgramCounterSymbol, "delvePCSign", "delvePCLine") // *nvim.Sign
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	return d.p.Wait()
+	return d.Pipeline.Wait()
 }
 
 func (d *Delve) setTerminalOption() map[nvimutil.NvimOption]map[string]interface{} {

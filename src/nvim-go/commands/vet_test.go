@@ -16,9 +16,10 @@ import (
 
 func TestCommands_Vet(t *testing.T) {
 	type fields struct {
-		v    *nvim.Nvim
-		p    *nvim.Pipeline
-		ctxt *context.Context
+		Nvim     *nvim.Nvim
+		Pipeline *nvim.Pipeline
+		Batch    *nvim.Batch
+		ctxt     *context.Context
 	}
 	type args struct {
 		args []string
@@ -34,7 +35,7 @@ func TestCommands_Vet(t *testing.T) {
 		{
 			name: "method.go(2 suggest)",
 			fields: fields{
-				v: testVim(t, filepath.Join(testGoPath, "src/vet/method.go")),
+				Nvim: testVim(t, filepath.Join(testGoPath, "src/vet/method.go")),
 			},
 			args: args{
 				args: []string{"method.go"},
@@ -59,7 +60,7 @@ func TestCommands_Vet(t *testing.T) {
 		{
 			name: "method.go + unused.go(8 suggest)",
 			fields: fields{
-				v: testVim(t, filepath.Join(cwd, "testdata/vet/unused.go")),
+				Nvim: testVim(t, filepath.Join(cwd, "testdata/vet/unused.go")),
 			},
 			args: args{
 				args: []string{"."},
@@ -114,7 +115,7 @@ func TestCommands_Vet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt.fields.ctxt = context.NewContext()
-		c := NewCommands(tt.fields.v, tt.fields.ctxt)
+		c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
 		got, err := c.Vet(tt.args.args, tt.args.eval)
 		if (err != nil) != tt.wantErr {
 			t.Errorf("%q. Commands.Vet(%v, %v) error = %v, wantErr %v", tt.name, tt.args.args, tt.args.eval, err, tt.wantErr)

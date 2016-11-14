@@ -47,12 +47,12 @@ func (c *Commands) Test(args []string, dir string) error {
 	}
 
 	if testTerm == nil {
-		testTerm = nvimutil.NewTerminal(c.v, "__GO_TEST__", cmd, config.TerminalMode)
+		testTerm = nvimutil.NewTerminal(c.Nvim, "__GO_TEST__", cmd, config.TerminalMode)
 		testTerm.Dir = pathutil.FindVCSRoot(dir)
 	}
 
 	if err := testTerm.Run(cmd); err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
 	return nil
@@ -113,17 +113,17 @@ func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
 	)
 
 	// Get the current buffer and windows
-	if c.p == nil {
-		c.p = c.v.NewPipeline()
+	if c.Pipeline == nil {
+		c.Pipeline = c.Nvim.NewPipeline()
 	}
-	c.p.CurrentBuffer(&b)
-	c.p.CurrentWindow(&w)
-	if err := c.p.Wait(); err != nil {
+	c.Pipeline.CurrentBuffer(&b)
+	c.Pipeline.CurrentWindow(&w)
+	if err := c.Pipeline.Wait(); err != nil {
 		return errors.WithStack(err)
 	}
 
 	// Get the 2D byte slice of current buffer
-	buf, err := c.v.BufferLines(b, 0, -1, true)
+	buf, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -163,11 +163,11 @@ func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
 	ast.Walk(visitorFunc(matchFunc), fswitch)
 
 	if !pos.IsValid() {
-		return nvimutil.EchohlErr(c.v, "GoTestSwitch", "Not found the switch destination function")
+		return nvimutil.EchohlErr(c.Nvim, "GoTestSwitch", "Not found the switch destination function")
 	}
 
 	// Goto the destination file and function position
-	return nvimutil.GotoPos(c.v, w, fset.Position(pos), eval.Cwd)
+	return nvimutil.GotoPos(c.Nvim, w, fset.Position(pos), eval.Cwd)
 }
 
 // parse wrapper of the parser.ParseFile()

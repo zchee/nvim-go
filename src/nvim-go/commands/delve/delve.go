@@ -29,9 +29,9 @@ const defaultAddr = "localhost:41222" // d:4 l:12 v:22
 
 // Delve represents a delve client.
 type Delve struct {
-	v *nvim.Nvim
-	p *nvim.Pipeline
-	b *nvim.Batch
+	Nvim     *nvim.Nvim
+	Pipeline *nvim.Pipeline
+	Batch    *nvim.Batch
 
 	ctxt *context.Context
 
@@ -67,7 +67,7 @@ type SignContext struct {
 // NewDelve represents a delve client interface.
 func NewDelve(v *nvim.Nvim, ctxt *context.Context) *Delve {
 	return &Delve{
-		v:    v,
+		Nvim: v,
 		ctxt: ctxt,
 	}
 }
@@ -102,9 +102,9 @@ type delveEval struct {
 }
 
 func (d *Delve) waitServer(addr string) error {
-	d.dialServer(d.v, defaultAddr)
+	d.dialServer(d.Nvim, defaultAddr)
 
-	if err := d.init(d.v, addr); err != nil {
+	if err := d.init(d.Nvim, addr); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -129,8 +129,8 @@ func (d *Delve) start(cmd string, cfg Config, eval *delveEval) error {
 
 // cmdAttach setup the debugging.
 func (d *Delve) cmdAttach(v *nvim.Nvim, args []string, eval *delveEval) {
-	d.p = v.NewPipeline()
-	d.b = v.NewBatch()
+	d.Pipeline = v.NewPipeline()
+	d.Batch = v.NewBatch()
 
 	pid, err := strconv.ParseInt(args[0], 10, 64)
 	if err != nil {
@@ -149,8 +149,8 @@ func (d *Delve) cmdAttach(v *nvim.Nvim, args []string, eval *delveEval) {
 // cmdConnect connect to dlv headless server.
 // This command useful for debug the Google Application Engine for Go.
 func (d *Delve) cmdConnect(v *nvim.Nvim, args []string, eval *delveEval) {
-	d.p = v.NewPipeline()
-	d.b = v.NewBatch()
+	d.Pipeline = v.NewPipeline()
+	d.Batch = v.NewBatch()
 
 	addr := args[0]
 	if !strings.Contains(addr, ":") {
@@ -175,8 +175,8 @@ func (d *Delve) findRootDir(dir string) string {
 // cmdDebug setup the debugging.
 // TODO(zchee): If failed debug(build), even create each buffers.
 func (d *Delve) cmdDebug(v *nvim.Nvim, args []string, eval *delveEval) {
-	d.p = v.NewPipeline()
-	d.b = v.NewBatch()
+	d.Pipeline = v.NewPipeline()
+	d.Batch = v.NewBatch()
 
 	cfg := Config{
 		path:  d.findRootDir(eval.Dir),

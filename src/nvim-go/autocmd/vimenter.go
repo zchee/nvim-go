@@ -20,13 +20,13 @@ func (a *Autocmd) VimEnter(cfg *config.Config) {
 // vimEnter gets user config variables and assign to global variable when autocmd VimEnter.
 // If config.DebugPprof is true, start net/pprof debugging.
 func (a *Autocmd) vimEnter(cfg *config.Config) (err error) {
-	cfg.Global.ChannelID = a.v.ChannelID()
+	cfg.Global.ChannelID = a.Nvim.ChannelID()
 
 	a.mu.Lock()
 	go func() {
 		defer a.mu.Unlock()
 
-		config.Get(a.v, cfg)
+		config.Get(a.Nvim, cfg)
 
 		if config.DebugPprof {
 			addr := "127.0.0.1:6060"

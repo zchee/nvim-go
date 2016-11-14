@@ -50,7 +50,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	defer nvimutil.Profile(time.Now(), "Guru")
 	mode := args[0]
 	if len(args) > 1 {
-		return guruHelp(c.v, mode)
+		return guruHelp(c.Nvim, mode)
 	}
 
 	dir := filepath.Dir(eval.File)
@@ -59,7 +59,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = errors.Errorf("guru internal panic.\nMaybe your set 'g:go#guru#reflection' to 1. Please retry with disable it option.\nOriginal panic message:\n\t%v", r.(error))
-			nvimutil.ErrorWrap(c.v, err)
+			nvimutil.ErrorWrap(c.Nvim, err)
 		}
 	}()
 
@@ -67,13 +67,13 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		b nvim.Buffer
 		w nvim.Window
 	)
-	if c.p == nil {
-		c.p = c.v.NewPipeline()
+	if c.Pipeline == nil {
+		c.Pipeline = c.Nvim.NewPipeline()
 	}
-	c.p.CurrentBuffer(&b)
-	c.p.CurrentWindow(&w)
-	if err := c.p.Wait(); err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+	c.Pipeline.CurrentBuffer(&b)
+	c.Pipeline.CurrentWindow(&w)
+	if err := c.Pipeline.Wait(); err != nil {
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
 	guruContext := &build.Default
@@ -83,9 +83,9 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		overlay := make(map[string][]byte)
 		var buf [][]byte
 
-		c.p.BufferLines(b, 0, -1, true, &buf)
-		if err := c.p.Wait(); err != nil {
-			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		c.Pipeline.BufferLines(b, 0, -1, true, &buf)
+		if err := c.Pipeline.Wait(); err != nil {
+			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 
 		overlay[eval.File] = bytes.Join(buf, []byte{'\n'})
@@ -102,19 +102,19 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	if mode == "definition" {
 		obj, err := definition(&query)
 		if err != nil {
-			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 		fname, line, col := nvimutil.SplitPos(obj.ObjPos, eval.Cwd)
 		text := obj.Desc
 		if fname != eval.File {
-			c.p.Command(fmt.Sprintf("edit %s", fname))
+			c.Pipeline.Command(fmt.Sprintf("edit %s", fname))
 		}
-		c.p.SetWindowCursor(w, [2]int{line, col - 1})
-		if err := c.p.Wait(); err != nil {
-			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		c.Pipeline.SetWindowCursor(w, [2]int{line, col - 1})
+		if err := c.Pipeline.Wait(); err != nil {
+			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
-		c.p.Command(`lclose`)
-		c.p.Command(`normal! zz`)
+		c.Pipeline.Command(`lclose`)
+		c.Pipeline.Command(`normal! zz`)
 
 		defer func() {
 			loclist = append(loclist, &nvim.QuickfixError{
@@ -123,10 +123,10 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 				Col:      col,
 				Text:     text,
 			})
-			nvimutil.SetLoclist(c.v, loclist)
+			nvimutil.SetLoclist(c.Nvim, loclist)
 		}()
 
-		return c.p.Wait()
+		return c.Pipeline.Wait()
 	}
 
 	var scope string
@@ -134,7 +134,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	case "go":
 		pkgID, err := pathutil.PackageID(dir)
 		if err != nil {
-			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 		scope = pkgID
 	case "gb":
@@ -148,36 +148,36 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		outputMu.Lock()
 		defer outputMu.Unlock()
 		if loclist, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
-			nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+			nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 	}
 	query.Output = output
 
-	nvimutil.EchoProgress(c.v, "Guru", fmt.Sprintf("analysing %s", mode))
+	nvimutil.EchoProgress(c.Nvim, "Guru", fmt.Sprintf("analysing %s", mode))
 	if err := guru.Run(mode, &query); err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 	if len(loclist) == 0 {
 		return fmt.Errorf("%s not fount", mode)
 	}
 
-	defer nvimutil.ClearMsg(c.v)
-	if err := nvimutil.SetLoclist(c.v, loclist); err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+	defer nvimutil.ClearMsg(c.Nvim)
+	if err := nvimutil.SetLoclist(c.Nvim, loclist); err != nil {
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
 	// jumpfirst or definition mode
 	if config.GuruJumpFirst {
-		c.p.Command(`silent ll 1`)
-		c.p.Command(`normal! zz`)
-		return c.p.Wait()
+		c.Pipeline.Command(`silent ll 1`)
+		c.Pipeline.Command(`normal! zz`)
+		return c.Pipeline.Wait()
 	}
 
 	var keepCursor bool
 	if int64(1) == config.GuruKeepCursor[mode] {
 		keepCursor = true
 	}
-	return nvimutil.OpenLoclist(c.v, w, loclist, keepCursor)
+	return nvimutil.OpenLoclist(c.Nvim, w, loclist, keepCursor)
 }
 
 type fallback struct {

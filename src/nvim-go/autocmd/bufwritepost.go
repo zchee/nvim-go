@@ -28,13 +28,13 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 		case error:
 			if e != nil {
 				// normal errros
-				return nvimutil.ErrorWrap(a.v, e)
+				return nvimutil.ErrorWrap(a.Nvim, e)
 			}
 		case []*nvim.QuickfixError:
 			// Cleanup Errlist
 			a.ctxt.Errlist = make(map[string][]*nvim.QuickfixError)
 			a.ctxt.Errlist["Fmt"] = e
-			return nvimutil.ErrorList(a.v, a.ctxt.Errlist, true)
+			return nvimutil.ErrorList(a.Nvim, a.ctxt.Errlist, true)
 		}
 	}
 
@@ -48,16 +48,16 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 		case error:
 			// normal errros
 			if e != nil {
-				return nvimutil.ErrorWrap(a.v, e)
+				return nvimutil.ErrorWrap(a.Nvim, e)
 			}
 		case []*nvim.QuickfixError:
 			// Cleanup Errlist
 			a.ctxt.Errlist = make(map[string][]*nvim.QuickfixError)
 			a.ctxt.Errlist["Build"] = e
-			return nvimutil.ErrorList(a.v, a.ctxt.Errlist, true)
+			return nvimutil.ErrorList(a.Nvim, a.ctxt.Errlist, true)
 		}
 		if len(a.ctxt.Errlist) == 0 {
-			nvimutil.CloseLoclist(a.v)
+			nvimutil.CloseLoclist(a.Nvim)
 		}
 	}
 
@@ -72,18 +72,18 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			})
 			if err != nil {
 				// normal errros
-				nvimutil.ErrorWrap(a.v, err)
+				nvimutil.ErrorWrap(a.Nvim, err)
 				return
 			}
 			if errlist != nil {
 				a.ctxt.Errlist["Vet"] = errlist
 				if len(a.ctxt.Errlist) > 0 {
-					nvimutil.ErrorList(a.v, a.ctxt.Errlist, true)
+					nvimutil.ErrorList(a.Nvim, a.ctxt.Errlist, true)
 					return
 				}
 			}
 			if a.ctxt.Errlist["Vet"] == nil {
-				nvimutil.ClearErrorlist(a.v, true)
+				nvimutil.ClearErrorlist(a.Nvim, true)
 			}
 		}()
 	}

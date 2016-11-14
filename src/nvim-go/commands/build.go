@@ -30,10 +30,10 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 
 		switch e := err.(type) {
 		case error:
-			nvimutil.ErrorWrap(c.v, e)
+			nvimutil.ErrorWrap(c.Nvim, e)
 		case []*nvim.QuickfixError:
 			c.ctxt.Errlist["Build"] = e
-			nvimutil.ErrorList(c.v, c.ctxt.Errlist, true)
+			nvimutil.ErrorList(c.Nvim, c.ctxt.Errlist, true)
 		}
 	}()
 }
@@ -64,7 +64,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	}
 	delete(c.ctxt.Errlist, "Build")
 
-	return nvimutil.EchoSuccess(c.v, "GoBuild", fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
+	return nvimutil.EchoSuccess(c.Nvim, "GoBuild", fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
 }
 
 func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {

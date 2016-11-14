@@ -18,9 +18,10 @@ import (
 
 func TestCommands_Guru(t *testing.T) {
 	type fields struct {
-		Vim  *nvim.Nvim
-		p    *nvim.Pipeline
-		ctxt *context.Context
+		Nvim     *nvim.Nvim
+		Pipeline *nvim.Pipeline
+		Batch    *nvim.Batch
+		ctxt     *context.Context
 	}
 	type args struct {
 		args []string
@@ -36,9 +37,9 @@ func TestCommands_Guru(t *testing.T) {
 	}
 	for _, tt := range tests {
 		c := &Commands{
-			v:    tt.fields.Vim,
-			p:    tt.fields.p,
-			ctxt: tt.fields.ctxt,
+			Nvim:     tt.fields.Nvim,
+			Pipeline: tt.fields.Pipeline,
+			ctxt:     tt.fields.ctxt,
 		}
 		if err := c.Guru(tt.args.args, tt.args.eval); (err != nil) != tt.wantErr {
 			t.Errorf("%q. Commands.Guru(%v, %v) error = %v, wantErr %v", tt.name, tt.args.args, tt.args.eval, err, tt.wantErr)

@@ -32,18 +32,18 @@ func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
 
 		errlist, err := c.Vet(args, eval)
 		if err != nil {
-			nvimutil.ErrorWrap(c.v, err)
+			nvimutil.ErrorWrap(c.Nvim, err)
 			return
 		}
 		if errlist != nil {
 			c.ctxt.Errlist["Vet"] = errlist
 			if len(c.ctxt.Errlist) > 0 {
-				nvimutil.ErrorList(c.v, c.ctxt.Errlist, true)
+				nvimutil.ErrorList(c.Nvim, c.ctxt.Errlist, true)
 				return
 			}
 		}
 		if c.ctxt.Errlist["Vet"] == nil {
-			nvimutil.ClearErrorlist(c.v, true)
+			nvimutil.ClearErrorlist(c.Nvim, true)
 		}
 	}()
 }

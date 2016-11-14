@@ -31,15 +31,15 @@ func (c *Commands) GenerateTest(files []string, dir string) error {
 	defer nvimutil.Profile(time.Now(), "GenerateTest")
 	defer c.ctxt.SetContext(filepath.Dir(dir))()
 
-	b, err := c.v.CurrentBuffer()
+	b, err := c.Nvim.CurrentBuffer()
 	if err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
 	if len(files) == 0 {
-		f, err := c.v.BufferName(b)
+		f, err := c.Nvim.BufferName(b)
 		if err != nil {
-			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 		files = []string{f}
 	}
@@ -79,14 +79,14 @@ func (c *Commands) GenerateTest(files []string, dir string) error {
 
 	ask := fmt.Sprintf("%s\nGoGenerateTest: Generated %s\nGoGenerateTest: Open it? (y, n): ", genFuncs, ftestsRel)
 	var answer interface{}
-	if err := c.v.Call("input", &answer, ask); err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+	if err := c.Nvim.Call("input", &answer, ask); err != nil {
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
 	// TODO(zchee): Support open the ftests[0] file only.
 	// If passes multiple files for 'edit' commands, occur 'E172: Only one file name allowed' errror.
 	if answer.(string) != "n" {
-		return c.v.Command(fmt.Sprintf("edit %s", ftests))
+		return c.Nvim.Command(fmt.Sprintf("edit %s", ftests))
 	}
 
 	return nil

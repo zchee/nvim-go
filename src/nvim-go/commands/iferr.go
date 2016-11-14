@@ -36,14 +36,14 @@ func (c *Commands) Iferr(file string) error {
 	dir := filepath.Dir(file)
 	defer c.ctxt.SetContext(dir)()
 
-	b, err := c.v.CurrentBuffer()
+	b, err := c.Nvim.CurrentBuffer()
 	if err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
-	buflines, err := c.v.BufferLines(b, 0, -1, true)
+	buflines, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
 	conf := loader.Config{
@@ -59,13 +59,13 @@ func (c *Commands) Iferr(file string) error {
 
 	f, err := conf.ParseFile(file, src.Bytes())
 	if err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
 	conf.CreateFromFiles(file, f)
 	prog, err := conf.Load()
 	if err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
 	// Reuse src variable
@@ -80,7 +80,7 @@ func (c *Commands) Iferr(file string) error {
 
 	// format.Node() will added pointless newline
 	buf := bytes.TrimSuffix(src.Bytes(), []byte{'\n'})
-	return c.v.SetBufferLines(b, 0, -1, true, nvimutil.ToBufferLines(buf))
+	return c.Nvim.SetBufferLines(b, 0, -1, true, nvimutil.ToBufferLines(buf))
 }
 
 // The below code is copied from

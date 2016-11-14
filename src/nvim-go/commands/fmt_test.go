@@ -17,9 +17,10 @@ import (
 
 func TestCommands_Fmt(t *testing.T) {
 	type fields struct {
-		Vim  *nvim.Nvim
-		p    *nvim.Pipeline
-		ctxt *context.Context
+		Nvim     *nvim.Nvim
+		Pipeline *nvim.Pipeline
+		Batch    *nvim.Batch
+		ctxt     *context.Context
 	}
 	type args struct {
 		dir string
@@ -33,7 +34,7 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "correct (astdump)",
 			fields: fields{
-				Vim: testVim(t, astdumpMain), // correct file
+				Nvim: testVim(t, astdumpMain), // correct file
 			},
 			args: args{
 				dir: astdump,
@@ -43,7 +44,7 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "broken (astdump)",
 			fields: fields{
-				Vim: testVim(t, brokenMain), // broken file
+				Nvim: testVim(t, brokenMain), // broken file
 			},
 			args: args{
 				dir: broken,
@@ -53,7 +54,7 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "correct (gsftp)",
 			fields: fields{
-				Vim: testVim(t, gsftpMain), // correct file
+				Nvim: testVim(t, gsftpMain), // correct file
 			},
 			args: args{
 				dir: gsftp,
@@ -63,7 +64,8 @@ func TestCommands_Fmt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		ctxt := context.NewContext()
-		c := NewCommands(tt.fields.Vim, ctxt)
+		c := NewCommands(tt.fields.Nvim, ctxt)
+		c.Pipeline = tt.fields.Nvim.NewPipeline()
 		config.FmtMode = "goimports"
 
 		err := c.Fmt(tt.args.dir)

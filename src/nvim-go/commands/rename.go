@@ -43,18 +43,18 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 		b nvim.Buffer
 		w nvim.Window
 	)
-	if c.p == nil {
-		c.p = c.v.NewPipeline()
+	if c.Pipeline == nil {
+		c.Pipeline = c.Nvim.NewPipeline()
 	}
-	c.p.CurrentBuffer(&b)
-	c.p.CurrentWindow(&w)
-	if err := c.p.Wait(); err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+	c.Pipeline.CurrentBuffer(&b)
+	c.Pipeline.CurrentWindow(&w)
+	if err := c.Pipeline.Wait(); err != nil {
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
-	offset, err := nvimutil.ByteOffset(c.v, b, w)
+	offset, err := nvimutil.ByteOffset(c.Nvim, b, w)
 	if err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 	pos := fmt.Sprintf("%s:#%d", eval.File, offset)
 
@@ -65,23 +65,23 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 		askMessage := fmt.Sprintf("%s: Rename '%s' to: ", pkgRename, eval.RenameFrom)
 		var toResult interface{}
 		if config.RenamePrefill {
-			err := c.v.Call("input", &toResult, askMessage, eval.RenameFrom)
+			err := c.Nvim.Call("input", &toResult, askMessage, eval.RenameFrom)
 			if err != nil {
-				return nvimutil.EchohlErr(c.v, pkgRename, "Keyboard interrupt")
+				return nvimutil.EchohlErr(c.Nvim, pkgRename, "Keyboard interrupt")
 			}
 		} else {
-			err := c.v.Call("input", &toResult, askMessage)
+			err := c.Nvim.Call("input", &toResult, askMessage)
 			if err != nil {
-				return nvimutil.EchohlErr(c.v, pkgRename, "Keyboard interrupt")
+				return nvimutil.EchohlErr(c.Nvim, pkgRename, "Keyboard interrupt")
 			}
 		}
 		if toResult.(string) == "" {
-			return nvimutil.EchohlErr(c.v, pkgRename, "Not enough arguments for rename destination name")
+			return nvimutil.EchohlErr(c.Nvim, pkgRename, "Not enough arguments for rename destination name")
 		}
 		renameTo = fmt.Sprintf("%s", toResult)
 	}
 
-	c.v.Command(fmt.Sprintf("echo '%s: Renaming ' | echohl Identifier | echon '%s' | echohl None | echon ' to ' | echohl Identifier | echon '%s' | echohl None | echon ' ...'", pkgRename, eval.RenameFrom, renameTo))
+	c.Nvim.Command(fmt.Sprintf("echo '%s: Renaming ' | echohl Identifier | echon '%s' | echohl None | echon ' to ' | echohl Identifier | echon '%s' | echohl None | echon ' ...'", pkgRename, eval.RenameFrom, renameTo))
 
 	if bang {
 		rename.Force = true
@@ -103,24 +103,24 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 		write.Close()
 		renameErr, err := ioutil.ReadAll(read)
 		if err != nil {
-			return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 
 		log.Printf("er: %+v\n", string(renameErr))
 		go func() {
 			loclist, _ := nvimutil.ParseError(renameErr, eval.Cwd, &c.ctxt.Build)
-			nvimutil.SetLoclist(c.v, loclist)
-			nvimutil.OpenLoclist(c.v, w, loclist, true)
+			nvimutil.SetLoclist(c.Nvim, loclist)
+			nvimutil.OpenLoclist(c.Nvim, w, loclist, true)
 		}()
 
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
 	write.Close()
 	out, _ := ioutil.ReadAll(read)
-	defer nvimutil.EchoSuccess(c.v, pkgRename, fmt.Sprintf("%s", out))
+	defer nvimutil.EchoSuccess(c.Nvim, pkgRename, fmt.Sprintf("%s", out))
 
 	// TODO(zchee): 'edit' command is ugly.
 	// Should create tempfile and use SetBufferLines.
-	return c.v.Command("silent edit")
+	return c.Nvim.Command("silent edit")
 }

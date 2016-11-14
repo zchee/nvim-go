@@ -42,12 +42,12 @@ func (c *Commands) Metalinter(cwd string) error {
 		b       nvim.Buffer
 		w       nvim.Window
 	)
-	if c.p == nil {
-		c.p = c.v.NewPipeline()
+	if c.Pipeline == nil {
+		c.Pipeline = c.Nvim.NewPipeline()
 	}
-	c.p.CurrentBuffer(&b)
-	c.p.CurrentWindow(&w)
-	if err := c.p.Wait(); err != nil {
+	c.Pipeline.CurrentBuffer(&b)
+	c.Pipeline.CurrentWindow(&w)
+	if err := c.Pipeline.Wait(); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -92,10 +92,10 @@ func (c *Commands) Metalinter(cwd string) error {
 		})
 	}
 
-	if err := nvimutil.SetLoclist(c.v, loclist); err != nil {
-		return nvimutil.ErrorWrap(c.v, errors.WithStack(err))
+	if err := nvimutil.SetLoclist(c.Nvim, loclist); err != nil {
+		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
-	return nvimutil.OpenLoclist(c.v, w, loclist, true)
+	return nvimutil.OpenLoclist(c.Nvim, w, loclist, true)
 }
 
 type byPath []metalinterResult

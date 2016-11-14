@@ -12,15 +12,16 @@ import (
 )
 
 type Commands struct {
-	v *nvim.Nvim
-	p *nvim.Pipeline
+	Nvim     *nvim.Nvim
+	Pipeline *nvim.Pipeline
+	Batch    *nvim.Batch
 
 	ctxt *context.Context
 }
 
 func NewCommands(v *nvim.Nvim, ctxt *context.Context) *Commands {
 	return &Commands{
-		v:    v,
+		Nvim: v,
 		ctxt: ctxt,
 	}
 }

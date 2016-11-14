@@ -30,10 +30,10 @@ func (c *Commands) cmdFmt(dir string) {
 
 		switch e := err.(type) {
 		case error:
-			nvimutil.ErrorWrap(c.v, e)
+			nvimutil.ErrorWrap(c.Nvim, e)
 		case []*nvim.QuickfixError:
 			c.ctxt.Errlist["Fmt"] = e
-			nvimutil.ErrorList(c.v, c.ctxt.Errlist, true)
+			nvimutil.ErrorList(c.Nvim, c.ctxt.Errlist, true)
 		}
 	}()
 }
@@ -47,16 +47,16 @@ func (c *Commands) Fmt(dir string) interface{} {
 		b nvim.Buffer
 		w nvim.Window
 	)
-	if c.p == nil {
-		c.p = c.v.NewPipeline()
+	if c.Pipeline == nil {
+		c.Pipeline = c.Nvim.NewPipeline()
 	}
-	c.p.CurrentBuffer(&b)
-	c.p.CurrentWindow(&w)
-	if err := c.p.Wait(); err != nil {
+	c.Pipeline.CurrentBuffer(&b)
+	c.Pipeline.CurrentWindow(&w)
+	if err := c.Pipeline.Wait(); err != nil {
 		return errors.WithStack(err)
 	}
 
-	in, err := c.v.BufferLines(b, 0, -1, true)
+	in, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -72,7 +72,7 @@ func (c *Commands) Fmt(dir string) interface{} {
 
 	buf, formatErr := imports.Process("", nvimutil.ToByteSlice(in), &importsOptions)
 	if formatErr != nil {
-		bufName, err := c.v.BufferName(b)
+		bufName, err := c.Nvim.BufferName(b)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -101,7 +101,7 @@ func (c *Commands) Fmt(dir string) interface{} {
 	delete(c.ctxt.Errlist, "Fmt")
 
 	out := nvimutil.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
-	minUpdate(c.v, b, in, out)
+	minUpdate(c.Nvim, b, in, out)
 
 	// TODO(zchee): When executed Fmt(itself) function at autocmd BufWritePre, vim "write"
 	// command will starting before the finish of the Fmt function because that function called
@@ -111,7 +111,7 @@ func (c *Commands) Fmt(dir string) interface{} {
 	//  (FSE_STAT_CHANGED -> FSE_CHOWN -> FSE_CONTENT_MODIFIED) x2.
 	// It will affect the watchdog system such as inotify-tools, fswatch or fsevents-tools.
 	// We need to consider the Alternative of BufWriteCmd or other an effective way.
-	return c.v.Command("noautocmd write")
+	return c.Nvim.Command("noautocmd write")
 }
 
 func minUpdate(v *nvim.Nvim, b nvim.Buffer, in [][]byte, out [][]byte) error {

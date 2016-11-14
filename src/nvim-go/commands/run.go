@@ -33,7 +33,7 @@ func (c *Commands) cmdRun(args []string, file string) {
 func (c *Commands) cmdRunLast(file string) {
 	if len(lastCmd) == 0 {
 		err := errors.New("not found GoRun last arguments")
-		nvimutil.ErrorWrap(c.v, err)
+		nvimutil.ErrorWrap(c.Nvim, err)
 		return
 	}
 
@@ -48,7 +48,7 @@ func (c *Commands) Run(cmd []string, file string) error {
 	defer nvimutil.Profile(time.Now(), "GoRun")
 
 	if runTerm == nil {
-		runTerm = nvimutil.NewTerminal(c.v, "__GO_RUN__", cmd, config.TerminalMode)
+		runTerm = nvimutil.NewTerminal(c.Nvim, "__GO_RUN__", cmd, config.TerminalMode)
 	}
 	dir, _ := filepath.Split(file)
 	rootDir := pathutil.FindVCSRoot(dir)

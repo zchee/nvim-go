@@ -21,7 +21,7 @@ func (d *Delve) detach(v *nvim.Nvim) error {
 	if d.processPid != 0 {
 		err := d.client.Detach(true)
 		if err != nil {
-			return nvimutil.ErrorWrap(d.v, errors.WithStack(err))
+			return nvimutil.ErrorWrap(d.Nvim, errors.WithStack(err))
 		}
 		log.Printf("Detached delve client\n")
 	}

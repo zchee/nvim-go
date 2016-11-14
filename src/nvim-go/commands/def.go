@@ -40,38 +40,38 @@ func (c *Commands) Def(file string) error {
 		b nvim.Buffer
 		w nvim.Window
 	)
-	if c.p == nil {
-		c.p = c.v.NewPipeline()
+	if c.Pipeline == nil {
+		c.Pipeline = c.Nvim.NewPipeline()
 	}
-	c.p.CurrentBuffer(&b)
-	c.p.CurrentWindow(&w)
-	if err := c.p.Wait(); err != nil {
+	c.Pipeline.CurrentBuffer(&b)
+	c.Pipeline.CurrentWindow(&w)
+	if err := c.Pipeline.Wait(); err != nil {
 		return err
 	}
 
-	buf, err := c.v.BufferLines(b, 0, -1, true)
+	buf, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return err
 	}
 	src := bytes.Join(buf, []byte{'\n'})
 
-	searchpos, err := nvimutil.ByteOffsetPipe(c.p, b, w)
+	searchpos, err := nvimutil.ByteOffsetPipe(c.Pipeline, b, w)
 	if err != nil {
-		return c.v.WriteErr("cannot get current buffer byte offset")
+		return c.Nvim.WriteErr("cannot get current buffer byte offset")
 	}
 
 	pkgScope := ast.NewScope(parser.Universe)
 	f, err := parser.ParseFile(types.FileSet, file, src, 0, pkgScope, types.DefaultImportPathToName)
 	if f == nil {
-		nvimutil.Echomsg(c.v, "Godef: cannot parse %s: %v", file, err)
+		nvimutil.Echomsg(c.Nvim, "Godef: cannot parse %s: %v", file, err)
 	}
 
-	o := findIdentifier(c.v, f, searchpos)
+	o := findIdentifier(c.Nvim, f, searchpos)
 
 	switch e := o.(type) {
 	case ast.Expr:
 		if err := parseLocalPackage(file, f, pkgScope); err != nil {
-			nvimutil.Echomsg(c.v, "Godef: error parseLocalPackage %v", err)
+			nvimutil.Echomsg(c.Nvim, "Godef: error parseLocalPackage %v", err)
 		}
 		obj, _ := types.ExprType(e, types.DefaultImporter, types.FileSet)
 		if obj != nil {
@@ -83,20 +83,20 @@ func (c *Commands) Def(file string) error {
 				Col:      pos.Column,
 				Text:     pos.Filename,
 			})
-			if err := nvimutil.SetLoclist(c.v, loclist); err != nil {
-				nvimutil.Echomsg(c.v, "Godef: %s", err)
+			if err := nvimutil.SetLoclist(c.Nvim, loclist); err != nil {
+				nvimutil.Echomsg(c.Nvim, "Godef: %s", err)
 			}
 
-			c.p.Command(fmt.Sprintf("edit %s", pos.Filename))
-			c.p.SetWindowCursor(w, [2]int{pos.Line, pos.Column - 1})
-			c.p.Command("normal zz")
+			c.Pipeline.Command(fmt.Sprintf("edit %s", pos.Filename))
+			c.Pipeline.SetWindowCursor(w, [2]int{pos.Line, pos.Column - 1})
+			c.Pipeline.Command("normal zz")
 
 			return nil
 		}
-		nvimutil.Echomsg(c.v, "Godef: not found of obj")
+		nvimutil.Echomsg(c.Nvim, "Godef: not found of obj")
 
 	default:
-		nvimutil.Echomsg(c.v, "Godef: no declaration found for %v", pretty{e})
+		nvimutil.Echomsg(c.Nvim, "Godef: no declaration found for %v", pretty{e})
 	}
 	return nil
 }

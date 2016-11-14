@@ -17,8 +17,10 @@ import (
 
 func TestCommands_Build(t *testing.T) {
 	type fields struct {
-		v    *nvim.Nvim
-		ctxt *context.Context
+		Nvim     *nvim.Nvim
+		Pipeline *nvim.Pipeline
+		Batch    *nvim.Batch
+		ctxt     *context.Context
 	}
 	type args struct {
 		bang bool
@@ -33,7 +35,7 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "nvim-go Dir: filepath.Join(projectRoot, \"src/nvim-go/commands\")",
 			fields: fields{
-				v:    testVim(t, projectRoot),
+				Nvim: testVim(t, projectRoot),
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -47,7 +49,7 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "gsftp",
 			fields: fields{
-				v:    testVim(t, gsftpRoot),
+				Nvim: testVim(t, gsftpRoot),
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -61,7 +63,7 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "correct (astdump)",
 			fields: fields{
-				v:    testVim(t, filepath.Join(astdump, "astdump.go")), // correct file
+				Nvim: testVim(t, filepath.Join(astdump, "astdump.go")), // correct file
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -75,7 +77,7 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "broken (astdump)",
 			fields: fields{
-				v:    testVim(t, brokenMain), // broken file
+				Nvim: testVim(t, brokenMain), // broken file
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -88,7 +90,7 @@ func TestCommands_Build(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		c := NewCommands(tt.fields.v, tt.fields.ctxt)
+		c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
 		config.ErrorListType = "locationlist"
 
 		err := c.Build(tt.args.bang, tt.args.eval)
@@ -132,8 +134,10 @@ func BenchmarkBuildGb(b *testing.B) {
 
 func TestCommands_compileCmd(t *testing.T) {
 	type fields struct {
-		Vim  *nvim.Nvim
-		ctxt *context.Context
+		Nvim     *nvim.Nvim
+		Pipeline *nvim.Pipeline
+		Batch    *nvim.Batch
+		ctxt     *context.Context
 	}
 	type args struct {
 		bang bool
@@ -149,7 +153,7 @@ func TestCommands_compileCmd(t *testing.T) {
 		{
 			name: "astdump (go build)",
 			fields: fields{
-				Vim:  testVim(t, projectRoot),
+				Nvim: testVim(t, projectRoot),
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -161,7 +165,7 @@ func TestCommands_compileCmd(t *testing.T) {
 		{
 			name: "nvim-go (gb build)",
 			fields: fields{
-				Vim:  testVim(t, projectRoot),
+				Nvim: testVim(t, projectRoot),
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -173,7 +177,7 @@ func TestCommands_compileCmd(t *testing.T) {
 		{
 			name: "gsftp (gb build)",
 			fields: fields{
-				Vim:  testVim(t, projectRoot),
+				Nvim: testVim(t, projectRoot),
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -186,7 +190,7 @@ func TestCommands_compileCmd(t *testing.T) {
 	for _, tt := range tests {
 		tt.fields.ctxt.Build.Tool = tt.want
 		tt.fields.ctxt.Build.ProjectRoot = tt.args.dir
-		c := NewCommands(tt.fields.Vim, tt.fields.ctxt)
+		c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
 		got, err := c.compileCmd(tt.args.bang, tt.args.dir)
 		if (err != nil) != tt.wantErr {
 			t.Errorf("%q. Commands.compileCmd(%v, %v) error = %v, wantErr %v", tt.name, tt.args.bang, tt.args.dir, err, tt.wantErr)
