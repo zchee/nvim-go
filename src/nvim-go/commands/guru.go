@@ -67,9 +67,6 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		b nvim.Buffer
 		w nvim.Window
 	)
-	if c.Pipeline == nil {
-		c.Pipeline = c.Nvim.NewPipeline()
-	}
 	c.Pipeline.CurrentBuffer(&b)
 	c.Pipeline.CurrentWindow(&w)
 	if err := c.Pipeline.Wait(); err != nil {

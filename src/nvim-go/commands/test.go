@@ -113,9 +113,6 @@ func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
 	)
 
 	// Get the current buffer and windows
-	if c.Pipeline == nil {
-		c.Pipeline = c.Nvim.NewPipeline()
-	}
 	c.Pipeline.CurrentBuffer(&b)
 	c.Pipeline.CurrentWindow(&w)
 	if err := c.Pipeline.Wait(); err != nil {

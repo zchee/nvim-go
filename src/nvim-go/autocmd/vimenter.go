@@ -22,6 +22,9 @@ func (a *Autocmd) VimEnter(cfg *config.Config) {
 func (a *Autocmd) vimEnter(cfg *config.Config) (err error) {
 	cfg.Global.ChannelID = a.Nvim.ChannelID()
 
+	a.cmds.Pipeline = a.Nvim.NewPipeline()
+	a.cmds.Batch = a.Nvim.NewBatch()
+
 	a.mu.Lock()
 	go func() {
 		defer a.mu.Unlock()
