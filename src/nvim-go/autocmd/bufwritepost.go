@@ -17,24 +17,24 @@ type bufWritePostEval struct {
 	Dir string
 }
 
-func (a *Autocmd) BufWritePost(v *nvim.Nvim, eval *bufWritePostEval) {
-	go a.bufWritePost(v, eval)
+func (a *Autocmd) BufWritePost(eval *bufWritePostEval) {
+	go a.bufWritePost(eval)
 }
 
-func (a *Autocmd) bufWritePost(v *nvim.Nvim, eval *bufWritePostEval) error {
+func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 	if config.FmtAutosave {
 		err := <-a.bufWritePreChan
 		switch e := err.(type) {
 		case error:
 			if e != nil {
 				// normal errros
-				return nvimutil.ErrorWrap(v, e)
+				return nvimutil.ErrorWrap(a.v, e)
 			}
 		case []*nvim.QuickfixError:
 			// Cleanup Errlist
 			a.ctxt.Errlist = make(map[string][]*nvim.QuickfixError)
 			a.ctxt.Errlist["Fmt"] = e
-			return nvimutil.ErrorList(v, a.ctxt.Errlist, true)
+			return nvimutil.ErrorList(a.v, a.ctxt.Errlist, true)
 		}
 	}
 
@@ -48,16 +48,16 @@ func (a *Autocmd) bufWritePost(v *nvim.Nvim, eval *bufWritePostEval) error {
 		case error:
 			// normal errros
 			if e != nil {
-				return nvimutil.ErrorWrap(v, e)
+				return nvimutil.ErrorWrap(a.v, e)
 			}
 		case []*nvim.QuickfixError:
 			// Cleanup Errlist
 			a.ctxt.Errlist = make(map[string][]*nvim.QuickfixError)
 			a.ctxt.Errlist["Build"] = e
-			return nvimutil.ErrorList(v, a.ctxt.Errlist, true)
+			return nvimutil.ErrorList(a.v, a.ctxt.Errlist, true)
 		}
 		if len(a.ctxt.Errlist) == 0 {
-			nvimutil.CloseLoclist(v)
+			nvimutil.CloseLoclist(a.v)
 		}
 	}
 
@@ -72,18 +72,18 @@ func (a *Autocmd) bufWritePost(v *nvim.Nvim, eval *bufWritePostEval) error {
 			})
 			if err != nil {
 				// normal errros
-				nvimutil.ErrorWrap(v, err)
+				nvimutil.ErrorWrap(a.v, err)
 				return
 			}
 			if errlist != nil {
 				a.ctxt.Errlist["Vet"] = errlist
 				if len(a.ctxt.Errlist) > 0 {
-					nvimutil.ErrorList(v, a.ctxt.Errlist, true)
+					nvimutil.ErrorList(a.v, a.ctxt.Errlist, true)
 					return
 				}
 			}
 			if a.ctxt.Errlist["Vet"] == nil {
-				nvimutil.ClearErrorlist(v, true)
+				nvimutil.ClearErrorlist(a.v, true)
 			}
 		}()
 	}
