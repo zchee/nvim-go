@@ -2,9 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build go1.6
-
-// This file is a copy of $GOROOT/src/go/internal/gcimporter/bimport.go, tagged for go1.6.
+// This file is a copy of $GOROOT/src/go/internal/gcimporter/bimport.go.
 
 package gcimporter
 
@@ -292,7 +290,7 @@ func (p *importer) obj(tag int) {
 		_ = pos
 		_ = name
 		_ = orig
-		// p.declare(types_NewAlias(pos, p.pkgList[0], name, orig))
+		// p.declare(types.NewAlias(pos, p.pkgList[0], name, orig))
 
 	default:
 		errorf("unexpected object tag %d", tag)
@@ -618,6 +616,20 @@ func (p *importer) fieldName(parent *types.Package) (*types.Package, string) {
 	}
 	if p.version == 0 && name == "_" {
 		// version 0 didn't export a package for _ fields
+		// see issue #15514
+
+		// For bug-compatibility with gc, pretend all imported
+		// blank fields belong to the same dummy package.
+		// This avoids spurious "cannot assign A to B" errors
+		// from go/types caused by types changing as they are
+		// re-exported.
+		const blankpkg = "<_>"
+		pkg := p.imports[blankpkg]
+		if pkg == nil {
+			pkg = types.NewPackage(blankpkg, blankpkg)
+			p.imports[blankpkg] = pkg
+		}
+
 		return pkg, name
 	}
 	if name != "" && !exported(name) {
