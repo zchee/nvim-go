@@ -22,6 +22,13 @@
 			"path": "/gotests/process"
 		},
 		{
+			"importpath": "github.com/davecgh/go-spew/spew",
+			"repository": "https://github.com/davecgh/go-spew",
+			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
+			"branch": "master",
+			"path": "/spew"
+		},
+		{
 			"importpath": "github.com/derekparker/delve/config",
 			"repository": "https://github.com/derekparker/delve",
 			"revision": "6bff4d19706b46b7bd350212048e4a140caad271",
