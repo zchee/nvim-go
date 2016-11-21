@@ -4,13 +4,20 @@
 		{
 			"importpath": "github.com/cweill/gotests",
 			"repository": "https://github.com/cweill/gotests",
-			"revision": "7c6df638d40adab856d67818a906bb91a351924b",
+			"revision": "bddcd2d3ef1bc640a7949f41061deca1e2f2d4e2",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/cweill/gotests/gotests",
+			"repository": "https://github.com/cweill/gotests",
+			"revision": "bddcd2d3ef1bc640a7949f41061deca1e2f2d4e2",
+			"branch": "master",
+			"path": "/gotests"
 		},
 		{
 			"importpath": "github.com/cweill/gotests/gotests/process",
 			"repository": "https://github.com/cweill/gotests",
-			"revision": "7c6df638d40adab856d67818a906bb91a351924b",
+			"revision": "bddcd2d3ef1bc640a7949f41061deca1e2f2d4e2",
 			"branch": "master",
 			"path": "/gotests/process"
 		},
