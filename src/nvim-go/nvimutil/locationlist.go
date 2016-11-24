@@ -204,9 +204,7 @@ var errRe = regexp.MustCompile(`(?m)^([^\t:]+):(\d+)(?::(\d+))?:\s(.*)`)
 func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixError, error) {
 	var (
 		parentDir string
-		fpath     string
 		errlist   []*nvim.QuickfixError
-		hasPrefix bool
 	)
 
 	// m[1]: relative file path of error file
@@ -214,37 +212,39 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*nvim.Quickfi
 	// m[3]: column number of error point
 	// m[4]: error description text
 	for _, m := range errRe.FindAllSubmatch(errors, -1) {
-		fpath = filepath.Base(string(bytes.Replace(m[1], []byte{'\t'}, nil, -1)))
+		filename := string(bytes.Replace(m[1], []byte{'\t'}, nil, -1))
+
+		// "# " is contained in the first error message whose different the
+		// error file's parent directory
 		if bytes.Contains(m[1], []byte{'#'}) {
-			// m[1][2:] is trim '# ' from errors directory
-			// '# nvim-go/nvim' -> 'nvim-go/nvim'
+			// Trims "# " from errors message
+			// such as "# nvim-go/nvimutil ..." to "nvim-go/nvimutil ..."
+			//
+			// p[0]: error file parent directory path
+			// p[1]: error file relative path
 			path := bytes.Split(m[1][2:], []byte{'\n'})
 
-			// save the parent directory path for the second and subsequent error description
+			// Save the parent directory path for the second subsequent error
 			parentDir = string(path[0])
-			fpath = filepath.Base(string(bytes.Replace(path[1], []byte{'\t'}, nil, -1)))
-			hasPrefix = true
+			filename = string(bytes.Replace(path[1], []byte{'\t'}, nil, -1))
 		}
 
-		filename := filepath.Join(parentDir, fpath)
+		if !strings.Contains(filename, "../") {
+			filename = filepath.Join(parentDir, filepath.Base(filename))
+			switch ctxt.Tool {
+			case "go":
+				goSrcPath := filepath.Join(build.Default.GOPATH, "src")
+				currentDir := strings.TrimPrefix(cwd, goSrcPath+string(filepath.Separator))
+				filename = strings.TrimPrefix(filepath.Clean(filename), currentDir+string(filepath.Separator))
 
-		switch ctxt.Tool {
-		case "go":
-			goSrcPath := filepath.Join(build.Default.GOPATH, "src")
-			currentDir := strings.TrimPrefix(cwd, goSrcPath+string(filepath.Separator))
-			filename = strings.TrimPrefix(filepath.Clean(filename), currentDir+string(filepath.Separator))
-
-		case "gb":
-			if !filepath.IsAbs(filename) {
-				filename = filepath.Join(ctxt.ProjectRoot, "src", filename)
+			case "gb":
+				if !filepath.IsAbs(filename) {
+					filename = filepath.Join(ctxt.ProjectRoot, "src", filename)
+				}
+				if frel, err := filepath.Rel(cwd, filename); err == nil {
+					filename = frel
+				}
 			}
-			if frel, err := filepath.Rel(cwd, filename); err == nil {
-				filename = frel
-			}
-		}
-
-		if !hasPrefix {
-			filename = string(bytes.Replace(m[1], []byte{'\t'}, nil, -1))
 		}
 
 		line, err := strconv.Atoi(string(m[2]))
