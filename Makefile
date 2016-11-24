@@ -38,35 +38,50 @@ GO_LINT := golint
 
 default: build
 
-build: $(PACKAGE_DIR)/plugin/manifest ## build the nvim-go binary
-	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
+build: ## build the nvim-go binary
+	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS}
 	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
-build-race: $(PACKAGE_DIR)/plugin/manifest ## build the nvim-go binary with -race flag
-	${GO_BUILD} -race $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
+build-race: ## build the nvim-go binary with -race
+	${GO_BUILD} -race $(GO_LDFLAGS) ${GO_GCFLAGS}
 	mv ./bin/nvim-go-race ./bin/nvim-go
 	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
 rebuild: clean $(PACKAGE_DIR)/plugin/manifest ## rebuild the nvim-go binary
-	${GO_BUILD} -f $(GO_LDFLAGS) ${GO_GCFLAGS} || exit 1
+	${GO_BUILD} -f $(GO_LDFLAGS) ${GO_GCFLAGS}
 	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
 $(PACKAGE_DIR)/plugin/manifest: ## build the auto writing neovim manifest utility binary
 	$(GO_CMD) build -o $(PACKAGE_DIR)/plugin/manifest $(PACKAGE_DIR)/plugin/manifest.go
 
-test: ## test the nvim-go package
-	${GO_TEST} $(GO_TEST_FLAGS) || exit 1
 
-test-docker: docker-run ## run the docker container test on Linux
+test: ## run the package test 
+	${GO_TEST} $(GO_TEST_FLAGS)
 
-test-bench: ## test the nvim-go package with benchmark
-	${GO_TEST} $(GO_TEST_FLAGS) || exit 1
+test-docker: docker-run ## run the package test with docker container
 
-test-run: ## test the nvim-go package run the any function only
-	${GO_TEST_RUN} || exit 1
+test-bench: ## run the package test with -bench=.
+	${GO_TEST} $(GO_TEST_FLAGS)
+
+test-run: ## run the package test only those tests and examples
+	${GO_TEST_RUN}
+
 
 vendor-all: ## update the all vendor packages
 	${VENDOR_CMD} update -all
+	${MAKE} vendor-cleanup
+
+vendor-cleanup: ## cleanup vendor packages "*_test" files, testdata and nogo files.
+	@find ./vendor -type d -name 'testdata' -print | xargs rm -rf
+	@find ./vendor -type f -name '*_test.go' -print -exec rm {} ";"
+	@find ./vendor \
+		\( -name '*.sh' \
+		-or -name 'Makefile' \
+		-or -name '*.yml' \
+		-or -name '*.txtr' \
+		-or -name '*.vim' \
+		-or -name '*.el' \) \
+		-type f -print -exec rm {} ";"
 
 vendor-guru: ## update the internal guru package
 	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go
@@ -75,6 +90,7 @@ vendor-guru: ## update the internal guru package
 	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/{main.go,*_test.go,serial,testdata,*.bash,*.vim,*.el}
 	grep "package main" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
 	${VENDOR_CMD} delete golang.org/x/tools/cmd/guru
+
 
 docker: docker-run ## run the docker container test on Linux
 
@@ -87,10 +103,11 @@ docker-build-nocache: ## build the zchee/nvim-go docker container for testing on
 docker-run: docker-build ## run the zchee/nvim-go docker container test
 	${DOCKER_CMD} run --rm -it ${GITHUB_USER}/${PACKAGE_NAME} ${GO_TEST} $(GO_TEST_FLAGS)
 
-clean: ## clean the ./bin and ./pkg directory
+clean: ## clean the {bin,pkg} directory
 	${RM} -r ./bin ./pkg
 
-todo: ## print the all of TODO,BUG,XXX,FIXME,NOTE in nvim-go package sources
+
+todo: ## print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
 	@ag 'TODO(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal --ignore Makefile || true
 	@ag 'BUG(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal  --ignore Makefile|| true
 	@ag 'XXX(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal  --ignore Makefile|| true
