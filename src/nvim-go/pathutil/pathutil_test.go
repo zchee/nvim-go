@@ -5,9 +5,9 @@
 package pathutil_test
 
 import (
-	"go/build"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"nvim-go/nvimutil"
@@ -152,7 +152,7 @@ func TestRel(t *testing.T) {
 }
 
 func TestExpandGoRoot(t *testing.T) {
-	goroot := build.Default.GOROOT
+	goroot := runtime.GOROOT()
 
 	type args struct {
 		p string
