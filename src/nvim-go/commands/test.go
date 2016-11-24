@@ -142,6 +142,10 @@ func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
 				} else {
 					funcName = strings.TrimPrefix(x.Name.Name, testPrefix)
 				}
+				// currentlly only support "_" or "-"
+				if funcName[0] == '_' || funcName[0] == '-' {
+					funcName = funcName[1:len(funcName)]
+				}
 			}
 		}
 	}
@@ -160,7 +164,7 @@ func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
 	ast.Walk(visitorFunc(matchFunc), fswitch)
 
 	if !pos.IsValid() {
-		return nvimutil.EchohlErr(c.Nvim, "GoTestSwitch", "Not found the switch destination function")
+		return nvimutil.EchohlErr(c.Nvim, "GoSwitchTest", "Not found the switch destination function")
 	}
 
 	// Goto the destination file and function position
