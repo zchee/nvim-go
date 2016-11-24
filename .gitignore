@@ -38,3 +38,5 @@ plugin/manifest
 _*
 # temporarily ignore for development
 syntax/go.vim
+indent/go.vim
+ftplugin/go.vim
