@@ -205,6 +205,33 @@ test.go:26: undefined: hyperkitctl.DatabasePath`),
 			wantErr: false,
 		},
 		{
+			name: "go build relative path",
+			args: args{
+				errors: []byte(`# github.com/zchee/appleopensource
+../../appleopensource.go:26: cannot use ModeTarballs (type ListMode) as type string in argument to ListPackage
+../../appleopensource.go:31: cannot use ModeSource (type ListMode) as type string in argument to ListPackage`),
+				cwd: filepath.Join(os.Getenv("GOPATH"), "src/github.com/zchee/appleopensource/cmd/gaos"),
+				ctxt: &context.Build{
+					Tool: "go",
+				},
+			},
+			want: []*nvim.QuickfixError{
+				&nvim.QuickfixError{
+					FileName: "../../appleopensource.go",
+					LNum:     26,
+					Col:      0,
+					Text:     "cannot use ModeTarballs (type ListMode) as type string in argument to ListPackage",
+				},
+				&nvim.QuickfixError{
+					FileName: "../../appleopensource.go",
+					LNum:     31,
+					Col:      0,
+					Text:     "cannot use ModeSource (type ListMode) as type string in argument to ListPackage",
+				},
+			},
+			wantErr: false,
+		},
+		{
 			name: "have want type suggestion",
 			args: args{
 				errors: []byte(`# nvim-go/commands/delve
