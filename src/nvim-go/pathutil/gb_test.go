@@ -59,6 +59,13 @@ func TestIsGb(t *testing.T) {
 			want1: true,
 		},
 		{
+			name:  "gb (nvim-go/src/nvim-go/vendor)",
+			tool:  "gb",
+			args:  args{dir: filepath.Join(gbroot, "src", "nvim-go", "vendor")}, // gb vendor directory
+			want:  gbroot,
+			want1: true,
+		},
+		{
 			name:  "gb (nvim-go/src/nvim-go/commands)",
 			tool:  "gb",
 			args:  args{dir: filepath.Join(gbroot, "/src/nvim-go/src/nvim-go/commands")}, // commands directory
@@ -71,6 +78,13 @@ func TestIsGb(t *testing.T) {
 			args:  args{dir: filepath.Join(gbroot, "/src/nvim-go/src/nvim-go/internel/guru")}, // internal directory
 			want:  gbroot,
 			want1: true,
+		},
+		{
+			name:  "wrong path",
+			tool:  "gb",
+			args:  args{dir: "a/b/c"}, // internal directory
+			want:  "",
+			want1: false,
 		},
 	}
 	for _, tt := range tests {
