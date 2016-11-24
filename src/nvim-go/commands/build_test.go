@@ -11,6 +11,7 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/context"
+	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
 )
@@ -35,13 +36,13 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "nvim-go Dir: filepath.Join(projectRoot, \"src/nvim-go/commands\")",
 			fields: fields{
-				Nvim: testVim(t, projectRoot),
+				Nvim: nvimutil.TestNvim(t, "testdata"),
 				ctxt: context.NewContext(),
 			},
 			args: args{
 				eval: &CmdBuildEval{
-					Cwd: projectRoot,
-					Dir: filepath.Join(projectRoot, "src/nvim-go/commands"),
+					Cwd: testdataPath,
+					Dir: testdataPath,
 				},
 			},
 			wantErr: false,
@@ -49,7 +50,7 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "gsftp",
 			fields: fields{
-				Nvim: testVim(t, gsftpRoot),
+				Nvim: nvimutil.TestNvim(t, gsftpRoot),
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -63,7 +64,7 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "correct (astdump)",
 			fields: fields{
-				Nvim: testVim(t, filepath.Join(astdump, "astdump.go")), // correct file
+				Nvim: nvimutil.TestNvim(t, filepath.Join(astdump, "astdump.go")), // correct file
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -75,9 +76,9 @@ func TestCommands_Build(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "broken (astdump)",
+			name: "broken (broken)",
 			fields: fields{
-				Nvim: testVim(t, brokenMain), // broken file
+				Nvim: nvimutil.TestNvim(t, brokenMain), // broken file
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -94,9 +95,13 @@ func TestCommands_Build(t *testing.T) {
 		config.ErrorListType = "locationlist"
 
 		err := c.Build(tt.args.bang, tt.args.eval)
+		if (err != nil) != tt.wantErr {
+			t.Errorf("wantErr %v", tt.wantErr)
+			continue
+		}
 		if errlist, ok := err.([]*nvim.QuickfixError); !ok {
 			if (len(errlist) != 0) != tt.wantErr {
-				t.Errorf("%q. Commands.Build(%v, %v) wantErr %v", tt.name, tt.args.bang, tt.args.eval, tt.wantErr)
+				t.Errorf("%q. Commands.Build(%v, %v)", tt.name, tt.args.bang, tt.args.eval)
 			}
 		}
 	}
@@ -153,7 +158,7 @@ func TestCommands_compileCmd(t *testing.T) {
 		{
 			name: "astdump (go build)",
 			fields: fields{
-				Nvim: testVim(t, projectRoot),
+				Nvim: nvimutil.TestNvim(t, "testdata"),
 				ctxt: context.NewContext(),
 			},
 			args: args{
@@ -165,11 +170,11 @@ func TestCommands_compileCmd(t *testing.T) {
 		{
 			name: "nvim-go (gb build)",
 			fields: fields{
-				Nvim: testVim(t, projectRoot),
+				Nvim: nvimutil.TestNvim(t, "testdata"),
 				ctxt: context.NewContext(),
 			},
 			args: args{
-				dir: projectRoot,
+				dir: "testdata",
 			},
 			want:    "gb",
 			wantErr: false,
@@ -177,7 +182,7 @@ func TestCommands_compileCmd(t *testing.T) {
 		{
 			name: "gsftp (gb build)",
 			fields: fields{
-				Nvim: testVim(t, projectRoot),
+				Nvim: nvimutil.TestNvim(t, "testdata"),
 				ctxt: context.NewContext(),
 			},
 			args: args{

@@ -11,6 +11,7 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/context"
+	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
 )
@@ -34,7 +35,7 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "correct (astdump)",
 			fields: fields{
-				Nvim: testVim(t, astdumpMain), // correct file
+				Nvim: nvimutil.TestNvim(t, astdumpMain), // correct file
 			},
 			args: args{
 				dir: astdump,
@@ -44,7 +45,7 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "broken (astdump)",
 			fields: fields{
-				Nvim: testVim(t, brokenMain), // broken file
+				Nvim: nvimutil.TestNvim(t, brokenMain), // broken file
 			},
 			args: args{
 				dir: broken,
@@ -54,7 +55,7 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "correct (gsftp)",
 			fields: fields{
-				Nvim: testVim(t, gsftpMain), // correct file
+				Nvim: nvimutil.TestNvim(t, gsftpMain), // correct file
 			},
 			args: args{
 				dir: gsftp,
@@ -106,7 +107,7 @@ var minUpdateTests = []struct {
 }
 
 func TestMinUpdate(t *testing.T) {
-	v := testVim(t, "")
+	v := nvimutil.TestNvim(t)
 
 	b, err := v.CurrentBuffer()
 	if err != nil {

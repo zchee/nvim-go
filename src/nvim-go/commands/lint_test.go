@@ -10,11 +10,12 @@ import (
 	"testing"
 
 	"nvim-go/context"
+	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
 )
 
-var testLintDir = filepath.Join(testGoPath, "src", "lint")
+var testLintDir = filepath.Join(testCwd, "../testdata", "go", "src", "lint")
 
 func TestCommands_Lint(t *testing.T) {
 	type fields struct {
@@ -37,7 +38,7 @@ func TestCommands_Lint(t *testing.T) {
 		{
 			name: "no suggest(go)",
 			fields: fields{
-				Nvim: testVim(t, filepath.Join(testLintDir, "blank-import-main.go")),
+				Nvim: nvimutil.TestNvim(t, filepath.Join(testLintDir, "blank-import-main.go")),
 			},
 			args: args{
 				file: filepath.Join(testLintDir, "blank-import-main.go"),
@@ -48,7 +49,7 @@ func TestCommands_Lint(t *testing.T) {
 		{
 			name: "2 suggest(go)",
 			fields: fields{
-				Nvim: testVim(t, filepath.Join(testLintDir, "time.go")),
+				Nvim: nvimutil.TestNvim(t, filepath.Join(testLintDir, "time.go")),
 			},
 			args: args{
 				args: []string{"%"},
@@ -106,7 +107,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		{
 			name: "lint dir - no args (go)",
 			fields: fields{
-				Nvim: testVim(t, filepath.Join(testLintDir, "make.go")),
+				Nvim: nvimutil.TestNvim(t, filepath.Join(testLintDir, "make.go")),
 			},
 			args: args{
 				a:   new(nvim.CommandCompletionArgs),
@@ -117,7 +118,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		{
 			name: "lint dir - 'ma' (go)",
 			fields: fields{
-				Nvim: testVim(t, filepath.Join(testLintDir, "make.go")),
+				Nvim: nvimutil.TestNvim(t, filepath.Join(testLintDir, "make.go")),
 			},
 			args: args{
 				a: &nvim.CommandCompletionArgs{
@@ -130,7 +131,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		{
 			name: "astdump (go)",
 			fields: fields{
-				Nvim: testVim(t, astdumpMain),
+				Nvim: nvimutil.TestNvim(t, astdumpMain),
 			},
 			args: args{
 				a:   new(nvim.CommandCompletionArgs),
@@ -141,7 +142,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		{
 			name: "gsftp (gb)",
 			fields: fields{
-				Nvim: testVim(t, gsftpMain),
+				Nvim: nvimutil.TestNvim(t, gsftpMain),
 			},
 			args: args{
 				a:   new(nvim.CommandCompletionArgs),

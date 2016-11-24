@@ -2,9 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package pathutil
+package pathutil_test
 
-import "testing"
+import (
+	"testing"
+
+	"nvim-go/pathutil"
+)
 
 func TestFindVCSRoot(t *testing.T) {
 	type args struct {
@@ -22,7 +26,7 @@ func TestFindVCSRoot(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		if got := FindVCSRoot(tt.args.basedir); got != tt.want {
+		if got := pathutil.FindVCSRoot(tt.args.basedir); got != tt.want {
 			t.Errorf("%q. FindVCSRoot(%v) = %v, want %v", tt.name, tt.args.basedir, got, tt.want)
 		}
 	}

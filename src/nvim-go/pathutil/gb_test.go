@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package pathutil
+package pathutil_test
 
 import (
 	"go/build"
+	"nvim-go/pathutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -66,8 +67,8 @@ func TestIsGb(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		got, got1 := IsGb(tt.p) // projDir string, isGb bool
-		if got1 != tt.want1 {   // Check the isGb package
+		got, got1 := pathutil.IsGb(tt.p) // projDir string, isGb bool
+		if got1 != tt.want1 {            // Check the isGb package
 			t.Errorf("Build.isGb(%v)\ngot1 = %v,\nwant %v", tt.p, got1, tt.want1)
 		}
 		if got1 && tt.rTool != "gb" { // If got1 == true, must be tt.rTool == "gb"

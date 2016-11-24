@@ -10,9 +10,12 @@ import (
 	"testing"
 
 	"nvim-go/context"
+	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
 )
+
+var testVetRoot = filepath.Join(testGoPath, "src", "vet")
 
 func TestCommands_Vet(t *testing.T) {
 	type fields struct {
@@ -35,13 +38,13 @@ func TestCommands_Vet(t *testing.T) {
 		{
 			name: "method.go(2 suggest)",
 			fields: fields{
-				Nvim: testVim(t, filepath.Join(testGoPath, "src/vet/method.go")),
+				Nvim: nvimutil.TestNvim(t, filepath.Join(testVetRoot, "method.go")),
 			},
 			args: args{
 				args: []string{"method.go"},
 				eval: &CmdVetEval{
-					Cwd: filepath.Join(testGoPath, "src/vet"),
-					Dir: filepath.Join(testGoPath, "src/vet"),
+					Cwd: testVetRoot,
+					Dir: testVetRoot,
 				},
 			},
 			want: []*nvim.QuickfixError{&nvim.QuickfixError{
@@ -60,13 +63,13 @@ func TestCommands_Vet(t *testing.T) {
 		{
 			name: "method.go + unused.go(8 suggest)",
 			fields: fields{
-				Nvim: testVim(t, filepath.Join(cwd, "testdata/vet/unused.go")),
+				Nvim: nvimutil.TestNvim(t, filepath.Join(testVetRoot, "unused.go")),
 			},
 			args: args{
 				args: []string{"."},
 				eval: &CmdVetEval{
-					Cwd: filepath.Join(testGoPath, "src/vet"),
-					Dir: filepath.Join(testGoPath, "src/vet"),
+					Cwd: testVetRoot,
+					Dir: testVetRoot,
 				},
 			},
 			want: []*nvim.QuickfixError{&nvim.QuickfixError{

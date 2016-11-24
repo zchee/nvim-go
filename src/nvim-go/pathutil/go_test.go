@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package pathutil
+package pathutil_test
 
 import (
 	"fmt"
 	"go/build"
+	"nvim-go/pathutil"
 	"testing"
 )
 
@@ -41,7 +42,7 @@ func TestBuildContext_PackageID(t *testing.T) {
 		case "gb":
 			build.Default.GOPATH = fmt.Sprintf("%s:%s/vendor", projectRoot, projectRoot)
 		}
-		got, err := PackageID(tt.args.dir)
+		got, err := pathutil.PackageID(tt.args.dir)
 		if (err != nil) != tt.wantErr {
 			t.Errorf("%q. BuildContext.PackagePath(%v) error = %v, wantErr %v", tt.name, tt.args.dir, err, tt.wantErr)
 			continue
