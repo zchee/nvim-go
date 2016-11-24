@@ -16,10 +16,11 @@ import (
 )
 
 var (
-	cwd, _         = os.Getwd()
-	projectRoot, _ = filepath.Abs(filepath.Join(cwd, "../../../"))
+	testCwd, _     = os.Getwd()
+	projectRoot, _ = filepath.Abs(filepath.Join(testCwd, "../../../"))
 	testdata       = filepath.Join(projectRoot, "src", "nvim-go", "testdata")
 	testGoPath     = filepath.Join(testdata, "go")
+	testGbPath     = filepath.Join(testdata, "gb")
 
 	astdump     = filepath.Join(testGoPath, "src", "astdump")
 	astdumpMain = filepath.Join(astdump, "astdump.go")
@@ -46,8 +47,8 @@ func TestChdir(t *testing.T) {
 	}
 	for _, tt := range tests {
 		defer func() {
-			if cwd != filepath.Join(projectRoot, "src/nvim-go/pathutil") || cwd == tt.args.dir {
-				t.Errorf("%q. Chdir(%v, %v) = %v, want %v", tt.name, tt.args.v, tt.args.dir, cwd, tt.wantCwd)
+			if testCwd != filepath.Join(projectRoot, "src/nvim-go/pathutil") || testCwd == tt.args.dir {
+				t.Errorf("%q. Chdir(%v, %v) = %v, want %v", tt.name, tt.args.v, tt.args.dir, testCwd, tt.wantCwd)
 			}
 		}()
 		defer pathutil.Chdir(tt.args.v, tt.args.dir)()
@@ -70,11 +71,11 @@ func TestRel(t *testing.T) {
 		want string
 	}{
 		{
-			args: args{f: filepath.Join(cwd, "pathutil_test.go"), cwd: cwd},
+			args: args{f: filepath.Join(testCwd, "pathutil_test.go"), cwd: testCwd},
 			want: "pathutil_test.go",
 		},
 		{
-			args: args{f: filepath.Join(cwd, "pathutil_test.go"), cwd: projectRoot},
+			args: args{f: filepath.Join(testCwd, "pathutil_test.go"), cwd: projectRoot},
 			want: "src/nvim-go/pathutil/pathutil_test.go",
 		},
 	}
@@ -113,11 +114,11 @@ func TestIsDir(t *testing.T) {
 		want bool
 	}{
 		{
-			args: args{filename: cwd},
+			args: args{filename: testCwd},
 			want: true,
 		},
 		{
-			args: args{filename: filepath.Join(cwd, "pathutil_test.go")},
+			args: args{filename: filepath.Join(testCwd, "pathutil_test.go")},
 			want: false,
 		},
 	}
@@ -138,15 +139,15 @@ func TestIsExist(t *testing.T) {
 		want bool
 	}{
 		{
-			args: args{filename: cwd},
+			args: args{filename: testCwd},
 			want: true,
 		},
 		{
-			args: args{filename: filepath.Join(cwd, "pathutil_test.go")},
+			args: args{filename: filepath.Join(testCwd, "pathutil_test.go")},
 			want: true,
 		},
 		{
-			args: args{filename: filepath.Join(cwd, "not_exist.go")},
+			args: args{filename: filepath.Join(testCwd, "not_exist.go")},
 			want: false,
 		},
 	}

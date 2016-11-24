@@ -21,7 +21,7 @@ func TestFindVCSRoot(t *testing.T) {
 	}{
 		{
 			name: "nvim-go (gb)",
-			args: args{basedir: cwd},
+			args: args{basedir: testCwd},
 			want: projectRoot,
 		},
 	}
