@@ -35,7 +35,7 @@ nnoremap <silent><Plug>(nvim-go-metalinter)  :<C-u>Gometalinter<CR>
 
 " GoTest
 nnoremap <silent><Plug>(nvim-go-test)         :<C-u>Gotest<CR>
-nnoremap <silent><Plug>(nvim-go-test-switch)  :<C-u>GoTestSwitch<CR>
+nnoremap <silent><Plug>(nvim-go-switch-test)  :<C-u>GoSwitchTest<CR>
 
 " GoRename
 nnoremap <silent><Plug>(nvim-go-rename)  :<C-u>Gorename<CR>
