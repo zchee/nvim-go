@@ -8,13 +8,14 @@ import (
 	"nvim-go/commands"
 	"nvim-go/config"
 	"nvim-go/nvimutil"
+	"path/filepath"
 
 	"github.com/neovim/go-client/nvim"
 )
 
 type bufWritePostEval struct {
-	Cwd string `msgpack:",array"`
-	Dir string
+	Cwd  string `msgpack:",array"`
+	File string
 }
 
 func (a *Autocmd) BufWritePost(eval *bufWritePostEval) {
@@ -22,6 +23,8 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) {
 }
 
 func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
+	dir := filepath.Dir(eval.File)
+
 	if config.FmtAutosave {
 		err := <-a.bufWritePreChan
 		switch e := err.(type) {
@@ -41,7 +44,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 	if config.BuildAutosave {
 		err := a.cmds.Build(config.BuildForce, &commands.CmdBuildEval{
 			Cwd: eval.Cwd,
-			Dir: eval.Dir,
+			Dir: dir,
 		})
 
 		switch e := err.(type) {
@@ -67,8 +70,8 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			a.ctxt.Errlist["Vet"] = nil
 
 			errlist, err := a.cmds.Vet(nil, &commands.CmdVetEval{
-				Cwd: eval.Cwd,
-				Dir: eval.Dir,
+				Cwd:  eval.Cwd,
+				File: eval.File,
 			})
 			if err != nil {
 				// normal errros
@@ -100,7 +103,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			a.cmds.Test([]string{}, eval.Dir)
+			a.cmds.Test([]string{}, dir)
 		}()
 	}
 

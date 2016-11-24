@@ -21,8 +21,8 @@ import (
 
 // CmdVetEval struct type for Eval of GoBuild command.
 type CmdVetEval struct {
-	Cwd string `msgpack:",array"`
-	Dir string
+	Cwd  string `msgpack:",array"`
+	File string
 }
 
 func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
@@ -57,18 +57,24 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, 
 
 	switch {
 	case len(args) > 0:
-		vetCmd.Args = append(vetCmd.Args, args...)
 		if path := filepath.Join(eval.Cwd, args[len(args)-1]); !strings.HasPrefix(path, "-") {
-			if pathutil.IsDir(path) {
+			if args[0] == "." {
+				vetCmd.Args = append(vetCmd.Args, ".")
+			} else if pathutil.IsDir(path) {
 				eval.Cwd = path
 				vetCmd.Args = append(vetCmd.Args, args[:len(args)-1]...)
 			} else if pathutil.IsExist(path) {
 				eval.Cwd = filepath.Dir(path)
+				vetCmd.Args = append(vetCmd.Args, path)
+			} else if filepath.Base(path) == "%" {
+				path = eval.File
+				vetCmd.Args = append(vetCmd.Args, path)
 			} else {
 				err := errors.New("Invalid directory path")
 				return nil, errors.WithStack(err)
 			}
 		}
+		vetCmd.Args = append(vetCmd.Args, config.GoVetFlags...)
 	case len(config.GoVetFlags) > 0:
 		vetCmd.Args = append(vetCmd.Args, config.GoVetFlags...)
 		vetCmd.Args = append(vetCmd.Args, ".")

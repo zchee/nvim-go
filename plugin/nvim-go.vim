@@ -112,7 +112,7 @@ endfunction
 " plugin manifest
 call remote#host#Register(s:plugin_name, '*', function('s:RequireNvimGo'))
 call remote#host#RegisterPlugin('nvim-go', '0', [
-\ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p:h'')]', 'group': 'nvim-go', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p'')]', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p'')]', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'VimEnter', 'sync': 0, 'opts': {'eval': '{''Global'': {''ServerName'': v:servername, ''ErrorListType'': g:go#global#errorlisttype}, ''Analyze'': {''FoldIcon'': g:go#analyze#foldicon}, ''Build'': {''Autosave'': g:go#build#autosave, ''Force'': g:go#build#force, ''Flags'': g:go#build#flags}, ''Fmt'': {''Autosave'': g:go#fmt#autosave, ''Mode'': g:go#fmt#mode}, ''Generate'': {''TestAllFuncs'': g:go#generate#test#allfuncs, ''TestExclFuncs'': g:go#generate#test#exclude, ''TestExportedFuncs'': g:go#generate#test#exportedfuncs, ''TestSubTest'': g:go#generate#test#subtest}, ''Guru'': {''Reflection'': g:go#guru#reflection, ''KeepCursor'': g:go#guru#keep_cursor, ''JumpFirst'': g:go#guru#jump_first}, ''Iferr'': {''Autosave'': g:go#iferr#autosave}, ''Lint'': {''GolintIgnore'': g:go#lint#golint#ignore, ''GolintMinConfidence'': g:go#lint#golint#min_confidence, ''GolintMode'': g:go#lint#golint#mode, ''GoVetAutosave'': g:go#lint#govet#autosave, ''GoVetFlags'': g:go#lint#govet#flags, ''MetalinterAutosave'': g:go#lint#metalinter#autosave, ''MetalinterAutosaveTools'': g:go#lint#metalinter#autosave#tools, ''MetalinterTools'': g:go#lint#metalinter#tools, ''MetalinterDeadline'': g:go#lint#metalinter#deadline, ''MetalinterSkipDir'': g:go#lint#metalinter#skip_dir}, ''Rename'': {''Prefill'': g:go#rename#prefill}, ''Terminal'': {''Mode'': g:go#terminal#mode, ''Position'': g:go#terminal#position, ''Height'': g:go#terminal#height, ''Width'': g:go#terminal#width, ''StopInsert'': g:go#terminal#stop_insert}, ''Test'': {''Autosave'': g:go#test#autosave, ''Flags'': g:go#test#flags}, ''Debug'': {''Enable'': g:go#debug, ''Pprof'': g:go#debug#pprof}}', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'VimLeavePre', 'sync': 0, 'opts': {'group': 'nvim-go', 'pattern': '*.go,terminal,context,thread'}},
@@ -141,7 +141,7 @@ call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'command', 'name': 'Gorun', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'GorunLast', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')'}},
 \ {'type': 'command', 'name': 'Gotest', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')', 'nargs': '*'}},
-\ {'type': 'command', 'name': 'Govet', 'sync': 0, 'opts': {'complete': 'customlist,GoVetCompletion', 'eval': '[getcwd(), expand(''%:p:h'')]', 'nargs': '*'}},
+\ {'type': 'command', 'name': 'Govet', 'sync': 0, 'opts': {'complete': 'customlist,GoVetCompletion', 'eval': '[getcwd(), expand(''%:p'')]', 'nargs': '*'}},
 \ {'type': 'function', 'name': 'FunctionsCompletion', 'sync': 1, 'opts': {}},
 \ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p''), &modified, line2byte(line(''.'')) + (col(''.'')-2)]'}},
 \ {'type': 'function', 'name': 'GoLintCompletion', 'sync': 1, 'opts': {'eval': 'getcwd()'}},

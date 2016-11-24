@@ -43,8 +43,8 @@ func TestCommands_Vet(t *testing.T) {
 			args: args{
 				args: []string{"method.go"},
 				eval: &CmdVetEval{
-					Cwd: testVetRoot,
-					Dir: testVetRoot,
+					Cwd:  testVetRoot,
+					File: filepath.Join(testVetRoot, "method.go"),
 				},
 			},
 			want: []*nvim.QuickfixError{&nvim.QuickfixError{
@@ -68,8 +68,8 @@ func TestCommands_Vet(t *testing.T) {
 			args: args{
 				args: []string{"."},
 				eval: &CmdVetEval{
-					Cwd: testVetRoot,
-					Dir: testVetRoot,
+					Cwd:  testVetRoot,
+					File: filepath.Join(testVetRoot, "unused.go"),
 				},
 			},
 			want: []*nvim.QuickfixError{&nvim.QuickfixError{
@@ -125,7 +125,6 @@ func TestCommands_Vet(t *testing.T) {
 			continue
 		}
 		if !reflect.DeepEqual(got, tt.want) {
-			t.Logf("%+v", got[0])
 			t.Errorf("%q. Commands.Vet(%v, %v) = %v, want %v", tt.name, tt.args.args, tt.args.eval, got, tt.want)
 		}
 	}
