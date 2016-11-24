@@ -135,6 +135,12 @@ func TestFindGbProjectRoot(t *testing.T) {
 			want:    filepath.Join(testGbPath, "gsftp"),
 			wantErr: false,
 		},
+		{
+			name:    "empty path",
+			args:    args{path: ""},
+			want:    "",
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
