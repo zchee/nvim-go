@@ -19,15 +19,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (c *Commands) cmdGenerateTest(files []string, dir string) {
-	go c.GenerateTest(files, dir)
+func (c *Commands) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir string) {
+	go c.GenerateTest(args, ranges, bang, dir)
 }
 
 // GenerateTest generates the test files based by current buffer or args files
 // functions.
 // TODO(zchee): Currently Support '-all' flag only.
 // Needs support -exported, -i, -only flags.
-func (c *Commands) GenerateTest(files []string, dir string) error {
+func (c *Commands) GenerateTest(args []string, ranges [2]int, bang bool, dir string) error {
 	defer nvimutil.Profile(time.Now(), "GenerateTest")
 	defer c.ctxt.SetContext(filepath.Dir(dir))()
 
@@ -36,12 +36,12 @@ func (c *Commands) GenerateTest(files []string, dir string) error {
 		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
-	if len(files) == 0 {
+	if len(args) == 0 {
 		f, err := c.Nvim.BufferName(b)
 		if err != nil {
 			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
-		files = []string{f}
+		args = []string{f}
 	}
 
 	var opt = process.Options{
@@ -49,13 +49,14 @@ func (c *Commands) GenerateTest(files []string, dir string) error {
 		ExclFuncs:   config.GenerateTestExclFuncs,
 		WriteOutput: true,
 		PrintInputs: true,
+		Subtests:    true,
 	}
 
 	oldStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	process.Run(w, files, &opt)
+	process.Run(w, args, &opt)
 
 	w.Close()
 	os.Stdout = oldStdout
@@ -69,7 +70,7 @@ func (c *Commands) GenerateTest(files []string, dir string) error {
 	// TODO(zchee): More beautiful code
 	suffix := "_test.go "
 	var ftests, ftestsRel string
-	for _, f := range files {
+	for _, f := range args {
 		fnAbs := strings.Split(f, filepath.Ext(f))
 		ftests += fnAbs[0] + suffix
 
