@@ -133,6 +133,14 @@ func TestRel(t *testing.T) {
 			},
 			want: "src/nvim-go/pathutil/pathutil_test.go",
 		},
+		{
+			name: "Use filepath.Rel",
+			args: args{
+				f:   filepath.Join(testCwd, "pathutil_test.go"),
+				cwd: filepath.Join(testCwd, "../commands"),
+			},
+			want: "../pathutil/pathutil_test.go",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
