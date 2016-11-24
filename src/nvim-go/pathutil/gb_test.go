@@ -31,51 +31,58 @@ func TestIsGb(t *testing.T) {
 		want1 bool
 	}{
 		{
-			name:  "go github.com/constabulary/gb",
+			name:  "go (On the $GOPATH package)",
 			tool:  "go",
-			args:  args{dir: filepath.Join(gopath, "/src/github.com/constabulary/gb")}, // On the $GOPATH package
+			args:  args{dir: filepath.Join(gopath, "/src/github.com/constabulary/gb")},
 			want:  "",
 			want1: false,
 		},
 		{
-			name:  "go github.com/constabulary/gb/cmd/gb",
+			name:  "go (On the $GOPATH package with cmd/gb directory)",
 			tool:  "go",
-			args:  args{dir: filepath.Join(gopath, "/src/github.com/constabulary/gb/cmd/gb")}, // On the $GOPATH package
+			args:  args{dir: filepath.Join(gopath, "/src/github.com/constabulary/gb/cmd/gb")},
 			want:  "",
 			want1: false,
 		},
 		{
 			name:  "gb (nvim-go root)",
 			tool:  "gb",
-			args:  args{dir: gbroot}, //gb procject root directory
-			want:  gbroot,            // nvim-go/src/nvim-go/context
+			args:  args{dir: projectRoot}, // gb procject root directory
+			want:  projectRoot,            // nvim-go/src/nvim-go/context
 			want1: true,
 		},
 		{
-			name:  "gb (nvim-go/src/nvim-go)",
+			name:  "gb (gb source root directory)",
 			tool:  "gb",
-			args:  args{dir: filepath.Join(gbroot, "/src/nvim-go")}, // gb source root directory
+			args:  args{dir: filepath.Join(projectRoot, "src", "nvim-go")},
+			want:  projectRoot,
+			want1: true,
+		},
+		{
+			name:  "gb (gb vendor directory)",
+			tool:  "gb",
+			args:  args{dir: filepath.Join(projectRoot, "src", "nvim-go", "vendor")},
+			want:  projectRoot,
+			want1: true,
+		},
+		{
+			name:  "gb (On the gb vendor directory)",
+			tool:  "gb",
+			args:  args{dir: filepath.Join(projectRoot, "vendor", "src", "github.com", "neovim", "go-client", "nvim")},
+			want:  projectRoot,
+			want1: true,
+		},
+		{
+			name:  "gb (nvim-go commands directory)",
+			tool:  "gb",
+			args:  args{dir: filepath.Join(projectRoot, "src", "nvim-go", "src", "nvim-go", "commands")},
 			want:  gbroot,
 			want1: true,
 		},
 		{
-			name:  "gb (nvim-go/src/nvim-go/vendor)",
+			name:  "gb (nvim-go internal directory)",
 			tool:  "gb",
-			args:  args{dir: filepath.Join(gbroot, "src", "nvim-go", "vendor")}, // gb vendor directory
-			want:  gbroot,
-			want1: true,
-		},
-		{
-			name:  "gb (nvim-go/src/nvim-go/commands)",
-			tool:  "gb",
-			args:  args{dir: filepath.Join(gbroot, "/src/nvim-go/src/nvim-go/commands")}, // commands directory
-			want:  gbroot,
-			want1: true,
-		},
-		{
-			name:  "gb (nvim-go/src/nvim-go/commands/guru)",
-			tool:  "gb",
-			args:  args{dir: filepath.Join(gbroot, "/src/nvim-go/src/nvim-go/internel/guru")}, // internal directory
+			args:  args{dir: filepath.Join(gbroot, "src", "nvim-go", "src", "nvim-go", "internel", "guru")},
 			want:  gbroot,
 			want1: true,
 		},
@@ -127,6 +134,12 @@ func TestFindGbProjectRoot(t *testing.T) {
 			name:    "nvim-go with /src/commands",
 			args:    args{path: filepath.Join(projectRoot, "src", "commands")},
 			want:    projectRoot,
+			wantErr: false,
+		},
+		{
+			name:    "gb vendor directory (return .../vendor)",
+			args:    args{path: filepath.Join(projectRoot, "vendor", "src", "github.com", "neovim", "go-client", "nvim")},
+			want:    filepath.Join(projectRoot, "vendor"),
 			wantErr: false,
 		},
 		{
