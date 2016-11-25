@@ -20,7 +20,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var funcRe = regexp.MustCompile(`(?m)^func\s(?:\(\w\s[[:graph:]]+\)\s)?([\w]+)\(`)
+var generateFuncRe = regexp.MustCompile(`(?m)^func\s(?:\(\w\s[[:graph:]]+\)\s)?([\w]+)\(`)
 
 func (c *Commands) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir string) {
 	go c.GenerateTest(args, ranges, bang, dir)
@@ -74,7 +74,7 @@ func (c *Commands) GenerateTest(args []string, ranges [2]int, bang bool, dir str
 			// Convert to 1D byte slice
 			buf := nvimutil.ToByteSlice(blines)
 
-			matches := funcRe.FindAllSubmatch(buf, -1)
+			matches := generateFuncRe.FindAllSubmatch(buf, -1)
 			var onlyFuncs []string
 			for _, fnName := range matches {
 				onlyFuncs = append(onlyFuncs, string(fnName[1]))
