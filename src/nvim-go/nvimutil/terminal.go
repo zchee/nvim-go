@@ -74,7 +74,7 @@ func (t *Terminal) Create() (err error) {
 
 	t.Buf.Create(name, FiletypeTerminal, mode, option)
 	t.Buf.Name = t.Name
-	t.Buf.UpdateSyntax(FiletypeTerminal)
+	t.Buf.UpdateSyntax(FiletypeGoTerminal)
 
 	defer t.switchFocus()()
 
