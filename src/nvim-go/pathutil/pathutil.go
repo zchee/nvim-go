@@ -79,3 +79,9 @@ func IsExist(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil
 }
+
+// IsGoFile returns whether the filename is exists.
+func IsGoFile(filename string) bool {
+	f, err := os.Stat(filename)
+	return err == nil && filepath.Ext(f.Name()) == ".go"
+}

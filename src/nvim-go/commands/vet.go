@@ -63,8 +63,7 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, 
 			} else if pathutil.IsDir(path) {
 				eval.Cwd = path
 				vetCmd.Args = append(vetCmd.Args, args[:len(args)-1]...)
-			} else if pathutil.IsExist(path) {
-				eval.Cwd = filepath.Dir(path)
+			} else if pathutil.IsExist(path) && pathutil.IsGoFile(path) {
 				vetCmd.Args = append(vetCmd.Args, path)
 			} else if filepath.Base(path) == "%" {
 				path = eval.File
