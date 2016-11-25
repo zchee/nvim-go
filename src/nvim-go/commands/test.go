@@ -7,8 +7,10 @@ package commands
 import (
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/parser"
 	"go/token"
+	"log"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -23,6 +25,9 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
+// ----------------------------------------------------------------------------
+// GoTest
+
 func (c *Commands) cmdTest(args []string, dir string) {
 	go c.Test(args, dir)
 }
@@ -36,15 +41,35 @@ func (c *Commands) Test(args []string, dir string) error {
 	defer nvimutil.Profile(time.Now(), "GoTest")
 	defer c.ctxt.SetContext(dir)()
 
-	cmd := []string{c.ctxt.Build.Tool, "test"}
-	args = append(args, config.TestFlags...)
+	cmd := []string{c.ctxt.Build.Tool, "test", strings.Join(config.TestFlags, " ")}
 	if len(args) > 0 {
 		cmd = append(cmd, args...)
 	}
 
-	if c.ctxt.Build.Tool == "go" {
-		cmd = append(cmd, string("./..."))
+	var testPkgs []string
+	if config.TestAll {
+		switch c.ctxt.Build.Tool {
+		case "go":
+			pkgs, err := pathutil.FindAllPackage(dir, build.Default, nil, pathutil.ModeExcludeVendor)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			for _, p := range pkgs {
+				testPkgs = append(testPkgs, pathutil.TrimGoPath(p.Dir))
+			}
+		case "gb":
+			// nothing to do
+		}
+	} else {
+		pkgs, err := pathutil.PackageID(dir)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		testPkgs = append(testPkgs, pkgs)
 	}
+
+	cmd = append(cmd, testPkgs...)
+	log.Println(cmd)
 
 	if testTerm == nil {
 		testTerm = nvimutil.NewTerminal(c.Nvim, "__GO_TEST__", cmd, config.TerminalMode)
@@ -57,6 +82,9 @@ func (c *Commands) Test(args []string, dir string) error {
 
 	return nil
 }
+
+// ----------------------------------------------------------------------------
+// GoSwitchTest
 
 var (
 	fset       = token.NewFileSet()

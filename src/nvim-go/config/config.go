@@ -101,8 +101,9 @@ type terminal struct {
 
 // Test represents a GoTest command config variables.
 type test struct {
-	Autosave int64    `eval:"g:go#test#autosave"`
-	Flags    []string `eval:"g:go#test#flags"`
+	AllPackage int64    `eval:"g:go#test#all_package"`
+	Autosave   int64    `eval:"g:go#test#autosave"`
+	Flags      []string `eval:"g:go#test#flags"`
 }
 
 // Debug represents a debug of nvim-go config variable.
@@ -187,6 +188,8 @@ var (
 
 	// TestAutosave call the GoBuild command automatically at during the BufWritePost.
 	TestAutosave bool
+	// TestAll enable all package test on GoTest. similar "go test ./...", but ignored vendor and testdata.
+	TestAll bool
 	// TestArgs test command default args.
 	TestFlags []string
 
@@ -253,6 +256,7 @@ func Get(v *nvim.Nvim, cfg *Config) {
 
 	// Test
 	TestAutosave = itob(cfg.Test.Autosave)
+	TestAll = itob(cfg.Test.AllPackage)
 	TestFlags = cfg.Test.Flags
 
 	// Debug
