@@ -9,6 +9,8 @@ import (
 	"log"
 	"strings"
 
+	"nvim-go/config"
+
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
@@ -62,7 +64,7 @@ func ErrorWrap(v *nvim.Nvim, err error) error {
 		st := err.StackTrace()
 		// "%n" verb is function name
 		funcName = fmt.Sprintf("%n", st[0])
-		if IsDebug() {
+		if config.DebugEnable {
 			log.Printf("Error stack%+v", st[:])
 		}
 	}

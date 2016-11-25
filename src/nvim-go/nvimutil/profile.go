@@ -6,15 +6,16 @@ package nvimutil
 
 import (
 	"log"
-	"os"
 	"time"
+
+	"nvim-go/config"
 )
 
 // Profile measurement of the time it took to any func and output log file.
 // Usage: defer nvim.Profile(time.Now(), "func name")
 func Profile(start time.Time, name string) {
-	elapsed := time.Since(start).Seconds()
-	if os.Getenv("NVIM_GO_DEBUG") != "" {
+	if config.DebugEnable {
+		elapsed := time.Since(start).Seconds()
 		log.Printf("%s: %fsec\n", name, elapsed)
 	}
 }

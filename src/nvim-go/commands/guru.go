@@ -313,7 +313,7 @@ var null = []byte{110, 117, 108, 108}
 
 // TODO(zchee): Should not use json.
 func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*nvim.QuickfixError, error) {
-	if nvimutil.IsDebug() {
+	if config.DebugEnable {
 		log.Printf("data: %+s", string(data))
 	}
 	var (
