@@ -34,11 +34,15 @@ func TestCommands_Vet(t *testing.T) {
 		args    args
 		want    []*nvim.QuickfixError
 		wantErr bool
+		tool    string
 	}{
+		// method.go:17: method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error
+		// method.go:21: method ReadByte() byte should have signature ReadByte() (byte, error)
 		{
-			name: "method.go(2 suggest)",
+			name: "method.go (2 suggest)",
 			fields: fields{
 				Nvim: nvimutil.TestNvim(t, filepath.Join(testVetRoot, "method.go")),
+				ctxt: context.NewContext(),
 			},
 			args: args{
 				args: []string{"method.go"},
@@ -59,11 +63,22 @@ func TestCommands_Vet(t *testing.T) {
 				Text:     "method ReadByte() byte should have signature ReadByte() (byte, error)",
 			}},
 			wantErr: false,
+			tool:    "go",
 		},
+
+		// method.go:17: method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error
+		// method.go:21: method ReadByte() byte should have signature ReadByte() (byte, error)
+		// unused.go:16: result of fmt.Errorf call not used
+		// unused.go:19: result of errors.New call not used
+		// unused.go:22: result of (error).Error call not used
+		// unused.go:25: result of (bytes.Buffer).String call not used
+		// unused.go:27: result of fmt.Sprint call not used
+		// unused.go:28: result of fmt.Sprintf call not used
 		{
-			name: "method.go + unused.go(8 suggest)",
+			name: "method.go and unused.go(8 suggest)",
 			fields: fields{
 				Nvim: nvimutil.TestNvim(t, filepath.Join(testVetRoot, "unused.go")),
+				ctxt: context.NewContext(),
 			},
 			args: args{
 				args: []string{"."},
@@ -114,18 +129,29 @@ func TestCommands_Vet(t *testing.T) {
 				Text:     "result of fmt.Sprintf call not used",
 			}},
 			wantErr: false,
+			tool:    "go",
 		},
 	}
 	for _, tt := range tests {
-		tt.fields.ctxt = context.NewContext()
+		tt.fields.ctxt.Build.Tool = tt.tool
 		c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
-		got, err := c.Vet(tt.args.args, tt.args.eval)
-		if (err != nil) != tt.wantErr {
-			t.Errorf("%q. Commands.Vet(%v, %v) error = %v, wantErr %v", tt.name, tt.args.args, tt.args.eval, err, tt.wantErr)
-			continue
-		}
-		if !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q. Commands.Vet(%v, %v) = %v, want %v", tt.name, tt.args.args, tt.args.eval, got, tt.want)
-		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.Vet(tt.args.args, tt.args.eval)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("%q. Commands.Vet(%v, %v) error = %v, wantErr %v", tt.name, tt.args.args, tt.args.eval, err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("%q. Commands.Vet(%v, %v) =", tt.name, tt.args.args, tt.args.eval)
+				for _, g := range got {
+					t.Errorf("%+v", g)
+				}
+				t.Error("want =")
+				for _, w := range tt.want {
+					t.Errorf("%+v", w)
+				}
+			}
+		})
 	}
 }
