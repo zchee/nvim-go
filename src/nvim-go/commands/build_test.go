@@ -1,15 +1,11 @@
-// Copyright 2016 The nvim-go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package commands
 
 import (
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"testing"
 
-	"nvim-go/config"
 	"nvim-go/context"
 	"nvim-go/nvimutil"
 
@@ -28,9 +24,10 @@ func TestCommands_Build(t *testing.T) {
 		eval *CmdBuildEval
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
+		name   string
+		fields fields
+		args   args
+		// want interface{}
 		wantErr bool
 	}{
 		{
@@ -91,19 +88,23 @@ func TestCommands_Build(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
-		config.ErrorListType = "locationlist"
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
 
-		err := c.Build(tt.args.bang, tt.args.eval)
-		if (err != nil) != tt.wantErr {
-			t.Errorf("wantErr %v", tt.wantErr)
-			continue
-		}
-		if errlist, ok := err.([]*nvim.QuickfixError); !ok {
-			if (len(errlist) != 0) != tt.wantErr {
-				t.Errorf("%q. Commands.Build(%v, %v)", tt.name, tt.args.bang, tt.args.eval)
+			// if got := c.Build(tt.args.bang, tt.args.eval); !reflect.DeepEqual(got, tt.want) {
+			// 	t.Errorf("Commands.Build(%v, %v) = %v, want %v", tt.args.bang, tt.args.eval, got, tt.want)
+			// }
+			err := c.Build(tt.args.bang, tt.args.eval)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("wantErr %v", tt.wantErr)
+				return
 			}
-		}
+			if errlist, ok := err.([]*nvim.QuickfixError); !ok {
+				if (len(errlist) != 0) != tt.wantErr {
+					t.Errorf("%q. Commands.Build(%v, %v)", tt.name, tt.args.bang, tt.args.eval)
+				}
+			}
+		})
 	}
 }
 
@@ -138,6 +139,15 @@ func BenchmarkBuildGb(b *testing.B) {
 }
 
 func TestCommands_compileCmd(t *testing.T) {
+	gobinary, err := exec.LookPath("go")
+	if err != nil {
+		t.Error(err)
+	}
+	gbbinary, err := exec.LookPath("gb")
+	if err != nil {
+		t.Error(err)
+	}
+
 	type fields struct {
 		Nvim     *nvim.Nvim
 		Pipeline *nvim.Pipeline
@@ -164,7 +174,7 @@ func TestCommands_compileCmd(t *testing.T) {
 			args: args{
 				dir: astdump,
 			},
-			want:    "go",
+			want:    gobinary,
 			wantErr: false,
 		},
 		{
@@ -176,7 +186,7 @@ func TestCommands_compileCmd(t *testing.T) {
 			args: args{
 				dir: "testdata",
 			},
-			want:    "gb",
+			want:    gbbinary,
 			wantErr: false,
 		},
 		{
@@ -188,22 +198,25 @@ func TestCommands_compileCmd(t *testing.T) {
 			args: args{
 				dir: gsftpRoot,
 			},
-			want:    "gb",
+			want:    gbbinary,
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		tt.fields.ctxt.Build.Tool = tt.want
 		tt.fields.ctxt.Build.ProjectRoot = tt.args.dir
-		c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
-		got, err := c.compileCmd(tt.args.bang, tt.args.dir)
-		if (err != nil) != tt.wantErr {
-			t.Errorf("%q. Commands.compileCmd(%v, %v) error = %v, wantErr %v", tt.name, tt.args.bang, tt.args.dir, err, tt.wantErr)
-			continue
-		}
-		cmdArgs := got.Args[0]
-		if !reflect.DeepEqual(cmdArgs, tt.want) {
-			t.Errorf("%q. Commands.compileCmd(%v, %v) = %v, want %v", tt.name, tt.args.bang, tt.args.dir, cmdArgs, tt.want)
-		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
+
+			got, err := c.compileCmd(tt.args.bang, tt.args.dir)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Commands.compileCmd(%v, %v) error = %v, wantErr %v", tt.args.bang, tt.args.dir, err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got.Args[0], tt.want) {
+				t.Errorf("Commands.compileCmd(%v, %v) = %v, want %v", tt.args.bang, tt.args.dir, got, tt.want)
+			}
+		})
 	}
 }
