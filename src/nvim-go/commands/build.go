@@ -13,6 +13,7 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
+	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -38,8 +39,8 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 	}()
 }
 
-// Build builds the current buffer's package use compile tool that
-// determined from the directory structure.
+// Build builds the current buffers package use compile tool that determined
+// from the package directory structure.
 func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoBuild")
 	defer c.ctxt.SetContext(eval.Dir)()
@@ -48,42 +49,61 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 		bang = config.BuildForce
 	}
 
-	cmd, err := c.compileCmd(bang, eval.Cwd)
+	cmd, err := c.compileCmd(bang, eval.Dir)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
-	if buildErr := cmd.Run(); buildErr != nil && buildErr.(*exec.ExitError) != nil {
-		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
-		if err != nil {
-			return errors.WithStack(err)
+	if buildErr := cmd.Run(); buildErr != nil {
+		if buildErr.(*exec.ExitError) != nil {
+			errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			return errlist
 		}
-		return errlist
+		return buildErr
 	}
+
+	// Build succeeded, clean up the Errlist
 	delete(c.ctxt.Errlist, "Build")
 
 	return nvimutil.EchoSuccess(c.Nvim, "GoBuild", fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
 }
 
+// compileCmd returns the *exec.Cmd corresponding to the compile tool.
 func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
-	cmd := exec.Command(c.ctxt.Build.Tool)
-	args := []string{"build"}
+	bin, err := exec.LookPath(c.ctxt.Build.Tool)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 
+	cmd := exec.Command(bin, "build")
+
+	args := []string{}
 	if len(config.BuildFlags) > 0 {
 		args = append(args, config.BuildFlags...)
 	}
 
 	switch c.ctxt.Build.Tool {
 	case "go":
-		cmd.Dir = dir
+		pkgPath, err := pathutil.PackagePath(dir)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		cmd.Dir = pkgPath
+
+		// Outputs the binary to DevNull if without bang
 		if !bang {
 			args = append(args, "-o", os.DevNull)
 		}
+
 	case "gb":
 		cmd.Dir = c.ctxt.Build.ProjectRoot
 	}
+
 	cmd.Args = append(cmd.Args, args...)
 
 	return cmd, nil
