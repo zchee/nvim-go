@@ -35,6 +35,16 @@ func Chdir(v *nvim.Nvim, dir string) func() {
 	}
 }
 
+func TrimGoPath(p string) string {
+	p = strings.TrimPrefix(p, os.Getenv("GOPATH")) + string(filepath.Separator)
+	switch p[:4] {
+	case "/bin", "/pkg", "/src":
+		return filepath.Clean(p[5:])
+	default:
+		return filepath.Clean(p)
+	}
+}
+
 // ShortFilePath return the simply trim cwd into p.
 func ShortFilePath(p, cwd string) string {
 	return strings.Replace(p, cwd, ".", 1)

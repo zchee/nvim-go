@@ -6,8 +6,8 @@ package nvimutil
 
 import (
 	"bytes"
+
 	"fmt"
-	"go/build"
 	"go/token"
 	"path/filepath"
 	"regexp"
@@ -16,8 +16,10 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/context"
+	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
+	"github.com/pkg/errors"
 )
 
 // SetLoclist set the error results data to current buffer's locationlist.
@@ -201,7 +203,7 @@ var errRe = regexp.MustCompile(`(?m)^([^\t:]+):(\d+)(?::(\d+))?:\s(.*)`)
 
 // ParseError parses a typical error message of Go compile tools.
 // TODO(zchee): More elegant way
-func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixError, error) {
+func ParseError(errs []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixError, error) {
 	var (
 		parentDir string
 		errlist   []*nvim.QuickfixError
@@ -211,7 +213,7 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*nvim.Quickfi
 	// m[2]: line number of error point
 	// m[3]: column number of error point
 	// m[4]: error description text
-	for _, m := range errRe.FindAllSubmatch(errors, -1) {
+	for _, m := range errRe.FindAllSubmatch(errs, -1) {
 		filename := string(bytes.Replace(m[1], []byte{'\t'}, nil, -1))
 
 		// "# " is contained in the first error message whose different the
@@ -230,12 +232,20 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*nvim.Quickfi
 		}
 
 		if !strings.Contains(filename, "../") {
-			filename = filepath.Join(parentDir, filepath.Base(filename))
+			if !filepath.IsAbs(filename) {
+				filename = filepath.Join(parentDir, filepath.Base(filename))
+			}
 			switch ctxt.Tool {
 			case "go":
-				goSrcPath := filepath.Join(build.Default.GOPATH, "src")
-				currentDir := strings.TrimPrefix(cwd, goSrcPath+string(filepath.Separator))
-				filename = strings.TrimPrefix(filepath.Clean(filename), currentDir+string(filepath.Separator))
+				// Cleanup filename to relative path of current working directory
+				var sep string
+				switch {
+				case strings.HasPrefix(filename, cwd): // not contains '#' package title in errror
+					sep = cwd
+				case strings.HasPrefix(filename, pathutil.TrimGoPath(cwd)):
+					sep = pathutil.TrimGoPath(cwd)
+				}
+				filename = strings.TrimPrefix(filename, sep+string(filepath.Separator))
 
 			case "gb":
 				if !filepath.IsAbs(filename) {
@@ -244,6 +254,8 @@ func ParseError(errors []byte, cwd string, ctxt *context.Build) ([]*nvim.Quickfi
 				if frel, err := filepath.Rel(cwd, filename); err == nil {
 					filename = frel
 				}
+			default:
+				return nil, errors.New("unknown compiler tool")
 			}
 		}
 
