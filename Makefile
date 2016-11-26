@@ -1,11 +1,5 @@
 GITHUB_USER := zchee
 
-ifeq ($(DEBUG),true)
-	GO_GCFLAGS += -gcflags "-N -l"
-else
-	GO_LDFLAGS += -ldflags "-w -s"
-endif
-
 PACKAGE_NAME := nvim-go
 PACKAGE_DIR := $(shell pwd)
 BINARY_NAME := bin/nvim
@@ -31,29 +25,34 @@ GO_TEST_FLAGS ?= -v -race
 test-bench: GO_TEST_FLAGS += -bench=. -benchmem
 
 GO_BUILD := ${GB_CMD} build
-GO_BUILD_RACE := ${GB_CMD} build -race
 GO_TEST := ${GB_CMD} test
 GO_LINT := golint
 
+ifneq ($(NVIM_GO_DEBUG),)
+GO_GCFLAGS += -gcflags "-N -l"
+default: manifest
+else
+GO_LDFLAGS += -ldflags "-w -s"
+endif
 
 default: build
 
 build: ## build the nvim-go binary
 	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS}
-	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
 build-race: ## build the nvim-go binary with -race
+	$(GO_CMD) install -v -x -race std
 	${GO_BUILD} -race $(GO_LDFLAGS) ${GO_GCFLAGS}
 	mv ./bin/nvim-go-race ./bin/nvim-go
-	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
-rebuild: clean $(PACKAGE_DIR)/plugin/manifest ## rebuild the nvim-go binary
+rebuild: clean ## rebuild the nvim-go binary
 	${GO_BUILD} -f $(GO_LDFLAGS) ${GO_GCFLAGS}
-	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
 $(PACKAGE_DIR)/plugin/manifest: ## build the auto writing neovim manifest utility binary
-	$(GO_CMD) build -o $(PACKAGE_DIR)/plugin/manifest $(PACKAGE_DIR)/plugin/manifest.go
+	${GO_BUILD} -o $(PACKAGE_DIR)/plugin/manifest $(PACKAGE_DIR)/plugin/manifest.go
 
+manifest: build $(PACKAGE_DIR)/plugin/manifest ## Write plugin manifest (for developers)
+	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
 test: ## run the package test 
 	${GO_TEST} $(GO_TEST_FLAGS)
@@ -71,7 +70,7 @@ vendor-all: ## update the all vendor packages
 	${VENDOR_CMD} update -all
 	${MAKE} vendor-cleanup
 
-vendor-cleanup: ## cleanup vendor packages "*_test" files, testdata and nogo files.
+vendor-clean: ## cleanup vendor packages "*_test" files, testdata and nogo files.
 	@find ./vendor -type d -name 'testdata' -print | xargs rm -rf
 	@find ./vendor -type f -name '*_test.go' -print -exec rm {} ";"
 	@find ./vendor \
@@ -117,4 +116,4 @@ todo: ## print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
 help: ## print this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-.PHONY: clean test build build-race rebuild test test-docker test-bench test-run vendor-all vendor-guru docker docker-build docker-build-nocache todo help
+.PHONY: clean test build build-race rebuild manifest test test-docker test-bench test-run vendor-all vendor-guru docker docker-build docker-build-nocache todo help
