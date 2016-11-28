@@ -1,7 +1,28 @@
 nvim-go original behavior
 =========================
 
--	[ ] Implements `echo` error & warning message when move cursor to this line
+Comment Generator
+-----------------
+
+- [ ] Automatically generate and insert the typical Go comment based current cursor or selected words.
+  - Parses AST, determine `*ast.Ident.Obj.Kind` aka `*ast.ObjKind` type
+    - `*ast.Pkg`:
+      - Package `*ast.File.Name` implements ...
+    - `*ast.Con`:
+      - `*ast.ValueSpec.Name` ??? ...
+    - `*ast.Typ`:
+      - (A|The) `*ast.TypeSpec.Name` represents a ... // (A|The) is optional
+    - `*ast.Var`:
+      - `*ast.ValueSpec.Name` is the ...
+    - `*ast.Fun`:
+      - `*ast.FuncDecl.Name` returns the ...
+    - `*ast.Lbl`:
+      - Need?
+  - Support `interface`, like
+    - `func (f *Foo) String()`:
+      - String implements a fmt.Stringer interface.
+    - `func (f *Foo) Error()`:
+      - Error implements a error.Error interface.
 
 Compile error
 -------------
@@ -13,6 +34,7 @@ Compile error
 	-	[x] `GoTest`
 	-	[ ] `GoLint`
 -	[ ] Implements highlight `sign` to error & warning (like YCM, vim-flake8)
+	-	[ ] Use `echo` error & warning message when move cursor to this line
 
 `GoAnalyze`
 -----------
