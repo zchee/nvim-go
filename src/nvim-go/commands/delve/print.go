@@ -21,10 +21,10 @@ import (
 // printTerminal prints the message to terminal buffer with cmd prefix.
 // also sets the next line "(dlv) " terminal header.
 func (d *Delve) printTerminal(cmd string, message []byte) error {
-	d.Nvim.SetBufferOption(d.buffer[Terminal].Buffer, "modifiable", true)
-	defer d.Nvim.SetBufferOption(d.buffer[Terminal].Buffer, "modifiable", false)
+	d.Nvim.SetBufferOption(d.buffer[Terminal].Buffer(), "modifiable", true)
+	defer d.Nvim.SetBufferOption(d.buffer[Terminal].Buffer(), "modifiable", false)
 
-	lcount, err := d.Nvim.BufferLineCount(d.buffer[Terminal].Buffer)
+	lcount, err := d.Nvim.BufferLineCount(d.buffer[Terminal].Buffer())
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -43,11 +43,11 @@ func (d *Delve) printTerminal(cmd string, message []byte) error {
 	}
 	msg = append(msg, []byte("(dlv)  ")...)
 
-	if err := d.Nvim.SetBufferLines(d.buffer[Terminal].Buffer, lcount, -1, true, bytes.Split(msg, []byte{'\n'})); err != nil {
+	if err := d.Nvim.SetBufferLines(d.buffer[Terminal].Buffer(), lcount, -1, true, bytes.Split(msg, []byte{'\n'})); err != nil {
 		return errors.WithStack(err)
 	}
 
-	afterBuf, err := d.Nvim.BufferLines(d.buffer[Terminal].Buffer, 0, -1, true)
+	afterBuf, err := d.Nvim.BufferLines(d.buffer[Terminal].Buffer(), 0, -1, true)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -69,8 +69,8 @@ func (d *Delve) printServerStderr() error {
 // context
 
 func (d *Delve) printContext(cwd string, cThread *delveapi.Thread, goroutines []*delveapi.Goroutine) error {
-	d.Nvim.SetBufferOption(d.buffer[Context].Buffer, "modifiable", true)
-	defer d.Nvim.SetBufferOption(d.buffer[Context].Buffer, "modifiable", false)
+	d.Nvim.SetBufferOption(d.buffer[Context].Buffer(), "modifiable", true)
+	defer d.Nvim.SetBufferOption(d.buffer[Context].Buffer(), "modifiable", false)
 
 	stackHeight, err := d.printStacktrace(cwd, cThread.Function, goroutines)
 	if err != nil {
@@ -103,14 +103,14 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 	var fade *nvimutil.Fade
 
 	stacksMsg := []byte("Stacktraces\n")
-	end, _ := d.Nvim.BufferLineCount(d.buffer[Context].Buffer)
+	end, _ := d.Nvim.BufferLineCount(d.buffer[Context].Buffer())
 
 	for _, g := range goroutines {
 		// Get the each threads function name.
 		if g.CurrentLoc.Function.Name == currentFunc.Name {
 			stacksMsg = append(stacksMsg, byte('*'))
 			hlLine := len(nvimutil.ToBufferLines(stacksMsg))
-			fade = nvimutil.NewFader(d.Nvim, d.buffer[Context].Buffer, "delveFade", hlLine, hlLine, 3, -1, 80)
+			fade = nvimutil.NewFader(d.Nvim, d.buffer[Context].Buffer(), "delveFade", hlLine, hlLine, 3, -1, 80)
 		} else {
 			stacksMsg = append(stacksMsg, []byte(fmt.Sprintf("\t\u25B6 %s\n", g.CurrentLoc.Function.Name))...) // \u25B6: ▶
 			continue
@@ -144,7 +144,7 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 		end = len(stackData)
 	}
 
-	if err := d.Nvim.SetBufferLines(d.buffer[Context].Buffer, 0, end, true, stackData); err != nil {
+	if err := d.Nvim.SetBufferLines(d.buffer[Context].Buffer(), 0, end, true, stackData); err != nil {
 		return end, errors.WithStack(err)
 	}
 
@@ -178,7 +178,7 @@ func (d *Delve) printLocals(cwd string, locals []delveapi.Variable, stackHeight 
 		localsMsg = append(localsMsg, []byte(fmt.Sprintf("\t\u25B6 %s %s\n", l.Name, l.Kind.String()))...) // \u25B6: ▶
 
 	}
-	if err := d.Nvim.SetBufferLines(d.buffer[Context].Buffer, stackHeight, -1, true, bytes.Split(localsMsg, []byte{'\n'})); err != nil {
+	if err := d.Nvim.SetBufferLines(d.buffer[Context].Buffer(), stackHeight, -1, true, bytes.Split(localsMsg, []byte{'\n'})); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -186,8 +186,8 @@ func (d *Delve) printLocals(cwd string, locals []delveapi.Variable, stackHeight 
 }
 
 func (d *Delve) printThread(v *nvim.Nvim, cwd string, threads []*delveapi.Thread) error {
-	v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", true)
-	defer v.SetBufferOption(d.buffer[Context].Buffer, "modifiable", false)
+	v.SetBufferOption(d.buffer[Context].Buffer(), "modifiable", true)
+	defer v.SetBufferOption(d.buffer[Context].Buffer(), "modifiable", false)
 
 	for _, thread := range threads {
 		printDebug("thread", thread.File)

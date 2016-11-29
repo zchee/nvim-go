@@ -18,13 +18,12 @@ const pkgBuffer = "nvim.buffer"
 
 type BufferName string
 
-// Buf represents a Neovim buffer.
-// TODO(zchee): Ugly type name because of a conflict in vim.Buffer.
-type Buf struct {
+// Buffer represents a Neovim buffer.
+type Buffer struct {
 	v *nvim.Nvim
 	p *nvim.Pipeline
 
-	nvim.Buffer
+	buffer   nvim.Buffer
 	Name     string
 	Filetype string
 	Bufnr    int
@@ -38,15 +37,19 @@ type Buf struct {
 }
 
 // NewBuffer return the new Buf instance with goroutine pipeline.
-func NewBuffer(v *nvim.Nvim) *Buf {
-	return &Buf{
+func NewBuffer(v *nvim.Nvim) *Buffer {
+	return &Buffer{
 		v: v,
 		p: v.NewPipeline(),
 	}
 }
 
+func (b *Buffer) Buffer() nvim.Buffer {
+	return b.buffer
+}
+
 // Create creates the new buffer and return the Buffer structure type.
-func (b *Buf) Create(name, filetype, mode string, option map[NvimOption]map[string]interface{}) error {
+func (b *Buffer) Create(name, filetype, mode string, option map[NvimOption]map[string]interface{}) error {
 	b.Name = name
 	b.Filetype = filetype
 	b.Mode = mode
@@ -67,17 +70,17 @@ func (b *Buf) Create(name, filetype, mode string, option map[NvimOption]map[stri
 		b.p.SetWindowWidth(b.Window, b.Width)
 	}
 
-	b.p.BufferNumber(b.Buffer, &b.Bufnr)
+	b.p.BufferNumber(b.buffer, &b.Bufnr)
 
 	if option != nil {
 		if option[BufferOption] != nil {
 			for k, op := range option[BufferOption] {
-				b.p.SetBufferOption(b.Buffer, k, op)
+				b.p.SetBufferOption(b.buffer, k, op)
 			}
 		}
 		if option[BufferVar] != nil {
 			for k, op := range option[BufferVar] {
-				b.p.SetBufferVar(b.Buffer, k, op)
+				b.p.SetBufferVar(b.buffer, k, op)
 			}
 		}
 		if option[WindowOption] != nil {
@@ -104,39 +107,39 @@ func (b *Buf) Create(name, filetype, mode string, option map[NvimOption]map[stri
 	return b.p.Wait()
 }
 
-func (b *Buf) GetBufferContext() error {
-	b.p.CurrentBuffer(&b.Buffer)
+func (b *Buffer) GetBufferContext() error {
+	b.p.CurrentBuffer(&b.buffer)
 	b.p.CurrentWindow(&b.Window)
 	b.p.CurrentTabpage(&b.Tabpage)
 
 	return b.p.Wait()
 }
 
-func (b *Buf) BufferLines(start, end int, strict bool) {
-	if b.Buffer == 0 {
+func (b *Buffer) BufferLines(start, end int, strict bool) {
+	if b.buffer == 0 {
 		b.GetBufferContext()
 	}
 
-	buf, err := b.v.BufferLines(b.Buffer, start, end, strict)
+	buf, err := b.v.BufferLines(b.buffer, start, end, strict)
 	if err != nil {
 		return
 	}
 	b.Data = ToByteSlice(buf)
 }
 
-func (b *Buf) SetBufferLines(start, end int, strict bool, replacement []byte) error {
-	if b.Buffer == 0 {
+func (b *Buffer) SetBufferLines(start, end int, strict bool, replacement []byte) error {
+	if b.buffer == 0 {
 		err := errors.New("Does not exist of target buffer")
 		return err
 	}
 
 	b.Data = replacement
 
-	return b.v.SetBufferLines(b.Buffer, start, end, strict, ToBufferLines(replacement))
+	return b.v.SetBufferLines(b.buffer, start, end, strict, ToBufferLines(replacement))
 }
 
-func (b *Buf) SetBufferLinesAll(replacement []byte) error {
-	if b.Buffer == 0 {
+func (b *Buffer) SetBufferLinesAll(replacement []byte) error {
+	if b.buffer == 0 {
 		err := errors.New("Does not exist of target buffer")
 		return err
 	}
@@ -148,14 +151,14 @@ func (b *Buf) SetBufferLinesAll(replacement []byte) error {
 }
 
 // UpdateSyntax updates the syntax highlight of the buffer.
-func (b *Buf) UpdateSyntax(syntax string) {
+func (b *Buffer) UpdateSyntax(syntax string) {
 	if b.Name != "" {
-		b.v.SetBufferName(b.Buffer, b.Name)
+		b.v.SetBufferName(b.buffer, b.Name)
 	}
 
 	if syntax == "" {
 		var filetype interface{}
-		b.v.BufferOption(b.Buffer, "filetype", &filetype)
+		b.v.BufferOption(b.buffer, "filetype", &filetype)
 		syntax = fmt.Sprintf("%s", filetype)
 	}
 
@@ -164,7 +167,7 @@ func (b *Buf) UpdateSyntax(syntax string) {
 
 // SetLocalMapping sets buffer local mapping.
 // 'mapping' arg: [key]{destination}
-func (b *Buf) SetLocalMapping(mode string, mapping map[string]string) error {
+func (b *Buffer) SetLocalMapping(mode string, mapping map[string]string) error {
 	if mapping != nil {
 		cwin, err := b.v.CurrentWindow()
 		if err != nil {
@@ -184,8 +187,8 @@ func (b *Buf) SetLocalMapping(mode string, mapping map[string]string) error {
 
 // lineCount counts the Neovim buffer line count and check whether 1 count,
 // Because new(empty) buffer and one line buffer are both 1 count.
-func (b *Buf) lineCount() (int, error) {
-	lineCount, err := b.v.BufferLineCount(b.Buffer)
+func (b *Buffer) lineCount() (int, error) {
+	lineCount, err := b.v.BufferLineCount(b.buffer)
 	if err != nil {
 		return 0, errors.Wrap(err, pkgBuffer)
 	}
@@ -205,20 +208,20 @@ func (b *Buf) lineCount() (int, error) {
 }
 
 // Write appends the contents of p to the Neovim buffer.
-func (b *Buf) Write(p []byte) (int, error) {
+func (b *Buffer) Write(p []byte) (int, error) {
 	lineCount, err := b.lineCount()
 	if err != nil {
 		return 0, errors.Wrap(err, pkgBuffer)
 	}
 
 	buf := bytes.NewBuffer(p)
-	b.v.SetBufferLines(b.Buffer, lineCount, -1, true, ToBufferLines(buf.Bytes()))
+	b.v.SetBufferLines(b.buffer, lineCount, -1, true, ToBufferLines(buf.Bytes()))
 
 	return len(p), nil
 }
 
 // WriteString appends the contents of s to the Neovim buffer.
-func (b *Buf) WriteString(s string) error {
+func (b *Buffer) WriteString(s string) error {
 	lineCount, err := b.lineCount()
 	if err != nil {
 		return errors.Wrap(err, pkgBuffer)
@@ -226,19 +229,19 @@ func (b *Buf) WriteString(s string) error {
 
 	buf := bytes.NewBufferString(s)
 
-	return b.v.SetBufferLines(b.Buffer, lineCount, -1, true, ToBufferLines(buf.Bytes()))
+	return b.v.SetBufferLines(b.buffer, lineCount, -1, true, ToBufferLines(buf.Bytes()))
 }
 
 // Truncate discards all but the first n unread bytes from the
 // Neovim buffer but continues to use the same allocated storage.
-func (b *Buf) Truncate(n int) {
-	b.v.SetBufferLines(b.Buffer, n, -1, true, [][]byte{})
+func (b *Buffer) Truncate(n int) {
+	b.v.SetBufferLines(b.buffer, n, -1, true, [][]byte{})
 }
 
 // Reset resets the Neovim buffer to be empty,
 // but it retains the underlying storage for use by future writes.
 // Reset is the same as Truncate(0).
-func (b *Buf) Reset() { b.Truncate(0) }
+func (b *Buffer) Reset() { b.Truncate(0) }
 
 // ----------------------------------------------------------------------------
 // Utility

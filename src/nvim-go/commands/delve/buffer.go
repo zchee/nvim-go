@@ -42,7 +42,7 @@ func (d *Delve) createDebugBuffer() error {
 		defer d.Nvim.SetCurrentWindow(d.cw)
 
 		option := d.setTerminalOption()
-		d.buffer = make(map[nvimutil.BufferName]*nvimutil.Buf)
+		d.buffer = make(map[nvimutil.BufferName]*nvimutil.Buffer)
 		nnoremap := make(map[string]string)
 
 		d.buffer[Terminal] = nvimutil.NewBuffer(d.Nvim)

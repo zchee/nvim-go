@@ -34,7 +34,7 @@ type Terminal struct {
 
 	cw nvim.Window
 
-	*Buf
+	*Buffer
 }
 
 // NewTerminal return the Neovim terminal buffer.
@@ -55,15 +55,15 @@ func (t *Terminal) Create() (err error) {
 		return err
 	}
 
-	t.Buf = NewBuffer(t.v)
+	t.Buffer = NewBuffer(t.v)
 
 	switch {
 	case t.mode == "split":
 		t.Size = t.getWindowSize(config.TerminalHeight, t.v.WindowHeight)
-		t.Buf.Height = t.Size
+		t.Buffer.Height = t.Size
 	case t.mode == "vsplit":
 		t.Size = t.getWindowSize(config.TerminalWidth, t.v.WindowWidth)
-		t.Buf.Width = t.Size
+		t.Buffer.Width = t.Size
 	default:
 		// nothing to do
 	}
@@ -72,9 +72,9 @@ func (t *Terminal) Create() (err error) {
 	name := fmt.Sprintf("| terminal %s", strings.Join(t.cmd, " "))
 	mode := fmt.Sprintf("%s %d%s", config.TerminalPosition, t.Size, t.mode)
 
-	t.Buf.Create(name, FiletypeTerminal, mode, option)
-	t.Buf.Name = t.Name
-	t.Buf.UpdateSyntax(FiletypeGoTerminal)
+	t.Buffer.Create(name, FiletypeTerminal, mode, option)
+	t.Buffer.Name = t.Name
+	t.Buffer.UpdateSyntax(FiletypeGoTerminal)
 
 	defer t.switchFocus()()
 
@@ -96,12 +96,12 @@ func (t *Terminal) Run(cmd []string) error {
 		defer pathutil.Chdir(t.v, t.Dir)()
 	}
 
-	if t.Buf != nil && IsBufferValid(t.v, t.Buffer) {
+	if t.Buffer != nil && IsBufferValid(t.v, t.buffer) {
 		defer t.switchFocus()()
 
-		t.v.SetBufferOption(t.Buffer, BufOptionModified, false)
+		t.v.SetBufferOption(t.buffer, BufOptionModified, false)
 		t.v.Call("termopen", nil, cmd)
-		t.v.SetBufferName(t.Buffer, t.Buf.Name)
+		t.v.SetBufferName(t.buffer, t.Buffer.Name)
 	} else {
 		t.Create()
 	}
