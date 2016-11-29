@@ -199,83 +199,83 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 	return fname, int(line), int(col)
 }
 
-var errRe = regexp.MustCompile(`(?m)^([^\t:]+):(\d+)(?::(\d+))?:\s(.*)`)
+// regexp pattern: https://regex101.com/r/bUVZpH/2
+var errRe = regexp.MustCompile(`(?m)^(?:#\s([[:graph:]]+))?(?:[\s\t]+)?([^\s:]+):(\d+)(?::(\d+))?(?::)?\s(.*)`)
 
-// ParseError parses a typical error message of Go compile tools.
-// TODO(zchee): More elegant way
+// ParseError parses a typical Go tools error messages.
 func ParseError(errs []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixError, error) {
 	var (
-		parentDir string
-		errlist   []*nvim.QuickfixError
+		// packagePath for the save the error files parent directory.
+		// It will be re-assigned if "# " is in the error message.
+		packagePath string
+		errlist     []*nvim.QuickfixError
 	)
 
-	// m[1]: relative file path of error file
-	// m[2]: line number of error point
-	// m[3]: column number of error point
-	// m[4]: error description text
+	// m[1]: package path with "# " prefix
+	// m[2]: error files relative path
+	// m[3]: line number of error point
+	// m[4]: column number of error point
+	// m[5]: error description text
 	for _, m := range errRe.FindAllSubmatch(errs, -1) {
-		filename := string(bytes.Replace(m[1], []byte{'\t'}, nil, -1))
-
-		// "# " is contained in the first error message whose different the
-		// error file's parent directory
-		if bytes.Contains(m[1], []byte{'#'}) {
-			// Trims "# " from errors message
-			// such as "# nvim-go/nvimutil ..." to "nvim-go/nvimutil ..."
-			//
-			// p[0]: error file parent directory path
-			// p[1]: error file relative path
-			path := bytes.Split(m[1][2:], []byte{'\n'})
-
-			// Save the parent directory path for the second subsequent error
-			parentDir = string(path[0])
-			filename = string(bytes.Replace(path[1], []byte{'\t'}, nil, -1))
+		if m[1] != nil {
+			// Save the package path for the second subsequent errors
+			packagePath = string(m[1])
 		}
+		filename := string(m[2])
 
+		// Avoid the local package error. like "package foo" and edit "cmd/foo/main.go"
 		if !strings.Contains(filename, "../") {
-			if !filepath.IsAbs(filename) {
-				filename = filepath.Join(parentDir, filepath.Base(filename))
+			if !filepath.IsAbs(filename) && packagePath != "" {
+				// Joins the packagePath and error file
+				filename = filepath.Join(packagePath, filepath.Base(filename))
 			}
+
+			// Cleanup filename to relative path of current working directory
 			switch ctxt.Tool {
 			case "go":
-				// Cleanup filename to relative path of current working directory
 				var sep string
 				switch {
-				case strings.HasPrefix(filename, cwd): // not contains '#' package title in errror
-					sep = cwd
-				case strings.HasPrefix(filename, pathutil.TrimGoPath(cwd)):
-					sep = pathutil.TrimGoPath(cwd)
-				}
-				filename = strings.TrimPrefix(filename, sep+string(filepath.Separator))
+				// filename has not directory path
+				case filepath.Dir(filename) == ".":
+					filename = filepath.Join(cwd, filename)
 
+				// not contains '#' package title in errror
+				case strings.HasPrefix(filename, cwd):
+					sep = cwd
+					filename = strings.TrimPrefix(filename, sep+string(filepath.Separator))
+
+				// filename is like "github.com/foo/bar.go"
+				case strings.HasPrefix(filename, pathutil.TrimGoPath(cwd)):
+					sep = pathutil.TrimGoPath(cwd) + string(filepath.Separator)
+					filename = strings.TrimPrefix(filename, sep)
+				}
 			case "gb":
+				// filename has not directory path
 				if !filepath.IsAbs(filename) {
 					filename = filepath.Join(ctxt.ProjectRoot, "src", filename)
-				}
-				if frel, err := filepath.Rel(cwd, filename); err == nil {
-					filename = frel
 				}
 			default:
 				return nil, errors.New("unknown compiler tool")
 			}
 		}
 
-		line, err := strconv.Atoi(string(m[2]))
+		// Finally, try to convert the relative path from cwd
+		filename = pathutil.Rel(cwd, filename)
+
+		// line is necessary for error messages
+		line, err := strconv.Atoi(string(m[3]))
 		if err != nil {
 			return nil, err
 		}
 
-		col, err := strconv.Atoi(string(m[3]))
-		// fallback if cannot convert col to type int
-		// Basically, col == ""
-		if err != nil {
-			col = 0
-		}
+		// Ignore err because fail strconv.Atoi will assign 0 to col
+		col, _ := strconv.Atoi(string(m[4]))
 
 		errlist = append(errlist, &nvim.QuickfixError{
 			FileName: filename,
 			LNum:     line,
 			Col:      col,
-			Text:     string(bytes.TrimSpace(m[4])),
+			Text:     string(bytes.TrimSpace(m[5])),
 		})
 	}
 
