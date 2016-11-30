@@ -25,9 +25,7 @@ func Chdir(v *nvim.Nvim, dir string) func() {
 		cwd interface{}
 	)
 	m.Lock()
-	if err := v.Eval("getcwd()", &cwd); err != nil {
-		return nil
-	}
+	v.Eval("getcwd()", &cwd)
 	v.SetCurrentDirectory(dir)
 	return func() {
 		v.SetCurrentDirectory(cwd.(string))
