@@ -160,12 +160,20 @@ func TestRel(t *testing.T) {
 			want: "src/nvim-go/pathutil/pathutil_test.go",
 		},
 		{
-			name: "Use filepath.Rel",
+			name: "Use different directory",
 			args: args{
 				f:   filepath.Join(testCwd, "pathutil_test.go"),
 				cwd: filepath.Join(testCwd, "../commands"),
 			},
 			want: "../pathutil/pathutil_test.go",
+		},
+		{
+			name: "Fail the filepath.Rel()",
+			args: args{
+				f:   filepath.Join(testCwd, "pathutil_test.go"),
+				cwd: filepath.Join("foo", "bar", "baz"),
+			},
+			want: filepath.Join(testCwd, "pathutil_test.go"),
 		},
 	}
 	for _, tt := range tests {
@@ -261,6 +269,35 @@ func TestIsExist(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := pathutil.IsExist(tt.args.filename); got != tt.want {
 				t.Errorf("IsExist(%v) = %v, want %v", tt.args.filename, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsGoFile(t *testing.T) {
+	type args struct {
+		filename string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "go file",
+			args: args{filename: "pathutil.go"},
+			want: true,
+		},
+		{
+			name: "not go file",
+			args: args{filename: "test.c"},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := pathutil.IsGoFile(tt.args.filename); got != tt.want {
+				t.Errorf("IsGoFile(%v) = %v, want %v", tt.args.filename, got, tt.want)
 			}
 		})
 	}
