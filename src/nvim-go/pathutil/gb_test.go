@@ -93,6 +93,13 @@ func TestIsGb(t *testing.T) {
 			want:  "",
 			want1: false,
 		},
+		{
+			name:  "GOROOT",
+			tool:  "gb",
+			args:  args{dir: filepath.Join(build.Default.GOROOT, "src", "go")}, // internal directory
+			want:  "",
+			want1: false,
+		},
 	}
 	for _, tt := range tests {
 		switch tt.tool {
