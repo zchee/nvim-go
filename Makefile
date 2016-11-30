@@ -37,40 +37,42 @@ endif
 
 default: build
 
-build: ## build the nvim-go binary
+build: ## Build the nvim-go binary
 	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS}
 
-build-race: ## build the nvim-go binary with -race
+build-race: ## Build the nvim-go binary with -race
 	$(GO_CMD) install -v -x -race std
 	${GO_BUILD} -race $(GO_LDFLAGS) ${GO_GCFLAGS}
 	mv ./bin/nvim-go-race ./bin/nvim-go
 
-rebuild: clean ## rebuild the nvim-go binary
+rebuild: clean ## Rebuild the nvim-go binary
 	${GO_BUILD} -f $(GO_LDFLAGS) ${GO_GCFLAGS}
 
-$(PACKAGE_DIR)/plugin/manifest: ## build the auto writing neovim manifest utility binary
+rebuild-race: clean build-race ## Rebuild the nvim-go binary with -race
+
+$(PACKAGE_DIR)/plugin/manifest: ## Build the automatic writing neovim manifest utility binary
 	${GO_BUILD} -o $(PACKAGE_DIR)/plugin/manifest $(PACKAGE_DIR)/plugin/manifest.go
 
 manifest: build $(PACKAGE_DIR)/plugin/manifest ## Write plugin manifest (for developers)
 	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
-test: ## run the package test 
+test: ## Run the package test 
 	${GO_TEST} $(GO_TEST_FLAGS)
 
-test-docker: docker-run ## run the package test with docker container
+test-docker: docker-run ## Run the package test with docker container
 
-test-bench: ## run the package test with -bench=.
+test-bench: ## Run the package test with -bench=.
 	${GO_TEST} $(GO_TEST_FLAGS)
 
-test-run: ## run the package test only those tests and examples
+test-run: ## Run the package test only those tests and examples
 	${GO_TEST_RUN}
 
 
-vendor-all: ## update the all vendor packages
+vendor-all: ## Update the all vendor packages
 	${VENDOR_CMD} update -all
 	${MAKE} vendor-cleanup
 
-vendor-clean: ## cleanup vendor packages "*_test" files, testdata and nogo files.
+vendor-clean: ## Cleanup vendor packages "*_test" files, testdata and nogo files.
 	@find ./vendor -type d -name 'testdata' -print | xargs rm -rf
 	@find ./vendor -type f -name '*_test.go' -print -exec rm {} ";"
 	@find ./vendor \
@@ -82,7 +84,7 @@ vendor-clean: ## cleanup vendor packages "*_test" files, testdata and nogo files
 		-or -name '*.el' \) \
 		-type f -print -exec rm {} ";"
 
-vendor-guru: ## update the internal guru package
+vendor-guru: ## Update the internal guru package
 	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go
 	${VENDOR_CMD} fetch golang.org/x/tools/cmd/guru
 	cp -r ${PACKAGE_DIR}/vendor/src/golang.org/x/tools/cmd/guru ${PACKAGE_DIR}/src/nvim-go/internal/guru
@@ -91,29 +93,29 @@ vendor-guru: ## update the internal guru package
 	${VENDOR_CMD} delete golang.org/x/tools/cmd/guru
 
 
-docker: docker-run ## run the docker container test on Linux
+docker: docker-run ## Run the docker container test on Linux
 
-docker-build: ## build the zchee/nvim-go docker container for testing on the Linux
+docker-build: ## Build the zchee/nvim-go docker container for testing on the Linux
 	${DOCKER_CMD} build --rm -t ${GITHUB_USER}/${PACKAGE_NAME} .
 
-docker-build-nocache: ## build the zchee/nvim-go docker container for testing on the Linux without cache
+docker-build-nocache: ## Build the zchee/nvim-go docker container for testing on the Linux without cache
 	${DOCKER_CMD} build --rm --no-cache -t ${GITHUB_USER}/${PACKAGE_NAME} .
 
-docker-run: docker-build ## run the zchee/nvim-go docker container test
+docker-run: docker-build ## Run the zchee/nvim-go docker container test
 	${DOCKER_CMD} run --rm -it ${GITHUB_USER}/${PACKAGE_NAME} ${GO_TEST} $(GO_TEST_FLAGS)
 
-clean: ## clean the {bin,pkg} directory
+clean: ## Clean the {bin,pkg} directory
 	${RM} -r ./bin ./pkg
 
 
-todo: ## print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
+todo: ## Print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
 	@ag 'TODO(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal --ignore Makefile || true
 	@ag 'BUG(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal  --ignore Makefile|| true
 	@ag 'XXX(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal  --ignore Makefile|| true
 	@ag 'FIXME(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal --ignore Makefile || true
 	@ag 'NOTE(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal --ignore Makefile || true
 
-help: ## print this help
+help: ## Print this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .PHONY: clean test build build-race rebuild manifest test test-docker test-bench test-run vendor-all vendor-guru docker docker-build docker-build-nocache todo help
