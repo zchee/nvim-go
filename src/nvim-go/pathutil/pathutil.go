@@ -33,14 +33,21 @@ func Chdir(v *nvim.Nvim, dir string) func() {
 	}
 }
 
+// TrimGoPath trims the GOPATH and {bin,pkg,src}, basically for the converts
+// the package ID
 func TrimGoPath(p string) string {
-	p = strings.TrimPrefix(p, os.Getenv("GOPATH")) + string(filepath.Separator)
-	switch p[:4] {
-	case "/bin", "/pkg", "/src":
-		return filepath.Clean(p[5:])
-	default:
-		return filepath.Clean(p)
+	// Separate trim work for p equal GOPATH
+	p = strings.TrimPrefix(p, os.Getenv("GOPATH"))
+	p = strings.TrimPrefix(p, string(filepath.Separator))
+
+	if len(p) >= 4 {
+		switch p[:3] {
+		case "bin", "pkg", "src":
+			return filepath.Clean(p[4:])
+		}
 	}
+
+	return p
 }
 
 // JoinGoPath joins the $GOPATH + "src" to p
