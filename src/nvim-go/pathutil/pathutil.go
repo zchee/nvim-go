@@ -82,7 +82,7 @@ func IsDir(filename string) bool {
 // IsExist returns whether the filename is exists.
 func IsExist(filename string) bool {
 	_, err := os.Stat(filename)
-	return err == nil
+	return !os.IsNotExist(err) || err == nil
 }
 
 // IsGoFile returns whether the filename is exists.
