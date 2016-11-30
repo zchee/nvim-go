@@ -6,7 +6,6 @@ package pathutil
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 )
 
@@ -25,10 +24,8 @@ func IsGb(dir string) (string, bool) {
 	// FindGbProjectRoot gets the GOPATH root if go directory structure.
 	// Recheck use vendor directory.
 	vendor := filepath.Join(root, "vendor")
-	if _, err := os.Stat(vendor); err != nil {
-		if os.IsNotExist(err) {
-			return "", false
-		}
+	if IsNotExist(vendor) {
+		return "", false
 	}
 	return root, true
 }
@@ -44,12 +41,9 @@ func FindGbProjectRoot(path string) (string, error) {
 	start := path
 	for path != filepath.Dir(path) {
 		root := filepath.Join(path, "src")
-		if _, err := os.Stat(root); err != nil {
-			if os.IsNotExist(err) {
-				path = filepath.Dir(path)
-				continue
-			}
-			return "", err
+		if IsNotExist(root) {
+			path = filepath.Dir(path)
+			continue
 		}
 		return path, nil
 	}
