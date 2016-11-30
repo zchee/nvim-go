@@ -16,8 +16,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-const pkgContext = "context"
-
 // Context represents a embeded context package and build context.
 type Context struct {
 	context.Context
