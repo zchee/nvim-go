@@ -250,7 +250,7 @@ func ParseError(errs []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixE
 					filename = strings.TrimPrefix(filename, sep)
 				}
 			case "gb":
-				// filename has not directory path
+				// gb compiler error messages is relative filename path of project root dir
 				if !filepath.IsAbs(filename) {
 					filename = filepath.Join(ctxt.ProjectRoot, "src", filename)
 				}
