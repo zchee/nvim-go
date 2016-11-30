@@ -35,20 +35,23 @@ else
 GO_LDFLAGS += -ldflags "-w -s"
 endif
 
+ifneq ($(NVIM_GO_RACE),)
+build: std-build-race
+rebuild: std-build-race
+GO_BUILD += -race
+PACKAGE_NAME = nvim-go-race
+endif
+
 default: build
 
 build: ## Build the nvim-go binary
 	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS}
 
-build-race: ## Build the nvim-go binary with -race
-	$(GO_CMD) install -v -x -race std
-	${GO_BUILD} -race $(GO_LDFLAGS) ${GO_GCFLAGS}
-	mv ./bin/nvim-go-race ./bin/nvim-go
-
-rebuild: clean ## Rebuild the nvim-go binary
+rebuild: clean  ## Rebuild the nvim-go binary
 	${GO_BUILD} -f $(GO_LDFLAGS) ${GO_GCFLAGS}
 
-rebuild-race: clean build-race ## Rebuild the nvim-go binary with -race
+std-build-race: ## Build the Go stdlib runtime with -race
+	$(GO_CMD) install -v -x -race std
 
 $(PACKAGE_DIR)/plugin/manifest: ## Build the automatic writing neovim manifest utility binary
 	${GO_BUILD} -o $(PACKAGE_DIR)/plugin/manifest $(PACKAGE_DIR)/plugin/manifest.go

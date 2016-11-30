@@ -62,6 +62,9 @@ func main() {
 	}
 	newManifest = append(newManifest, '\n')
 
+	if strings.Contains(pluginName, "-race") {
+		pluginName = strings.TrimSuffix(pluginName, "-race")
+	}
 	// Get vim file information from the "./plugin" directory
 	plugFile, err := os.OpenFile(filepath.Join(prjDir, "plugin", pluginName+".vim"), os.O_RDWR, os.ModeAppend)
 	if err != nil {
@@ -93,6 +96,9 @@ func main() {
 		return
 	case *write:
 		data := bytes.TrimSpace(newData)
+		if bytes.Contains(data, []byte("-race")) {
+			data = bytes.Replace(data, []byte("-race"), nil, -1)
+		}
 		data = append(data, byte('\n'))
 		if _, err := plugFile.WriteAt(data, 0); err != nil {
 			panic(err)
