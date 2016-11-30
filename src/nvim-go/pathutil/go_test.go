@@ -42,9 +42,15 @@ func TestPackagePath(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "package baz (deep hierarchical directory)",
+			name:    "package baz (parent dir is no go file)",
 			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz")},
 			want:    filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz"),
+			wantErr: false,
+		},
+		{
+			name:    "package qux (parent dir is package)",
+			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz", "qux")},
+			want:    filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz", "qux"),
 			wantErr: false,
 		},
 		{
@@ -113,9 +119,15 @@ func TestPackageID(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "package baz (deep hierarchical directory)",
+			name:    "package baz (parent dir is no go file)",
 			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz")},
 			want:    filepath.Join("foo.org", "foo", "bar", "baz"),
+			wantErr: false,
+		},
+		{
+			name:    "package qux (parent dir is package)",
+			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz", "qux")},
+			want:    filepath.Join("foo.org", "foo", "bar", "baz", "qux"),
 			wantErr: false,
 		},
 		{
