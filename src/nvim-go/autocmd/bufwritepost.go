@@ -23,6 +23,9 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) {
 }
 
 func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
 	dir := filepath.Dir(eval.File)
 
 	if config.FmtAutosave {

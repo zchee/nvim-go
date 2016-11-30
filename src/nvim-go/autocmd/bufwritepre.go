@@ -20,6 +20,9 @@ func (a *Autocmd) BufWritePre(eval *bufWritePreEval) {
 }
 
 func (a *Autocmd) bufWritePre(eval *bufWritePreEval) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
 	dir := filepath.Dir(eval.File)
 
 	// Iferr need execute before Fmt function because that function calls "noautocmd write"
