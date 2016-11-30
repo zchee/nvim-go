@@ -11,68 +11,75 @@ import (
 	"github.com/pkg/errors"
 )
 
-// PackagePath returns the package full directory path estimated from the path p directory structure.
-// return "/Users/zchee/go/src/github.com/pkg/errors", nil
-// TODO(zchee): duplicate function behavior of PackageID.
-func PackagePath(dir string) (string, error) {
+// parsePackage search the parent directory of dir with the recursive loop.
+func parsePackage(dir string) (*build.Package, error) {
 	dir = filepath.Clean(dir)
 
+	// for save the before(child) package information
 	savePkg := new(build.Package)
 	for {
-		// Get the current files package information
-		pkg, err := build.Default.ImportDir(dir, build.IgnoreVendor)
-		// noGoError := &build.NoGoError{Dir: dir}
-		if _, ok := err.(*build.NoGoError); ok {
-			// if err == noGoError {
-			return savePkg.Dir, nil
-		} else if err != nil {
-			return "", errors.Wrap(err, pkgPathutil)
+		// Raise the error if dir is reaches root("/") or GOPATH or GOROOT
+		if dir == "/" || dir == build.Default.GOPATH || dir == build.Default.GOROOT {
+			return nil, errors.New("couldn't find the package")
 		}
 
-		if savePkg.Name != "" && pkg.Name != savePkg.Name {
-			return savePkg.Dir, nil
-		} else if pkg.IsCommand() {
-			return pkg.Dir, nil
+		// Get the current dir package information
+		pkg, err := build.Default.ImportDir(dir, build.ImportMode(0))
+		if err != nil {
+			// Check the exists .go file in the dir
+			if _, ok := err.(*build.NoGoError); ok {
+				// Case of recursive loop of second and subsequent,
+				// Use child(before) directory if NoGoError
+				if savePkg.Dir != "" {
+					return savePkg, nil
+				} else {
+					savePkg = pkg
+					dir = filepath.Dir(dir)
+					continue
+				}
+			} else if err != nil { // Failed ImportDir() on other errors
+				return nil, errors.WithStack(err)
+			}
 		}
 
-		if dir == "/" {
-			return "", errors.Errorf("cannot find the package path from %s", dir)
+		// return the current directory if package is main
+		if pkg.IsCommand() {
+			return pkg, nil
 		}
 
-		// Save the current package name
+		// Return the child(before) package directory if different to current package name
+		if beforePkgName := savePkg.Name; beforePkgName != "" && beforePkgName != pkg.Name {
+			return savePkg, nil
+		}
+
+		// Save the current package and re-assign dir to parent dir for the next recursive loop
 		savePkg = pkg
 		dir = filepath.Dir(dir)
 	}
 }
 
-// PackageID returns the package ID estimated from the path p directory structure.
-//  return "github.com/pkg/errors", nil
-// TODO(zchee): duplicate function behavior of PackagePath.
-func PackageID(dir string) (string, error) {
-	savePkg := new(build.Package)
-	for {
-		// Get the current files package information
-		pkg, err := build.Default.ImportDir(dir, build.IgnoreVendor)
-		// noGoError := &build.NoGoError{Dir: dir}
-		if _, ok := err.(*build.NoGoError); ok {
-			// if err == noGoError {
-			return savePkg.ImportPath, nil
-		} else if err != nil {
-			return "", errors.Wrap(err, pkgPathutil)
-		}
-
-		if savePkg.Name != "" && pkg.Name != savePkg.Name {
-			return savePkg.ImportPath, nil
-		} else if pkg.IsCommand() {
-			return pkg.ImportPath, nil
-		}
-
-		if dir == "/" {
-			return "", errors.Errorf("cannot find the package path from %s", dir)
-		}
-
-		// Save the current package name
-		savePkg = pkg
-		dir = filepath.Dir(dir)
+// PackagePath returns the *full path* of package directory estimated
+// from the dir directory structure.
+// like:
+//  return "/Users/zchee/go/src/github.com/pkg/errors", nil
+func PackagePath(dir string) (string, error) {
+	pkg, err := parsePackage(dir)
+	if err != nil {
+		return "", err
 	}
+
+	return pkg.Dir, nil
+}
+
+// PackageID returns the package ID(ImportPath) estimated from the dir
+// directory structure.
+// like:
+//  return "github.com/pkg/errors", nil
+func PackageID(dir string) (string, error) {
+	pkg, err := parsePackage(dir)
+	if err != nil {
+		return "", err
+	}
+
+	return pkg.ImportPath, nil
 }
