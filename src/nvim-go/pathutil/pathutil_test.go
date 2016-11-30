@@ -63,6 +63,47 @@ func TestChdir(t *testing.T) {
 	}
 }
 
+func TestTrimGoPath(t *testing.T) {
+	type args struct {
+		p string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "typical go package full path",
+			args: args{p: "/Users/zchee/go/src/github.com/zchee/nvim-go"},
+			want: "github.com/zchee/nvim-go",
+		},
+		{
+			name: ".goimportsignore file on GOPATH",
+			args: args{p: "/Users/zchee/go/.goimportsignore"},
+			want: ".goimportsignore",
+		},
+		{
+			name: ".a file on GOPATH",
+			args: args{p: "/Users/zchee/go/.a"},
+			want: ".a",
+		},
+		{
+			name: "just GOPATH only",
+			args: args{p: "/Users/zchee/go"},
+			want: "",
+		},
+	}
+
+	os.Setenv("GOPATH", "/Users/zchee/go")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := pathutil.TrimGoPath(tt.args.p); got != tt.want {
+				t.Errorf("TrimGoPath(%v) = %v, want %v", tt.args.p, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestJoinGoPath(t *testing.T) {
 	os.Setenv("GOPATH", testGoPath)
 
