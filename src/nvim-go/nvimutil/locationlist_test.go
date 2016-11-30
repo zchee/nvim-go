@@ -76,10 +76,11 @@ func TestParseError(t *testing.T) {
 		ctxt   *context.Build
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    []*nvim.QuickfixError
-		wantErr bool
+		name       string
+		args       args
+		want       []*nvim.QuickfixError
+		wantErr    bool
+		wantGoPath string
 	}{
 		{
 			name: "gb build",
@@ -175,8 +176,8 @@ package_test.go:36: undeclared name: FindAll`),
 			name: "go build(hyperkitctl)",
 			args: args{
 				errors: []byte(`# github.com/zchee/hyperkitctl/cmd/hyperkitctl
-cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.WalkDir
-cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.DatabasePath`),
+		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.WalkDir
+		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.DatabasePath`),
 				cwd: filepath.Join(os.Getenv("GOPATH"), "src/github.com/zchee/hyperkitctl"),
 				ctxt: &context.Build{
 					Tool: "go",
@@ -202,8 +203,8 @@ cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.DatabasePath`),
 			name: "go build(hyperkitctl) 2",
 			args: args{
 				errors: []byte(`# github.com/zchee/hyperkitctl/cmd/hyperkitctl
-test.go:26: undefined: hyperkitctl.WalkDir
-test.go:26: undefined: hyperkitctl.DatabasePath`),
+		test.go:26: undefined: hyperkitctl.WalkDir
+		test.go:26: undefined: hyperkitctl.DatabasePath`),
 				cwd: filepath.Join(os.Getenv("GOPATH"), "src/github.com/zchee/hyperkitctl/cmd/hyperkitctl"),
 				ctxt: &context.Build{
 					Tool: "go",
@@ -253,7 +254,7 @@ test.go:26: undefined: hyperkitctl.DatabasePath`),
 			wantErr: false,
 		},
 		{
-			name: "have want type suggestion",
+			name: "have_want Go compiler type suggestion",
 			args: args{
 				errors: []byte(`# nvim-go/commands/delve
 delve.go:129: too many arguments in call to d.startServer
@@ -334,21 +335,72 @@ FATAL: command "build" failed: exit status 2`),
 			},
 			wantErr: false,
 		},
+		{
+			name: "initialization loop error",
+			args: args{
+				errors: []byte(`# github.com/zchee/appleopensource/cmd/gaos
+cmd/gaos/versions.go:14: initialization loop:
+		/Users/zchee/go/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:14 cmdVersions refers to
+		/Users/zchee/go/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:19 runVersions refers to
+		/Users/zchee/go/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:16 versionsPkg refers to
+		/Users/zchee/go/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:14 cmdVersions`),
+				cwd: "/Users/zchee/go/src/github.com/zchee/appleopensource/cmd/gaos",
+				ctxt: &context.Build{
+					Tool: "go",
+				},
+			},
+			want: []*nvim.QuickfixError{
+				&nvim.QuickfixError{
+					FileName: "versions.go",
+					LNum:     14,
+					Col:      0,
+					Text:     "initialization loop:",
+				},
+				&nvim.QuickfixError{
+					FileName: "versions.go",
+					LNum:     14,
+					Col:      0,
+					Text:     "cmdVersions refers to",
+				},
+				&nvim.QuickfixError{
+					FileName: "versions.go",
+					LNum:     19,
+					Col:      0,
+					Text:     "runVersions refers to",
+				},
+				&nvim.QuickfixError{
+					FileName: "versions.go",
+					LNum:     16,
+					Col:      0,
+					Text:     "versionsPkg refers to",
+				},
+				&nvim.QuickfixError{
+					FileName: "versions.go",
+					LNum:     14,
+					Col:      0,
+					Text:     "cmdVersions",
+				},
+			},
+			wantErr:    false,
+			wantGoPath: "/Users/zchee/go",
+		},
 	}
 	for _, tt := range tests {
+		if tt.wantGoPath != "" {
+			os.Setenv("GOPATH", tt.wantGoPath)
+		}
 		got, err := ParseError(tt.args.errors, tt.args.cwd, tt.args.ctxt)
-		// t.Logf("%+v", got[0])
 		if (err != nil) != tt.wantErr {
 			t.Errorf("%q.\nParseError(%v, %v, %v) error = %v, wantErr %v", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.ctxt, err, tt.wantErr)
 			continue
 		}
 		if !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q.\nParseError(errors: %v,\ncwd: %v,\nctxt: %v) = \ngot[0]: %v, \nwant %v", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.ctxt, got, tt.want)
-			for _, g := range got {
-				t.Logf(" got: %+v", g)
+			t.Errorf("%q.\nParseError(errors: %v,\ncwd: %v,\nctxt: %v) = \n", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.ctxt, got, tt.want)
+			for _, got := range got {
+				t.Logf("=====  got =====: %+v", got)
 			}
-			for _, w := range tt.want {
-				t.Logf("want: %+v", w)
+			for _, want := range tt.want {
+				t.Logf("===== want =====: %+v", want)
 			}
 		}
 	}
