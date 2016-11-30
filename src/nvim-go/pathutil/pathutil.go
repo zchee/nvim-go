@@ -50,12 +50,12 @@ func ShortFilePath(p, cwd string) string {
 	return strings.Replace(p, cwd, ".", 1)
 }
 
-// Rel return the f relative path from cwd.
-func Rel(f, cwd string) string {
-	if filepath.HasPrefix(f, cwd) {
-		return strings.TrimPrefix(f, cwd+string(filepath.Separator))
+// Rel wrapper of filepath.Rel function that return only one variable.
+func Rel(cwd, f string) string {
+	rel, err := filepath.Rel(cwd, f)
+	if err != nil {
+		return f
 	}
-	rel, _ := filepath.Rel(cwd, f)
 	return rel
 }
 

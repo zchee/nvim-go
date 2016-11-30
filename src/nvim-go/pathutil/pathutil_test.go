@@ -144,7 +144,7 @@ func TestRel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := pathutil.Rel(tt.args.f, tt.args.cwd); got != tt.want {
+			if got := pathutil.Rel(tt.args.cwd, tt.args.f); got != tt.want {
 				t.Errorf("Rel(%v, %v) = %v, want %v", tt.args.f, tt.args.cwd, got, tt.want)
 			}
 		})
