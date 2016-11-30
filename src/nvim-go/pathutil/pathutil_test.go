@@ -274,6 +274,35 @@ func TestIsExist(t *testing.T) {
 	}
 }
 
+func TestIsNotExist(t *testing.T) {
+	type args struct {
+		filename string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "exist (own file)",
+			args: args{filename: "./pathutil_test.go"},
+			want: false,
+		},
+		{
+			name: "not exist",
+			args: args{filename: "./not_exist.go"},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := pathutil.IsNotExist(tt.args.filename); got != tt.want {
+				t.Errorf("IsExist(%v) = %v, want %v", tt.args.filename, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestIsGoFile(t *testing.T) {
 	type args struct {
 		filename string

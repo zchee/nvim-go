@@ -85,6 +85,12 @@ func IsExist(filename string) bool {
 	return !os.IsNotExist(err) || err == nil
 }
 
+// IsNotExist returns whether the filename is exists.
+func IsNotExist(filename string) bool {
+	_, err := os.Stat(filename)
+	return os.IsNotExist(err)
+}
+
 // IsGoFile returns whether the filename is exists.
 func IsGoFile(filename string) bool {
 	f, err := os.Stat(filename)
