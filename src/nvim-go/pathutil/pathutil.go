@@ -45,6 +45,11 @@ func TrimGoPath(p string) string {
 	}
 }
 
+// JoinGoPath joins the $GOPATH + "src" to p
+func JoinGoPath(p string) string {
+	return filepath.Join(os.Getenv("GOPATH"), "src", p)
+}
+
 // ShortFilePath return the simply trim cwd into p.
 func ShortFilePath(p, cwd string) string {
 	return strings.Replace(p, cwd, ".", 1)

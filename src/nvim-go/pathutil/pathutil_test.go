@@ -63,6 +63,32 @@ func TestChdir(t *testing.T) {
 	}
 }
 
+func TestJoinGoPath(t *testing.T) {
+	os.Setenv("GOPATH", testGoPath)
+
+	type args struct {
+		p string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "astdump",
+			args: args{p: "astdump"},
+			want: filepath.Join(testGoPath, "src", "astdump"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := pathutil.JoinGoPath(tt.args.p); got != tt.want {
+				t.Errorf("JoinGoPath(%v) = %v, want %v", tt.args.p, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestShortFilePath(t *testing.T) {
 	type args struct {
 		p   string
