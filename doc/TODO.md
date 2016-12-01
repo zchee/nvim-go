@@ -1,6 +1,11 @@
 nvim-go original behavior
 =========================
 
+Goroutine
+---------
+
+- [ ] Super data racy
+
 Comment Generator
 -----------------
 
