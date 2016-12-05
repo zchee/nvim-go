@@ -73,3 +73,20 @@ compilationdatabase.go|145| no new variables on left side of :=
 compilationdatabase.go|161| too many arguments to return
 compilationdatabase.go|167| too many arguments to return
 ```
+
+## cannot find package
+
+### error
+
+```sh
+indexdb/indexdb.go:14:2: cannot find package "github.com/zchee/clang-server/symbol" in any of:
+	/Users/zchee/go/src/github.com/zchee/clang-server/vendor/github.com/zchee/clang-server/symbol (vendor tree)
+	/usr/local/go/src/github.com/zchee/clang-server/symbol (from $GOROOT)
+	/Users/zchee/go/src/github.com/zchee/clang-server/symbol (from $GOPATH)
+```
+
+### quickfix
+
+```vim
+indexdb.go|14 col 2| cannot find package "github.com/zchee/clang-server/symbol" in any of:
+```
