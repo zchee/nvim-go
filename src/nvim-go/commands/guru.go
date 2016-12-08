@@ -102,28 +102,17 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 		fname, line, col := nvimutil.SplitPos(obj.ObjPos, eval.Cwd)
-		text := obj.Desc
+
+		c.Pipeline.Command("normal! m'")
 		if fname != eval.File {
-			c.Pipeline.Command(fmt.Sprintf("edit %s", fname))
+			c.Pipeline.Command(fmt.Sprintf("keepjumps edit %s", fname))
 		}
 		c.Pipeline.SetWindowCursor(w, [2]int{line, col - 1})
 		if err := c.Pipeline.Wait(); err != nil {
 			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
-		c.Pipeline.Command(`lclose`)
-		c.Pipeline.Command(`normal! zz`)
 
-		defer func() {
-			loclist = append(loclist, &nvim.QuickfixError{
-				FileName: fname,
-				LNum:     line,
-				Col:      col,
-				Text:     text,
-			})
-			nvimutil.SetLoclist(c.Nvim, loclist)
-		}()
-
-		return c.Pipeline.Wait()
+		return c.Nvim.Command(`lclose | normal! zz`)
 	}
 
 	var scope string
