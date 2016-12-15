@@ -410,25 +410,17 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		if err != nil {
 			return loclist, err
 		}
-		for _, value := range typ.AssignableFrom {
-			fname, line, col := nvimutil.SplitPos(value.Pos, cwd)
-			text = value.Kind + " " + value.Name
-			loclist = append(loclist, &nvim.QuickfixError{
-				FileName: fname,
-				LNum:     line,
-				Col:      col,
-				Text:     text,
-			})
-		}
-		for _, value := range typ.AssignableFromPtr {
-			fname, line, col := nvimutil.SplitPos(value.Pos, cwd)
-			text = value.Kind + " " + value.Name
-			loclist = append(loclist, &nvim.QuickfixError{
-				FileName: fname,
-				LNum:     line,
-				Col:      col,
-				Text:     text,
-			})
+		for _, values := range [][]serial.ImplementsType{typ.AssignableTo, typ.AssignableFromPtr, typ.AssignableFrom} {
+			for _, value := range values {
+				fname, line, col := nvimutil.SplitPos(value.Pos, cwd)
+				text = value.Kind + " " + value.Name
+				loclist = append(loclist, &nvim.QuickfixError{
+					FileName: fname,
+					LNum:     line,
+					Col:      col,
+					Text:     text,
+				})
+			}
 		}
 
 	case "peers":
