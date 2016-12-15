@@ -20,27 +20,25 @@ func (a *Autocmd) VimEnter(cfg *config.Config) {
 // vimEnter gets user config variables and assign to global variable when autocmd VimEnter.
 // If config.DebugPprof is true, start net/pprof debugging.
 func (a *Autocmd) vimEnter(cfg *config.Config) (err error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
 	cfg.Global.ChannelID = a.Nvim.ChannelID()
 
 	a.cmds.Pipeline = a.Nvim.NewPipeline()
 	a.cmds.Batch = a.Nvim.NewBatch()
 
-	a.mu.Lock()
-	go func() {
-		defer a.mu.Unlock()
+	config.Get(a.Nvim, cfg)
 
-		config.Get(a.Nvim, cfg)
+	if config.DebugPprof {
+		addr := "127.0.0.1:6060"
+		log.Printf("Start pprof debug listen %s\n", addr)
 
-		if config.DebugPprof {
-			addr := "127.0.0.1:6060"
-			log.Printf("Start pprof debug listen %s\n", addr)
-
-			runtime.SetBlockProfileRate(1)
-			go func() {
-				log.Println(http.ListenAndServe(addr, nil))
-			}()
-		}
-	}()
+		runtime.SetBlockProfileRate(1)
+		go func() {
+			log.Println(http.ListenAndServe(addr, nil))
+		}()
+	}
 
 	return nil
 }
