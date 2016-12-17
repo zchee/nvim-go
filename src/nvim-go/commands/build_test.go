@@ -88,9 +88,10 @@ func TestCommands_Build(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
-
 			// if got := c.Build(tt.args.bang, tt.args.eval); !reflect.DeepEqual(got, tt.want) {
 			// 	t.Errorf("Commands.Build(%v, %v) = %v, want %v", tt.args.bang, tt.args.eval, got, tt.want)
 			// }
@@ -206,7 +207,9 @@ func TestCommands_compileCmd(t *testing.T) {
 		tt.fields.ctxt.Build.Tool = tt.want
 		tt.fields.ctxt.Build.ProjectRoot = tt.args.dir
 
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
 
 			got, err := c.compileCmd(tt.args.bang, tt.args.dir)

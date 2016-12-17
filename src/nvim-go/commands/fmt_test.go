@@ -64,17 +64,22 @@ func TestCommands_Fmt(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		ctxt := context.NewContext()
-		c := NewCommands(tt.fields.Nvim, ctxt)
-		c.Pipeline = tt.fields.Nvim.NewPipeline()
 		config.FmtMode = "goimports"
 
-		err := c.Fmt(tt.args.dir)
-		if errlist, ok := err.([]*nvim.QuickfixError); !ok {
-			if (len(errlist) != 0) != tt.wantErr {
-				t.Errorf("%q. Commands.Fmt(%v), wantErr %v", tt.name, tt.args.dir, tt.wantErr)
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctxt := context.NewContext()
+			c := NewCommands(tt.fields.Nvim, ctxt)
+			c.Pipeline = tt.fields.Nvim.NewPipeline()
+
+			err := c.Fmt(tt.args.dir)
+			if errlist, ok := err.([]*nvim.QuickfixError); !ok {
+				if (len(errlist) != 0) != tt.wantErr {
+					t.Errorf("%q. Commands.Fmt(%v), wantErr %v", tt.name, tt.args.dir, tt.wantErr)
+				}
 			}
-		}
+		})
 	}
 }
 

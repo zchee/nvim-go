@@ -47,7 +47,9 @@ func TestChdir(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			defer func() {
 				if testCwd != filepath.Join(projectRoot, "src/nvim-go/pathutil") || testCwd == tt.args.dir {
 					t.Errorf("%q. Chdir(%v, %v) = %v, want %v", tt.name, tt.args.v, tt.args.dir, testCwd, tt.wantCwd)
@@ -96,7 +98,9 @@ func TestTrimGoPath(t *testing.T) {
 
 	os.Setenv("GOPATH", "/Users/zchee/go")
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := pathutil.TrimGoPath(tt.args.p); got != tt.want {
 				t.Errorf("TrimGoPath(%v) = %v, want %v", tt.args.p, got, tt.want)
 			}
@@ -122,7 +126,9 @@ func TestJoinGoPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := pathutil.JoinGoPath(tt.args.p); got != tt.want {
 				t.Errorf("JoinGoPath(%v) = %v, want %v", tt.args.p, got, tt.want)
 			}
@@ -166,7 +172,9 @@ func TestShortFilePath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := pathutil.ShortFilePath(tt.args.p, tt.args.cwd); got != tt.want {
 				t.Errorf("ShortFilePath(%v, %v) = %v, want %v", tt.args.p, tt.args.cwd, got, tt.want)
 			}
@@ -218,7 +226,9 @@ func TestRel(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := pathutil.Rel(tt.args.cwd, tt.args.f); got != tt.want {
 				t.Errorf("Rel(%v, %v) = %v, want %v", tt.args.f, tt.args.cwd, got, tt.want)
 			}
@@ -249,7 +259,9 @@ func TestExpandGoRoot(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := pathutil.ExpandGoRoot(tt.args.p); got != tt.want {
 				t.Errorf("ExpandGoRoot(%v) = %v, want %v", tt.args.p, got, tt.want)
 			}
@@ -278,7 +290,9 @@ func TestIsDir(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := pathutil.IsDir(tt.args.filename); got != tt.want {
 				t.Errorf("IsDir(%v) = %v, want %v", tt.args.filename, got, tt.want)
 			}
@@ -307,7 +321,9 @@ func TestIsExist(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := pathutil.IsExist(tt.args.filename); got != tt.want {
 				t.Errorf("IsExist(%v) = %v, want %v", tt.args.filename, got, tt.want)
 			}
@@ -336,7 +352,9 @@ func TestIsNotExist(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := pathutil.IsNotExist(tt.args.filename); got != tt.want {
 				t.Errorf("IsExist(%v) = %v, want %v", tt.args.filename, got, tt.want)
 			}
@@ -365,7 +383,9 @@ func TestIsGoFile(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := pathutil.IsGoFile(tt.args.filename); got != tt.want {
 				t.Errorf("IsGoFile(%v) = %v, want %v", tt.args.filename, got, tt.want)
 			}

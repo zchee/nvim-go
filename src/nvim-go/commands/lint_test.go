@@ -70,19 +70,23 @@ func TestCommands_Lint(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		ctxt := context.NewContext()
-		c := NewCommands(tt.fields.Nvim, ctxt)
-		c.Nvim.SetCurrentDirectory(filepath.Dir(tt.args.file))
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctxt := context.NewContext()
+			c := NewCommands(tt.fields.Nvim, ctxt)
+			c.Nvim.SetCurrentDirectory(filepath.Dir(tt.args.file))
 
-		got, err := c.Lint(tt.args.args, tt.args.file)
-		if (err != nil) != tt.wantErr {
-			t.Errorf("%q. Commands.Lint(%v, %v) error = %v, wantErr %v", tt.name, tt.args.args, tt.args.file, err, tt.wantErr)
-			continue
-		}
-		if !reflect.DeepEqual(got, tt.want) {
-			t.Logf("%+v\n%+v", got[0], got[1])
-			t.Errorf("%q. Commands.Lint(%v, %v) = %v, want %v", tt.name, tt.args.args, tt.args.file, got, tt.want)
-		}
+			got, err := c.Lint(tt.args.args, tt.args.file)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("%q. Commands.Lint(%v, %v) error = %v, wantErr %v", tt.name, tt.args.args, tt.args.file, err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Logf("%+v\n%+v", got[0], got[1])
+				t.Errorf("%q. Commands.Lint(%v, %v) = %v, want %v", tt.name, tt.args.args, tt.args.file, got, tt.want)
+			}
+		})
 	}
 }
 
@@ -152,16 +156,20 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt.fields.ctxt = context.NewContext()
-		c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.fields.ctxt = context.NewContext()
+			c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
 
-		gotFilelist, err := c.cmdLintComplete(tt.args.a, tt.args.cwd)
-		if (err != nil) != tt.wantErr {
-			t.Errorf("%q. Commands.cmdLintComplete(%v, %v) error = %v, wantErr %v", tt.name, tt.args.a, tt.args.cwd, err, tt.wantErr)
-			continue
-		}
-		if !reflect.DeepEqual(gotFilelist, tt.wantFilelist) {
-			t.Errorf("%q. Commands.cmdLintComplete(%v, %v) = %v, want %v", tt.name, tt.args.a, tt.args.cwd, gotFilelist, tt.wantFilelist)
-		}
+			gotFilelist, err := c.cmdLintComplete(tt.args.a, tt.args.cwd)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("%q. Commands.cmdLintComplete(%v, %v) error = %v, wantErr %v", tt.name, tt.args.a, tt.args.cwd, err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotFilelist, tt.wantFilelist) {
+				t.Errorf("%q. Commands.cmdLintComplete(%v, %v) = %v, want %v", tt.name, tt.args.a, tt.args.cwd, gotFilelist, tt.wantFilelist)
+			}
+		})
 	}
 }

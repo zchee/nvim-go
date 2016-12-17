@@ -109,7 +109,9 @@ func TestIsGb(t *testing.T) {
 			build.Default.GOPATH = fmt.Sprintf("%s:%s/vendor", projectRoot, projectRoot)
 		}
 
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, got1 := pathutil.IsGb(tt.args.dir)
 			if got != tt.want {
 				t.Errorf("IsGb(%v) got = %v, want %v", tt.args.dir, got, tt.want)
@@ -163,7 +165,9 @@ func TestFindGbProjectRoot(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := pathutil.FindGbProjectRoot(tt.args.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindGbProjectRoot(%v) error = %v, wantErr %v", tt.args.path, err, tt.wantErr)
@@ -197,7 +201,9 @@ func TestGbProjectName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := pathutil.GbProjectName(tt.args.projectRoot); got != tt.want {
 				t.Errorf("GbProjectName(%v) = %v, want %v", tt.args.projectRoot, got, tt.want)
 			}

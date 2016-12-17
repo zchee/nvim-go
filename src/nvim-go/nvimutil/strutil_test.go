@@ -30,9 +30,13 @@ func TestToPascalCase(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		if got := ToPascalCase(tt.args.s); got != tt.want {
-			t.Errorf("%q. ToPascalCase(%v) = %v, want %v", tt.name, tt.args.s, got, tt.want)
-		}
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := ToPascalCase(tt.args.s); got != tt.want {
+				t.Errorf("%q. ToPascalCase(%v) = %v, want %v", tt.name, tt.args.s, got, tt.want)
+			}
+		})
 	}
 }
 
@@ -57,9 +61,13 @@ func TestToMixedCase(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		if got := ToMixedCase(tt.args.s); got != tt.want {
-			t.Errorf("%q. ToMixedCase(%v) = %v, want %v", tt.name, tt.args.s, got, tt.want)
-		}
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := ToMixedCase(tt.args.s); got != tt.want {
+				t.Errorf("%q. ToMixedCase(%v) = %v, want %v", tt.name, tt.args.s, got, tt.want)
+			}
+		})
 	}
 }
 
@@ -79,8 +87,12 @@ func TestStrToByteSlice(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		if got := StrToByteSlice(tt.args.s); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q. StringToByteslice(%v) = %v, want %v", tt.name, tt.args.s, got, tt.want)
-		}
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := StrToByteSlice(tt.args.s); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("%q. StringToByteslice(%v) = %v, want %v", tt.name, tt.args.s, got, tt.want)
+			}
+		})
 	}
 }

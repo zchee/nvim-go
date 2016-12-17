@@ -75,7 +75,9 @@ func TestPackagePath(t *testing.T) {
 	for _, tt := range tests {
 		build.Default.GOPATH = gopath
 
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := pathutil.PackagePath(tt.args.dir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PackagePath(%v) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)
@@ -152,7 +154,9 @@ func TestPackageID(t *testing.T) {
 	for _, tt := range tests {
 		build.Default.GOPATH = gopath
 
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := pathutil.PackageID(tt.args.dir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PackageID(%v) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)

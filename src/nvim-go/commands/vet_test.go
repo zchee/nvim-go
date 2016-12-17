@@ -136,7 +136,9 @@ func TestCommands_Vet(t *testing.T) {
 		tt.fields.ctxt.Build.Tool = tt.tool
 		c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
 
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := c.Vet(tt.args.args, tt.args.eval)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%q. Commands.Vet(%v, %v) error = %v, wantErr %v", tt.name, tt.args.args, tt.args.eval, err, tt.wantErr)
