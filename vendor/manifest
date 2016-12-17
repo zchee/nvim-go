@@ -112,6 +112,27 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/google/gops/agent",
+			"repository": "https://github.com/google/gops",
+			"revision": "6302d55aaae17a7ff1486ee9918bc9edcad986dc",
+			"branch": "master",
+			"path": "/agent"
+		},
+		{
+			"importpath": "github.com/google/gops/internal",
+			"repository": "https://github.com/google/gops",
+			"revision": "6302d55aaae17a7ff1486ee9918bc9edcad986dc",
+			"branch": "master",
+			"path": "/internal"
+		},
+		{
+			"importpath": "github.com/google/gops/signal",
+			"repository": "https://github.com/google/gops",
+			"revision": "6302d55aaae17a7ff1486ee9918bc9edcad986dc",
+			"branch": "master",
+			"path": "/signal"
+		},
+		{
 			"importpath": "github.com/mattn/go-colorable",
 			"repository": "https://github.com/mattn/go-colorable",
 			"revision": "d228849504861217f796da67fae4f6e347643f15",
