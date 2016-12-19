@@ -6,15 +6,15 @@ Command
 
 ### command completion
 
-Registering the command completion customlist are `Complete` variable in the `plugin.CommandOptions`.  
+Registering the command completion customlist are `Complete` variable in the `plugin.CommandOptions`.
 Here is example.
 
 ```go
 p.HandleCommand(&plugin.CommandOptions{Name: "GoFoo", NArgs: "?", Eval: "expand('%:p')", Complete: "customlist,GoFooCompletion"}, cmdFoo)
 ```
 
-Neovim's customlist is need list type. See `:help :command-completion-customlist`.  
-That function should return the completion candidates `[]string` list and `error`.  
+Neovim's customlist is need list type. See `:help :command-completion-customlist`.
+That function should return the completion candidates `[]string` list and `error`.
 Note that **must be `error` in return second variable**. If `[]string` variable only, does not works. example is
 
 ```go

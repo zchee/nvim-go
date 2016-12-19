@@ -70,7 +70,7 @@ AST based syntax highlighting
 
 `delve` debugging
 
-https://github.com/derekparker/delve  
+https://github.com/derekparker/delve
 https://blog.gopheracademy.com/advent-2015/debugging-with-delve/
 
 -	[x] Debugging use `delve`
