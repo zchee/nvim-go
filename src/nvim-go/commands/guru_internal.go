@@ -17,9 +17,9 @@ import (
 	"strings"
 
 	"nvim-go/internal/guru"
-	"nvim-go/internal/guru/serial"
 
 	"github.com/pkg/errors"
+	"golang.org/x/tools/cmd/guru/serial"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"

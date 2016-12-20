@@ -23,13 +23,13 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/internal/guru"
-	"nvim-go/internal/guru/serial"
 	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
-	"github.com/ugorji/go/codec"
+	"golang.org/x/tools/cmd/guru/serial"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
 )
@@ -133,7 +133,9 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		var err error
 		outputMu.Lock()
 		defer outputMu.Unlock()
-		if loclist, err = parseResult(mode, fset, qr.JSON(fset), eval.Cwd); err != nil {
+
+		res := qr.Result(fset)
+		if loclist, err = parseResult(mode, res, eval.Cwd); err != nil {
 			nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 	}
@@ -298,12 +300,11 @@ func definitionFallback(q *guru.Query, c chan fallback) {
 	return
 }
 
-var null = []byte{110, 117, 108, 108}
+var errTypeAssertion = errors.New("type assertion error")
 
-// TODO(zchee): Should not use json.
-func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*nvim.QuickfixError, error) {
+func parseResult(mode string, res interface{}, cwd string) ([]*nvim.QuickfixError, error) {
 	if config.DebugEnable {
-		log.Printf("data: %+s", string(data))
+		log.Printf("res:\n%+v\n", spew.Sdump(res))
 	}
 	var (
 		loclist []*nvim.QuickfixError
@@ -312,18 +313,12 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		col     int
 		text    string
 	)
-	var (
-		jh  codec.JsonHandle
-		dec = codec.NewDecoderBytes(data, &jh)
-	)
 
 	switch mode {
-
 	case "callees":
-		var value = serial.Callees{}
-		err := dec.Decode(&value)
-		if err != nil {
-			return loclist, err
+		value, ok := res.(*serial.Callees)
+		if !ok {
+			return loclist, errTypeAssertion
 		}
 		for _, v := range value.Callees {
 			fname, line, col = nvimutil.SplitPos(v.Pos, cwd)
@@ -337,14 +332,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		}
 
 	case "callers":
-		if bytes.Equal(data, null) {
-			err := errors.New("not reachable in this program")
-			return nil, err
-		}
-		var value = []serial.Caller{}
-		err := dec.Decode(&value)
-		if err != nil {
-			return loclist, err
+		value, ok := res.([]serial.Caller)
+		if !ok {
+			return loclist, errTypeAssertion
 		}
 		for _, v := range value {
 			fname, line, col = nvimutil.SplitPos(v.Pos, cwd)
@@ -358,10 +348,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		}
 
 	case "callstack":
-		var value = serial.CallStack{}
-		err := dec.Decode(&value)
-		if err != nil {
-			return loclist, err
+		value, ok := res.(*serial.CallStack)
+		if !ok {
+			return loclist, errTypeAssertion
 		}
 		for _, v := range value.Callers {
 			fname, line, col = nvimutil.SplitPos(v.Pos, cwd)
@@ -375,10 +364,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		}
 
 	case "describe":
-		var value = serial.Describe{}
-		err := dec.Decode(&value)
-		if err != nil {
-			return loclist, err
+		value, ok := res.(serial.Describe)
+		if !ok {
+			return loclist, errTypeAssertion
 		}
 		fname, line, col = nvimutil.SplitPos(value.Value.ObjPos, cwd)
 		text = value.Desc + " " + value.Value.Type
@@ -390,27 +378,27 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		})
 
 	case "freevars":
-		var value = serial.FreeVar{}
-		err := dec.Decode(&value)
-		if err != nil {
-			return loclist, err
+		value, ok := res.([]serial.FreeVar)
+		if !ok {
+			return loclist, errTypeAssertion
 		}
-		fname, line, col = nvimutil.SplitPos(value.Pos, cwd)
-		text = value.Kind + " " + value.Type + " " + value.Ref
-		loclist = append(loclist, &nvim.QuickfixError{
-			FileName: fname,
-			LNum:     line,
-			Col:      col,
-			Text:     text,
-		})
+		for _, v := range value {
+			fname, line, col = nvimutil.SplitPos(v.Pos, cwd)
+			text = v.Kind + " " + v.Type + " " + v.Ref
+			loclist = append(loclist, &nvim.QuickfixError{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     text,
+			})
+		}
 
 	case "implements":
-		var typ = serial.Implements{}
-		err := dec.Decode(&typ)
-		if err != nil {
-			return loclist, err
+		value, ok := res.(*serial.Implements)
+		if !ok {
+			return loclist, errTypeAssertion
 		}
-		for _, values := range [][]serial.ImplementsType{typ.AssignableTo, typ.AssignableFromPtr, typ.AssignableFrom} {
+		for _, values := range [][]serial.ImplementsType{value.AssignableTo, value.AssignableFromPtr, value.AssignableFrom} {
 			for _, value := range values {
 				fname, line, col := nvimutil.SplitPos(value.Pos, cwd)
 				text = value.Kind + " " + value.Name
@@ -424,10 +412,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		}
 
 	case "peers":
-		var value = serial.Peers{}
-		err := dec.Decode(&value)
-		if err != nil {
-			return loclist, err
+		value, ok := res.(*serial.Peers)
+		if !ok {
+			return loclist, errTypeAssertion
 		}
 		fname, line, col := nvimutil.SplitPos(value.Pos, cwd)
 		loclist = append(loclist, &nvim.QuickfixError{
@@ -474,10 +461,9 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 		}
 
 	case "pointsto":
-		var value = []serial.PointsTo{}
-		err := dec.Decode(&value)
-		if err != nil {
-			return loclist, err
+		value, ok := res.([]serial.PointsTo)
+		if !ok {
+			return loclist, errTypeAssertion
 		}
 		for _, v := range value {
 			fname, line, col := nvimutil.SplitPos(v.NamePos, cwd)
@@ -500,26 +486,29 @@ func parseResult(mode string, fset *token.FileSet, data []byte, cwd string) ([]*
 			}
 		}
 
+	// TODO(zchee): Support serial.ReferrersInitial type
 	case "referrers":
-		var packages = serial.ReferrersPackage{}
-		if err := dec.Decode(&packages); err != nil {
-			return loclist, err
-		}
-		for _, v := range packages.Refs {
-			fname, line, col := nvimutil.SplitPos(v.Pos, cwd)
-			loclist = append(loclist, &nvim.QuickfixError{
-				FileName: fname,
-				LNum:     line,
-				Col:      col,
-				Text:     v.Text,
-			})
+		switch value := res.(type) {
+		case serial.ReferrersPackage:
+			for _, v := range value.Refs {
+				fname, line, col := nvimutil.SplitPos(v.Pos, cwd)
+				loclist = append(loclist, &nvim.QuickfixError{
+					FileName: fname,
+					LNum:     line,
+					Col:      col,
+					Text:     v.Text,
+				})
+			}
+		default:
+			return loclist, errTypeAssertion
 		}
 
+	// TODO(zchee): implements what mode
+
 	case "whicherrs":
-		var value = serial.WhichErrs{}
-		err := dec.Decode(&value)
-		if err != nil {
-			return loclist, err
+		value, ok := res.(*serial.WhichErrs)
+		if !ok {
+			return loclist, errTypeAssertion
 		}
 		fname, line, col := nvimutil.SplitPos(value.ErrPos, cwd)
 		loclist = append(loclist, &nvim.QuickfixError{
