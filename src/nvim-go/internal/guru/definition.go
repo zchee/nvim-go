@@ -112,11 +112,11 @@ func definition(q *Query) error {
 	return nil
 }
 
-// packageForQualIdent returns the package p if id is X in a qualified
+// PackageForQualIdent returns the package p if id is X in a qualified
 // identifier p.X; it returns "" otherwise.
 //
 // Precondition: id is path[0], and the parser did not resolve id to a
-// local object.  For speed, packageForQualIdent assumes that p is a
+// local object.  For speed, PackageForQualIdent assumes that p is a
 // package iff it is the basename of an import path (and not, say, a
 // package-level decl in another file or a predeclared identifier).
 func PackageForQualIdent(path []ast.Node, id *ast.Ident) string {
@@ -138,7 +138,7 @@ func PackageForQualIdent(path []ast.Node, id *ast.Ident) string {
 	return ""
 }
 
-// findPackageMember returns the type and position of the declaration of
+// FindPackageMember returns the type and position of the declaration of
 // pkg.member by loading and parsing the files of that package.
 // srcdir is the directory in which the import appears.
 func FindPackageMember(ctxt *build.Context, fset *token.FileSet, srcdir, pkg, member string) (token.Token, token.Pos, error) {
@@ -147,7 +147,6 @@ func FindPackageMember(ctxt *build.Context, fset *token.FileSet, srcdir, pkg, me
 		return 0, token.NoPos, err // no files for package
 	}
 
-	bp.GoFiles = append(bp.GoFiles, bp.CgoFiles...)
 	// TODO(adonovan): opt: parallelize.
 	for _, fname := range bp.GoFiles {
 		filename := filepath.Join(bp.Dir, fname)
