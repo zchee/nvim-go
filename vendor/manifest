@@ -8,13 +8,6 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/cweill/gotests/gotests",
-			"repository": "https://github.com/cweill/gotests",
-			"revision": "c046ad7b5a2998ea37d9d04c9edb5a81e94dff6a",
-			"branch": "master",
-			"path": "/gotests"
-		},
-		{
 			"importpath": "github.com/cweill/gotests/gotests/process",
 			"repository": "https://github.com/cweill/gotests",
 			"revision": "c046ad7b5a2998ea37d9d04c9edb5a81e94dff6a",
@@ -168,13 +161,6 @@
 			"revision": "ee532b944160bb27b6f23e4f5ef38b8fdaa2a6bd",
 			"branch": "master",
 			"path": "/go"
-		},
-		{
-			"importpath": "github.com/ugorji/go/codec",
-			"repository": "https://github.com/ugorji/go",
-			"revision": "9c7f9b7a2bc3a520f7c7b30b34b7f85f47fe27b6",
-			"branch": "master",
-			"path": "/codec"
 		},
 		{
 			"importpath": "golang.org/x/debug/dwarf",
