@@ -123,11 +123,11 @@ clean: ## Clean the {bin,pkg} directory
 
 
 todo: ## Print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
-	@ag 'TODO(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal --ignore Makefile || true
-	@ag 'BUG(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal  --ignore Makefile|| true
-	@ag 'XXX(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal  --ignore Makefile|| true
-	@ag 'FIXME(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal --ignore Makefile || true
-	@ag 'NOTE(\(.+\):|:)' --after=1 --ignore-dir vendor --ignore-dir internal --ignore Makefile || true
+	@pt -e 'TODO(\(.+\):|:)' --after=1 --ignore vendor --ignore internal --ignore Makefile || true
+	@pt -e 'BUG(\(.+\):|:)' --after=1 --ignore vendor --ignore internal  --ignore Makefile || true
+	@pt -e 'XXX(\(.+\):|:)' --after=1 --ignore vendor --ignore internal  --ignore Makefile || true
+	@pt -e 'FIXME(\(.+\):|:)' --after=1 --ignore vendor --ignore internal --ignore Makefile || true
+	@pt -e 'NOTE(\(.+\):|:)' --after=1 --ignore vendor --ignore internal --ignore Makefile || true
 
 help: ## Print this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
