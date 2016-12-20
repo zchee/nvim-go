@@ -88,12 +88,23 @@ vendor-clean: ## Cleanup vendor packages "*_test" files, testdata and nogo files
 		-type f -print -exec rm {} ";"
 
 vendor-guru: ## Update the internal guru package
-	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go
+	${RM} $(shell find ${PACKAGE_DIR}/src/nvim-go/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
 	${VENDOR_CMD} fetch golang.org/x/tools/cmd/guru
-	cp -r ${PACKAGE_DIR}/vendor/src/golang.org/x/tools/cmd/guru ${PACKAGE_DIR}/src/nvim-go/internal/guru
-	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/{main.go,*_test.go,serial,testdata,*.bash,*.vim,*.el}
+	mv ${PACKAGE_DIR}/vendor/src/golang.org/x/tools/cmd/guru/*.go ${PACKAGE_DIR}/src/nvim-go/internal/guru
+	# Rename main to guru
 	grep "package main" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
+	# Add Result interface
+	sed -i "s|PrintPlain(printf printfFunc)|\0\n\n\tResult(fset *token.FileSet) interface{}|" ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru.go
+	# Export functions
+	grep "findPackageMember" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/findPackageMember/FindPackageMember/'
+	grep "packageForQualIdent" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/packageForQualIdent/PackageForQualIdent/'
+	grep "guessImportPath" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/guessImportPath/GuessImportPath/'
+	# ignore build main.go
+	sed -i "s|package guru // import \"golang.org/x/tools/cmd/guru\"|\n// +build ignore\n\n\0|" ${PACKAGE_DIR}/src/nvim-go/internal/guru/main.go
+	# ignore build guru_test.go
+	sed -i "s|package guru_test|// +build ignore\n\n\0|" ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru_test.go
 	${VENDOR_CMD} delete golang.org/x/tools/cmd/guru
+	${VENDOR_CMD} update golang.org/x/tools/cmd/guru/serial
 
 
 docker: docker-run ## Run the docker container test on Linux
