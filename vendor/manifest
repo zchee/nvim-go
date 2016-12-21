@@ -107,21 +107,21 @@
 		{
 			"importpath": "github.com/google/gops/agent",
 			"repository": "https://github.com/google/gops",
-			"revision": "6302d55aaae17a7ff1486ee9918bc9edcad986dc",
+			"revision": "4698eb04b60ab646a8f518d4d168ac21e0c54e5f",
 			"branch": "master",
 			"path": "/agent"
 		},
 		{
 			"importpath": "github.com/google/gops/internal",
 			"repository": "https://github.com/google/gops",
-			"revision": "6302d55aaae17a7ff1486ee9918bc9edcad986dc",
+			"revision": "4698eb04b60ab646a8f518d4d168ac21e0c54e5f",
 			"branch": "master",
 			"path": "/internal"
 		},
 		{
 			"importpath": "github.com/google/gops/signal",
 			"repository": "https://github.com/google/gops",
-			"revision": "6302d55aaae17a7ff1486ee9918bc9edcad986dc",
+			"revision": "4698eb04b60ab646a8f518d4d168ac21e0c54e5f",
 			"branch": "master",
 			"path": "/signal"
 		},

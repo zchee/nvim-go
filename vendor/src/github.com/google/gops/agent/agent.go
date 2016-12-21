@@ -15,19 +15,53 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/google/gops/internal"
 	"github.com/google/gops/signal"
 )
 
-// Start starts the gops agent on a host process. Once agent started,
-// users can use the advanced gops features.
+const defaultAddr = "127.0.0.1:0"
+
+var (
+	mu       sync.Mutex
+	portfile string
+	listener net.Listener
+)
+
+// Options allows configuring the started agent.
+type Options struct {
+	// Addr is the host:port the agent will be listening at.
+	// Optional.
+	Addr string
+
+	// NoShutdownCleanup tells the agent not to automatically cleanup
+	// resources if the running process recieves an interrupt.
+	// Optional.
+	NoShutdownCleanup bool
+}
+
+// Listen starts the gops agent on a host process. Once agent started, users
+// can use the advanced gops features. The agent will listen to Interrupt
+// signals and exit the process, if you need to perform further work on the
+// Interrupt signal use the options parameter to configure the agent
+// accordingly.
 //
 // Note: The agent exposes an endpoint via a TCP connection that can be used by
-// any program on the system. Review your security requirements before
-// starting the agent.
-func Start() error {
+// any program on the system. Review your security requirements before starting
+// the agent.
+func Listen(opts *Options) error {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if opts == nil {
+		opts = &Options{}
+	}
+	if portfile != "" {
+		return fmt.Errorf("gops: agent already listening at: %v", listener.Addr())
+	}
+
 	gopsdir, err := internal.ConfigDir()
 	if err != nil {
 		return err
@@ -36,47 +70,77 @@ func Start() error {
 	if err != nil {
 		return err
 	}
+	if !opts.NoShutdownCleanup {
+		gracefulShutdown()
+	}
 
-	l, err := net.Listen("tcp", "127.0.0.1:0")
+	addr := opts.Addr
+	if addr == "" {
+		addr = defaultAddr
+	}
+	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
-	port := l.Addr().(*net.TCPAddr).Port
-	portfile := fmt.Sprintf("%s/%d", gopsdir, os.Getpid())
+	listener = ln
+	port := listener.Addr().(*net.TCPAddr).Port
+	portfile = fmt.Sprintf("%s/%d", gopsdir, os.Getpid())
 	err = ioutil.WriteFile(portfile, []byte(strconv.Itoa(port)), os.ModePerm)
 	if err != nil {
 		return err
 	}
 
+	go listen()
+	return nil
+}
+
+func listen() {
+	buf := make([]byte, 1)
+	for {
+		fd, err := listener.Accept()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "gops: %v", err)
+			if netErr, ok := err.(net.Error); ok && !netErr.Temporary() {
+				break
+			}
+			continue
+		}
+		if _, err := fd.Read(buf); err != nil {
+			fmt.Fprintf(os.Stderr, "gops: %v", err)
+			continue
+		}
+		if err := handle(fd, buf); err != nil {
+			fmt.Fprintf(os.Stderr, "gops: %v", err)
+			continue
+		}
+		fd.Close()
+	}
+}
+
+func gracefulShutdown() {
 	c := make(chan os.Signal, 1)
 	gosignal.Notify(c, os.Interrupt)
 	go func() {
 		// cleanup the socket on shutdown.
 		<-c
-		os.Remove(portfile)
+		Close()
 		os.Exit(1)
 	}()
+}
 
-	go func() {
-		buf := make([]byte, 1)
-		for {
-			fd, err := l.Accept()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "gops: %v", err)
-				continue
-			}
-			if _, err := fd.Read(buf); err != nil {
-				fmt.Fprintf(os.Stderr, "gops: %v", err)
-				continue
-			}
-			if err := handle(fd, buf); err != nil {
-				fmt.Fprintf(os.Stderr, "gops: %v", err)
-				continue
-			}
-			fd.Close()
-		}
-	}()
-	return err
+// Close closes the agent, removing temporary files and closing the TCP listener.
+// If no agent is listening, Close does nothing.
+func Close() {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if portfile != "" {
+		os.Remove(portfile)
+		portfile = ""
+	}
+	if listener != nil {
+		listener.Close()
+	}
 }
 
 func handle(conn net.Conn, msg []byte) error {
