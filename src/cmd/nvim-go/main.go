@@ -34,7 +34,7 @@ func main() {
 	}
 	if os.Getenv("NVIM_GO_DEBUG") != "" {
 		// starts the gops agent
-		if err := agent.Start(); err != nil {
+		if err := agent.Listen(&agent.Options{NoShutdownCleanup: true}); err != nil {
 			log.Fatal(err)
 		}
 
