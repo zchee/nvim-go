@@ -403,13 +403,21 @@ func (d *Delve) cmdRestart(v *nvim.Nvim) {
 }
 
 func (d *Delve) restart(v *nvim.Nvim) error {
-	err := d.client.Restart()
+	discarded, err := d.client.Restart()
 	if err != nil {
 		return nvimutil.ErrorWrap(v, errors.WithStack(err))
 	}
 
+	var buf bytes.Buffer
+
 	d.processPid = d.client.ProcessPid()
-	return d.printTerminal("restart", []byte(fmt.Sprintf("Process restarted with PID %d", d.processPid)))
+	buf.WriteString(fmt.Sprintf("Process restarted with PID %d\n", d.processPid))
+
+	for i := range discarded {
+		buf.WriteString(fmt.Sprintf("Discarded %s at %s: %v\n", discarded[i].Breakpoint, discarded[i].Breakpoint, discarded[i].Reason))
+	}
+
+	return d.printTerminal("restart", buf.Bytes())
 }
 
 // ----------------------------------------------------------------------------
