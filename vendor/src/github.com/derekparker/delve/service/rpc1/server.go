@@ -36,7 +36,8 @@ func (s *RPCServer) Restart(arg1 interface{}, arg2 *int) error {
 	if s.config.AttachPid != 0 {
 		return errors.New("cannot restart process Delve did not create")
 	}
-	return s.debugger.Restart()
+	_, err := s.debugger.Restart()
+	return err
 }
 
 func (s *RPCServer) State(arg interface{}, state *api.DebuggerState) error {
@@ -199,11 +200,11 @@ func (s *RPCServer) ListRegisters(arg interface{}, registers *string) error {
 		return err
 	}
 
-	regs, err := s.debugger.Registers(state.CurrentThread.ID)
+	regs, err := s.debugger.Registers(state.CurrentThread.ID, false)
 	if err != nil {
 		return err
 	}
-	*registers = regs
+	*registers = regs.String()
 	return nil
 }
 
