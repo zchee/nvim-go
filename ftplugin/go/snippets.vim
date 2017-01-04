@@ -9,8 +9,6 @@ function! s:neosnippet() abort
     return
   endif
 
-  let g:neosnippet#enable_snipmate_compatibility = 1
-
   let neosnippet_dir = globpath(&rtp, 'gosnippets/neosnippet')
   if !exists('g:neosnippet#snippets_directory')
     let g:neosnippet#snippets_directory = neosnippet_dir
