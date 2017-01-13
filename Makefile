@@ -10,7 +10,7 @@ GOPATH ?= $(shell go env GOPATH)
 GOROOT ?= $(shell go env GOROOT)
 
 GO_CMD := go
-GB_CMD := gb
+GB_CMD := $(GOPATH)/bin/gb
 VENDOR_CMD := ${GB_CMD} vendor
 DOCKER_CMD := docker
 
@@ -73,7 +73,7 @@ test-run: ## Run the package test only those tests and examples
 
 vendor-all: ## Update the all vendor packages
 	${VENDOR_CMD} update -all
-	${MAKE} vendor-cleanup
+	${MAKE} vendor-clean
 
 vendor-clean: ## Cleanup vendor packages "*_test" files, testdata and nogo files.
 	@find ./vendor -type d -name 'testdata' -print | xargs rm -rf
