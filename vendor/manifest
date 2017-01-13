@@ -24,77 +24,77 @@
 		{
 			"importpath": "github.com/derekparker/delve/config",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/config"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/frame",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/dwarf/frame"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/line",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/dwarf/line"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/op",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/dwarf/op"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/reader",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/dwarf/reader"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/dwarf/util",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/dwarf/util"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/proc",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/proc"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/service"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service/api",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/service/api"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service/rpc2",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/service/rpc2"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/terminal",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "f4aaffbbf34ce4c2ca8b55e65b569407064c4787",
+			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
 			"branch": "master",
 			"path": "/terminal"
 		},
