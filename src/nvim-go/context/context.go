@@ -17,7 +17,7 @@ import (
 
 // Context represents a embeded context package and build context.
 type Context struct {
-	Build Build
+	Build
 
 	Errlist map[string][]*nvim.QuickfixError
 }
@@ -39,22 +39,24 @@ func NewContext() *Context {
 }
 
 // buildContext return the new build context estimated from the path p directory structure.
-func (ctx *Context) buildContext(dir string, defaultContext build.Context) build.Context {
+func buildContext(dir string, defaultContext build.Context) (string, string, build.Context) {
+	// copy context
+	buildContext := defaultContext
+
 	// Default is go context
-	ctx.Build.Tool = "go"
+	tool := "go"
 	// Assign package directory full path from dir
-	ctx.Build.ProjectRoot, _ = pathutil.PackagePath(dir)
+	projectRoot, _ := pathutil.PackagePath(dir)
 
 	// Check whether the dir is Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
 	if gbpath, ok := pathutil.IsGb(filepath.Clean(dir)); ok {
-		ctx.Build.Tool = "gb"
-		ctx.Build.ProjectRoot = gbpath
-		defaultContext.JoinPath = ctx.Build.GbJoinPath
-		defaultContext.GOPATH = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")
+		tool = "gb"
+		projectRoot = gbpath
+		buildContext.GOPATH = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")
 	}
 
-	return defaultContext
+	return tool, projectRoot, buildContext
 }
 
 // contextMu Mutex lock for SetContext.
@@ -70,7 +72,10 @@ func (ctx *Context) SetContext(dir string) func() {
 	contextMu.Lock()
 	original := build.Default
 
-	build.Default = ctx.buildContext(dir, original)
+	ctx.Build.Tool, ctx.Build.ProjectRoot, build.Default = buildContext(dir, original)
+	if ctx.Build.Tool == "gb" {
+		build.Default.JoinPath = ctx.Build.GbJoinPath
+	}
 	os.Setenv("GOPATH", build.Default.GOPATH)
 
 	return func() {
