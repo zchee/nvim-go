@@ -13,7 +13,6 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -89,11 +88,7 @@ func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 
 	switch c.ctx.Build.Tool {
 	case "go":
-		pkgPath, err := pathutil.PackagePath(dir)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		cmd.Dir = pkgPath
+		cmd.Dir = dir
 
 		// Outputs the binary to DevNull if without bang
 		if !bang {
