@@ -184,13 +184,6 @@
 			"path": "/macho"
 		},
 		{
-			"importpath": "golang.org/x/net/context",
-			"repository": "https://go.googlesource.com/net",
-			"revision": "8fd7f25955530b92e73e9e1932a41b522b22ccd9",
-			"branch": "master",
-			"path": "/context"
-		},
-		{
 			"importpath": "golang.org/x/sys/unix",
 			"repository": "https://go.googlesource.com/sys",
 			"revision": "d75a52659825e75fff6158388dddc6a5b04f9ba5",

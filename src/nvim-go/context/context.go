@@ -13,12 +13,10 @@ import (
 	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
-	"golang.org/x/net/context"
 )
 
 // Context represents a embeded context package and build context.
 type Context struct {
-	context.Context
 	Build Build
 
 	Errlist map[string][]*nvim.QuickfixError
