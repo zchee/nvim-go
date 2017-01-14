@@ -37,7 +37,7 @@ func (c *Commands) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 	defer nvimutil.Profile(time.Now(), "GoRename")
 	dir := filepath.Dir(eval.File)
-	defer c.ctxt.SetContext(dir)()
+	defer c.ctx.SetContext(dir)()
 
 	var (
 		b nvim.Buffer
@@ -105,7 +105,7 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 
 		log.Printf("er: %+v\n", string(renameErr))
 		go func() {
-			loclist, _ := nvimutil.ParseError(renameErr, eval.Cwd, &c.ctxt.Build)
+			loclist, _ := nvimutil.ParseError(renameErr, eval.Cwd, &c.ctx.Build)
 			nvimutil.SetLoclist(c.Nvim, loclist)
 			nvimutil.OpenLoclist(c.Nvim, w, loclist, true)
 		}()

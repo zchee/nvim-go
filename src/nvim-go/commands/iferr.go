@@ -34,7 +34,7 @@ func (c *Commands) Iferr(file string) error {
 	defer nvimutil.Profile(time.Now(), "GoIferr")
 
 	dir := filepath.Dir(file)
-	defer c.ctxt.SetContext(dir)()
+	defer c.ctx.SetContext(dir)()
 
 	b, err := c.Nvim.CurrentBuffer()
 	if err != nil {

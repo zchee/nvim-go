@@ -39,18 +39,18 @@ func NewContext() *Context {
 }
 
 // buildContext return the new build context estimated from the path p directory structure.
-func (ctxt *Context) buildContext(dir string, defaultContext build.Context) build.Context {
+func (ctx *Context) buildContext(dir string, defaultContext build.Context) build.Context {
 	// Default is go context
-	ctxt.Build.Tool = "go"
+	ctx.Build.Tool = "go"
 	// Assign package directory full path from dir
-	ctxt.Build.ProjectRoot, _ = pathutil.PackagePath(dir)
+	ctx.Build.ProjectRoot, _ = pathutil.PackagePath(dir)
 
 	// Check whether the dir is Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
 	if gbpath, ok := pathutil.IsGb(filepath.Clean(dir)); ok {
-		ctxt.Build.Tool = "gb"
-		ctxt.Build.ProjectRoot = gbpath
-		defaultContext.JoinPath = ctxt.Build.GbJoinPath
+		ctx.Build.Tool = "gb"
+		ctx.Build.ProjectRoot = gbpath
+		defaultContext.JoinPath = ctx.Build.GbJoinPath
 		defaultContext.GOPATH = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")
 	}
 
@@ -66,11 +66,11 @@ var contextMu sync.Mutex
 // unlocks the mutex.
 //
 // This function intended to be used to the go/build Default.
-func (ctxt *Context) SetContext(dir string) func() {
+func (ctx *Context) SetContext(dir string) func() {
 	contextMu.Lock()
 	original := build.Default
 
-	build.Default = ctxt.buildContext(dir, original)
+	build.Default = ctx.buildContext(dir, original)
 	os.Setenv("GOPATH", build.Default.GOPATH)
 
 	return func() {

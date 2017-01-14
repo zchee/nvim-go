@@ -32,8 +32,8 @@ func (c *Commands) cmdFmt(dir string) {
 		case error:
 			nvimutil.ErrorWrap(c.Nvim, e)
 		case []*nvim.QuickfixError:
-			c.ctxt.Errlist["Fmt"] = e
-			nvimutil.ErrorList(c.Nvim, c.ctxt.Errlist, true)
+			c.ctx.Errlist["Fmt"] = e
+			nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
 		}
 	}()
 }
@@ -41,7 +41,7 @@ func (c *Commands) cmdFmt(dir string) {
 // Fmt format to the current buffer source uses gofmt behavior.
 func (c *Commands) Fmt(dir string) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoFmt")
-	defer c.ctxt.SetContext(dir)()
+	defer c.ctx.SetContext(dir)()
 
 	var (
 		b nvim.Buffer
@@ -95,7 +95,7 @@ func (c *Commands) Fmt(dir string) interface{} {
 
 		return errlist
 	}
-	delete(c.ctxt.Errlist, "Fmt")
+	delete(c.ctx.Errlist, "Fmt")
 
 	out := nvimutil.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
 	minUpdate(c.Nvim, b, in, out)

@@ -118,8 +118,8 @@ func BenchmarkBuildGo(b *testing.B) {
 			Cwd: astdump,
 			Dir: astdump,
 		})
-		if len(c.ctxt.Errlist) != 0 {
-			b.Errorf("BenchmarkBuildGo: %v", c.ctxt.Errlist)
+		if len(c.ctx.Errlist) != 0 {
+			b.Errorf("BenchmarkBuildGo: %v", c.ctx.Errlist)
 		}
 	}
 }
@@ -133,8 +133,8 @@ func BenchmarkBuildGb(b *testing.B) {
 			Cwd: gsftpRoot,
 			Dir: gsftpRoot,
 		})
-		if len(c.ctxt.Errlist) != 0 {
-			b.Errorf("BenchmarkBuildGb: %v", c.ctxt.Errlist)
+		if len(c.ctx.Errlist) != 0 {
+			b.Errorf("BenchmarkBuildGb: %v", c.ctx.Errlist)
 		}
 	}
 }

@@ -26,15 +26,15 @@ import (
 
 func (c *Commands) cmdLint(v *nvim.Nvim, args []string, file string) {
 	// Cleanup error list
-	delete(c.ctxt.Errlist, "Lint")
+	delete(c.ctx.Errlist, "Lint")
 
 	go func() {
 		errlist, err := c.Lint(args, file)
 		if err != nil {
 			nvimutil.ErrorWrap(c.Nvim, err)
 		}
-		c.ctxt.Errlist["Lint"] = errlist
-		nvimutil.ErrorList(c.Nvim, c.ctxt.Errlist, true)
+		c.ctx.Errlist["Lint"] = errlist
+		nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
 	}()
 }
 
@@ -50,7 +50,7 @@ const (
 func (c *Commands) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
 	defer nvimutil.Profile(time.Now(), "GoLint")
 	dir := filepath.Dir(file)
-	defer c.ctxt.SetContext(dir)()
+	defer c.ctx.SetContext(dir)()
 	buildContext = build.Default
 
 	var (
@@ -64,15 +64,15 @@ func (c *Commands) Lint(args []string, file string) ([]*nvim.QuickfixError, erro
 			errlist, err = c.lintDir(dir)
 		case root:
 			var rootDir string
-			switch c.ctxt.Build.Tool {
+			switch c.ctx.Build.Tool {
 			case "go":
-				root, err := pathutil.PackageID(c.ctxt.Build.ProjectRoot)
+				root, err := pathutil.PackageID(c.ctx.Build.ProjectRoot)
 				if err != nil {
 					return nil, errors.WithStack(err)
 				}
 				rootDir = root
 			case "gb":
-				rootDir = filepath.Base(c.ctxt.Build.ProjectRoot)
+				rootDir = filepath.Base(c.ctx.Build.ProjectRoot)
 			}
 			for _, pkgname := range importPaths([]string{rootDir + "/..."}) {
 				errors, err := c.lintPackage(pkgname)

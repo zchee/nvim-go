@@ -16,13 +16,13 @@ type Commands struct {
 	Pipeline *nvim.Pipeline
 	Batch    *nvim.Batch
 
-	ctxt *context.Context
+	ctx *context.Context
 }
 
-func NewCommands(v *nvim.Nvim, ctxt *context.Context) *Commands {
+func NewCommands(v *nvim.Nvim, ctx *context.Context) *Commands {
 	return &Commands{
 		Nvim: v,
-		ctxt: ctxt,
+		ctx:  ctx,
 	}
 }
 

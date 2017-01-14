@@ -39,16 +39,16 @@ var testTerm *nvimutil.Terminal
 // the directory structure.
 func (c *Commands) Test(args []string, dir string) error {
 	defer nvimutil.Profile(time.Now(), "GoTest")
-	defer c.ctxt.SetContext(dir)()
+	defer c.ctx.SetContext(dir)()
 
-	cmd := []string{c.ctxt.Build.Tool, "test", strings.Join(config.TestFlags, " ")}
+	cmd := []string{c.ctx.Build.Tool, "test", strings.Join(config.TestFlags, " ")}
 	if len(args) > 0 {
 		cmd = append(cmd, args...)
 	}
 
 	var testPkgs []string
 	if config.TestAll {
-		switch c.ctxt.Build.Tool {
+		switch c.ctx.Build.Tool {
 		case "go":
 			pkgs, err := pathutil.FindAllPackage(dir, build.Default, nil, pathutil.ModeExcludeVendor)
 			if err != nil {
@@ -133,7 +133,7 @@ func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
 	}
 
 	// Get the current buffer package context
-	defer c.ctxt.SetContext(filepath.Dir(fname))()
+	defer c.ctx.SetContext(filepath.Dir(fname))()
 
 	var (
 		b nvim.Buffer

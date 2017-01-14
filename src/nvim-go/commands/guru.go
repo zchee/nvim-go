@@ -54,7 +54,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	}
 
 	dir := filepath.Dir(eval.File)
-	defer c.ctxt.SetContext(dir)()
+	defer c.ctx.SetContext(dir)()
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -116,7 +116,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	}
 
 	var scope string
-	switch c.ctxt.Build.Tool {
+	switch c.ctx.Build.Tool {
 	case "go":
 		pkgID, err := pathutil.PackageID(dir)
 		if err != nil {
@@ -124,7 +124,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		}
 		scope = pkgID
 	case "gb":
-		scope = pathutil.GbProjectName(c.ctxt.Build.ProjectRoot)
+		scope = pathutil.GbProjectName(c.ctx.Build.ProjectRoot)
 	}
 	query.Scope = append(query.Scope, filepath.Join(scope, "..."))
 

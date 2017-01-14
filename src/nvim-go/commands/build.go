@@ -33,8 +33,8 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 		case error:
 			nvimutil.ErrorWrap(c.Nvim, e)
 		case []*nvim.QuickfixError:
-			c.ctxt.Errlist["Build"] = e
-			nvimutil.ErrorList(c.Nvim, c.ctxt.Errlist, true)
+			c.ctx.Errlist["Build"] = e
+			nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
 		}
 	}()
 }
@@ -43,7 +43,7 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 // from the package directory structure.
 func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoBuild")
-	defer c.ctxt.SetContext(eval.Dir)()
+	defer c.ctx.SetContext(eval.Dir)()
 
 	if !bang {
 		bang = config.BuildForce
@@ -58,7 +58,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 
 	if buildErr := cmd.Run(); buildErr != nil {
 		if buildErr.(*exec.ExitError) != nil {
-			errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
+			errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctx.Build)
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -68,14 +68,14 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	}
 
 	// Build succeeded, clean up the Errlist
-	delete(c.ctxt.Errlist, "Build")
+	delete(c.ctx.Errlist, "Build")
 
-	return nvimutil.EchoSuccess(c.Nvim, "GoBuild", fmt.Sprintf("compiler: %s", c.ctxt.Build.Tool))
+	return nvimutil.EchoSuccess(c.Nvim, "GoBuild", fmt.Sprintf("compiler: %s", c.ctx.Build.Tool))
 }
 
 // compileCmd returns the *exec.Cmd corresponding to the compile tool.
 func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
-	bin, err := exec.LookPath(c.ctxt.Build.Tool)
+	bin, err := exec.LookPath(c.ctx.Build.Tool)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -87,7 +87,7 @@ func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 		args = append(args, config.BuildFlags...)
 	}
 
-	switch c.ctxt.Build.Tool {
+	switch c.ctx.Build.Tool {
 	case "go":
 		pkgPath, err := pathutil.PackagePath(dir)
 		if err != nil {
@@ -101,7 +101,7 @@ func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 		}
 
 	case "gb":
-		cmd.Dir = c.ctxt.Build.ProjectRoot
+		cmd.Dir = c.ctx.Build.ProjectRoot
 	}
 
 	cmd.Args = append(cmd.Args, args...)

@@ -32,7 +32,7 @@ func (c *Commands) cmdDef(file string) {
 // DEPRECATED: godef no longer mantained.
 func (c *Commands) Def(file string) error {
 	defer nvimutil.Profile(time.Now(), "GoDef")
-	defer c.ctxt.SetContext(filepath.Dir(file))()
+	defer c.ctx.SetContext(filepath.Dir(file))()
 
 	// types.Debug = true
 

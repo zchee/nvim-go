@@ -28,7 +28,7 @@ type CmdVetEval struct {
 func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
 	go func() {
 		// Cleanup old results
-		c.ctxt.Errlist["Vet"] = nil
+		c.ctx.Errlist["Vet"] = nil
 
 		errlist, err := c.Vet(args, eval)
 		if err != nil {
@@ -36,13 +36,13 @@ func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
 			return
 		}
 		if errlist != nil {
-			c.ctxt.Errlist["Vet"] = errlist
-			if len(c.ctxt.Errlist) > 0 {
-				nvimutil.ErrorList(c.Nvim, c.ctxt.Errlist, true)
+			c.ctx.Errlist["Vet"] = errlist
+			if len(c.ctx.Errlist) > 0 {
+				nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
 				return
 			}
 		}
-		if c.ctxt.Errlist["Vet"] == nil {
+		if c.ctx.Errlist["Vet"] == nil {
 			nvimutil.ClearErrorlist(c.Nvim, true)
 		}
 	}()
@@ -86,7 +86,7 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, 
 
 	vetErr := vetCmd.Run()
 	if vetErr != nil {
-		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctxt.Build)
+		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctx.Build)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
