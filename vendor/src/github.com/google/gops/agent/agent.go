@@ -14,6 +14,7 @@ import (
 	gosignal "os/signal"
 	"runtime"
 	"runtime/pprof"
+	"runtime/trace"
 	"strconv"
 	"sync"
 	"time"
@@ -146,10 +147,7 @@ func Close() {
 func handle(conn net.Conn, msg []byte) error {
 	switch msg[0] {
 	case signal.StackTrace:
-		buf := make([]byte, 1<<16)
-		n := runtime.Stack(buf, true)
-		_, err := conn.Write(buf[:n])
-		return err
+		return pprof.Lookup("goroutine").WriteTo(conn, 2)
 	case signal.GC:
 		runtime.GC()
 		_, err := conn.Write([]byte("ok"))
@@ -180,18 +178,22 @@ func handle(conn net.Conn, msg []byte) error {
 	case signal.Version:
 		fmt.Fprintf(conn, "%v\n", runtime.Version())
 	case signal.HeapProfile:
-		pprof.Lookup("heap").WriteTo(conn, 0)
+		pprof.WriteHeapProfile(conn)
 	case signal.CPUProfile:
 		if err := pprof.StartCPUProfile(conn); err != nil {
-			return nil
+			return err
 		}
 		time.Sleep(30 * time.Second)
 		pprof.StopCPUProfile()
-	case signal.Vitals:
+	case signal.Stats:
 		fmt.Fprintf(conn, "goroutines: %v\n", runtime.NumGoroutine())
 		fmt.Fprintf(conn, "OS threads: %v\n", pprof.Lookup("threadcreate").Count())
 		fmt.Fprintf(conn, "GOMAXPROCS: %v\n", runtime.GOMAXPROCS(0))
 		fmt.Fprintf(conn, "num CPU: %v\n", runtime.NumCPU())
+	case signal.Trace:
+		trace.Start(conn)
+		time.Sleep(5 * time.Second)
+		trace.Stop()
 	}
 	return nil
 }
