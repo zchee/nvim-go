@@ -22,81 +22,32 @@
 			"path": "/spew"
 		},
 		{
-			"importpath": "github.com/derekparker/delve/config",
+			"importpath": "github.com/derekparker/delve/pkg",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
+			"revision": "997f038c4703bc2fae8c5e7993ec14ff22780820",
 			"branch": "master",
-			"path": "/config"
-		},
-		{
-			"importpath": "github.com/derekparker/delve/dwarf/frame",
-			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
-			"branch": "master",
-			"path": "/dwarf/frame"
-		},
-		{
-			"importpath": "github.com/derekparker/delve/dwarf/line",
-			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
-			"branch": "master",
-			"path": "/dwarf/line"
-		},
-		{
-			"importpath": "github.com/derekparker/delve/dwarf/op",
-			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
-			"branch": "master",
-			"path": "/dwarf/op"
-		},
-		{
-			"importpath": "github.com/derekparker/delve/dwarf/reader",
-			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
-			"branch": "master",
-			"path": "/dwarf/reader"
-		},
-		{
-			"importpath": "github.com/derekparker/delve/dwarf/util",
-			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
-			"branch": "master",
-			"path": "/dwarf/util"
-		},
-		{
-			"importpath": "github.com/derekparker/delve/proc",
-			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
-			"branch": "master",
-			"path": "/proc"
+			"path": "/pkg"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
+			"revision": "997f038c4703bc2fae8c5e7993ec14ff22780820",
 			"branch": "master",
 			"path": "/service"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service/api",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
+			"revision": "997f038c4703bc2fae8c5e7993ec14ff22780820",
 			"branch": "master",
 			"path": "/service/api"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service/rpc2",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
+			"revision": "997f038c4703bc2fae8c5e7993ec14ff22780820",
 			"branch": "master",
 			"path": "/service/rpc2"
-		},
-		{
-			"importpath": "github.com/derekparker/delve/terminal",
-			"repository": "https://github.com/derekparker/delve",
-			"revision": "449b276fe1ce7e20a0c7ffffbdd47d97f40022a1",
-			"branch": "master",
-			"path": "/terminal"
 		},
 		{
 			"importpath": "github.com/golang/lint",
@@ -193,7 +144,7 @@
 		{
 			"importpath": "golang.org/x/tools/cmd/guru/serial",
 			"repository": "https://go.googlesource.com/tools",
-			"revision": "908849c3379245f71612058fbf92cf6bf58c3c75",
+			"revision": "721f218496963f33ebc9fbc5cdbdeed007ad9c49",
 			"branch": "master",
 			"path": "/cmd/guru/serial"
 		},
@@ -287,6 +238,12 @@
 			"revision": "908849c3379245f71612058fbf92cf6bf58c3c75",
 			"branch": "master",
 			"path": "/refactor/satisfy"
+		},
+		{
+			"importpath": "gopkg.in/yaml.v2",
+			"repository": "https://gopkg.in/yaml.v2",
+			"revision": "a3f3340b5840cee44f372bddb5880fcbc419b46a",
+			"branch": "v2"
 		},
 		{
 			"importpath": "rsc.io/x86/x86asm",

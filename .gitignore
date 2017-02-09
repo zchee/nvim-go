@@ -27,6 +27,7 @@ _testmain.go
 bin
 pkg
 !vendor/src/github.com/pkg
+!vendor/src/github.com/derekparker/delve/pkg
 
 # workaround for github.com/pkg
 !src/nvim-go/commands/testdata/gb/gsftp/vendor/src/github.com/pkg/
