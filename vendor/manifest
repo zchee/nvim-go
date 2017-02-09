@@ -177,6 +177,13 @@
 			"path": "/go/callgraph"
 		},
 		{
+			"importpath": "golang.org/x/tools/go/gcexportdata",
+			"repository": "https://go.googlesource.com/tools",
+			"revision": "396c176f119e89f957290de823600e03660610ce",
+			"branch": "master",
+			"path": "/go/gcexportdata"
+		},
+		{
 			"importpath": "golang.org/x/tools/go/gcimporter15",
 			"repository": "https://go.googlesource.com/tools",
 			"revision": "396c176f119e89f957290de823600e03660610ce",
