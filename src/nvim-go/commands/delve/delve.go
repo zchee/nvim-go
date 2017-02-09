@@ -20,7 +20,7 @@ import (
 
 	delveapi "github.com/derekparker/delve/service/api"
 	delverpc2 "github.com/derekparker/delve/service/rpc2"
-	delveterm "github.com/derekparker/delve/terminal"
+	delveterm "github.com/derekparker/delve/pkg/terminal"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
