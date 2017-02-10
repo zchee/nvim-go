@@ -107,13 +107,6 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/rogpeppe/godef/go",
-			"repository": "https://github.com/rogpeppe/godef",
-			"revision": "ee532b944160bb27b6f23e4f5ef38b8fdaa2a6bd",
-			"branch": "master",
-			"path": "/go"
-		},
-		{
 			"importpath": "golang.org/x/debug/dwarf",
 			"repository": "https://go.googlesource.com/debug",
 			"revision": "fb508927b491eca48a708e9d000fdb7afa53c32b",

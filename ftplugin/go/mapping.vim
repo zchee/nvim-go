@@ -4,10 +4,6 @@ nnoremap <silent><Plug>(nvim-go-analyzeview)  :<C-u>GoAnalyzeView<CR>
 " GoBuild
 nnoremap <silent><Plug>(nvim-go-build)  :<C-u>Gobuild<CR>
 
-" GoDef
-nnoremap <silent><Plug>(nvim-go-goto)  :<C-u>call GoGuru('definition')<CR>
-nnoremap <silent><Plug>(nvim-go-def)   :<C-u>call GoDef('expand("%:p")')<CR>
-
 " GoGenerate
 nnoremap <silent><Plug>(nvim-go-generatetest)   :<C-u>GoGenerateTest<CR>
 
