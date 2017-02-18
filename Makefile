@@ -59,7 +59,7 @@ $(PACKAGE_DIR)/plugin/manifest: ## Build the automatic writing neovim manifest u
 manifest: build $(PACKAGE_DIR)/plugin/manifest ## Write plugin manifest (for developers)
 	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
 
-test: ## Run the package test 
+test: std-build-race  ## Run the package test
 	${GO_TEST} $(GO_TEST_FLAGS)
 
 test-docker: docker-run ## Run the package test with docker container
