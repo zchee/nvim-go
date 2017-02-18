@@ -23,7 +23,7 @@ type Config struct {
 
 // startServer starts the delve headless server and replace server Stdout & Stderr.
 func (d *Delve) startServer(cmd string, cfg Config) error {
-	dlvBin, err := exec.LookPath("dlv")
+	dlv, err := exec.LookPath("dlv")
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -33,10 +33,10 @@ func (d *Delve) startServer(cmd string, cfg Config) error {
 		// TODO(zchee): implements
 	case "connect":
 		// connect command must be addr to the second argument
-		d.server = exec.Command(dlvBin, cmd, cfg.addr, "--log")
+		d.server = exec.Command(dlv, cmd, cfg.addr, "--log")
 	case "debug":
 		// debug command must be package path to the second argument, and need "--accept-multiclient" flag
-		d.server = exec.Command(dlvBin, cmd, cfg.path, "--headless", "--listen="+cfg.addr, "--accept-multiclient", "--api-version=2", "--log")
+		d.server = exec.Command(dlv, cmd, cfg.path, "--headless", "--listen="+cfg.addr, "--accept-multiclient", "--api-version=2", "--log")
 	case "exec":
 		// TODO(zchee): implements
 	case "test":
