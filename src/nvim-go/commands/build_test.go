@@ -31,15 +31,15 @@ func TestCommands_Build(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nvim-go Dir: filepath.Join(projectRoot, \"src/nvim-go/commands\")",
+			name: "nvim-go File: filepath.Join(projectRoot, \"src/nvim-go/commands\")",
 			fields: fields{
 				Nvim: nvimutil.TestNvim(t, "testdata"),
 				ctxt: context.NewContext(),
 			},
 			args: args{
 				eval: &CmdBuildEval{
-					Cwd: testdataPath,
-					Dir: testdataPath,
+					Cwd:  testdataPath,
+					File: testdataPath,
 				},
 			},
 			wantErr: false,
@@ -52,8 +52,8 @@ func TestCommands_Build(t *testing.T) {
 			},
 			args: args{
 				eval: &CmdBuildEval{
-					Cwd: gsftpRoot,
-					Dir: gsftpRoot,
+					Cwd:  gsftpRoot,
+					File: gsftpRoot,
 				},
 			},
 			wantErr: false,
@@ -66,8 +66,8 @@ func TestCommands_Build(t *testing.T) {
 			},
 			args: args{
 				eval: &CmdBuildEval{
-					Cwd: astdump,
-					Dir: astdump,
+					Cwd:  astdump,
+					File: filepath.Join(astdump, "astdump.go"),
 				},
 			},
 			wantErr: false,
@@ -80,8 +80,8 @@ func TestCommands_Build(t *testing.T) {
 			},
 			args: args{
 				eval: &CmdBuildEval{
-					Cwd: broken,
-					Dir: broken,
+					Cwd:  broken,
+					File: broken,
 				},
 			},
 			wantErr: true,
@@ -115,8 +115,8 @@ func BenchmarkBuildGo(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		c.Build(false, &CmdBuildEval{
-			Cwd: astdump,
-			Dir: astdump,
+			Cwd:  astdump,
+			File: astdump,
 		})
 		if len(c.ctx.Errlist) != 0 {
 			b.Errorf("BenchmarkBuildGo: %v", c.ctx.Errlist)
@@ -130,8 +130,8 @@ func BenchmarkBuildGb(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		c.Build(false, &CmdBuildEval{
-			Cwd: gsftpRoot,
-			Dir: gsftpRoot,
+			Cwd:  gsftpRoot,
+			File: gsftpRoot,
 		})
 		if len(c.ctx.Errlist) != 0 {
 			b.Errorf("BenchmarkBuildGb: %v", c.ctx.Errlist)
@@ -160,11 +160,12 @@ func TestCommands_compileCmd(t *testing.T) {
 		dir  string
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    string
-		wantErr bool
+		name     string
+		fields   fields
+		args     args
+		want     string
+		wantErr  bool
+		testfile bool
 	}{
 		{
 			name: "astdump (go build)",
@@ -212,7 +213,7 @@ func TestCommands_compileCmd(t *testing.T) {
 			t.Parallel()
 			c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
 
-			got, err := c.compileCmd(tt.args.bang, tt.args.dir)
+			got, err := c.compileCmd(tt.args.bang, tt.args.dir, tt.testfile)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Commands.compileCmd(%v, %v) error = %v, wantErr %v", tt.args.bang, tt.args.dir, err, tt.wantErr)
 				return

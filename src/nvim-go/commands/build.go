@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"nvim-go/config"
@@ -20,8 +22,8 @@ import (
 
 // CmdBuildEval struct type for Eval of GoBuild command.
 type CmdBuildEval struct {
-	Cwd string `msgpack:",array"`
-	Dir string
+	Cwd  string `msgpack:",array"`
+	File string
 }
 
 func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
@@ -42,13 +44,15 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 // from the package directory structure.
 func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoBuild")
-	defer c.ctx.SetContext(eval.Dir)()
+	dir := filepath.Dir(eval.File)
+	defer c.ctx.SetContext(dir)()
 
 	if !bang {
 		bang = config.BuildForce
 	}
 
-	cmd, err := c.compileCmd(bang, eval.Dir)
+	testFile := strings.HasSuffix(eval.File, "_test.go")
+	cmd, err := c.compileCmd(bang, dir, testFile)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -73,30 +77,35 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 }
 
 // compileCmd returns the *exec.Cmd corresponding to the compile tool.
-func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
+func (c *Commands) compileCmd(bang bool, dir string, testFile bool) (*exec.Cmd, error) {
 	bin, err := exec.LookPath(c.ctx.Build.Tool)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-
-	cmd := exec.Command(bin, "build")
 
 	args := []string{}
 	if len(config.BuildFlags) > 0 {
 		args = append(args, config.BuildFlags...)
 	}
 
+	mode := "build"
+	if testFile {
+		mode = "test"
+	}
+
+	cmd := exec.Command(bin, mode)
+	cmd.Dir = dir
+
 	switch c.ctx.Build.Tool {
 	case "go":
-		cmd.Dir = dir
-
 		// Outputs the binary to DevNull if without bang
-		if !bang {
+		if !bang && !testFile {
 			args = append(args, "-o", os.DevNull)
 		}
-
 	case "gb":
-		cmd.Dir = c.ctx.Build.ProjectRoot
+		if !testFile {
+			cmd.Dir = c.ctx.Build.ProjectRoot
+		}
 	}
 
 	cmd.Args = append(cmd.Args, args...)
