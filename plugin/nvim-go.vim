@@ -2,11 +2,13 @@
 " Use of this source code is governed by a BSD-style
 " license that can be found in the LICENSE file.
 
+let s:save_cpo = &cpo
+set cpo&vim
+
 if exists('g:loaded_nvim_go')
   finish
 endif
 let g:loaded_nvim_go = 1
-
 
 " -----------------------------------------------------------------------------
 " define default config variables
@@ -19,7 +21,7 @@ let g:go#analyze#foldicon = get(g:, 'go#analyze#foldicon', "▼")
 
 " GoBuild
 let g:go#build#autosave = get(g:, 'go#build#autosave', 0)
-let go#build#force = get(g:, 'go#build#force', 0)
+let g:go#build#force = get(g:, 'go#build#force', 0)
 let g:go#build#flags = get(g:, 'go#build#flags', [])
 
 " GoFmt
@@ -147,3 +149,6 @@ call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'function', 'name': 'GoLintCompletion', 'sync': 1, 'opts': {'eval': 'getcwd()'}},
 \ {'type': 'function', 'name': 'GoVetCompletion', 'sync': 1, 'opts': {'eval': 'getcwd()'}},
 \ ])
+
+let &cpo = s:save_cpo
+unlet s:save_cpo
