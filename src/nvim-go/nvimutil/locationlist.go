@@ -224,39 +224,40 @@ func ParseError(errs []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixE
 		filename := string(m[2])
 
 		// Avoid the local package error. like "package foo" and edit "cmd/foo/main.go"
-		if !strings.Contains(filename, "../") {
-			if !filepath.IsAbs(filename) && packagePath != "" {
-				// Joins the packagePath and error file
-				filename = filepath.Join(packagePath, filepath.Base(filename))
+		if !filepath.IsAbs(filename) && packagePath != "" {
+			// Joins the packagePath and error file
+			filename = filepath.Join(packagePath, filepath.Base(filename))
+		}
+
+		// Cleanup filename to relative path of current working directory
+		switch ctxt.Tool {
+		case "go":
+			var sep string
+			switch {
+			case pathutil.IsExist(pathutil.JoinGoPath(filename)):
+				filename = pathutil.JoinGoPath(filename)
+
+			// filename has not directory path
+			case filepath.Dir(filename) == ".":
+				filename = filepath.Join(cwd, filename)
+
+			// not contains '#' package title in errror
+			case strings.HasPrefix(filename, cwd):
+				sep = cwd
+				filename = strings.TrimPrefix(filename, sep+string(filepath.Separator))
+
+			// filename is like "github.com/foo/bar.go"
+			case strings.HasPrefix(filename, pathutil.TrimGoPath(cwd)):
+				sep = pathutil.TrimGoPath(cwd) + string(filepath.Separator)
+				filename = strings.TrimPrefix(filename, sep)
 			}
-
-			// Cleanup filename to relative path of current working directory
-			switch ctxt.Tool {
-			case "go":
-				var sep string
-				switch {
-				// filename has not directory path
-				case filepath.Dir(filename) == ".":
-					filename = filepath.Join(cwd, filename)
-
-				// not contains '#' package title in errror
-				case strings.HasPrefix(filename, cwd):
-					sep = cwd
-					filename = strings.TrimPrefix(filename, sep+string(filepath.Separator))
-
-				// filename is like "github.com/foo/bar.go"
-				case strings.HasPrefix(filename, pathutil.TrimGoPath(cwd)):
-					sep = pathutil.TrimGoPath(cwd) + string(filepath.Separator)
-					filename = strings.TrimPrefix(filename, sep)
-				}
-			case "gb":
-				// gb compiler error messages is relative filename path of project root dir
-				if !filepath.IsAbs(filename) {
-					filename = filepath.Join(ctxt.ProjectRoot, "src", filename)
-				}
-			default:
-				return nil, errors.New("unknown compiler tool")
+		case "gb":
+			// gb compiler error messages is relative filename path of project root dir
+			if !filepath.IsAbs(filename) {
+				filename = filepath.Join(ctxt.ProjectRoot, "src", filename)
 			}
+		default:
+			return nil, errors.New("unknown compiler tool")
 		}
 
 		// Finally, try to convert the relative path from cwd
