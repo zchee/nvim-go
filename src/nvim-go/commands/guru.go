@@ -18,6 +18,7 @@ import (
 	"go/types"
 	"log"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -104,8 +105,10 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 		fname, line, col := nvimutil.SplitPos(obj.ObjPos, eval.Cwd)
 
 		c.Pipeline.Command("normal! m'")
-		if fname != eval.File {
-			c.Pipeline.Command(fmt.Sprintf("keepjumps edit %s", fname))
+		// TODO(zchee): should change nvimutil.SplitPos behavior
+		f := strings.Split(obj.ObjPos, ":")
+		if f[0] != eval.File {
+			c.Pipeline.Command(fmt.Sprintf("keepjumps edit %s", pathutil.Rel(eval.Cwd, fname)))
 		}
 		c.Pipeline.SetWindowCursor(w, [2]int{line, col - 1})
 		if err := c.Pipeline.Wait(); err != nil {
