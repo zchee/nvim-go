@@ -5,6 +5,7 @@
 package pathutil
 
 import (
+	"go/build"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -37,7 +38,7 @@ func Chdir(v *nvim.Nvim, dir string) func() {
 // the package ID
 func TrimGoPath(p string) string {
 	// Separate trim work for p equal GOPATH
-	p = strings.TrimPrefix(p, os.Getenv("GOPATH"))
+	p = strings.TrimPrefix(p, build.Default.GOPATH)
 	p = strings.TrimPrefix(p, string(filepath.Separator))
 
 	if len(p) >= 4 {
@@ -52,7 +53,7 @@ func TrimGoPath(p string) string {
 
 // JoinGoPath joins the $GOPATH + "src" to p
 func JoinGoPath(p string) string {
-	return filepath.Join(os.Getenv("GOPATH"), "src", p)
+	return filepath.Join(build.Default.GOPATH, "src", p)
 }
 
 // ShortFilePath return the simply trim cwd into p.

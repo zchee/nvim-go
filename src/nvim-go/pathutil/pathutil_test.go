@@ -5,6 +5,7 @@
 package pathutil_test
 
 import (
+	"go/build"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -76,27 +77,27 @@ func TestTrimGoPath(t *testing.T) {
 	}{
 		{
 			name: "typical go package full path",
-			args: args{p: "/Users/zchee/go/src/github.com/zchee/nvim-go"},
+			args: args{p: filepath.Join(testGoPath, "src/github.com/zchee/nvim-go")},
 			want: "github.com/zchee/nvim-go",
 		},
 		{
 			name: ".goimportsignore file on GOPATH",
-			args: args{p: "/Users/zchee/go/.goimportsignore"},
+			args: args{p: filepath.Join(testGoPath, ".goimportsignore")},
 			want: ".goimportsignore",
 		},
 		{
 			name: ".a file on GOPATH",
-			args: args{p: "/Users/zchee/go/.a"},
+			args: args{p: filepath.Join(testGoPath, ".a")},
 			want: ".a",
 		},
 		{
 			name: "just GOPATH only",
-			args: args{p: "/Users/zchee/go"},
+			args: args{p: testGoPath},
 			want: "",
 		},
 	}
 
-	os.Setenv("GOPATH", "/Users/zchee/go")
+	build.Default.GOPATH = testGoPath
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
@@ -109,8 +110,6 @@ func TestTrimGoPath(t *testing.T) {
 }
 
 func TestJoinGoPath(t *testing.T) {
-	os.Setenv("GOPATH", testGoPath)
-
 	type args struct {
 		p string
 	}
@@ -125,6 +124,8 @@ func TestJoinGoPath(t *testing.T) {
 			want: filepath.Join(testGoPath, "src", "astdump"),
 		},
 	}
+
+	build.Default.GOPATH = testGoPath
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {

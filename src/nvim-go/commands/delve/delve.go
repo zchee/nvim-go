@@ -7,6 +7,7 @@ package delve
 import (
 	"bytes"
 	"fmt"
+	"go/build"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -168,7 +169,7 @@ func (d *Delve) cmdConnect(v *nvim.Nvim, args []string, eval *delveEval) {
 
 func (d *Delve) findRootDir(dir string) string {
 	rootDir := pathutil.FindVCSRoot(dir)
-	srcPath := filepath.Join(os.Getenv("GOPATH"), "src") + string(filepath.Separator)
+	srcPath := filepath.Join(build.Default.GOPATH, "src") + string(filepath.Separator)
 	return filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
 }
 
