@@ -1,33 +1,45 @@
 nvim-go original behavior
 =========================
 
+QuickFix, LocationList
+----------------------
+
+-	[ ] Fix windows name, Currently `[:setloclist()] [Location List] [-]`
+	-	[ ] Reference to neomake, or research neovim core code?
+
 Goroutine
 ---------
 
-- [ ] Super data racy
+-	[ ] Super data racy
+
+Miscellaneous
+-------------
+
+-	[ ] Display the corresponding function(file) to preview window like buffer that current cursor (test)function
+	-	[ ] Follow the cursor position with delay time
 
 Comment Generator
 -----------------
 
-- [ ] Automatically generate and insert the typical Go comment based current cursor or selected words.
-  - Parses AST, determine `*ast.Ident.Obj.Kind` aka `*ast.ObjKind` type
-    - `*ast.Pkg`:
-      - Package `*ast.File.Name` implements ...
-    - `*ast.Con`:
-      - `*ast.ValueSpec.Name` ??? ...
-    - `*ast.Typ`:
-      - (A|The) `*ast.TypeSpec.Name` represents a ... // (A|The) is optional
-    - `*ast.Var`:
-      - `*ast.ValueSpec.Name` is the ...
-    - `*ast.Fun`:
-      - `*ast.FuncDecl.Name` returns the ...
-    - `*ast.Lbl`:
-      - Need?
-  - Support `interface`, like
-    - `func (f *Foo) String()`:
-      - String implements a fmt.Stringer interface.
-    - `func (f *Foo) Error()`:
-      - Error implements a error.Error interface.
+-	[ ] Automatically generate and insert the typical Go comment based current cursor or selected words.
+	-	Parses AST, determine `*ast.Ident.Obj.Kind` aka `*ast.ObjKind` type
+	-	`*ast.Pkg`:
+		-	Package `*ast.File.Name` implements ...
+	-	`*ast.Con`:
+		-	`*ast.ValueSpec.Name` ??? ...
+	-	`*ast.Typ`:
+		-	(A|The) `*ast.TypeSpec.Name` represents a ... // (A|The) is optional
+	-	`*ast.Var`:
+		-	`*ast.ValueSpec.Name` is the ...
+	-	`*ast.Fun`:
+		-	`*ast.FuncDecl.Name` returns the ...
+	-	`*ast.Lbl`:
+		-	Need?
+	-	Support `interface`, like
+	-	`func (f *Foo) String()`:
+		-	String implements a fmt.Stringer interface.
+	-	`func (f *Foo) Error()`:
+		-	Error implements a error.Error interface.
 
 Compile error
 -------------
@@ -70,7 +82,7 @@ AST based syntax highlighting
 
 `delve` debugging
 
-https://github.com/derekparker/delve
+https://github.com/derekparker/delve  
 https://blog.gopheracademy.com/advent-2015/debugging-with-delve/
 
 -	[x] Debugging use `delve`
