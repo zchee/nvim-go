@@ -6,14 +6,15 @@ package nvimutil
 
 import (
 	"fmt"
+	"go/build"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
-	"github.com/neovim/go-client/nvim"
-
 	"nvim-go/context"
+
+	"github.com/neovim/go-client/nvim"
 )
 
 func TestSplitPos(t *testing.T) {
@@ -390,7 +391,7 @@ cmd/gaos/versions.go:14: initialization loop:
 		},
 	}
 
-	os.Setenv("GOPATH", gopath)
+	build.Default.GOPATH = gopath
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
