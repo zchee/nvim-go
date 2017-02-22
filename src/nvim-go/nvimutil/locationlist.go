@@ -224,7 +224,7 @@ func ParseError(errs []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixE
 		filename := string(m[2])
 
 		// Avoid the local package error. like "package foo" and edit "cmd/foo/main.go"
-		if !filepath.IsAbs(filename) && packagePath != "" {
+		if !strings.Contains(filename, "../") && (!filepath.IsAbs(filename) && packagePath != "") {
 			// Joins the packagePath and error file
 			filename = filepath.Join(packagePath, filepath.Base(filename))
 		}
