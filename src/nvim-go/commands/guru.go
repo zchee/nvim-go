@@ -43,12 +43,22 @@ type funcGuruEval struct {
 }
 
 func (c *Commands) funcGuru(args []string, eval *funcGuruEval) {
-	go c.Guru(args, eval)
+	go func() {
+		err := c.Guru(args, eval)
+
+		switch err := err.(type) {
+		case error:
+			nvimutil.ErrorWrap(c.Nvim, err)
+		default:
+			// nothing to do
+		}
+	}()
 }
 
 // Guru go source analysis and output result to the quickfix or locationlist.
-func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
+func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "Guru")
+
 	mode := args[0]
 	if len(args) > 1 {
 		return guruHelp(c.Nvim, mode)
@@ -57,11 +67,12 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	dir := filepath.Dir(eval.File)
 	defer c.ctx.SetContext(dir)()
 
-	defer func() {
+	defer func() (err error) {
 		if r := recover(); r != nil {
 			err = errors.Errorf("guru internal panic.\nMaybe your set 'g:go#guru#reflection' to 1. Please retry with disable it option.\nOriginal panic message:\n\t%v", r.(error))
-			nvimutil.ErrorWrap(c.Nvim, err)
+			return errors.WithStack(err)
 		}
+		return nil
 	}()
 
 	var (
@@ -71,7 +82,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	c.Pipeline.CurrentBuffer(&b)
 	c.Pipeline.CurrentWindow(&w)
 	if err := c.Pipeline.Wait(); err != nil {
-		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+		return errors.WithStack(err)
 	}
 
 	guruContext := &build.Default
@@ -83,7 +94,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 
 		c.Pipeline.BufferLines(b, 0, -1, true, &buf)
 		if err := c.Pipeline.Wait(); err != nil {
-			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+			return errors.WithStack(err)
 		}
 
 		overlay[eval.File] = bytes.Join(buf, []byte{'\n'})
@@ -123,7 +134,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	case "go":
 		pkgID, err := pathutil.PackageID(dir)
 		if err != nil {
-			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+			return errors.WithStack(err)
 		}
 		scope = pkgID
 	case "gb":
@@ -131,7 +142,10 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 	}
 	query.Scope = append(query.Scope, filepath.Join(scope, "..."))
 
-	var outputMu sync.Mutex
+	var (
+		outputMu sync.Mutex
+		err      error
+	)
 	output := func(fset *token.FileSet, qr guru.QueryResult) {
 		var err error
 		outputMu.Lock()
@@ -139,14 +153,17 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 
 		res := qr.Result(fset)
 		if loclist, err = parseResult(mode, res, eval.Cwd); err != nil {
-			nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+			err = errors.WithStack(err)
 		}
+	}
+	if err != nil {
+		return errors.WithStack(err)
 	}
 	query.Output = output
 
 	nvimutil.EchoProgress(c.Nvim, "Guru", fmt.Sprintf("analysing %s", mode))
 	if err := guru.Run(mode, &query); err != nil {
-		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+		return errors.WithStack(err)
 	}
 	if len(loclist) == 0 {
 		return fmt.Errorf("%s not fount", mode)
@@ -154,7 +171,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) (err error) {
 
 	defer nvimutil.ClearMsg(c.Nvim)
 	if err := nvimutil.SetLoclist(c.Nvim, loclist); err != nil {
-		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+		return errors.WithStack(err)
 	}
 
 	// jumpfirst or definition mode
@@ -241,17 +258,15 @@ func fallbackChan(obj *serial.Definition, err error) fallback {
 func definitionFallback(q *guru.Query, c chan fallback) {
 	defer nvimutil.Profile(time.Now(), "definitionFallback")
 
+	// Set loader.Config, same allowErrors() function result except CgoEnabled = false
 	// Run the type checker.
 	lconf := loader.Config{
-		AllowErrors: true,
 		Build:       q.Build,
-		ParserMode:  parser.AllErrors,
+		AllowErrors: true,
+		// AllErrors makes the parser always return an AST instead of
+		// bailing out after 10 errors and returning an empty ast.File.
+		ParserMode: parser.AllErrors,
 		TypeChecker: types.Config{
-			IgnoreFuncBodies:         true,
-			FakeImportC:              true,
-			DisableUnusedImportCheck: true,
-			// AllErrors makes the parser always return an AST instead of
-			// bailing out after 10 errors and returning an empty ast.File.
 			Error: func(err error) {},
 		},
 	}
