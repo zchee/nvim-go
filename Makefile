@@ -28,7 +28,7 @@ GO_BUILD := ${GB_CMD} build
 GO_TEST := ${GB_CMD} test
 GO_LINT := golint
 
-ifneq ($(NVIM_GO_DEBUG),)
+ifneq ($(NVIM_GO_DEBUG_DWARF),)
 GO_GCFLAGS += -gcflags "-N -l"
 default: manifest
 else
