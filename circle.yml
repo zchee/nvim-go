@@ -8,10 +8,6 @@ stages:
   build:
     workDir: '/go/src/github.com/zchee/nvim-go'
 
-    environment:  # global environment variables
-      CIRCLE_PROJECT_USERNAME: zchee    # need codecov coverage script
-      CIRCLE_PROJECT_REPONAME: nvim-go  # need codecov coverage script
-
     steps:
       - type: checkout
 
@@ -19,7 +15,7 @@ stages:
         name: "Install nvim binary"
         command: |
           set -eux
-          wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/neovim-linux64.tar.gz | tar xzf - --strip-components=1 -C "/usr/local"
+          wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xzf - --strip-components=1 -C "/usr/local"
           nvim --version
 
       - type: shell
