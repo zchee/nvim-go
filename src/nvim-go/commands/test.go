@@ -141,9 +141,9 @@ func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
 	)
 
 	// Get the current buffer and windows
-	c.Pipeline.CurrentBuffer(&b)
-	c.Pipeline.CurrentWindow(&w)
-	if err := c.Pipeline.Wait(); err != nil {
+	c.Batch.CurrentBuffer(&b)
+	c.Batch.CurrentWindow(&w)
+	if err := c.Batch.Execute(); err != nil {
 		return errors.WithStack(err)
 	}
 

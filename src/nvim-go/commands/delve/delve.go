@@ -19,9 +19,9 @@ import (
 	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
+	delveterm "github.com/derekparker/delve/pkg/terminal"
 	delveapi "github.com/derekparker/delve/service/api"
 	delverpc2 "github.com/derekparker/delve/service/rpc2"
-	delveterm "github.com/derekparker/delve/pkg/terminal"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
@@ -30,9 +30,8 @@ const defaultAddr = "localhost:41222" // d:4 l:12 v:22
 
 // Delve represents a delve client.
 type Delve struct {
-	Nvim     *nvim.Nvim
-	Pipeline *nvim.Pipeline
-	Batch    *nvim.Batch
+	Nvim  *nvim.Nvim
+	Batch *nvim.Batch
 
 	ctxt *context.Context
 
@@ -130,7 +129,6 @@ func (d *Delve) start(cmd string, cfg Config, eval *delveEval) error {
 
 // cmdAttach setup the debugging.
 func (d *Delve) cmdAttach(v *nvim.Nvim, args []string, eval *delveEval) {
-	d.Pipeline = v.NewPipeline()
 	d.Batch = v.NewBatch()
 
 	pid, err := strconv.ParseInt(args[0], 10, 64)
@@ -150,7 +148,6 @@ func (d *Delve) cmdAttach(v *nvim.Nvim, args []string, eval *delveEval) {
 // cmdConnect connect to dlv headless server.
 // This command useful for debug the Google Application Engine for Go.
 func (d *Delve) cmdConnect(v *nvim.Nvim, args []string, eval *delveEval) {
-	d.Pipeline = v.NewPipeline()
 	d.Batch = v.NewBatch()
 
 	addr := args[0]
@@ -176,7 +173,6 @@ func (d *Delve) findRootDir(dir string) string {
 // cmdDebug setup the debugging.
 // TODO(zchee): If failed debug(build), even create each buffers.
 func (d *Delve) cmdDebug(v *nvim.Nvim, args []string, eval *delveEval) {
-	d.Pipeline = v.NewPipeline()
 	d.Batch = v.NewBatch()
 
 	cfg := Config{

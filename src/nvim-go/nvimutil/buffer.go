@@ -21,7 +21,7 @@ type BufferName string
 // Buffer represents a Neovim buffer.
 type Buffer struct {
 	v *nvim.Nvim
-	p *nvim.Pipeline
+	b *nvim.Batch
 
 	buffer   nvim.Buffer
 	Name     string
@@ -40,7 +40,7 @@ type Buffer struct {
 func NewBuffer(v *nvim.Nvim) *Buffer {
 	return &Buffer{
 		v: v,
-		p: v.NewPipeline(),
+		b: v.NewBatch(),
 	}
 }
 
@@ -64,55 +64,55 @@ func (b *Buffer) Create(name, filetype, mode string, option map[NvimOption]map[s
 	}
 
 	if b.Height != 0 {
-		b.p.SetWindowHeight(b.Window, b.Height)
+		b.b.SetWindowHeight(b.Window, b.Height)
 	}
 	if b.Width != 0 {
-		b.p.SetWindowWidth(b.Window, b.Width)
+		b.b.SetWindowWidth(b.Window, b.Width)
 	}
 
-	b.p.BufferNumber(b.buffer, &b.Bufnr)
+	b.b.BufferNumber(b.buffer, &b.Bufnr)
 
 	if option != nil {
 		if option[BufferOption] != nil {
 			for k, op := range option[BufferOption] {
-				b.p.SetBufferOption(b.buffer, k, op)
+				b.b.SetBufferOption(b.buffer, k, op)
 			}
 		}
 		if option[BufferVar] != nil {
 			for k, op := range option[BufferVar] {
-				b.p.SetBufferVar(b.buffer, k, op)
+				b.b.SetBufferVar(b.buffer, k, op)
 			}
 		}
 		if option[WindowOption] != nil {
 			for k, op := range option[WindowOption] {
-				b.p.SetWindowOption(b.Window, k, op)
+				b.b.SetWindowOption(b.Window, k, op)
 			}
 		}
 		if option[WindowVar] != nil {
 			for k, op := range option[WindowVar] {
-				b.p.SetWindowVar(b.Window, k, op)
+				b.b.SetWindowVar(b.Window, k, op)
 			}
 		}
 		if option[TabpageVar] != nil {
 			for k, op := range option[TabpageVar] {
-				b.p.SetTabpageVar(b.Tabpage, k, op)
+				b.b.SetTabpageVar(b.Tabpage, k, op)
 			}
 		}
 	}
 
 	if !strings.Contains(b.Name, ".") {
-		b.p.Command(fmt.Sprintf("runtime! syntax/%s.vim", filetype))
+		b.b.Command(fmt.Sprintf("runtime! syntax/%s.vim", filetype))
 	}
 
-	return b.p.Wait()
+	return b.b.Execute()
 }
 
 func (b *Buffer) GetBufferContext() error {
-	b.p.CurrentBuffer(&b.buffer)
-	b.p.CurrentWindow(&b.Window)
-	b.p.CurrentTabpage(&b.Tabpage)
+	b.b.CurrentBuffer(&b.buffer)
+	b.b.CurrentWindow(&b.Window)
+	b.b.CurrentTabpage(&b.Tabpage)
 
-	return b.p.Wait()
+	return b.b.Execute()
 }
 
 func (b *Buffer) BufferLines(start, end int, strict bool) {
@@ -174,15 +174,15 @@ func (b *Buffer) SetLocalMapping(mode string, mapping map[string]string) error {
 			return errors.Wrap(err, "nvim/buffer.SetMapping")
 		}
 
-		b.p.SetCurrentWindow(b.Window)
+		b.b.SetCurrentWindow(b.Window)
 		defer b.v.SetCurrentWindow(cwin)
 
 		for k, v := range mapping {
-			b.p.Command(fmt.Sprintf("silent %s <buffer><silent>%s %s", mode, k, v))
+			b.b.Command(fmt.Sprintf("silent %s <buffer><silent>%s %s", mode, k, v))
 		}
 	}
 
-	return b.p.Wait()
+	return b.b.Execute()
 }
 
 // lineCount counts the Neovim buffer line count and check whether 1 count,
@@ -334,14 +334,14 @@ func ByteOffset(v *nvim.Nvim, b nvim.Buffer, w nvim.Window) (int, error) {
 }
 
 // ByteOffsetPipe calculates the byte-offset of current cursor position uses vim.Pipeline.
-func ByteOffsetPipe(p *nvim.Pipeline, b nvim.Buffer, w nvim.Window) (int, error) {
+func ByteOffsetPipe(p *nvim.Batch, b nvim.Buffer, w nvim.Window) (int, error) {
 	var cursor [2]int
 	p.WindowCursor(w, &cursor)
 
 	var byteBuf [][]byte
 	p.BufferLines(b, 0, -1, true, &byteBuf)
 
-	if err := p.Wait(); err != nil {
+	if err := p.Execute(); err != nil {
 		return 0, errors.Wrap(err, "nvim/buffer.ByteOffsetPipe")
 	}
 

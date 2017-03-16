@@ -14,10 +14,9 @@ import (
 
 func TestCommands_Build(t *testing.T) {
 	type fields struct {
-		Nvim     *nvim.Nvim
-		Pipeline *nvim.Pipeline
-		Batch    *nvim.Batch
-		ctxt     *context.Context
+		Nvim  *nvim.Nvim
+		Batch *nvim.Batch
+		ctxt  *context.Context
 	}
 	type args struct {
 		bang bool
@@ -150,10 +149,9 @@ func TestCommands_compileCmd(t *testing.T) {
 	}
 
 	type fields struct {
-		Nvim     *nvim.Nvim
-		Pipeline *nvim.Pipeline
-		Batch    *nvim.Batch
-		ctxt     *context.Context
+		Nvim  *nvim.Nvim
+		Batch *nvim.Batch
+		ctxt  *context.Context
 	}
 	type args struct {
 		bang bool

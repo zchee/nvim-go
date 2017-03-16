@@ -21,7 +21,7 @@ var bufName = "__GO_TERMINAL__"
 // Terminal represents a Neovim terminal.
 type Terminal struct {
 	v *nvim.Nvim
-	p *nvim.Pipeline
+	b *nvim.Batch
 
 	cmd  []string
 	mode string
@@ -41,7 +41,7 @@ type Terminal struct {
 func NewTerminal(vim *nvim.Nvim, name string, command []string, mode string) *Terminal {
 	return &Terminal{
 		v:    vim,
-		p:    vim.NewPipeline(),
+		b:    vim.NewBatch(),
 		Name: name,
 		cmd:  command,
 		mode: mode,
@@ -80,14 +80,14 @@ func (t *Terminal) Create() (err error) {
 
 	// Cleanup cursor highlighting
 	// TODO(zchee): Can use p.ClearBufferHighlight?
-	t.p.Command("highlight TermCursor gui=NONE guifg=NONE guibg=NONE")
-	t.p.Command("highlight TermCursorNC gui=NONE guifg=NONE guibg=NONE")
+	t.b.Command("highlight TermCursor gui=NONE guifg=NONE guibg=NONE")
+	t.b.Command("highlight TermCursorNC gui=NONE guifg=NONE guibg=NONE")
 
 	// Set autoclose buffer if the current buffer is only terminal
 	// TODO(zchee): convert to rpc way
-	t.p.Command("autocmd WinEnter <buffer> if winnr('$') == 1 | quit | endif")
+	t.b.Command("autocmd WinEnter <buffer> if winnr('$') == 1 | quit | endif")
 
-	return t.p.Wait()
+	return t.b.Execute()
 }
 
 // Run runs the command in the terminal buffer.

@@ -79,9 +79,9 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 		b nvim.Buffer
 		w nvim.Window
 	)
-	c.Pipeline.CurrentBuffer(&b)
-	c.Pipeline.CurrentWindow(&w)
-	if err := c.Pipeline.Wait(); err != nil {
+	c.Batch.CurrentBuffer(&b)
+	c.Batch.CurrentWindow(&w)
+	if err := c.Batch.Execute(); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -92,8 +92,8 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 		overlay := make(map[string][]byte)
 		var buf [][]byte
 
-		c.Pipeline.BufferLines(b, 0, -1, true, &buf)
-		if err := c.Pipeline.Wait(); err != nil {
+		c.Batch.BufferLines(b, 0, -1, true, &buf)
+		if err := c.Batch.Execute(); err != nil {
 			return errors.WithStack(err)
 		}
 
@@ -115,14 +115,14 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 		}
 		fname, line, col := nvimutil.SplitPos(obj.ObjPos, eval.Cwd)
 
-		c.Pipeline.Command("normal! m'")
+		c.Batch.Command("normal! m'")
 		// TODO(zchee): should change nvimutil.SplitPos behavior
 		f := strings.Split(obj.ObjPos, ":")
 		if f[0] != eval.File {
-			c.Pipeline.Command(fmt.Sprintf("keepjumps edit %s", pathutil.Rel(eval.Cwd, fname)))
+			c.Batch.Command(fmt.Sprintf("keepjumps edit %s", pathutil.Rel(eval.Cwd, fname)))
 		}
-		c.Pipeline.SetWindowCursor(w, [2]int{line, col - 1})
-		if err := c.Pipeline.Wait(); err != nil {
+		c.Batch.SetWindowCursor(w, [2]int{line, col - 1})
+		if err := c.Batch.Execute(); err != nil {
 			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 
@@ -176,9 +176,9 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 
 	// jumpfirst or definition mode
 	if config.GuruJumpFirst {
-		c.Pipeline.Command(`silent ll 1`)
-		c.Pipeline.Command(`normal! zz`)
-		return c.Pipeline.Wait()
+		c.Batch.Command(`silent ll 1`)
+		c.Batch.Command(`normal! zz`)
+		return c.Batch.Execute()
 	}
 
 	var keepCursor bool

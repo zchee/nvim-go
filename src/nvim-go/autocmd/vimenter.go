@@ -10,7 +10,6 @@ import "nvim-go/config"
 func (a *Autocmd) VimEnter(cfg *config.Config) {
 	cfg.Global.ChannelID = a.Nvim.ChannelID()
 
-	a.cmds.Pipeline = a.Nvim.NewPipeline()
 	a.cmds.Batch = a.Nvim.NewBatch()
 
 	config.Get(a.Nvim, cfg)
