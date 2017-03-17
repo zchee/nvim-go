@@ -91,12 +91,14 @@ func (c *Commands) cover(eval *cmdCoverEval) interface{} {
 	}
 
 	highlighted := make(map[int]bool)
+	var res int // for ignore the msgpack decode errror. not used
 	for _, prof := range profile {
 		if filepath.Base(prof.FileName) == filepath.Base(eval.File) {
 
-			log.Printf("prof.Blocks:\n%+v\n", spew.Sdump(prof.Blocks))
-			log.Printf("prof.Boundaries():\n%+v\n", spew.Sdump(prof.Boundaries(nvimutil.ToByteSlice(buf))))
-			var res int // for ignore the msgpack decode errror. not used
+			if config.DebugEnable {
+				log.Printf("prof.Blocks:\n%+v\n", spew.Sdump(prof.Blocks))
+				log.Printf("prof.Boundaries():\n%+v\n", spew.Sdump(prof.Boundaries(nvimutil.ToByteSlice(buf))))
+			}
 			for _, block := range prof.Blocks {
 				for line := block.StartLine - 1; line <= block.EndLine-1; line++ { // nvim_buf_add_highlight line started by 0
 					// not highlighting the last RBRACE of the function
