@@ -28,9 +28,8 @@ GO_BUILD := ${GB_CMD} build
 GO_TEST := ${GB_CMD} test
 GO_LINT := golint
 
-ifneq ($(NVIM_GO_DEBUG_DWARF),)
+ifneq ($(NVIM_GO_DEBUG),)
 GO_GCFLAGS += -gcflags "-N -l"
-default: manifest
 else
 GO_LDFLAGS += -ldflags "-w -s"
 endif
