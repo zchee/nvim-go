@@ -204,7 +204,7 @@ func (v *Nvim) ChannelID() int {
 		ChannelID int `msgpack:",array"`
 		Info      interface{}
 	}
-	if err := v.ep.Call("vim_get_api_info", &info); err != nil {
+	if err := v.ep.Call("nvim_get_api_info", &info); err != nil {
 		// TODO: log error and exit process?
 	}
 	v.channelID = info.ChannelID
@@ -293,9 +293,14 @@ func (b *Batch) Execute() error {
 	}
 }
 
+var emptyArgs = []interface{}{}
+
 func (b *Batch) call(sm string, result interface{}, args ...interface{}) {
 	if b.err != nil {
 		return
+	}
+	if args == nil {
+		args = emptyArgs
 	}
 	b.sms = append(b.sms, sm)
 	b.results = append(b.results, result)

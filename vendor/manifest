@@ -91,7 +91,7 @@
 		{
 			"importpath": "github.com/neovim/go-client",
 			"repository": "https://github.com/neovim/go-client",
-			"revision": "b4d0001757af5980b20bf246e900b9b0976a0a00",
+			"revision": "b6a9d8a7aa245088b61e91a4867c7dc963240c30",
 			"branch": "master"
 		},
 		{
