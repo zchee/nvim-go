@@ -14,6 +14,7 @@ type Config struct {
 
 	Analyze  analyze
 	Build    build
+	Cover    cover
 	Fmt      fmt
 	Generate generate
 	Guru     guru
@@ -43,6 +44,11 @@ type build struct {
 	Autosave int64    `eval:"g:go#build#autosave"`
 	Force    int64    `eval:"g:go#build#force"`
 	Flags    []string `eval:"g:go#build#flags"`
+}
+
+type cover struct {
+	Flags []string `eval:"g:go#cover#flags"`
+	Mode  string   `eval:"g:go#cover#mode"`
 }
 
 // fmt represents a GoFmt command config variable.
@@ -130,6 +136,11 @@ var (
 	// BuildArgs force build args.
 	BuildFlags []string
 
+	// CoverFlags flags for cover command.
+	CoverFlags []string
+	// CoverMode mode of cover command.
+	CoverMode string
+
 	// FmtAutosave call the GoFmt command automatically at during the BufWritePre.
 	FmtAutosave bool
 	// FmtMode formatting mode of Fmt command.
@@ -213,6 +224,10 @@ func Get(v *nvim.Nvim, cfg *Config) {
 	BuildAutosave = itob(cfg.Build.Autosave)
 	BuildForce = itob(cfg.Build.Force)
 	BuildFlags = cfg.Build.Flags
+
+	// Cover
+	CoverFlags = cfg.Cover.Flags
+	CoverMode = cfg.Cover.Mode
 
 	// Fmt
 	FmtAutosave = itob(cfg.Fmt.Autosave)
