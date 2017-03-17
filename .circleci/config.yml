@@ -1,0 +1,34 @@
+---
+version: 2
+jobs:
+  build:
+    docker:
+      - image: golang:1.8  # Use latest stable version
+
+    working_directory: '/go/src/github.com/zchee/nvim-go'
+
+    steps:
+      - checkout
+
+      - run:
+          name: "Install nvim binary"
+          command: |
+            set -eux
+            wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xzf - --strip-components=1 -C "/usr/local"
+            nvim --version
+
+      - run:
+          name: "Install go dependencies tools"
+          command: |
+            go get -u github.com/constabulary/gb/...
+
+      - run:
+          environment:
+            COVERAGE_SERVICE: 'codecov'
+          command: |
+            ./scripts/coverage.sh
+
+      - run:
+          name: "Uploading coverage reports to codecov"
+          command: |
+            bash <(curl -s https://codecov.io/bash)
