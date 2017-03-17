@@ -140,19 +140,19 @@ func CloseLoclist(v *nvim.Nvim) error {
 }
 
 // SetQuickfix set the error results data to quickfix list.
-func SetQuickfix(p *nvim.Pipeline, qflist []*nvim.QuickfixError) error {
-	p.Call("setqflist", nil, qflist)
+func SetQuickfix(b *nvim.Batch, qflist []*nvim.QuickfixError) error {
+	b.Call("setqflist", nil, qflist)
 
 	return nil
 }
 
 // OpenOuickfix open the quickfix list window.
-func OpenOuickfix(p *nvim.Pipeline, w nvim.Window, keep bool) error {
-	p.Command("copen")
+func OpenOuickfix(b *nvim.Batch, w nvim.Window, keep bool) error {
+	b.Command("copen")
 	if keep {
-		p.SetCurrentWindow(w)
+		b.SetCurrentWindow(w)
 	}
-	if err := p.Wait(); err != nil {
+	if err := b.Execute(); err != nil {
 		return err
 	}
 

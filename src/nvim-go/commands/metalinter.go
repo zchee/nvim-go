@@ -42,9 +42,9 @@ func (c *Commands) Metalinter(cwd string) error {
 		b       nvim.Buffer
 		w       nvim.Window
 	)
-	c.Pipeline.CurrentBuffer(&b)
-	c.Pipeline.CurrentWindow(&w)
-	if err := c.Pipeline.Wait(); err != nil {
+	c.Batch.CurrentBuffer(&b)
+	c.Batch.CurrentWindow(&w)
+	if err := c.Batch.Execute(); err != nil {
 		return errors.WithStack(err)
 	}
 
