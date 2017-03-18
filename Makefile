@@ -2,6 +2,7 @@ GITHUB_USER := zchee
 
 PACKAGE_NAME := nvim-go
 PACKAGE_DIR := $(shell pwd)
+PACKAGES = $(shell GOPATH="$$PWD:$$PWD/vendor" go list $(PACKAGE_NAME)/... | grep -v -e internal)
 BINARY_NAME := bin/nvim
 
 CC := clang
@@ -36,9 +37,10 @@ endif
 
 ifneq ($(NVIM_GO_RACE),)
 build: std-build-race
+build: clean/binary
 rebuild: std-build-race
 GO_BUILD += -race
-PACKAGE_NAME = nvim-go-race
+manifest: PACKAGE_NAME=nvim-go-race
 endif
 
 default: build
@@ -69,6 +71,17 @@ test-bench:  ## Run the package test with -bench=.
 test-run:  ## Run the package test only those tests and examples
 	${GO_TEST_RUN}
 
+lint:
+	GOPATH="$$PWD:$$PWD/vendor" golint $(PACKAGES)
+
+lint/all:
+	GOPATH="$$PWD:$$PWD/vendor" golint $(PACKAGES)
+	GOPATH="$$PWD:$$PWD/vendor" unparam $(PACKAGES)
+	GOPATH="$$PWD:$$PWD/vendor" interfacer $(PACKAGES)
+	GOPATH="$$PWD:$$PWD/vendor" errcheck $(PACKAGES)
+
+vet:
+	GOPATH="$$PWD:$$PWD/vendor" go vet $(PACKAGES)
 
 vendor-all:  ## Update the all vendor packages
 	${VENDOR_CMD} update -all
@@ -119,6 +132,9 @@ docker-run: docker-build  ## Run the zchee/nvim-go docker container test
 
 clean:  ## Clean the {bin,pkg} directory
 	${RM} -r ./bin ./pkg
+
+clean/binary:
+	@${RM} ./bin/nvim-go-race
 
 
 todo:  ## Print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
