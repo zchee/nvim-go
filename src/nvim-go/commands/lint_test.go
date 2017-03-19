@@ -69,9 +69,7 @@ func TestCommands_Lint(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			ctxt := context.NewContext()
 			c := NewCommands(tt.fields.Nvim, ctxt)
 			c.Nvim.SetCurrentDirectory(filepath.Dir(tt.args.file))
