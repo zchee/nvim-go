@@ -42,16 +42,7 @@ func (c *Commands) cmdFmt(dir string) {
 func (c *Commands) Fmt(dir string) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoFmt")
 
-	var (
-		b nvim.Buffer
-		w nvim.Window
-	)
-	c.Batch.CurrentBuffer(&b)
-	c.Batch.CurrentWindow(&w)
-	if err := c.Batch.Execute(); err != nil {
-		return errors.WithStack(err)
-	}
-
+	b := nvim.Buffer(c.ctx.BufNr)
 	in, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return errors.WithStack(err)

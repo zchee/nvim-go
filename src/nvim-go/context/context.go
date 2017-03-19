@@ -17,6 +17,9 @@ import (
 
 // Context represents a embeded context package and build context.
 type Context struct {
+	BufNr int
+	WinID int
+
 	m       sync.Mutex
 	prevDir string
 	Errlist map[string][]*nvim.QuickfixError

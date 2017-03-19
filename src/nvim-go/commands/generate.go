@@ -17,6 +17,7 @@ import (
 	"nvim-go/nvimutil"
 
 	"github.com/cweill/gotests/gotests/process"
+	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 )
 
@@ -31,11 +32,7 @@ func (c *Commands) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir 
 func (c *Commands) GenerateTest(args []string, ranges [2]int, bang bool, dir string) error {
 	defer nvimutil.Profile(time.Now(), "GenerateTest")
 
-	b, err := c.Nvim.CurrentBuffer()
-	if err != nil {
-		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
-	}
-
+	b := nvim.Buffer(c.ctx.BufNr)
 	if len(args) == 0 {
 		f, err := c.Nvim.BufferName(b)
 		if err != nil {

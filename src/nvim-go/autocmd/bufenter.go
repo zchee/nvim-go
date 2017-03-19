@@ -4,6 +4,17 @@
 
 package autocmd
 
-func (a *Autocmd) BufEnter(dir string) {
-	a.ctxt.SetContext(dir)
+type BufEnterEval struct {
+	BufNr int    `eval:"bufnr('%')"`
+	WinID int    `eval:"win_getid()"`
+	Dir   string `eval:"expand('%:p:h')"`
+}
+
+func (a *Autocmd) BufEnter(eval *BufEnterEval) {
+	a.mu.Lock()
+	a.ctxt.BufNr = eval.BufNr
+	a.ctxt.WinID = eval.WinID
+	a.mu.Unlock()
+
+	a.ctxt.SetContext(eval.Dir)
 }

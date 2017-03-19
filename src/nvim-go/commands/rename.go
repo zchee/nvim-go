@@ -36,16 +36,8 @@ func (c *Commands) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 	defer nvimutil.Profile(time.Now(), "GoRename")
 
-	var (
-		b nvim.Buffer
-		w nvim.Window
-	)
-	c.Batch.CurrentBuffer(&b)
-	c.Batch.CurrentWindow(&w)
-	if err := c.Batch.Execute(); err != nil {
-		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
-	}
-
+	b := nvim.Buffer(c.ctx.BufNr)
+	w := nvim.Window(c.ctx.WinID)
 	offset, err := nvimutil.ByteOffset(c.Nvim, b, w)
 	if err != nil {
 		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))

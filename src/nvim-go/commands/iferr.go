@@ -20,6 +20,7 @@ import (
 	"nvim-go/nvimutil"
 
 	astmanip "github.com/motemen/go-astmanip"
+	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/loader"
@@ -33,11 +34,7 @@ func (c *Commands) cmdIferr(file string) {
 func (c *Commands) Iferr(file string) error {
 	defer nvimutil.Profile(time.Now(), "GoIferr")
 
-	b, err := c.Nvim.CurrentBuffer()
-	if err != nil {
-		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
-	}
-
+	b := nvim.Buffer(c.ctx.BufNr)
 	buflines, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))

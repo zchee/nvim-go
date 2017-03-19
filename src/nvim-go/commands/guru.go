@@ -72,15 +72,8 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 		return nil
 	}()
 
-	var (
-		b nvim.Buffer
-		w nvim.Window
-	)
-	c.Batch.CurrentBuffer(&b)
-	c.Batch.CurrentWindow(&w)
-	if err := c.Batch.Execute(); err != nil {
-		return errors.WithStack(err)
-	}
+	b := nvim.Buffer(c.ctx.BufNr)
+	w := nvim.Window(c.ctx.WinID)
 
 	guruContext := &build.Default
 

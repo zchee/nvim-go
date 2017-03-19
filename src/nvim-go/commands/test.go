@@ -131,17 +131,8 @@ func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
 		return errors.New("Does not exist the switching destination file")
 	}
 
-	var (
-		b nvim.Buffer
-		w nvim.Window
-	)
-
-	// Get the current buffer and windows
-	c.Batch.CurrentBuffer(&b)
-	c.Batch.CurrentWindow(&w)
-	if err := c.Batch.Execute(); err != nil {
-		return errors.WithStack(err)
-	}
+	b := nvim.Buffer(c.ctx.BufNr)
+	w := nvim.Window(c.ctx.WinID)
 
 	// Get the 2D byte slice of current buffer
 	buf, err := c.Nvim.BufferLines(b, 0, -1, true)

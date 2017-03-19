@@ -36,16 +36,8 @@ type metalinterResult struct {
 func (c *Commands) Metalinter(cwd string) error {
 	defer nvimutil.Profile(time.Now(), "GoMetaLinter")
 
-	var (
-		loclist []*nvim.QuickfixError
-		b       nvim.Buffer
-		w       nvim.Window
-	)
-	c.Batch.CurrentBuffer(&b)
-	c.Batch.CurrentWindow(&w)
-	if err := c.Batch.Execute(); err != nil {
-		return errors.WithStack(err)
-	}
+	var loclist []*nvim.QuickfixError
+	w := nvim.Window(c.ctx.WinID)
 
 	var args []string
 	switch c.ctx.Build.Tool {
