@@ -61,12 +61,11 @@ func (c *Commands) cover(eval *cmdCoverEval) interface{} {
 	}
 	cmd.Dir = filepath.Dir(eval.File)
 
-	var stdout, stderr bytes.Buffer
+	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
 
 	if coverErr := cmd.Run(); coverErr != nil && coverErr.(*exec.ExitError) != nil {
-		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctx.Build)
+		errlist, err := nvimutil.ParseError(stdout.Bytes(), filepath.Dir(eval.File), &c.ctx.Build)
 		if err != nil {
 			return errors.WithStack(err)
 		}
