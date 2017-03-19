@@ -66,17 +66,16 @@ func Definition(q *guru.Query) (*serial.Definition, error) {
 		// Fall back on the type checker.
 	}
 
+	// Set loader.Config, same allowErrors() function result except CgoEnabled = false
+	q.Build.CgoEnabled = false
 	// Run the type checker.
 	lconf := loader.Config{
-		AllowErrors: true,
 		Build:       q.Build,
-		ParserMode:  parser.AllErrors,
+		AllowErrors: true,
+		// AllErrors makes the parser always return an AST instead of
+		// bailing out after 10 errors and returning an empty ast.File.
+		ParserMode: parser.AllErrors,
 		TypeChecker: types.Config{
-			IgnoreFuncBodies:         true,
-			FakeImportC:              true,
-			DisableUnusedImportCheck: true,
-			// AllErrors makes the parser always return an AST instead of
-			// bailing out after 10 errors and returning an empty ast.File.
 			Error: func(err error) {},
 		},
 	}
