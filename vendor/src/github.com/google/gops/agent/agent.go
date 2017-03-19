@@ -20,8 +20,11 @@ import (
 	"sync"
 	"time"
 
+	"bufio"
+
 	"github.com/google/gops/internal"
 	"github.com/google/gops/signal"
+	"github.com/kardianos/osext"
 )
 
 const defaultAddr = "127.0.0.1:0"
@@ -41,7 +44,7 @@ type Options struct {
 	Addr string
 
 	// NoShutdownCleanup tells the agent not to automatically cleanup
-	// resources if the running process recieves an interrupt.
+	// resources if the running process receives an interrupt.
 	// Optional.
 	NoShutdownCleanup bool
 }
@@ -212,6 +215,19 @@ func handle(conn io.Writer, msg []byte) error {
 		fmt.Fprintf(conn, "OS threads: %v\n", pprof.Lookup("threadcreate").Count())
 		fmt.Fprintf(conn, "GOMAXPROCS: %v\n", runtime.GOMAXPROCS(0))
 		fmt.Fprintf(conn, "num CPU: %v\n", runtime.NumCPU())
+	case signal.BinaryDump:
+		path, err := osext.Executable()
+		if err != nil {
+			return err
+		}
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		_, err = bufio.NewReader(f).WriteTo(conn)
+		return err
 	case signal.Trace:
 		trace.Start(conn)
 		time.Sleep(5 * time.Second)
