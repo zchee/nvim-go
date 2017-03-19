@@ -65,7 +65,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 			}
 			return errlist
 		}
-		return buildErr
+		return errors.WithStack(buildErr)
 	}
 
 	// Build succeeded, clean up the Errlist
