@@ -24,28 +24,28 @@
 		{
 			"importpath": "github.com/derekparker/delve/pkg",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "1a4b5a05b25a6002d7cebf392d63f62c11e63708",
+			"revision": "ab7367ed2bf15044f7bca97147a802f77b875797",
 			"branch": "master",
 			"path": "/pkg"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "1a4b5a05b25a6002d7cebf392d63f62c11e63708",
+			"revision": "ab7367ed2bf15044f7bca97147a802f77b875797",
 			"branch": "master",
 			"path": "/service"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service/api",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "1a4b5a05b25a6002d7cebf392d63f62c11e63708",
+			"revision": "ab7367ed2bf15044f7bca97147a802f77b875797",
 			"branch": "master",
 			"path": "/service/api"
 		},
 		{
 			"importpath": "github.com/derekparker/delve/service/rpc2",
 			"repository": "https://github.com/derekparker/delve",
-			"revision": "1a4b5a05b25a6002d7cebf392d63f62c11e63708",
+			"revision": "ab7367ed2bf15044f7bca97147a802f77b875797",
 			"branch": "master",
 			"path": "/service/rpc2"
 		},
