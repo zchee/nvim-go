@@ -49,8 +49,8 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 		bang = config.BuildForce
 	}
 
-	testFile := strings.HasSuffix(eval.File, "_test.go")
-	cmd, err := c.compileCmd(bang, filepath.Dir(eval.File), testFile)
+	isTest := strings.HasSuffix(eval.File, "_test.go")
+	cmd, err := c.compileCmd(bang, filepath.Dir(eval.File), isTest)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -75,7 +75,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 }
 
 // compileCmd returns the *exec.Cmd corresponding to the compile tool.
-func (c *Commands) compileCmd(bang bool, dir string, testFile bool) (*exec.Cmd, error) {
+func (c *Commands) compileCmd(bang bool, dir string, isTest bool) (*exec.Cmd, error) {
 	bin, err := exec.LookPath(c.ctx.Build.Tool)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -87,7 +87,7 @@ func (c *Commands) compileCmd(bang bool, dir string, testFile bool) (*exec.Cmd, 
 	}
 
 	mode := "build"
-	if testFile {
+	if isTest {
 		mode = "test"
 	}
 
@@ -97,11 +97,11 @@ func (c *Commands) compileCmd(bang bool, dir string, testFile bool) (*exec.Cmd, 
 	switch c.ctx.Build.Tool {
 	case "go":
 		// Outputs the binary to DevNull if without bang
-		if !bang && !testFile {
+		if !bang && !isTest {
 			args = append(args, "-o", os.DevNull)
 		}
 	case "gb":
-		if !testFile {
+		if !isTest {
 			cmd.Dir = c.ctx.Build.ProjectRoot
 		}
 	}
