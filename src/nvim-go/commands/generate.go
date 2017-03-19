@@ -30,7 +30,6 @@ func (c *Commands) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir 
 // functions.
 func (c *Commands) GenerateTest(args []string, ranges [2]int, bang bool, dir string) error {
 	defer nvimutil.Profile(time.Now(), "GenerateTest")
-	defer c.ctx.SetContext(filepath.Dir(dir))()
 
 	b, err := c.Nvim.CurrentBuffer()
 	if err != nil {

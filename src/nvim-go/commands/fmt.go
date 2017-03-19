@@ -41,7 +41,6 @@ func (c *Commands) cmdFmt(dir string) {
 // Fmt format to the current buffer source uses gofmt behavior.
 func (c *Commands) Fmt(dir string) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoFmt")
-	defer c.ctx.SetContext(dir)()
 
 	var (
 		b nvim.Buffer

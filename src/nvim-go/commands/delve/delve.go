@@ -114,8 +114,6 @@ func (d *Delve) waitServer(addr string) error {
 
 // start starts the dlv debugging.
 func (d *Delve) start(cmd string, cfg Config, eval *delveEval) error {
-	defer d.ctxt.SetContext(eval.Cwd)()
-
 	if err := d.startServer(cmd, cfg); err != nil {
 		return errors.WithStack(err)
 	}

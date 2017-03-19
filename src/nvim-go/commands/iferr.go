@@ -33,9 +33,6 @@ func (c *Commands) cmdIferr(file string) {
 func (c *Commands) Iferr(file string) error {
 	defer nvimutil.Profile(time.Now(), "GoIferr")
 
-	dir := filepath.Dir(file)
-	defer c.ctx.SetContext(dir)()
-
 	b, err := c.Nvim.CurrentBuffer()
 	if err != nil {
 		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
@@ -50,7 +47,7 @@ func (c *Commands) Iferr(file string) error {
 		ParserMode:  parser.ParseComments,
 		TypeChecker: types.Config{FakeImportC: true, DisableUnusedImportCheck: true},
 		Build:       &build.Default,
-		Cwd:         dir,
+		Cwd:         filepath.Dir(file),
 		AllowErrors: true,
 	}
 

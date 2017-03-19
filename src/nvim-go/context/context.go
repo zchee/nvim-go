@@ -17,9 +17,11 @@ import (
 
 // Context represents a embeded context package and build context.
 type Context struct {
-	Build
-
+	m       sync.Mutex
+	prevDir string
 	Errlist map[string][]*nvim.QuickfixError
+
+	Build
 }
 
 // Build represents a build tool information.
@@ -59,28 +61,17 @@ func buildContext(dir string, defaultContext build.Context) (string, string, bui
 	return tool, projectRoot, buildContext
 }
 
-// contextMu Mutex lock for SetContext.
-var contextMu sync.Mutex
-
-// SetContext sets the go/build Default.GOPATH and $GOPATH to GoPath(p)
-// under a mutex.
-// The returned function restores Default.GOPATH to its original value and
-// unlocks the mutex.
-//
-// This function intended to be used to the go/build Default.
-func (ctx *Context) SetContext(dir string) func() {
-	contextMu.Lock()
-	original := build.Default
-
-	ctx.Build.Tool, ctx.Build.ProjectRoot, build.Default = buildContext(dir, original)
-	if ctx.Build.Tool == "gb" {
-		build.Default.JoinPath = ctx.Build.GbJoinPath
-	}
-	os.Setenv("GOPATH", build.Default.GOPATH)
-
-	return func() {
-		build.Default = original
+// SetContext sets the Tool, ProjectRoot, go/build.Default and $GOPATH to buildContext.
+// This function initializes for functions that use go/build.Default.
+func (ctx *Context) SetContext(dir string) {
+	if dir != "" && ctx.prevDir != dir {
+		ctx.m.Lock()
+		ctx.Build.Tool, ctx.Build.ProjectRoot, build.Default = buildContext(dir, build.Default)
+		if ctx.Build.Tool == "gb" {
+			build.Default.JoinPath = ctx.Build.GbJoinPath
+		}
+		ctx.prevDir = dir
+		ctx.m.Unlock()
 		os.Setenv("GOPATH", build.Default.GOPATH)
-		contextMu.Unlock()
 	}
 }

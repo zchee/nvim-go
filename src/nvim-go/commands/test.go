@@ -39,7 +39,6 @@ var testTerm *nvimutil.Terminal
 // the directory structure.
 func (c *Commands) Test(args []string, dir string) error {
 	defer nvimutil.Profile(time.Now(), "GoTest")
-	defer c.ctx.SetContext(dir)()
 
 	cmd := []string{c.ctx.Build.Tool, "test", strings.Join(config.TestFlags, " ")}
 	if len(args) > 0 {
@@ -131,9 +130,6 @@ func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
 	if !pathutil.IsExist(switchFile) {
 		return errors.New("Does not exist the switching destination file")
 	}
-
-	// Get the current buffer package context
-	defer c.ctx.SetContext(filepath.Dir(fname))()
 
 	var (
 		b nvim.Buffer

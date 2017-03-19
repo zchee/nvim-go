@@ -49,8 +49,6 @@ const (
 // TODO(zchee): Support go packages.
 func (c *Commands) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
 	defer nvimutil.Profile(time.Now(), "GoLint")
-	dir := filepath.Dir(file)
-	defer c.ctx.SetContext(dir)()
 	buildContext = build.Default
 
 	var (
@@ -61,7 +59,7 @@ func (c *Commands) Lint(args []string, file string) ([]*nvim.QuickfixError, erro
 	case len(args) == 0:
 		switch lintMode(config.GolintMode) {
 		case current:
-			errlist, err = c.lintDir(dir)
+			errlist, err = c.lintDir(filepath.Dir(file))
 		case root:
 			var rootDir string
 			switch c.ctx.Build.Tool {

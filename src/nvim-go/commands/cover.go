@@ -48,8 +48,6 @@ func (c *Commands) cmdCover(eval *cmdCoverEval) {
 // profile result.
 func (c *Commands) cover(eval *cmdCoverEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoCover")
-	dir := filepath.Dir(eval.File)
-	defer c.ctx.SetContext(dir)()
 
 	coverFile, err := ioutil.TempFile(os.TempDir(), "nvim-go-cover")
 	if err != nil {
@@ -61,7 +59,7 @@ func (c *Commands) cover(eval *cmdCoverEval) interface{} {
 	if len(config.CoverFlags) > 0 {
 		cmd.Args = append(cmd.Args, config.CoverFlags...)
 	}
-	cmd.Dir = dir
+	cmd.Dir = filepath.Dir(eval.File)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout

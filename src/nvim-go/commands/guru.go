@@ -64,9 +64,6 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 		return guruHelp(c.Nvim, mode)
 	}
 
-	dir := filepath.Dir(eval.File)
-	defer c.ctx.SetContext(dir)()
-
 	defer func() (err error) {
 		if r := recover(); r != nil {
 			err = errors.Errorf("guru internal panic.\nMaybe your set 'g:go#guru#reflection' to 1. Please retry with disable it option.\nOriginal panic message:\n\t%v", r.(error))
@@ -132,7 +129,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 	var scope string
 	switch c.ctx.Build.Tool {
 	case "go":
-		pkgID, err := pathutil.PackageID(dir)
+		pkgID, err := pathutil.PackageID(filepath.Dir(eval.File))
 		if err != nil {
 			return errors.WithStack(err)
 		}

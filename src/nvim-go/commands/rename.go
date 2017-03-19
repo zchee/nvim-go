@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 	"time"
 
 	"nvim-go/config"
@@ -36,8 +35,6 @@ func (c *Commands) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
 func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 	defer nvimutil.Profile(time.Now(), "GoRename")
-	dir := filepath.Dir(eval.File)
-	defer c.ctx.SetContext(dir)()
 
 	var (
 		b nvim.Buffer

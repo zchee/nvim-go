@@ -45,7 +45,6 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoBuild")
 	dir := filepath.Dir(eval.File)
-	defer c.ctx.SetContext(dir)()
 
 	if !bang {
 		bang = config.BuildForce
