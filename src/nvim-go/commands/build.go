@@ -44,14 +44,13 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 // from the package directory structure.
 func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoBuild")
-	dir := filepath.Dir(eval.File)
 
 	if !bang {
 		bang = config.BuildForce
 	}
 
 	testFile := strings.HasSuffix(eval.File, "_test.go")
-	cmd, err := c.compileCmd(bang, dir, testFile)
+	cmd, err := c.compileCmd(bang, filepath.Dir(eval.File), testFile)
 	if err != nil {
 		return errors.WithStack(err)
 	}
