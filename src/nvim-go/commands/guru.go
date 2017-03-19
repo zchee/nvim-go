@@ -11,11 +11,8 @@ package commands
 import (
 	"bytes"
 	"fmt"
-	"go/ast"
 	"go/build"
-	"go/parser"
 	"go/token"
-	"go/types"
 	"log"
 	"path/filepath"
 	"strings"
@@ -32,7 +29,6 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/tools/cmd/guru/serial"
 	"golang.org/x/tools/go/buildutil"
-	"golang.org/x/tools/go/loader"
 )
 
 type funcGuruEval struct {
@@ -177,136 +173,6 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 		keepCursor = true
 	}
 	return nvimutil.OpenLoclist(c.Nvim, w, loclist, keepCursor)
-}
-
-type fallback struct {
-	Obj *serial.Definition
-	Err error
-}
-
-// definition reports the location of the definition of an identifier.
-//
-// Imported by golang.org/x/tools/cmd/guru/definition.go
-// Modify use goroutine and channel.
-func definition(q *guru.Query) (*serial.Definition, error) {
-	defer nvimutil.Profile(time.Now(), "definition")
-
-	c := make(chan fallback)
-	go definitionFallback(q, c)
-
-	// First try the simple resolution done by parser.
-	// It only works for intra-file references but it is very fast.
-	// (Extending this approach to all the files of the package,
-	// resolved using ast.NewPackage, was not worth the effort.)
-	qpos, err := fastQueryPos(q.Build, q.Pos)
-	if err != nil {
-		return nil, err
-	}
-
-	id, _ := qpos.path[0].(*ast.Ident)
-	if id == nil {
-		err := errors.New("no identifier here")
-		return nil, err
-	}
-
-	// Did the parser resolve it to a local object?
-	if obj := id.Obj; obj != nil && obj.Pos().IsValid() {
-		return &serial.Definition{
-			ObjPos: qpos.fset.Position(obj.Pos()).String(),
-			Desc:   fmt.Sprintf("%s %s", obj.Kind, obj.Name),
-		}, nil
-	}
-
-	// Qualified identifier?
-	if pkg := guru.PackageForQualIdent(qpos.path, id); pkg != "" {
-		srcdir := filepath.Dir(qpos.fset.File(qpos.start).Name())
-		tok, pos, err := guru.FindPackageMember(q.Build, qpos.fset, srcdir, pkg, id.Name)
-		if err != nil {
-			return nil, err
-		}
-		return &serial.Definition{
-			ObjPos: qpos.fset.Position(pos).String(),
-			Desc:   fmt.Sprintf("%s %s.%s", tok, pkg, id.Name),
-		}, nil
-	}
-
-	obj := <-c
-	if obj.Err != nil {
-		return nil, obj.Err
-	}
-
-	return obj.Obj, nil
-}
-
-func fallbackChan(obj *serial.Definition, err error) fallback {
-	return fallback{
-		Obj: obj,
-		Err: err,
-	}
-}
-
-// definitionFallback fall back on the type checker.
-func definitionFallback(q *guru.Query, c chan fallback) {
-	defer nvimutil.Profile(time.Now(), "definitionFallback")
-
-	// Set loader.Config, same allowErrors() function result except CgoEnabled = false
-	// Run the type checker.
-	lconf := loader.Config{
-		Build:       q.Build,
-		AllowErrors: true,
-		// AllErrors makes the parser always return an AST instead of
-		// bailing out after 10 errors and returning an empty ast.File.
-		ParserMode: parser.AllErrors,
-		TypeChecker: types.Config{
-			Error: func(err error) {},
-		},
-	}
-
-	if _, err := importQueryPackage(q.Pos, &lconf); err != nil {
-		c <- fallbackChan(nil, err)
-		return
-	}
-
-	// Load/parse/type-check the program.
-	lprog, err := lconf.Load()
-	if err != nil {
-		c <- fallbackChan(nil, err)
-		return
-	}
-
-	qpos, err := parseQueryPos(lprog, q.Pos, false)
-	if err != nil {
-		c <- fallbackChan(nil, err)
-		return
-	}
-
-	id, ok := qpos.path[0].(*ast.Ident)
-	if !ok {
-		err := errors.New("no identifier here")
-		c <- fallbackChan(nil, err)
-		return
-	}
-
-	obj := qpos.info.ObjectOf(id)
-	if obj == nil {
-		err := errors.New("no object for identifier")
-		c <- fallbackChan(nil, err)
-		return
-	}
-
-	if !obj.Pos().IsValid() {
-		err := errors.Errorf("%s is built in", obj.Name())
-		c <- fallbackChan(nil, err)
-		return
-	}
-
-	res := serial.Definition{
-		ObjPos: qpos.fset.Position(obj.Pos()).String(),
-		Desc:   qpos.ObjectString(obj),
-	}
-
-	c <- fallbackChan(&res, nil)
-	return
 }
 
 var errTypeAssertion = errors.New("type assertion error")
