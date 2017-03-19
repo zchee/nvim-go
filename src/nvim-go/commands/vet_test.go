@@ -19,9 +19,8 @@ var testVetRoot = filepath.Join(testGoPath, "src", "vet")
 
 func TestCommands_Vet(t *testing.T) {
 	type fields struct {
-		Nvim  *nvim.Nvim
-		Batch *nvim.Batch
-		ctxt  *context.Context
+		Nvim *nvim.Nvim
+		ctxt *context.Context
 	}
 	type args struct {
 		args []string

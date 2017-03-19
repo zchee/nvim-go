@@ -12,9 +12,8 @@ import (
 
 func TestCommands_Build(t *testing.T) {
 	type fields struct {
-		Nvim  *nvim.Nvim
-		Batch *nvim.Batch
-		ctxt  *context.Context
+		Nvim *nvim.Nvim
+		ctxt *context.Context
 	}
 	type args struct {
 		bang bool
@@ -148,7 +147,6 @@ func BenchmarkBuildGb(b *testing.B) {
 //
 // 	type fields struct {
 // 		Nvim  *nvim.Nvim
-// 		Batch *nvim.Batch
 // 		ctxt  *context.Context
 // 	}
 // 	type args struct {

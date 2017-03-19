@@ -12,8 +12,7 @@ import (
 )
 
 type Commands struct {
-	Nvim  *nvim.Nvim
-	Batch *nvim.Batch
+	Nvim *nvim.Nvim
 
 	ctx *context.Context
 }

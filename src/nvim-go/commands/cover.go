@@ -89,6 +89,7 @@ func (c *Commands) cover(eval *cmdCoverEval) interface{} {
 
 	highlighted := make(map[int]bool)
 	var res int // for ignore the msgpack decode errror. not used
+	batch := c.Nvim.NewBatch()
 	for _, prof := range profile {
 		if filepath.Base(prof.FileName) == filepath.Base(eval.File) {
 
@@ -113,7 +114,7 @@ func (c *Commands) cover(eval *cmdCoverEval) interface{} {
 						hl = "GoCoverHit"
 					}
 					if !highlighted[line] {
-						c.Batch.AddBufferHighlight(b, 0, hl, line, 0, -1, &res)
+						batch.AddBufferHighlight(b, 0, hl, line, 0, -1, &res)
 						highlighted[line] = true
 					}
 				}
@@ -121,5 +122,5 @@ func (c *Commands) cover(eval *cmdCoverEval) interface{} {
 		}
 	}
 
-	return errors.WithStack(c.Batch.Execute())
+	return errors.WithStack(batch.Execute())
 }

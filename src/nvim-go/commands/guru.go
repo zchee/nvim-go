@@ -74,6 +74,7 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 
 	b := nvim.Buffer(c.ctx.BufNr)
 	w := nvim.Window(c.ctx.WinID)
+	batch := c.Nvim.NewBatch()
 
 	guruContext := &build.Default
 
@@ -82,8 +83,8 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 		overlay := make(map[string][]byte)
 		var buf [][]byte
 
-		c.Batch.BufferLines(b, 0, -1, true, &buf)
-		if err := c.Batch.Execute(); err != nil {
+		batch.BufferLines(b, 0, -1, true, &buf)
+		if err := batch.Execute(); err != nil {
 			return errors.WithStack(err)
 		}
 
@@ -99,20 +100,20 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 	}
 
 	if mode == "definition" {
-		obj, err := definition(&query)
+		obj, err := Definition(&query)
 		if err != nil {
 			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 		fname, line, col := nvimutil.SplitPos(obj.ObjPos, eval.Cwd)
 
-		c.Batch.Command("normal! m'")
+		batch.Command("normal! m'")
 		// TODO(zchee): should change nvimutil.SplitPos behavior
 		f := strings.Split(obj.ObjPos, ":")
 		if f[0] != eval.File {
-			c.Batch.Command(fmt.Sprintf("keepjumps edit %s", pathutil.Rel(eval.Cwd, fname)))
+			batch.Command(fmt.Sprintf("keepjumps edit %s", pathutil.Rel(eval.Cwd, fname)))
 		}
-		c.Batch.SetWindowCursor(w, [2]int{line, col - 1})
-		if err := c.Batch.Execute(); err != nil {
+		batch.SetWindowCursor(w, [2]int{line, col - 1})
+		if err := batch.Execute(); err != nil {
 			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 
@@ -166,9 +167,9 @@ func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
 
 	// jumpfirst or definition mode
 	if config.GuruJumpFirst {
-		c.Batch.Command(`silent ll 1`)
-		c.Batch.Command(`normal! zz`)
-		return c.Batch.Execute()
+		batch.Command(`silent ll 1`)
+		batch.Command(`normal! zz`)
+		return batch.Execute()
 	}
 
 	var keepCursor bool

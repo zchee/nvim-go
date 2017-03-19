@@ -23,17 +23,19 @@ const (
 )
 
 func (d *Delve) createDebugBuffer() error {
-	d.Batch.CurrentBuffer(&d.cb)
-	d.Batch.CurrentWindow(&d.cw)
-	err := d.Batch.Execute()
+	batch := d.Nvim.NewBatch()
+
+	batch.CurrentBuffer(&d.cb)
+	batch.CurrentWindow(&d.cw)
+	err := batch.Execute()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	var height, width int
-	d.Batch.WindowHeight(d.cw, &height)
-	d.Batch.WindowWidth(d.cw, &width)
-	err = d.Batch.Execute()
+	batch.WindowHeight(d.cw, &height)
+	batch.WindowWidth(d.cw, &width)
+	err = batch.Execute()
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -64,7 +66,7 @@ func (d *Delve) createDebugBuffer() error {
 		return errors.WithStack(err)
 	}
 
-	return d.Batch.Execute()
+	return batch.Execute()
 }
 
 func (d *Delve) setTerminalOption() map[nvimutil.NvimOption]map[string]interface{} {

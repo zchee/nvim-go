@@ -19,9 +19,8 @@ var testLintDir = filepath.Join(testCwd, "../testdata", "go", "src", "lint")
 
 func TestCommands_Lint(t *testing.T) {
 	type fields struct {
-		Nvim  *nvim.Nvim
-		Batch *nvim.Batch
-		ctxt  *context.Context
+		Nvim *nvim.Nvim
+		ctxt *context.Context
 	}
 	type args struct {
 		args []string
@@ -89,9 +88,8 @@ func TestCommands_Lint(t *testing.T) {
 
 func TestCommands_cmdLintComplete(t *testing.T) {
 	type fields struct {
-		Nvim  *nvim.Nvim
-		Batch *nvim.Batch
-		ctxt  *context.Context
+		Nvim *nvim.Nvim
+		ctxt *context.Context
 	}
 	type args struct {
 		a   *nvim.CommandCompletionArgs
