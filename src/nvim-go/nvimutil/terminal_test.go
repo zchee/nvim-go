@@ -11,13 +11,13 @@ import (
 )
 
 func TestTerminal_getWindowSize(t *testing.T) {
-	v := TestNvim(t)
+	n := TestNvim(t)
 	type fields struct {
-		v *nvim.Nvim
+		Nvim *nvim.Nvim
 	}
 	type args struct {
 		cfg int64
-		fn  func(nvim.Window) (int, error)
+		f   func(nvim.Window) (int, error)
 	}
 	tests := []struct {
 		name   string
@@ -28,22 +28,22 @@ func TestTerminal_getWindowSize(t *testing.T) {
 		{
 			name: "Use config",
 			fields: fields{
-				v: v,
+				Nvim: n,
 			},
 			args: args{
 				cfg: 120,
-				fn:  v.WindowWidth,
+				f:   n.WindowWidth,
 			},
 			want: 120,
 		},
 		{
 			name: "Use (WindowWidth / 3 )",
 			fields: fields{
-				v: v,
+				Nvim: n,
 			},
 			args: args{
 				cfg: 0,
-				fn:  v.WindowWidth,
+				f:   n.WindowWidth,
 			},
 			// default embedded Nvim Window width is 80.
 			want: 26,
@@ -51,11 +51,11 @@ func TestTerminal_getWindowSize(t *testing.T) {
 		{
 			name: "Use (WindowHeight / 3 )",
 			fields: fields{
-				v: v,
+				Nvim: n,
 			},
 			args: args{
 				cfg: 0,
-				fn:  v.WindowHeight,
+				f:   n.WindowHeight,
 			},
 			// default embedded Nvim Window height is 22.
 			want: 7,
@@ -66,10 +66,10 @@ func TestTerminal_getWindowSize(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			term := &Terminal{
-				v: tt.fields.v,
+				Nvim: tt.fields.Nvim,
 			}
-			if got := term.getWindowSize(tt.args.cfg, tt.args.fn); got != tt.want {
-				t.Errorf("Terminal.getWindowSize(%v, %v) = %v, want %v", tt.args.cfg, tt.args.fn, got, tt.want)
+			if got := term.getSplitWindowSize(tt.args.cfg, tt.args.f); got != tt.want {
+				t.Errorf("Terminal.getWindowSize(%v, %v) = %v, want %v", tt.args.cfg, tt.args.f, got, tt.want)
 			}
 		})
 	}
