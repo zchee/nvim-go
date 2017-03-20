@@ -55,7 +55,7 @@ std-build-race:  ## Build the Go stdlib runtime with -race
 	$(GO_CMD) install -v -x -race std
 
 $(PACKAGE_DIR)/plugin/manifest:  ## Build the automatic writing neovim manifest utility binary
-	${GO_BUILD} -o $(PACKAGE_DIR)/plugin/manifest $(PACKAGE_DIR)/plugin/manifest.go
+	go build -o $(PACKAGE_DIR)/plugin/manifest $(PACKAGE_DIR)/plugin/manifest.go
 
 manifest: build $(PACKAGE_DIR)/plugin/manifest  ## Write plugin manifest (for developers)
 	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
