@@ -129,7 +129,7 @@ docker-build-nocache:  ## Build the zchee/nvim-go docker container for testing o
 	${DOCKER_CMD} build --rm --no-cache -t ${GITHUB_USER}/${PACKAGE_NAME} .
 
 docker-run: docker-build  ## Run the zchee/nvim-go docker container test
-	${DOCKER_CMD} run --rm -it ${GITHUB_USER}/${PACKAGE_NAME} ${GO_TEST} $(GO_TEST_FLAGS)
+	${DOCKER_CMD} run --rm -it ${GITHUB_USER}/${PACKAGE_NAME} gb test $(GO_TEST_FLAGS)
 
 clean:  ## Clean the {bin,pkg} directory
 	${RM} -r ./bin ./pkg
