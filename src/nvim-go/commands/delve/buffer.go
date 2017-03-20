@@ -44,20 +44,20 @@ func (d *Delve) createDebugBuffer() error {
 		defer d.Nvim.SetCurrentWindow(d.cw)
 
 		option := d.setTerminalOption()
-		d.buffer = make(map[nvimutil.BufferName]*nvimutil.Buffer)
+		d.buffers = make(map[nvimutil.BufferName]*nvimutil.Buffer)
 		nnoremap := make(map[string]string)
 
-		d.buffer[Terminal] = nvimutil.NewBuffer(d.Nvim)
-		d.buffer[Terminal].Create(string(Terminal), nvimutil.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
+		d.buffers[Terminal] = nvimutil.NewBuffer(d.Nvim)
+		d.buffers[Terminal].Create(string(Terminal), nvimutil.FiletypeDelve, fmt.Sprintf("silent belowright %d vsplit", (width*2/5)), option)
 		nnoremap["i"] = fmt.Sprintf(":<C-u>call rpcrequest(%d, 'DlvStdin')<CR>", config.ChannelID)
-		d.buffer[Terminal].SetLocalMapping(nvimutil.NoremapNormal, nnoremap)
+		d.buffers[Terminal].SetLocalMapping(nvimutil.NoremapNormal, nnoremap)
 
-		d.buffer[Context] = nvimutil.NewBuffer(d.Nvim)
-		d.buffer[Context].Create(string(Context), nvimutil.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*2/3)), option)
+		d.buffers[Context] = nvimutil.NewBuffer(d.Nvim)
+		d.buffers[Context].Create(string(Context), nvimutil.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*2/3)), option)
 
-		d.buffer[Threads] = nvimutil.NewBuffer(d.Nvim)
-		d.buffer[Threads].Create(string(Threads), nvimutil.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*1/5)), option)
-		d.Nvim.SetWindowOption(d.buffer[Threads].Window, "winfixheight", true)
+		d.buffers[Threads] = nvimutil.NewBuffer(d.Nvim)
+		d.buffers[Threads].Create(string(Threads), nvimutil.FiletypeDelve, fmt.Sprintf("silent belowright %d split", (height*1/5)), option)
+		d.Nvim.SetWindowOption(d.buffers[Threads].Window, "winfixheight", true)
 
 	}()
 

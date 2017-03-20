@@ -52,9 +52,9 @@ type Delve struct {
 
 // BufferContext represents a each debug information buffers.
 type BufferContext struct {
-	cb     nvim.Buffer
-	cw     nvim.Window
-	buffer map[nvimutil.BufferName]*nvimutil.Buffer
+	cb      nvim.Buffer
+	cw      nvim.Window
+	buffers map[nvimutil.BufferName]*nvimutil.Buffer
 }
 
 // SignContext represents a breakpoint and program counter sign.
