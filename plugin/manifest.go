@@ -17,8 +17,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 var (
@@ -46,7 +44,7 @@ func main() {
 	// Search gb binary path
 	gbBin, err := exec.LookPath("gb")
 	if err != nil {
-		err = errors.Wrap(err, "does not exists gb binary")
+		err = fmt.Errorf("does not exists gb binary: %v", err)
 		log.Fatal(err)
 	}
 
@@ -55,7 +53,7 @@ func main() {
 	gbCmd.Args = append(gbCmd.Args, "env", "GB_PROJECT_DIR")
 	gbResult, err := gbCmd.Output()
 	if err != nil {
-		err = errors.Wrap(err, "cannot get gb project directory")
+		err = fmt.Errorf("cannot get gb project directory: %v", err)
 		log.Fatal(err)
 	}
 	prjDir := strings.TrimSpace(string(gbResult))
