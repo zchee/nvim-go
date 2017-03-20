@@ -24,10 +24,9 @@ _testmain.go
 *.prof
 
 # neovim go rplugin
-bin
-pkg
-!vendor/src/github.com/pkg
-!vendor/src/github.com/derekparker/delve/pkg
+bin/*
+src/nvim-go/testdata/gb/gsftp/bin/*
+pkg/*
 
 # workaround for github.com/pkg
 !src/nvim-go/commands/testdata/gb/gsftp/vendor/src/github.com/pkg/
