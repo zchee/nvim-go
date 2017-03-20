@@ -17,7 +17,7 @@ import (
 // Autocmd represents a autocmd context.
 type Autocmd struct {
 	Nvim *nvim.Nvim
-	ctxt *context.Context
+	ctx  *context.Context
 	cmds *commands.Commands
 
 	bufWritePostChan chan error
@@ -29,10 +29,10 @@ type Autocmd struct {
 }
 
 // Register register autocmd to nvim.
-func Register(p *plugin.Plugin, ctxt *context.Context, cmds *commands.Commands) {
+func Register(p *plugin.Plugin, ctx *context.Context, cmds *commands.Commands) {
 	autocmd := &Autocmd{
 		Nvim:             p.Nvim,
-		ctxt:             ctxt,
+		ctx:              ctx,
 		cmds:             cmds,
 		bufWritePreChan:  make(chan interface{}),
 		bufWritePostChan: make(chan error),

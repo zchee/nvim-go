@@ -38,9 +38,9 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			}
 		case []*nvim.QuickfixError:
 			// Cleanup Errlist
-			a.ctxt.Errlist = make(map[string][]*nvim.QuickfixError)
-			a.ctxt.Errlist["Fmt"] = e
-			return nvimutil.ErrorList(a.Nvim, a.ctxt.Errlist, true)
+			a.ctx.Errlist = make(map[string][]*nvim.QuickfixError)
+			a.ctx.Errlist["Fmt"] = e
+			return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
 		}
 	}
 
@@ -58,11 +58,11 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			}
 		case []*nvim.QuickfixError:
 			// Cleanup Errlist
-			a.ctxt.Errlist = make(map[string][]*nvim.QuickfixError)
-			a.ctxt.Errlist["Build"] = e
-			return nvimutil.ErrorList(a.Nvim, a.ctxt.Errlist, true)
+			a.ctx.Errlist = make(map[string][]*nvim.QuickfixError)
+			a.ctx.Errlist["Build"] = e
+			return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
 		}
-		if len(a.ctxt.Errlist) == 0 {
+		if len(a.ctx.Errlist) == 0 {
 			nvimutil.CloseLoclist(a.Nvim)
 		}
 	}
@@ -70,7 +70,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 	if config.GoVetAutosave {
 		go func() {
 			// Cleanup old results
-			a.ctxt.Errlist["Vet"] = nil
+			a.ctx.Errlist["Vet"] = nil
 
 			errlist, err := a.cmds.Vet(nil, &commands.CmdVetEval{
 				Cwd:  eval.Cwd,
@@ -82,13 +82,13 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 				return
 			}
 			if errlist != nil {
-				a.ctxt.Errlist["Vet"] = errlist
-				if len(a.ctxt.Errlist) > 0 {
-					nvimutil.ErrorList(a.Nvim, a.ctxt.Errlist, true)
+				a.ctx.Errlist["Vet"] = errlist
+				if len(a.ctx.Errlist) > 0 {
+					nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
 					return
 				}
 			}
-			if a.ctxt.Errlist["Vet"] == nil {
+			if a.ctx.Errlist["Vet"] == nil {
 				nvimutil.ClearErrorlist(a.Nvim, true)
 			}
 		}()

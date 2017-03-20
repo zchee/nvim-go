@@ -12,9 +12,9 @@ type BufEnterEval struct {
 
 func (a *Autocmd) BufEnter(eval *BufEnterEval) {
 	a.mu.Lock()
-	a.ctxt.BufNr = eval.BufNr
-	a.ctxt.WinID = eval.WinID
+	a.ctx.BufNr = eval.BufNr
+	a.ctx.WinID = eval.WinID
 	a.mu.Unlock()
 
-	a.ctxt.SetContext(eval.Dir)
+	a.ctx.SetContext(eval.Dir)
 }
