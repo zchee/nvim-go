@@ -24,8 +24,8 @@ func NewCommands(v *nvim.Nvim, ctx *context.Context) *Commands {
 	}
 }
 
-func Register(p *plugin.Plugin, ctxt *context.Context) *Commands {
-	c := NewCommands(p.Nvim, ctxt)
+func Register(p *plugin.Plugin, ctx *context.Context) *Commands {
+	c := NewCommands(p.Nvim, ctx)
 
 	// Register command and function
 	// CommandOptions order: Name, NArgs, Range, Count, Addr, Bang, Register, Eval, Bar, Complete

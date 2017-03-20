@@ -32,7 +32,7 @@ const defaultAddr = "localhost:41222" // d:4 l:12 v:22
 type Delve struct {
 	Nvim *nvim.Nvim
 
-	ctxt *context.Context
+	ctx *context.Context
 
 	server     *exec.Cmd
 	client     *delverpc2.RPCClient
@@ -64,10 +64,10 @@ type SignContext struct {
 }
 
 // NewDelve represents a delve client interface.
-func NewDelve(v *nvim.Nvim, ctxt *context.Context) *Delve {
+func NewDelve(v *nvim.Nvim, ctx *context.Context) *Delve {
 	return &Delve{
 		Nvim: v,
-		ctxt: ctxt,
+		ctx:  ctx,
 	}
 }
 

@@ -19,7 +19,7 @@ import (
 func TestCommands_Fmt(t *testing.T) {
 	type fields struct {
 		Nvim *nvim.Nvim
-		ctxt *context.Context
+		ctx  *context.Context
 	}
 	type args struct {
 		dir string
@@ -67,8 +67,8 @@ func TestCommands_Fmt(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ctxt := context.NewContext()
-			c := NewCommands(tt.fields.Nvim, ctxt)
+			ctx := context.NewContext()
+			c := NewCommands(tt.fields.Nvim, ctx)
 
 			err := c.Fmt(tt.args.dir)
 			if errlist, ok := err.([]*nvim.QuickfixError); !ok {

@@ -12,10 +12,10 @@ import (
 )
 
 // GbJoinPath joins the sequence of path fragments into a single path for build.Default.JoinPath.
-func (ctxt *Build) GbJoinPath(elem ...string) string {
+func (ctx *Build) GbJoinPath(elem ...string) string {
 	res := filepath.Join(elem...)
 
-	if gbrel, err := filepath.Rel(ctxt.ProjectRoot, res); err == nil {
+	if gbrel, err := filepath.Rel(ctx.ProjectRoot, res); err == nil {
 		gbrel = filepath.ToSlash(gbrel)
 		gbrel, _ = match(gbrel, "vendor/")
 		if gbrel, ok := match(gbrel, fmt.Sprintf("pkg/%s_%s", build.Default.GOOS, build.Default.GOARCH)); ok {
@@ -26,7 +26,7 @@ func (ctxt *Build) GbJoinPath(elem ...string) string {
 			}
 			gbrel = fmt.Sprintf("pkg/%s-%s/", build.Default.GOOS, build.Default.GOARCH) + gbrel
 			gbrel = filepath.FromSlash(gbrel)
-			res = filepath.Join(ctxt.ProjectRoot, gbrel)
+			res = filepath.Join(ctx.ProjectRoot, gbrel)
 		}
 	}
 

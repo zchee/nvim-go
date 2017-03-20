@@ -20,7 +20,7 @@ var testVetRoot = filepath.Join(testGoPath, "src", "vet")
 func TestCommands_Vet(t *testing.T) {
 	type fields struct {
 		Nvim *nvim.Nvim
-		ctxt *context.Context
+		ctx  *context.Context
 	}
 	type args struct {
 		args []string
@@ -40,7 +40,7 @@ func TestCommands_Vet(t *testing.T) {
 			name: "method.go (2 suggest)",
 			fields: fields{
 				Nvim: nvimutil.TestNvim(t, filepath.Join(testVetRoot, "method.go")),
-				ctxt: context.NewContext(),
+				ctx:  context.NewContext(),
 			},
 			args: args{
 				args: []string{"method.go"},
@@ -76,7 +76,7 @@ func TestCommands_Vet(t *testing.T) {
 			name: "method.go and unused.go(8 suggest)",
 			fields: fields{
 				Nvim: nvimutil.TestNvim(t, filepath.Join(testVetRoot, "unused.go")),
-				ctxt: context.NewContext(),
+				ctx:  context.NewContext(),
 			},
 			args: args{
 				args: []string{"."},
@@ -131,8 +131,8 @@ func TestCommands_Vet(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt.fields.ctxt.Build.Tool = tt.tool
-		c := NewCommands(tt.fields.Nvim, tt.fields.ctxt)
+		tt.fields.ctx.Build.Tool = tt.tool
+		c := NewCommands(tt.fields.Nvim, tt.fields.ctx)
 
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
