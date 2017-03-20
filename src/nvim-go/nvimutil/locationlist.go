@@ -203,7 +203,7 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 var errRe = regexp.MustCompile(`(?m)^(?:#\s([[:graph:]]+))?(?:[\s\t]+)?([^\s:]+):(\d+)(?::(\d+))?(?::)?\s(.*)`)
 
 // ParseError parses a typical Go tools error messages.
-func ParseError(errs []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixError, error) {
+func ParseError(errs []byte, cwd string, buildContext *context.Build) ([]*nvim.QuickfixError, error) {
 	var (
 		// packagePath for the save the error files parent directory.
 		// It will be re-assigned if "# " is in the error message.
@@ -230,7 +230,7 @@ func ParseError(errs []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixE
 		}
 
 		// Cleanup filename to relative path of current working directory
-		switch ctxt.Tool {
+		switch buildContext.Tool {
 		case "go":
 			var sep string
 			switch {
@@ -254,7 +254,7 @@ func ParseError(errs []byte, cwd string, ctxt *context.Build) ([]*nvim.QuickfixE
 		case "gb":
 			// gb compiler error messages is relative filename path of project root dir
 			if !filepath.IsAbs(filename) {
-				filename = filepath.Join(ctxt.ProjectRoot, "src", filename)
+				filename = filepath.Join(buildContext.ProjectRoot, "src", filename)
 			}
 		default:
 			return nil, errors.New("unknown compiler tool")
