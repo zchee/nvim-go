@@ -12,17 +12,13 @@ import (
 	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
+	"github.com/pkg/errors"
 )
 
-var pkgTerminal = "GoTerminal"
-
-var bufName = "__GO_TERMINAL__"
+var terminalBufferName = "__GO_TERMINAL__"
 
 // Terminal represents a Neovim terminal.
 type Terminal struct {
-	v *nvim.Nvim
-	b *nvim.Batch
-
 	cmd  []string
 	mode string
 	// Name terminal buffer name.
@@ -32,37 +28,42 @@ type Terminal struct {
 	// Size open the terminal window size.
 	Size int
 
-	cw nvim.Window
+	Nvim  *nvim.Nvim
+	Batch *nvim.Batch
+	cw    nvim.Window
 
 	*Buffer
 }
 
 // NewTerminal return the Neovim terminal buffer.
-func NewTerminal(vim *nvim.Nvim, name string, command []string, mode string) *Terminal {
+func NewTerminal(n *nvim.Nvim, name string, command []string, mode string) *Terminal {
+	if name == "" {
+		name = terminalBufferName
+	}
 	return &Terminal{
-		v:    vim,
-		b:    vim.NewBatch(),
-		Name: name,
-		cmd:  command,
-		mode: mode,
+		cmd:   command,
+		mode:  mode,
+		Name:  name,
+		Nvim:  n,
+		Batch: n.NewBatch(),
 	}
 }
 
 // Create creats the new Neovim terminal buffer.
 func (t *Terminal) Create() (err error) {
-	t.cw, err = t.v.CurrentWindow()
+	t.cw, err = t.Nvim.CurrentWindow()
 	if err != nil {
 		return err
 	}
 
-	t.Buffer = NewBuffer(t.v)
+	t.Buffer = NewBuffer(t.Nvim)
 
 	switch {
 	case t.mode == "split":
-		t.Size = t.getWindowSize(config.TerminalHeight, t.v.WindowHeight)
+		t.Size = t.getSplitWindowSize(config.TerminalHeight, t.Nvim.WindowHeight)
 		t.Buffer.Height = t.Size
 	case t.mode == "vsplit":
-		t.Size = t.getWindowSize(config.TerminalWidth, t.v.WindowWidth)
+		t.Size = t.getSplitWindowSize(config.TerminalWidth, t.Nvim.WindowWidth)
 		t.Buffer.Width = t.Size
 	default:
 		// nothing to do
@@ -80,43 +81,48 @@ func (t *Terminal) Create() (err error) {
 
 	// Cleanup cursor highlighting
 	// TODO(zchee): Can use p.ClearBufferHighlight?
-	t.b.Command("highlight TermCursor gui=NONE guifg=NONE guibg=NONE")
-	t.b.Command("highlight TermCursorNC gui=NONE guifg=NONE guibg=NONE")
+	t.Batch.Command("highlight TermCursor gui=NONE guifg=NONE guibg=NONE")
+	t.Batch.Command("highlight TermCursorNC gui=NONE guifg=NONE guibg=NONE")
 
 	// Set autoclose buffer if the current buffer is only terminal
 	// TODO(zchee): convert to rpc way
-	t.b.Command("autocmd WinEnter <buffer> if winnr('$') == 1 | quit | endif")
+	t.Batch.Command("autocmd WinEnter <buffer> if winnr('$') == 1 | quit | endif")
 
-	return t.b.Execute()
+	return t.Batch.Execute()
 }
 
 // Run runs the command in the terminal buffer.
 func (t *Terminal) Run(cmd []string) error {
 	if t.Dir != "" {
-		defer pathutil.Chdir(t.v, t.Dir)()
+		defer pathutil.Chdir(t.Nvim, t.Dir)()
 	}
 
-	if t.Buffer != nil && IsBufferValid(t.v, t.buffer) {
+	if t.Buffer != nil && IsBufferValid(t.Nvim, t.buffer) {
 		defer t.switchFocus()()
 
-		t.v.SetBufferOption(t.buffer, BufOptionModified, false)
-		t.v.Call("termopen", nil, cmd)
-		t.v.SetBufferName(t.buffer, t.Buffer.Name)
+		t.Nvim.SetBufferOption(t.buffer, BufOptionModified, false)
+		t.Nvim.Call("termopen", nil, cmd)
+		t.Nvim.SetBufferName(t.buffer, t.Buffer.Name)
 	} else {
 		t.Create()
 	}
 	// Workaround for "autocmd BufEnter term://* startinsert"
 	if config.TerminalStopInsert {
-		t.v.Command("stopinsert")
+		t.Nvim.Command("stopinsert")
 	}
 
-	return nil
+	lines, err := t.Nvim.BufferLineCount(t.buffer)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return errors.WithStack(t.Nvim.SetWindowCursor(t.Window, [2]int{lines, 0}))
 }
 
-// getWindowSize return the one third of window (height|width) size if cfg is 0
-func (t *Terminal) getWindowSize(cfg int64, fn func(nvim.Window) (int, error)) int {
+// getSplitWindowSize return the one third of window (height|width) size if cfg is 0
+func (t *Terminal) getSplitWindowSize(cfg int64, f func(nvim.Window) (int, error)) int {
 	if cfg == 0 {
-		i, err := fn(t.cw)
+		i, err := f(t.cw)
 		if err != nil {
 			return 0
 		}
@@ -127,10 +133,10 @@ func (t *Terminal) getWindowSize(cfg int64, fn func(nvim.Window) (int, error)) i
 
 // TODO(zchee): flashing when switch the window.
 func (t *Terminal) switchFocus() func() {
-	t.v.SetCurrentWindow(t.Window)
+	t.Nvim.SetCurrentWindow(t.Window)
 
 	return func() {
-		t.v.SetCurrentWindow(t.cw)
+		t.Nvim.SetCurrentWindow(t.cw)
 	}
 }
 
