@@ -16,43 +16,46 @@ import (
 )
 
 var (
-	runTerm *nvimutil.Terminal
-	lastCmd []string
+	runTerm     *nvimutil.Terminal
+	runLastArgs []string
 )
 
 func (c *Commands) cmdRun(args []string, file string) {
-	cmd := []string{"go", "run", file}
-	if len(args) != 0 {
-		lastCmd = args
-		cmd = append(cmd, args...)
-	}
-
-	go c.Run(cmd, file)
+	go func() {
+		if err := c.Run(args, file); err != nil {
+			nvimutil.ErrorWrap(c.Nvim, err)
+		}
+	}()
 }
 
 func (c *Commands) cmdRunLast(file string) {
-	if len(lastCmd) == 0 {
+	if len(runLastArgs) == 0 {
 		err := errors.New("not found GoRun last arguments")
 		nvimutil.ErrorWrap(c.Nvim, err)
 		return
 	}
 
-	cmd := []string{"go", "run", file}
-	cmd = append(cmd, lastCmd...)
-
-	go c.Run(cmd, file)
+	go func() {
+		if err := c.Run(runLastArgs, file); err != nil {
+			nvimutil.ErrorWrap(c.Nvim, err)
+		}
+	}()
 }
 
 // Run runs the go run command for current buffer's packages.
-func (c *Commands) Run(cmd []string, file string) error {
+func (c *Commands) Run(args []string, file string) error {
 	defer nvimutil.Profile(time.Now(), "GoRun")
+
+	cmd := []string{"go", "run", file}
+	if len(args) != 0 {
+		runLastArgs = args
+		cmd = append(cmd, args...)
+	}
 
 	if runTerm == nil {
 		runTerm = nvimutil.NewTerminal(c.Nvim, "__GO_RUN__", cmd, config.TerminalMode)
 	}
-	dir, _ := filepath.Split(file)
-	rootDir := pathutil.FindVCSRoot(dir)
-	runTerm.Dir = rootDir
+	runTerm.Dir = pathutil.FindVCSRoot(filepath.Dir(file))
 
 	if err := runTerm.Run(cmd); err != nil {
 		return errors.WithStack(err)
