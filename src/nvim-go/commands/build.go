@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"nvim-go/config"
@@ -49,8 +48,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 		bang = config.BuildForce
 	}
 
-	isTest := strings.HasSuffix(eval.File, "_test.go")
-	cmd, err := c.compileCmd(bang, filepath.Dir(eval.File), isTest)
+	cmd, err := c.compileCmd(bang, filepath.Dir(eval.File))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -75,7 +73,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 }
 
 // compileCmd returns the *exec.Cmd corresponding to the compile tool.
-func (c *Commands) compileCmd(bang bool, dir string, isTest bool) (*exec.Cmd, error) {
+func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 	bin, err := exec.LookPath(c.ctx.Build.Tool)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -86,12 +84,7 @@ func (c *Commands) compileCmd(bang bool, dir string, isTest bool) (*exec.Cmd, er
 		args = append(args, config.BuildFlags...)
 	}
 
-	mode := "build"
-	if isTest {
-		mode = "test"
-	}
-
-	cmd := exec.Command(bin, mode)
+	cmd := exec.Command(bin, "build")
 	cmd.Dir = dir
 
 	switch c.ctx.Build.Tool {
