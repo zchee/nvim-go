@@ -78,9 +78,9 @@ func TestParseError(t *testing.T) {
 	)
 
 	type args struct {
-		errors []byte
-		cwd    string
-		ctx    *context.Build
+		errors       []byte
+		cwd          string
+		buildContext *context.Build
 	}
 	tests := []struct {
 		name    string
@@ -94,7 +94,7 @@ func TestParseError(t *testing.T) {
 				errors: []byte(`# nvim-go/nvim
 echo.go:79: syntax error: non-declaration statement outside function body`),
 				cwd: cwd,
-				ctx: &context.Build{
+				buildContext: &context.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -114,7 +114,7 @@ echo.go:79: syntax error: non-declaration statement outside function body`),
 locationlist.go:152: syntax error: unexpected case, expecting }
 locationlist.go:160: syntax error: non-declaration statement outside function body`),
 				cwd: cwd,
-				ctx: &context.Build{
+				buildContext: &context.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -142,7 +142,7 @@ locationlist.go:160: syntax error: non-declaration statement outside function bo
 locationlist.go:199: ParseError redeclared in this block
         previous declaration at locationlist.go:149`),
 				cwd: cwd,
-				ctx: &context.Build{
+				buildContext: &context.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -163,7 +163,7 @@ locationlist.go:199: ParseError redeclared in this block
 				errors: []byte(`# nvim-go/pathutil
 package_test.go:36: undeclared name: FindAll`),
 				cwd: "/Users/zchee/go/src/github.com/zchee/nvim-go/src/nvim-go/commands",
-				ctx: &context.Build{
+				buildContext: &context.Build{
 					Tool:        "gb",
 					ProjectRoot: "/Users/zchee/go/src/github.com/zchee/nvim-go",
 				},
@@ -185,7 +185,7 @@ package_test.go:36: undeclared name: FindAll`),
 		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.WalkDir
 		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.DatabasePath`),
 				cwd: filepath.Join(gopath, "src/github.com/zchee/hyperkitctl"),
-				ctx: &context.Build{
+				buildContext: &context.Build{
 					Tool: "go",
 				},
 			},
@@ -212,7 +212,7 @@ package_test.go:36: undeclared name: FindAll`),
 		test.go:26: undefined: hyperkitctl.WalkDir
 		test.go:26: undefined: hyperkitctl.DatabasePath`),
 				cwd: filepath.Join(gopath, "src/github.com/zchee/hyperkitctl/cmd/hyperkitctl"),
-				ctx: &context.Build{
+				buildContext: &context.Build{
 					Tool: "go",
 				},
 			},
@@ -239,7 +239,7 @@ package_test.go:36: undeclared name: FindAll`),
 ../../appleopensource.go:26: cannot use ModeTarballs (type ListMode) as type string in argument to ListPackage
 ../../appleopensource.go:31: cannot use ModeSource (type ListMode) as type string in argument to ListPackage`),
 				cwd: filepath.Join(gopath, "src/github.com/zchee/appleopensource/cmd/gaos"),
-				ctx: &context.Build{
+				buildContext: &context.Build{
 					Tool: "go",
 				},
 			},
@@ -278,7 +278,7 @@ server.go:38: invalid case "connect" in switch on cmd (mismatched types string a
 server.go:40: cannot use cfg.flags (type []string) as type string in append
 FATAL: command "build" failed: exit status 2`),
 				cwd: cwd,
-				ctx: &context.Build{
+				buildContext: &context.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -351,7 +351,7 @@ cmd/gaos/versions.go:14: initialization loop:
 		%s/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:16 versionsPkg refers to
 		%s/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:14 cmdVersions`, gopath, gopath, gopath, gopath)),
 				cwd: filepath.Join(gopath, "src/github.com/zchee/appleopensource/cmd/gaos"),
-				ctx: &context.Build{
+				buildContext: &context.Build{
 					Tool: "go",
 				},
 			},
@@ -392,17 +392,18 @@ cmd/gaos/versions.go:14: initialization loop:
 	}
 
 	build.Default.GOPATH = gopath
+
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ParseError(tt.args.errors, tt.args.cwd, tt.args.ctx)
+			got, err := ParseError(tt.args.errors, tt.args.cwd, tt.args.buildContext)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("%q.\nParseError(%v, %v, %v) error = %v, wantErr %v", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.ctx, err, tt.wantErr)
+				t.Errorf("%q.\nParseError(%v, %v, %v) error = %v, wantErr %v", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext, err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("%q.\nParseError(errors: %v,\ncwd: %v,\nctx: %v) = \n", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.ctx, got, tt.want)
+				t.Errorf("%q.\nParseError(errors: %v,\ncwd: %v,\nctx: %v) = \n", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext, got, tt.want)
 				for _, got := range got {
 					t.Logf("=====  got =====: %+v", got)
 				}
