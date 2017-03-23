@@ -118,7 +118,7 @@ func (d *Delve) start(cmd string, cfg Config, eval *delveEval) error {
 	}
 	defer d.waitServer(cfg.addr)
 
-	return d.createDebugBuffer()
+	return d.openDebugBuffer()
 }
 
 // ----------------------------------------------------------------------------

@@ -22,7 +22,8 @@ const (
 	Threads nvimutil.BufferName = "thread"
 )
 
-func (d *Delve) createDebugBuffer() error {
+// openDebugBuffer opens the buffers that prints the debug information.
+func (d *Delve) openDebugBuffer() error {
 	batch := d.Nvim.NewBatch()
 
 	batch.CurrentBuffer(&d.cb)
@@ -43,7 +44,7 @@ func (d *Delve) createDebugBuffer() error {
 	go func() {
 		defer d.Nvim.SetCurrentWindow(d.cw)
 
-		option := d.setTerminalOption()
+		option := d.setBufferOption()
 		d.buffers = make(map[nvimutil.BufferName]*nvimutil.Buffer)
 		nnoremap := make(map[string]string)
 
@@ -69,7 +70,8 @@ func (d *Delve) createDebugBuffer() error {
 	return batch.Execute()
 }
 
-func (d *Delve) setTerminalOption() map[nvimutil.NvimOption]map[string]interface{} {
+// setBufferOption sets the delve buffer options.
+func (d *Delve) setBufferOption() map[nvimutil.NvimOption]map[string]interface{} {
 	option := make(map[nvimutil.NvimOption]map[string]interface{})
 	bufoption := make(map[string]interface{})
 	bufvar := make(map[string]interface{})
