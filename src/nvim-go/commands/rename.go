@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"go/build"
 	"io/ioutil"
-	"log"
 	"os"
 	"time"
 
@@ -29,18 +28,29 @@ type cmdRenameEval struct {
 }
 
 func (c *Commands) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
-	go c.Rename(args, bang, eval)
+	go func() {
+		err := c.Rename(args, bang, eval)
+
+		switch e := err.(type) {
+		case error:
+			nvimutil.ErrorWrap(c.Nvim, e)
+		case []*nvim.QuickfixError:
+			c.ctx.Errlist["Rename"] = e
+			nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
+		}
+	}()
 }
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
-func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
+func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoRename")
 
 	b := nvim.Buffer(c.ctx.BufNr)
 	w := nvim.Window(c.ctx.WinID)
+
 	offset, err := nvimutil.ByteOffset(c.Nvim, b, w)
 	if err != nil {
-		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+		return errors.WithStack(err)
 	}
 	pos := fmt.Sprintf("%s:#%d", eval.File, offset)
 
@@ -53,12 +63,12 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 		if config.RenamePrefill {
 			err := c.Nvim.Call("input", &toResult, askMessage, eval.RenameFrom)
 			if err != nil {
-				return nvimutil.EchohlErr(c.Nvim, pkgRename, "Keyboard interrupt")
+				return errors.New("GoRename: Keyboard interrupt")
 			}
 		} else {
 			err := c.Nvim.Call("input", &toResult, askMessage)
 			if err != nil {
-				return nvimutil.EchohlErr(c.Nvim, pkgRename, "Keyboard interrupt")
+				return errors.New("GoRename: Keyboard interrupt")
 			}
 		}
 		if toResult.(string) == "" {
@@ -85,21 +95,19 @@ func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) error {
 		os.Stderr = saveStderr
 	}()
 
+	// TODO(zchee): reached race limit, dying when race build
 	if err := rename.Main(&build.Default, pos, "", renameTo); err != nil {
 		write.Close()
 		renameErr, err := ioutil.ReadAll(read)
 		if err != nil {
-			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+			return errors.WithStack(err)
 		}
 
-		log.Printf("er: %+v\n", string(renameErr))
-		go func() {
-			loclist, _ := nvimutil.ParseError(renameErr, eval.Cwd, &c.ctx.Build)
-			nvimutil.SetLoclist(c.Nvim, loclist)
-			nvimutil.OpenLoclist(c.Nvim, w, loclist, true)
-		}()
+		loclist, _ := nvimutil.ParseError(renameErr, eval.Cwd, &c.ctx.Build)
+		nvimutil.SetLoclist(c.Nvim, loclist)
+		nvimutil.OpenLoclist(c.Nvim, w, loclist, true)
 
-		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+		return loclist
 	}
 
 	write.Close()
