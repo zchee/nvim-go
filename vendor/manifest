@@ -113,6 +113,13 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "golang.org/x/arch/x86/x86asm",
+			"repository": "https://go.googlesource.com/arch",
+			"revision": "58ea1a195b1a354bcd572b7ef6bbbd264dc63732",
+			"branch": "master",
+			"path": "/x86/x86asm"
+		},
+		{
 			"importpath": "golang.org/x/debug/dwarf",
 			"repository": "https://go.googlesource.com/debug",
 			"revision": "fb508927b491eca48a708e9d000fdb7afa53c32b",
@@ -250,13 +257,6 @@
 			"repository": "https://gopkg.in/yaml.v2",
 			"revision": "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b",
 			"branch": "v2"
-		},
-		{
-			"importpath": "rsc.io/x86/x86asm",
-			"repository": "https://github.com/rsc/x86",
-			"revision": "01d8f0379593fd888e08a4c4057d69f5765ab2e4",
-			"branch": "master",
-			"path": "/x86asm"
 		}
 	]
 }
