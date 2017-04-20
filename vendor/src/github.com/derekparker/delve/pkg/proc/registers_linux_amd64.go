@@ -3,8 +3,7 @@ package proc
 import (
 	"fmt"
 
-	"rsc.io/x86/x86asm"
-
+	"golang.org/x/arch/x86/x86asm"
 	sys "golang.org/x/sys/unix"
 )
 
@@ -84,8 +83,13 @@ func (r *Regs) TLS() uint64 {
 	return r.regs.Fs_base
 }
 
+func (r *Regs) GAddr() (uint64, bool) {
+	return 0, false
+}
+
 // SetPC sets RIP to the value specified by 'pc'.
-func (r *Regs) SetPC(thread *Thread, pc uint64) (err error) {
+func (r *Regs) SetPC(t IThread, pc uint64) (err error) {
+	thread := t.(*Thread)
 	r.regs.SetPC(pc)
 	thread.dbp.execPtraceFunc(func() { err = sys.PtraceSetRegs(thread.ID, r.regs) })
 	return

@@ -103,14 +103,15 @@ func (t *Thread) resume() error {
 	return err
 }
 
-func (t *Thread) blocked() bool {
+func threadBlocked(t IThread) bool {
 	// TODO: Probably incorrect - what are the runtime functions that
 	// indicate blocking on Windows?
-	pc, err := t.PC()
+	regs, err := t.Registers(false)
 	if err != nil {
 		return false
 	}
-	fn := t.dbp.goSymTable.PCToFunc(pc)
+	pc := regs.PC()
+	fn := t.BinInfo().goSymTable.PCToFunc(pc)
 	if fn == nil {
 		return false
 	}
@@ -137,15 +138,14 @@ func (t *Thread) writeMemory(addr uintptr, data []byte) (int, error) {
 	return int(count), nil
 }
 
-func (t *Thread) readMemory(addr uintptr, size int) ([]byte, error) {
-	if size == 0 {
-		return nil, nil
+func (t *Thread) ReadMemory(buf []byte, addr uintptr) (int, error) {
+	if len(buf) == 0 {
+		return 0, nil
 	}
 	var count uintptr
-	buf := make([]byte, size)
-	err := _ReadProcessMemory(t.dbp.os.hProcess, addr, &buf[0], uintptr(size), &count)
-	if err != nil {
-		return nil, err
+	err := _ReadProcessMemory(t.dbp.os.hProcess, addr, &buf[0], uintptr(len(buf)), &count)
+	if err == nil && count != uintptr(len(buf)) {
+		err = ErrShortRead
 	}
-	return buf[:count], nil
+	return int(count), err
 }

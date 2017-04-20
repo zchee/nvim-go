@@ -2,8 +2,9 @@ package proc
 
 import (
 	"fmt"
-	"rsc.io/x86/x86asm"
 	"unsafe"
+
+	"golang.org/x/arch/x86/x86asm"
 )
 
 // Regs represents CPU registers on an AMD64 processor.
@@ -123,8 +124,13 @@ func (r *Regs) TLS() uint64 {
 	return r.tls
 }
 
+func (r *Regs) GAddr() (uint64, bool) {
+	return 0, false
+}
+
 // SetPC sets the RIP register to the value specified by `pc`.
-func (r *Regs) SetPC(thread *Thread, pc uint64) error {
+func (r *Regs) SetPC(t IThread, pc uint64) error {
+	thread := t.(*Thread)
 	context := newCONTEXT()
 	context.ContextFlags = _CONTEXT_ALL
 

@@ -67,9 +67,13 @@ func (t *Thread) singleStep() (err error) {
 	}
 }
 
-func (t *Thread) blocked() bool {
-	pc, _ := t.PC()
-	fn := t.dbp.goSymTable.PCToFunc(pc)
+func threadBlocked(t IThread) bool {
+	regs, err := t.Registers(false)
+	if err != nil {
+		return false
+	}
+	pc := regs.PC()
+	fn := t.BinInfo().goSymTable.PCToFunc(pc)
 	if fn != nil && ((fn.Name == "runtime.futex") || (fn.Name == "runtime.usleep") || (fn.Name == "runtime.clone")) {
 		return true
 	}
@@ -98,11 +102,10 @@ func (t *Thread) writeMemory(addr uintptr, data []byte) (written int, err error)
 	return
 }
 
-func (t *Thread) readMemory(addr uintptr, size int) (data []byte, err error) {
-	if size == 0 {
+func (t *Thread) ReadMemory(data []byte, addr uintptr) (n int, err error) {
+	if len(data) == 0 {
 		return
 	}
-	data = make([]byte, size)
 	t.dbp.execPtraceFunc(func() { _, err = sys.PtracePeekData(t.ID, addr, data) })
 	return
 }

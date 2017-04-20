@@ -72,9 +72,8 @@ func (bp *Breakpoint) String() string {
 	return fmt.Sprintf("Breakpoint %d at %#v %s:%d (%d)", bp.ID, bp.Addr, bp.File, bp.Line, bp.TotalHitCount)
 }
 
-// Clear this breakpoint appropriately depending on whether it is a
-// hardware or software breakpoint.
-func (bp *Breakpoint) Clear(thread *Thread) (*Breakpoint, error) {
+// ClearBreakpoint clears the specified breakpoint.
+func (thread *Thread) ClearBreakpoint(bp *Breakpoint) (*Breakpoint, error) {
 	if _, err := thread.writeMemory(uintptr(bp.Addr), bp.OriginalData); err != nil {
 		return nil, fmt.Errorf("could not clear breakpoint %s", err)
 	}
@@ -104,16 +103,16 @@ func (iae InvalidAddressError) Error() string {
 }
 
 func (dbp *Process) writeSoftwareBreakpoint(thread *Thread, addr uint64) error {
-	_, err := thread.writeMemory(uintptr(addr), dbp.arch.BreakpointInstruction())
+	_, err := thread.writeMemory(uintptr(addr), dbp.bi.arch.BreakpointInstruction())
 	return err
 }
 
-func (bp *Breakpoint) checkCondition(thread *Thread) (bool, error) {
+func (bp *Breakpoint) checkCondition(thread IThread) (bool, error) {
 	if bp.Cond == nil {
 		return true, nil
 	}
 	if bp.Kind == NextDeferBreakpoint {
-		frames, err := thread.Stacktrace(2)
+		frames, err := ThreadStacktrace(thread, 2)
 		if err == nil {
 			ispanic := len(frames) >= 3 && frames[2].Current.Fn != nil && frames[2].Current.Fn.Name == "runtime.gopanic"
 			isdeferreturn := false
@@ -130,7 +129,7 @@ func (bp *Breakpoint) checkCondition(thread *Thread) (bool, error) {
 			}
 		}
 	}
-	scope, err := thread.Scope()
+	scope, err := GoroutineScope(thread)
 	if err != nil {
 		return true, err
 	}
