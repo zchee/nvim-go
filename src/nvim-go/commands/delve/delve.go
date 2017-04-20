@@ -456,7 +456,7 @@ func (d *Delve) stdin(v *nvim.Nvim) error {
 		args = cmd[1]
 	}
 
-	err = d.debugger.Call(cmd[0], args, d.term)
+	err = d.debugger.Call(cmd[0] + args, d.term)
 	if err != nil {
 		return nvimutil.ErrorWrap(v, errors.WithStack(err))
 	}
