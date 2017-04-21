@@ -67,6 +67,31 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 		}
 	}
 
+	if config.GolintAutosave {
+		a.wg.Add(1)
+		go func() {
+			// Cleanup old results
+			a.ctx.Errlist["Lint"] = nil
+
+			errlist, err := a.cmds.Lint(nil, eval.File)
+			if err != nil {
+				// normal errros
+				nvimutil.ErrorWrap(a.Nvim, err)
+				return
+			}
+			if errlist != nil {
+				a.ctx.Errlist["Lint"] = errlist
+				if len(a.ctx.Errlist) > 0 {
+					nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
+					return
+				}
+			}
+			if a.ctx.Errlist["Lint"] == nil {
+				nvimutil.ClearErrorlist(a.Nvim, true)
+			}
+		}()
+	}
+
 	if config.GoVetAutosave {
 		go func() {
 			// Cleanup old results
