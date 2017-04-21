@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"nvim-go/nvimutil"
 )
 
-func (c *Commands) cmdBuffers() error {
+func (c *Command) cmdBuffers() error {
 	bufs, _ := c.Nvim.Buffers()
 	var b []string
 	for _, buf := range bufs {
@@ -20,7 +20,7 @@ func (c *Commands) cmdBuffers() error {
 	return nvimutil.Echomsg(c.Nvim, "Buffers:", b)
 }
 
-func (c *Commands) cmdWindows() error {
+func (c *Command) cmdWindows() error {
 	wins, _ := c.Nvim.Windows()
 	var w []string
 	for _, win := range wins {
@@ -29,7 +29,7 @@ func (c *Commands) cmdWindows() error {
 	return nvimutil.Echomsg(c.Nvim, "Windows:", w)
 }
 
-func (c *Commands) cmdTabpagas() error {
+func (c *Command) cmdTabpagas() error {
 	tabs, _ := c.Nvim.Tabpages()
 	var t []string
 	for _, tab := range tabs {
@@ -38,7 +38,7 @@ func (c *Commands) cmdTabpagas() error {
 	return nvimutil.Echomsg(c.Nvim, "Tabpages:", t)
 }
 
-func (c *Commands) cmdByteOffset() error {
+func (c *Command) cmdByteOffset() error {
 	b, err := c.Nvim.CurrentBuffer()
 	if err != nil {
 		return err

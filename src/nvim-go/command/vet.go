@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"bytes"
@@ -25,7 +25,7 @@ type CmdVetEval struct {
 	File string
 }
 
-func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
+func (c *Command) cmdVet(args []string, eval *CmdVetEval) {
 	go func() {
 		// Cleanup old results
 		c.ctx.Errlist["Vet"] = nil
@@ -49,7 +49,7 @@ func (c *Commands) cmdVet(args []string, eval *CmdVetEval) {
 }
 
 // Vet is a simple checker for static errors in Go source code use go tool vet command.
-func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, error) {
+func (c *Command) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, error) {
 	defer nvimutil.Profile(time.Now(), "GoVet")
 
 	vetCmd := exec.Command("go", "tool", "vet")
@@ -96,7 +96,7 @@ func (c *Commands) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, 
 	return nil, nil
 }
 
-func (c *Commands) cmdVetComplete(v *nvim.Nvim, a *nvim.CommandCompletionArgs, dir string) ([]string, error) {
+func (c *Command) cmdVetComplete(v *nvim.Nvim, a *nvim.CommandCompletionArgs, dir string) ([]string, error) {
 	// Flags:
 	//  -all
 	//        enable all non-experimental checks

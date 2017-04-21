@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"nvim-go/ctx"
@@ -11,20 +11,20 @@ import (
 	"github.com/neovim/go-client/nvim/plugin"
 )
 
-type Commands struct {
+type Command struct {
 	Nvim *nvim.Nvim
 
 	ctx *ctx.Context
 }
 
-func NewCommand(v *nvim.Nvim, ctx *ctx.Context) *Commands {
-	return &Commands{
+func NewCommand(v *nvim.Nvim, ctx *ctx.Context) *Command {
+	return &Command{
 		Nvim: v,
 		ctx:  ctx,
 	}
 }
 
-func Register(p *plugin.Plugin, ctx *ctx.Context) *Commands {
+func Register(p *plugin.Plugin, ctx *ctx.Context) *Command {
 	c := NewCommand(p.Nvim, ctx)
 
 	// Register command and function

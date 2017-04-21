@@ -1,4 +1,4 @@
-package commands
+package command
 
 import (
 	"path/filepath"
@@ -27,7 +27,7 @@ func TestCommands_Build(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nvim-go File: filepath.Join(projectRoot, \"src/nvim-go/commands\")",
+			name: "nvim-go File: filepath.Join(projectRoot, \"src/nvim-go/command\")",
 			fields: fields{
 				Nvim: nvimutil.TestNvim(t, "testdata"),
 				ctx:  ctx.NewContext(),

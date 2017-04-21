@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"bytes"
@@ -26,12 +26,12 @@ import (
 	"golang.org/x/tools/go/loader"
 )
 
-func (c *Commands) cmdIferr(file string) {
+func (c *Command) cmdIferr(file string) {
 	go c.Iferr(file)
 }
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
-func (c *Commands) Iferr(file string) error {
+func (c *Command) Iferr(file string) error {
 	defer nvimutil.Profile(time.Now(), "GoIferr")
 
 	b := nvim.Buffer(c.ctx.BufNr)

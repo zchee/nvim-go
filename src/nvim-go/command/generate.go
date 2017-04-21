@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"bufio"
@@ -23,13 +23,13 @@ import (
 
 var generateFuncRe = regexp.MustCompile(`(?m)^func\s(?:\(\w\s[[:graph:]]+\)\s)?([\w]+)\(`)
 
-func (c *Commands) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir string) {
+func (c *Command) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir string) {
 	go c.GenerateTest(args, ranges, bang, dir)
 }
 
 // GenerateTest generates the test files based by current buffer or args files
 // functions.
-func (c *Commands) GenerateTest(args []string, ranges [2]int, bang bool, dir string) error {
+func (c *Command) GenerateTest(args []string, ranges [2]int, bang bool, dir string) error {
 	defer nvimutil.Profile(time.Now(), "GenerateTest")
 
 	b := nvim.Buffer(c.ctx.BufNr)

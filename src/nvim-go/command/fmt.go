@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"bytes"
@@ -24,7 +24,7 @@ var importsOptions = imports.Options{
 	TabWidth:  8,
 }
 
-func (c *Commands) cmdFmt(dir string) {
+func (c *Command) cmdFmt(dir string) {
 	go func() {
 		err := c.Fmt(dir)
 
@@ -39,7 +39,7 @@ func (c *Commands) cmdFmt(dir string) {
 }
 
 // Fmt format to the current buffer source uses gofmt behavior.
-func (c *Commands) Fmt(dir string) interface{} {
+func (c *Command) Fmt(dir string) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoFmt")
 
 	b := nvim.Buffer(c.ctx.BufNr)

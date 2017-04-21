@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"go/build"
@@ -24,7 +24,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (c *Commands) cmdLint(v *nvim.Nvim, args []string, file string) {
+func (c *Command) cmdLint(v *nvim.Nvim, args []string, file string) {
 	// Cleanup error list
 	delete(c.ctx.Errlist, "Lint")
 
@@ -47,7 +47,7 @@ const (
 
 // Lint lints a go source file. The argument is a filename or directory path.
 // TODO(zchee): Support go packages.
-func (c *Commands) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
+func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
 	defer nvimutil.Profile(time.Now(), "GoLint")
 	buildContext = build.Default
 
@@ -105,7 +105,7 @@ func (c *Commands) Lint(args []string, file string) ([]*nvim.QuickfixError, erro
 }
 
 // TODO(zchee): Support list of go packages.
-func (c *Commands) cmdLintComplete(a *nvim.CommandCompletionArgs, cwd string) (filelist []string, err error) {
+func (c *Command) cmdLintComplete(a *nvim.CommandCompletionArgs, cwd string) (filelist []string, err error) {
 	files, err := nvimutil.CompleteFiles(c.Nvim, a, cwd)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (c *Commands) cmdLintComplete(a *nvim.CommandCompletionArgs, cwd string) (f
 // ----------------------------------------------------------------------------
 // The below code is based by github.com/golang/lint/golint/golint.go
 
-func (c *Commands) lintFiles(filenames ...string) ([]*nvim.QuickfixError, error) {
+func (c *Command) lintFiles(filenames ...string) ([]*nvim.QuickfixError, error) {
 	files := make(map[string][]byte)
 	for _, filename := range filenames {
 		src, err := ioutil.ReadFile(filename)
@@ -173,17 +173,17 @@ func contain(s string, ignore []string) bool {
 	return false
 }
 
-func (c *Commands) lintDir(dirname string) ([]*nvim.QuickfixError, error) {
+func (c *Command) lintDir(dirname string) ([]*nvim.QuickfixError, error) {
 	pkg, err := build.ImportDir(dirname, 0)
 	return c.lintImportedPackage(pkg, err)
 }
 
-func (c *Commands) lintPackage(pkgname string) ([]*nvim.QuickfixError, error) {
+func (c *Command) lintPackage(pkgname string) ([]*nvim.QuickfixError, error) {
 	pkg, err := build.Import(pkgname, ".", 0)
 	return c.lintImportedPackage(pkg, err)
 }
 
-func (c *Commands) lintImportedPackage(pkg *build.Package, err error) ([]*nvim.QuickfixError, error) {
+func (c *Command) lintImportedPackage(pkg *build.Package, err error) ([]*nvim.QuickfixError, error) {
 	if err != nil {
 		if _, nogo := err.(*build.NoGoError); nogo {
 			// Don't complain if the failure is due to no Go source files.

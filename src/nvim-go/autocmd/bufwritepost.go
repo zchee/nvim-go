@@ -5,7 +5,7 @@
 package autocmd
 
 import (
-	"nvim-go/commands"
+	"nvim-go/command"
 	"nvim-go/config"
 	"nvim-go/nvimutil"
 	"path/filepath"
@@ -42,7 +42,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 	}
 
 	if config.BuildAutosave {
-		err := a.cmds.Build(config.BuildForce, &commands.CmdBuildEval{
+		err := a.cmd.Build(config.BuildForce, &command.CmdBuildEval{
 			Cwd:  eval.Cwd,
 			File: eval.File,
 		})
@@ -73,7 +73,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			// Cleanup old results
 			delete(a.ctx.Errlist, "Lint")
 
-			errlist, err := a.cmds.Lint(nil, eval.File)
+			errlist, err := a.cmd.Lint(nil, eval.File)
 			if err != nil {
 				// normal errros
 				nvimutil.ErrorWrap(a.Nvim, err)
@@ -95,7 +95,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			// Cleanup old results
 			delete(a.ctx.Errlist, "Vet")
 
-			errlist, err := a.cmds.Vet(nil, &commands.CmdVetEval{
+			errlist, err := a.cmd.Vet(nil, &command.CmdVetEval{
 				Cwd:  eval.Cwd,
 				File: eval.File,
 			})
@@ -112,7 +112,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			a.cmds.Metalinter(eval.Cwd)
+			a.cmd.Metalinter(eval.Cwd)
 		}()
 	}
 
@@ -120,7 +120,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			a.cmds.Test([]string{}, dir)
+			a.cmd.Test([]string{}, dir)
 		}()
 	}
 

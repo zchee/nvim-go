@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ type cmdRenameEval struct {
 	RenameFrom string
 }
 
-func (c *Commands) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
+func (c *Command) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 	go func() {
 		err := c.Rename(args, bang, eval)
 
@@ -42,7 +42,7 @@ func (c *Commands) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 }
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
-func (c *Commands) Rename(args []string, bang bool, eval *cmdRenameEval) interface{} {
+func (c *Command) Rename(args []string, bang bool, eval *cmdRenameEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoRename")
 
 	b := nvim.Buffer(c.ctx.BufNr)

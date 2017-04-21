@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"bytes"
@@ -25,7 +25,7 @@ type CmdBuildEval struct {
 	File string
 }
 
-func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
+func (c *Command) cmdBuild(bang bool, eval *CmdBuildEval) {
 	go func() {
 		err := c.Build(bang, eval)
 
@@ -41,7 +41,7 @@ func (c *Commands) cmdBuild(bang bool, eval *CmdBuildEval) {
 
 // Build builds the current buffers package use compile tool that determined
 // from the package directory structure.
-func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
+func (c *Command) Build(bang bool, eval *CmdBuildEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoBuild")
 
 	if !bang {
@@ -73,7 +73,7 @@ func (c *Commands) Build(bang bool, eval *CmdBuildEval) interface{} {
 }
 
 // compileCmd returns the *exec.Cmd corresponding to the compile tool.
-func (c *Commands) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
+func (c *Command) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 	bin, err := exec.LookPath(c.ctx.Build.Tool)
 	if err != nil {
 		return nil, errors.WithStack(err)

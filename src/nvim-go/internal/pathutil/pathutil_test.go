@@ -167,7 +167,7 @@ func TestShortFilePath(t *testing.T) {
 			name: "not shorten",
 			args: args{
 				p:   filepath.Join(testCwd, "nvim-go/internal/pathutil/pathutil_test.go"),
-				cwd: filepath.Join(testCwd, "nvim-go/commands"),
+				cwd: filepath.Join(testCwd, "nvim-go/command"),
 			},
 			want: filepath.Join(testCwd, "nvim-go/internal/pathutil/pathutil_test.go"),
 		},

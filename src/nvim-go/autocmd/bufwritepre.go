@@ -28,7 +28,7 @@ func (a *Autocmd) bufWritePre(eval *bufWritePreEval) {
 	// Iferr need execute before Fmt function because that function calls "noautocmd write"
 	// Also do not use goroutine.
 	if config.IferrAutosave {
-		err := a.cmds.Iferr(eval.File)
+		err := a.cmd.Iferr(eval.File)
 		if err != nil {
 			return
 		}
@@ -36,7 +36,7 @@ func (a *Autocmd) bufWritePre(eval *bufWritePreEval) {
 
 	if config.FmtAutosave {
 		go func() {
-			a.bufWritePreChan <- a.cmds.Fmt(dir)
+			a.bufWritePreChan <- a.cmd.Fmt(dir)
 		}()
 	}
 }

@@ -13,8 +13,8 @@ import (
 	"runtime"
 
 	"nvim-go/autocmd"
-	"nvim-go/commands"
-	"nvim-go/commands/delve"
+	"nvim-go/command"
+	"nvim-go/command/delve"
 	"nvim-go/ctx"
 
 	"github.com/google/gops/agent"
@@ -26,7 +26,7 @@ func main() {
 		log.SetFlags(log.Lshortfile)
 
 		ctxt := ctx.NewContext()
-		c := commands.Register(p, ctxt)
+		c := command.Register(p, ctxt)
 		delve.Register(p, ctxt)
 		autocmd.Register(p, ctxt, c)
 

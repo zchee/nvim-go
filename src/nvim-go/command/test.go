@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ import (
 // ----------------------------------------------------------------------------
 // GoTest
 
-func (c *Commands) cmdTest(args []string, dir string) {
+func (c *Command) cmdTest(args []string, dir string) {
 	go c.Test(args, dir)
 }
 
@@ -37,7 +37,7 @@ var testTerm *nvimutil.Terminal
 
 // Test run the package test command use compile tool that determined from
 // the directory structure.
-func (c *Commands) Test(args []string, dir string) error {
+func (c *Command) Test(args []string, dir string) error {
 	defer nvimutil.Profile(time.Now(), "GoTest")
 
 	cmd := []string{c.ctx.Build.Tool, "test", strings.Join(config.TestFlags, " ")}
@@ -104,12 +104,12 @@ type cmdTestSwitchEval struct {
 	Offset int
 }
 
-func (c *Commands) cmdSwitchTest(eval *cmdTestSwitchEval) {
+func (c *Command) cmdSwitchTest(eval *cmdTestSwitchEval) {
 	go c.SwitchTest(eval)
 }
 
 // SwitchTest switch to the corresponds current cursor (Test)function.
-func (c *Commands) SwitchTest(eval *cmdTestSwitchEval) error {
+func (c *Command) SwitchTest(eval *cmdTestSwitchEval) error {
 	defer nvimutil.Profile(time.Now(), "GoSwitchTest")
 
 	fname := eval.File

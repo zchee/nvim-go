@@ -6,7 +6,7 @@
 //
 //    http://golang.org/s/using-guru
 
-package commands
+package command
 
 import (
 	"bytes"
@@ -38,7 +38,7 @@ type funcGuruEval struct {
 	Offset   int
 }
 
-func (c *Commands) funcGuru(args []string, eval *funcGuruEval) {
+func (c *Command) funcGuru(args []string, eval *funcGuruEval) {
 	go func() {
 		err := c.Guru(args, eval)
 
@@ -52,7 +52,7 @@ func (c *Commands) funcGuru(args []string, eval *funcGuruEval) {
 }
 
 // Guru go source analysis and output result to the quickfix or locationlist.
-func (c *Commands) Guru(args []string, eval *funcGuruEval) interface{} {
+func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "Guru")
 
 	mode := args[0]

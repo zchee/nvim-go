@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"bytes"
@@ -30,7 +30,7 @@ type cmdCoverEval struct {
 	File string `msgpack:",array"`
 }
 
-func (c *Commands) cmdCover(eval *cmdCoverEval) {
+func (c *Command) cmdCover(eval *cmdCoverEval) {
 	go func() {
 		err := c.cover(eval)
 
@@ -46,7 +46,7 @@ func (c *Commands) cmdCover(eval *cmdCoverEval) {
 
 // cover run the go tool cover command and highlight current buffer based cover
 // profile result.
-func (c *Commands) cover(eval *cmdCoverEval) interface{} {
+func (c *Command) cover(eval *cmdCoverEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoCover")
 
 	coverFile, err := ioutil.TempFile(os.TempDir(), "nvim-go-cover")

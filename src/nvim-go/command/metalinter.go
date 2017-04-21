@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package commands
+package command
 
 import (
 	"encoding/json"
@@ -19,7 +19,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (c *Commands) cmdMetalinter(cwd string) {
+func (c *Command) cmdMetalinter(cwd string) {
 	go c.Metalinter(cwd)
 }
 
@@ -33,7 +33,7 @@ type metalinterResult struct {
 }
 
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
-func (c *Commands) Metalinter(cwd string) error {
+func (c *Command) Metalinter(cwd string) error {
 	defer nvimutil.Profile(time.Now(), "GoMetaLinter")
 
 	var loclist []*nvim.QuickfixError
