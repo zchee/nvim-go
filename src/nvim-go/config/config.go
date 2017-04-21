@@ -12,7 +12,6 @@ import "github.com/neovim/go-client/nvim"
 type Config struct {
 	Global Global
 
-	Analyze  analyze
 	Build    build
 	Cover    cover
 	Fmt      fmt
@@ -32,11 +31,6 @@ type Global struct {
 	ChannelID     int
 	ServerName    string `eval:"v:servername"`
 	ErrorListType string `eval:"g:go#global#errorlisttype"`
-}
-
-// analyze represents a GoAnalyze command config variable.
-type analyze struct {
-	FoldIcon string `eval:"g:go#analyze#foldicon"`
 }
 
 // build GoBuild command config variable.
@@ -127,9 +121,6 @@ var (
 	// ErrorListType type of error list window.
 	ErrorListType string
 
-	// AnalyzeFoldIcon define default astview tree fold icon.
-	AnalyzeFoldIcon string
-
 	// BuildAutosave call the GoBuild command automatically at during the BufWritePost.
 	BuildAutosave bool
 	// BuildForce builds the binary instead of fake(use ioutil.TempFiile) build.
@@ -219,9 +210,6 @@ func Get(v *nvim.Nvim, cfg *Config) {
 	ChannelID = cfg.Global.ChannelID
 	ServerName = cfg.Global.ServerName
 	ErrorListType = cfg.Global.ErrorListType
-
-	// Analyze
-	AnalyzeFoldIcon = cfg.Analyze.FoldIcon
 
 	// Build
 	BuildAutosave = itob(cfg.Build.Autosave)
