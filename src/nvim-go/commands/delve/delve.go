@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	"nvim-go/context"
+	"nvim-go/ctx"
 	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
@@ -32,7 +32,7 @@ const defaultAddr = "localhost:41222" // d:4 l:12 v:22
 type Delve struct {
 	Nvim *nvim.Nvim
 
-	ctx *context.Context
+	ctx *ctx.Context
 
 	server     *exec.Cmd
 	client     *delverpc2.RPCClient
@@ -64,7 +64,7 @@ type SignContext struct {
 }
 
 // NewDelve represents a delve client interface.
-func NewDelve(v *nvim.Nvim, ctx *context.Context) *Delve {
+func NewDelve(v *nvim.Nvim, ctx *ctx.Context) *Delve {
 	return &Delve{
 		Nvim: v,
 		ctx:  ctx,
@@ -456,7 +456,7 @@ func (d *Delve) stdin(v *nvim.Nvim) error {
 		args = cmd[1]
 	}
 
-	err = d.debugger.Call(cmd[0] + args, d.term)
+	err = d.debugger.Call(cmd[0]+args, d.term)
 	if err != nil {
 		return nvimutil.ErrorWrap(v, errors.WithStack(err))
 	}

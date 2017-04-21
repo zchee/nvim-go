@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"nvim-go/context"
+	"nvim-go/ctx"
 	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
@@ -20,7 +20,7 @@ var testLintDir = filepath.Join(testCwd, "../testdata", "go", "src", "lint")
 func TestCommands_Lint(t *testing.T) {
 	type fields struct {
 		Nvim *nvim.Nvim
-		ctx  *context.Context
+		ctx  *ctx.Context
 	}
 	type args struct {
 		args []string
@@ -69,8 +69,8 @@ func TestCommands_Lint(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.NewContext()
-			c := NewCommands(tt.fields.Nvim, ctx)
+			ctx := ctx.NewContext()
+			c := NewCommand(tt.fields.Nvim, ctx)
 			c.Nvim.SetCurrentDirectory(filepath.Dir(tt.args.file))
 
 			got, err := c.Lint(tt.args.args, tt.args.file)
@@ -89,7 +89,7 @@ func TestCommands_Lint(t *testing.T) {
 func TestCommands_cmdLintComplete(t *testing.T) {
 	type fields struct {
 		Nvim *nvim.Nvim
-		ctx  *context.Context
+		ctx  *ctx.Context
 	}
 	type args struct {
 		a   *nvim.CommandCompletionArgs
@@ -153,8 +153,8 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tt.fields.ctx = context.NewContext()
-			c := NewCommands(tt.fields.Nvim, tt.fields.ctx)
+			tt.fields.ctx = ctx.NewContext()
+			c := NewCommand(tt.fields.Nvim, tt.fields.ctx)
 
 			gotFilelist, err := c.cmdLintComplete(tt.args.a, tt.args.cwd)
 			if (err != nil) != tt.wantErr {

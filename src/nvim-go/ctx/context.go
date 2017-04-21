@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package context
+package ctx
 
 import (
 	"go/build"
@@ -15,16 +15,24 @@ import (
 	"github.com/neovim/go-client/nvim"
 )
 
-// Context represents a embeded context package and build context.
+// Context represents a current nvim instances context.
 type Context struct {
-	BufNr int
-	WinID int
-
-	m       sync.Mutex
-	prevDir string
+	// Errlist map the nvim quickfix errors.
 	Errlist map[string][]*nvim.QuickfixError
 
+	prevDir string // for cache
+	m       sync.Mutex
+
+	Buffer
 	Build
+}
+
+// Buffer represents a buffer context.
+type Buffer struct {
+	// BufNr number of current buffer.
+	BufNr int
+	// WinID id of current window.
+	WinID int
 }
 
 // Build represents a build tool information.
@@ -69,12 +77,14 @@ func buildContext(dir string, defaultContext build.Context) (string, string, bui
 func (ctx *Context) SetContext(dir string) {
 	if dir != "" && ctx.prevDir != dir {
 		ctx.m.Lock()
+		defer ctx.m.Unlock()
+
 		ctx.Build.Tool, ctx.Build.ProjectRoot, build.Default = buildContext(dir, build.Default)
 		if ctx.Build.Tool == "gb" {
 			build.Default.JoinPath = ctx.Build.GbJoinPath
 		}
 		ctx.prevDir = dir
-		ctx.m.Unlock()
+
 		os.Setenv("GOPATH", build.Default.GOPATH)
 	}
 }

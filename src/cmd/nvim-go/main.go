@@ -15,7 +15,7 @@ import (
 	"nvim-go/autocmd"
 	"nvim-go/commands"
 	"nvim-go/commands/delve"
-	"nvim-go/context"
+	"nvim-go/ctx"
 
 	"github.com/google/gops/agent"
 	"github.com/neovim/go-client/nvim/plugin"
@@ -25,7 +25,7 @@ func main() {
 	register := func(p *plugin.Plugin) error {
 		log.SetFlags(log.Lshortfile)
 
-		ctxt := context.NewContext()
+		ctxt := ctx.NewContext()
 		c := commands.Register(p, ctxt)
 		delve.Register(p, ctxt)
 		autocmd.Register(p, ctxt, c)

@@ -48,7 +48,7 @@ func TestIsGb(t *testing.T) {
 			name:  "gb (nvim-go root)",
 			tool:  "gb",
 			args:  args{dir: projectRoot}, // gb procject root directory
-			want:  projectRoot,            // nvim-go/src/nvim-go/context
+			want:  projectRoot,            // nvim-go/src/nvim-go/ctx
 			want1: true,
 		},
 		{

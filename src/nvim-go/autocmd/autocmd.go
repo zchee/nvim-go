@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"nvim-go/commands"
-	"nvim-go/context"
+	"nvim-go/ctx"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
@@ -17,7 +17,7 @@ import (
 // Autocmd represents a autocmd context.
 type Autocmd struct {
 	Nvim *nvim.Nvim
-	ctx  *context.Context
+	ctx  *ctx.Context
 	cmds *commands.Commands
 
 	bufWritePostChan chan error
@@ -29,7 +29,7 @@ type Autocmd struct {
 }
 
 // Register register autocmd to nvim.
-func Register(p *plugin.Plugin, ctx *context.Context, cmds *commands.Commands) {
+func Register(p *plugin.Plugin, ctx *ctx.Context, cmds *commands.Commands) {
 	autocmd := &Autocmd{
 		Nvim:             p.Nvim,
 		ctx:              ctx,

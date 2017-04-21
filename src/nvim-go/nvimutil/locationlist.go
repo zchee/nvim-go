@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"nvim-go/config"
-	"nvim-go/context"
+	"nvim-go/ctx"
 	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
@@ -203,7 +203,7 @@ func SplitPos(pos string, cwd string) (string, int, int) {
 var errRe = regexp.MustCompile(`(?m)^(?:#\s([[:graph:]]+))?(?:[\s\t]+)?([^\s:]+):(\d+)(?::(\d+))?(?::)?\s(.*)`)
 
 // ParseError parses a typical Go tools error messages.
-func ParseError(errs []byte, cwd string, buildContext *context.Build) ([]*nvim.QuickfixError, error) {
+func ParseError(errs []byte, cwd string, buildContext *ctx.Build) ([]*nvim.QuickfixError, error) {
 	var (
 		// packagePath for the save the error files parent directory.
 		// It will be re-assigned if "# " is in the error message.

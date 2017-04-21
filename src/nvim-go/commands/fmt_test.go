@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"nvim-go/config"
-	"nvim-go/context"
+	"nvim-go/ctx"
 	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
@@ -19,7 +19,7 @@ import (
 func TestCommands_Fmt(t *testing.T) {
 	type fields struct {
 		Nvim *nvim.Nvim
-		ctx  *context.Context
+		ctx  *ctx.Context
 	}
 	type args struct {
 		dir string
@@ -67,8 +67,8 @@ func TestCommands_Fmt(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := context.NewContext()
-			c := NewCommands(tt.fields.Nvim, ctx)
+			ctx := ctx.NewContext()
+			c := NewCommand(tt.fields.Nvim, ctx)
 
 			err := c.Fmt(tt.args.dir)
 			if errlist, ok := err.([]*nvim.QuickfixError); !ok {

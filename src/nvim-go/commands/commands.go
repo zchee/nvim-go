@@ -5,7 +5,7 @@
 package commands
 
 import (
-	"nvim-go/context"
+	"nvim-go/ctx"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
@@ -14,18 +14,18 @@ import (
 type Commands struct {
 	Nvim *nvim.Nvim
 
-	ctx *context.Context
+	ctx *ctx.Context
 }
 
-func NewCommands(v *nvim.Nvim, ctx *context.Context) *Commands {
+func NewCommand(v *nvim.Nvim, ctx *ctx.Context) *Commands {
 	return &Commands{
 		Nvim: v,
 		ctx:  ctx,
 	}
 }
 
-func Register(p *plugin.Plugin, ctx *context.Context) *Commands {
-	c := NewCommands(p.Nvim, ctx)
+func Register(p *plugin.Plugin, ctx *ctx.Context) *Commands {
+	c := NewCommand(p.Nvim, ctx)
 
 	// Register command and function
 	// CommandOptions order: Name, NArgs, Range, Count, Addr, Bang, Register, Eval, Bar, Complete

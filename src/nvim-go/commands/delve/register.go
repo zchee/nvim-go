@@ -5,12 +5,12 @@
 package delve
 
 import (
-	"nvim-go/context"
+	"nvim-go/ctx"
 
 	"github.com/neovim/go-client/nvim/plugin"
 )
 
-func Register(p *plugin.Plugin, ctx *context.Context) {
+func Register(p *plugin.Plugin, ctx *ctx.Context) {
 	d := NewDelve(p.Nvim, ctx)
 
 	// Debug compile and begin debugging program.
