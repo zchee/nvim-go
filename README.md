@@ -50,9 +50,9 @@ Acknowledgement
 ---------------
 
 - [fatih/vim-go](https://github.com/fatih/vim-go)
- - nvim-go is largely inspired by vim-go. Thanks [@fatih](https://github.com/fatih) and vim-go's [contributors](https://github.com/fatih/vim-go/graphs/contributors).
+  - nvim-go is largely inspired by vim-go. Thanks [@fatih](https://github.com/fatih) and vim-go's [contributors](https://github.com/fatih/vim-go/graphs/contributors).
 - [neovim/go-client](https://github.com/neovim/go-client)
- - Official Go client for Neovim remote plugin interface. written by [@garyburd](https://github.com/garyburd)
+  - Official Go client for Neovim remote plugin interface. written by [@garyburd](https://github.com/garyburd)
 - Authors of vendor packages.
 - The Go Authors.
 
