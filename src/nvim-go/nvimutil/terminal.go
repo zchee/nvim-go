@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"nvim-go/config"
-	"nvim-go/pathutil"
+	"nvim-go/internal/pathutil"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"

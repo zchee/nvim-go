@@ -16,7 +16,7 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/ctx"
-	"nvim-go/pathutil"
+	"nvim-go/internal/pathutil"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"

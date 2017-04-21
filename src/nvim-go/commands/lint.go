@@ -17,7 +17,7 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/pathutil"
+	"nvim-go/internal/pathutil"
 
 	"github.com/golang/lint"
 	"github.com/neovim/go-client/nvim"

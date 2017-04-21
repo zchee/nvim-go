@@ -160,7 +160,7 @@ locationlist.go:199: ParseError redeclared in this block
 		{
 			name: "gb (relative path)",
 			args: args{
-				errors: []byte(`# nvim-go/pathutil
+				errors: []byte(`# nvim-go/internal/pathutil
 package_test.go:36: undeclared name: FindAll`),
 				cwd: "/Users/zchee/go/src/github.com/zchee/nvim-go/src/nvim-go/commands",
 				buildContext: &ctx.Build{

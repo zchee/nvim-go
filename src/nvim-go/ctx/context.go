@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"nvim-go/pathutil"
+	"nvim-go/internal/pathutil"
 
 	"github.com/neovim/go-client/nvim"
 )

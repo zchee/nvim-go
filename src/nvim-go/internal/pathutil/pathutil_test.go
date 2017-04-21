@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"nvim-go/nvimutil"
-	"nvim-go/pathutil"
+	"nvim-go/internal/pathutil"
 
 	"github.com/neovim/go-client/nvim"
 )
@@ -52,7 +52,7 @@ func TestChdir(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			defer func() {
-				if testCwd != filepath.Join(projectRoot, "src/nvim-go/pathutil") || testCwd == tt.args.dir {
+				if testCwd != filepath.Join(projectRoot, "src/nvim-go/internal/pathutil") || testCwd == tt.args.dir {
 					t.Errorf("%q. Chdir(%v, %v) = %v, want %v", tt.name, tt.args.v, tt.args.dir, testCwd, tt.wantCwd)
 				}
 			}()
@@ -150,15 +150,15 @@ func TestShortFilePath(t *testing.T) {
 		{
 			name: "filename only",
 			args: args{
-				p:   filepath.Join(testCwd, "nvim-go/pathutil/pathutil_test.go"),
-				cwd: filepath.Join(testCwd, "nvim-go/pathutil"),
+				p:   filepath.Join(testCwd, "nvim-go/internal/pathutil/pathutil_test.go"),
+				cwd: filepath.Join(testCwd, "nvim-go/internal/pathutil"),
 			},
 			want: "./pathutil_test.go",
 		},
 		{
 			name: "with directory",
 			args: args{
-				p:   filepath.Join(testCwd, "nvim-go/pathutil/pathutil_test.go"),
+				p:   filepath.Join(testCwd, "nvim-go/internal/pathutil/pathutil_test.go"),
 				cwd: filepath.Join(testCwd, "nvim-go"),
 			},
 			want: "./pathutil/pathutil_test.go",
@@ -166,10 +166,10 @@ func TestShortFilePath(t *testing.T) {
 		{
 			name: "not shorten",
 			args: args{
-				p:   filepath.Join(testCwd, "nvim-go/pathutil/pathutil_test.go"),
+				p:   filepath.Join(testCwd, "nvim-go/internal/pathutil/pathutil_test.go"),
 				cwd: filepath.Join(testCwd, "nvim-go/commands"),
 			},
-			want: filepath.Join(testCwd, "nvim-go/pathutil/pathutil_test.go"),
+			want: filepath.Join(testCwd, "nvim-go/internal/pathutil/pathutil_test.go"),
 		},
 	}
 	for _, tt := range tests {
@@ -207,7 +207,7 @@ func TestRel(t *testing.T) {
 				f:   filepath.Join(testCwd, "pathutil_test.go"),
 				cwd: projectRoot,
 			},
-			want: "src/nvim-go/pathutil/pathutil_test.go",
+			want: "src/nvim-go/internal/pathutil/pathutil_test.go",
 		},
 		{
 			name: "Use different directory",

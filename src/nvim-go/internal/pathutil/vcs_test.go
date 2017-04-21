@@ -7,7 +7,7 @@ package pathutil_test
 import (
 	"testing"
 
-	"nvim-go/pathutil"
+	"nvim-go/internal/pathutil"
 )
 
 func TestFindVCSRoot(t *testing.T) {

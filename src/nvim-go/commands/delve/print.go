@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"log"
 	"nvim-go/nvimutil"
-	"nvim-go/pathutil"
+	"nvim-go/internal/pathutil"
 	"sort"
 
 	delveapi "github.com/derekparker/delve/service/api"

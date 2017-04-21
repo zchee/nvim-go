@@ -10,7 +10,7 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"nvim-go/pathutil"
+	"nvim-go/internal/pathutil"
 
 	"github.com/pkg/errors"
 )
