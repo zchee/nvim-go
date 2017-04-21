@@ -71,7 +71,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			}()
 
 			// Cleanup old results
-			a.ctx.Errlist["Lint"] = nil
+			delete(a.ctx.Errlist, "Lint")
 
 			errlist, err := a.cmds.Lint(nil, eval.File)
 			if err != nil {
@@ -93,7 +93,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			}()
 
 			// Cleanup old results
-			a.ctx.Errlist["Vet"] = nil
+			delete(a.ctx.Errlist, "Vet")
 
 			errlist, err := a.cmds.Vet(nil, &commands.CmdVetEval{
 				Cwd:  eval.Cwd,
