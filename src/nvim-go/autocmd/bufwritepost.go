@@ -23,9 +23,6 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) {
 }
 
 func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
 	dir := filepath.Dir(eval.File)
 
 	if config.FmtAutosave {
@@ -62,14 +59,17 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			a.ctx.Errlist["Build"] = e
 			return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
 		}
-		if len(a.ctx.Errlist) == 0 {
-			nvimutil.CloseLoclist(a.Nvim)
-		}
 	}
 
 	if config.GolintAutosave {
 		a.wg.Add(1)
+		a.mu.Lock()
 		go func() {
+			defer func() {
+				a.wg.Done()
+				a.mu.Unlock()
+			}()
+
 			// Cleanup old results
 			a.ctx.Errlist["Lint"] = nil
 
@@ -79,21 +79,19 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 				nvimutil.ErrorWrap(a.Nvim, err)
 				return
 			}
-			if errlist != nil {
-				a.ctx.Errlist["Lint"] = errlist
-				if len(a.ctx.Errlist) > 0 {
-					nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
-					return
-				}
-			}
-			if a.ctx.Errlist["Lint"] == nil {
-				nvimutil.ClearErrorlist(a.Nvim, true)
-			}
+			a.ctx.Errlist["Lint"] = errlist
 		}()
 	}
 
 	if config.GoVetAutosave {
+		a.wg.Add(1)
+		a.mu.Lock()
 		go func() {
+			defer func() {
+				a.wg.Done()
+				a.mu.Unlock()
+			}()
+
 			// Cleanup old results
 			a.ctx.Errlist["Vet"] = nil
 
@@ -106,16 +104,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 				nvimutil.ErrorWrap(a.Nvim, err)
 				return
 			}
-			if errlist != nil {
-				a.ctx.Errlist["Vet"] = errlist
-				if len(a.ctx.Errlist) > 0 {
-					nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
-					return
-				}
-			}
-			if a.ctx.Errlist["Vet"] == nil {
-				nvimutil.ClearErrorlist(a.Nvim, true)
-			}
+			a.ctx.Errlist["Vet"] = errlist
 		}()
 	}
 
@@ -136,5 +125,12 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 	}
 
 	a.wg.Wait()
+
+	if len(a.ctx.Errlist) > 0 {
+		return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
+	} else {
+		nvimutil.ClearErrorlist(a.Nvim, true)
+	}
+
 	return nil
 }
