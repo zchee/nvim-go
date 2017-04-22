@@ -29,7 +29,7 @@ src/nvim-go/testdata/gb/gsftp/bin/*
 pkg/*
 
 # workaround for github.com/pkg
-!src/nvim-go/commands/testdata/gb/gsftp/vendor/src/github.com/pkg/
+!src/nvim-go/command/testdata/gb/gsftp/vendor/src/github.com/pkg/
 
 # manifest write script
 plugin/manifest

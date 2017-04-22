@@ -17,7 +17,7 @@ func TestIsGb(t *testing.T) {
 	var (
 		cwd, _ = os.Getwd()
 		gopath = os.Getenv("GOPATH")
-		gbroot = filepath.Dir(filepath.Dir(filepath.Dir(cwd)))
+		gbroot = filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(cwd))))
 	)
 
 	type args struct {
@@ -75,28 +75,28 @@ func TestIsGb(t *testing.T) {
 		{
 			name:  "gb (nvim-go commands directory)",
 			tool:  "gb",
-			args:  args{dir: filepath.Join(projectRoot, "src", "nvim-go", "src", "nvim-go", "commands")},
+			args:  args{dir: filepath.Join(projectRoot, "src", "nvim-go", "src", "nvim-go", "command")},
 			want:  gbroot,
 			want1: true,
 		},
 		{
 			name:  "gb (nvim-go internal directory)",
 			tool:  "gb",
-			args:  args{dir: filepath.Join(gbroot, "src", "nvim-go", "src", "nvim-go", "internel", "guru")},
+			args:  args{dir: filepath.Join(gbroot, "src", "nvim-go", "src", "nvim-go", "internel", "guru")}, // internal directory
 			want:  gbroot,
 			want1: true,
 		},
 		{
 			name:  "wrong path",
 			tool:  "gb",
-			args:  args{dir: "a/b/c"}, // internal directory
+			args:  args{dir: "a/b/c"},
 			want:  "",
 			want1: false,
 		},
 		{
 			name:  "GOROOT",
 			tool:  "gb",
-			args:  args{dir: filepath.Join(build.Default.GOROOT, "src", "go")}, // internal directory
+			args:  args{dir: filepath.Join(build.Default.GOROOT, "src", "go")},
 			want:  "",
 			want1: false,
 		},
@@ -141,7 +141,7 @@ func TestFindGbProjectRoot(t *testing.T) {
 		},
 		{
 			name:    "nvim-go with /src/commands",
-			args:    args{path: filepath.Join(projectRoot, "src", "commands")},
+			args:    args{path: filepath.Join(projectRoot, "src", "command")},
 			want:    projectRoot,
 			wantErr: false,
 		},

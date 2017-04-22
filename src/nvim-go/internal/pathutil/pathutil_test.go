@@ -11,15 +11,15 @@ import (
 	"runtime"
 	"testing"
 
-	"nvim-go/nvimutil"
 	"nvim-go/internal/pathutil"
+	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
 )
 
 var (
 	testCwd, _     = os.Getwd()
-	projectRoot, _ = filepath.Abs(filepath.Join(testCwd, "../../../"))
+	projectRoot, _ = filepath.Abs(filepath.Join(testCwd, "../../../../"))
 	testdata       = filepath.Join(projectRoot, "src", "nvim-go", "testdata")
 	testGoPath     = filepath.Join(testdata, "go")
 	testGbPath     = filepath.Join(testdata, "gb")
@@ -161,7 +161,7 @@ func TestShortFilePath(t *testing.T) {
 				p:   filepath.Join(testCwd, "nvim-go/internal/pathutil/pathutil_test.go"),
 				cwd: filepath.Join(testCwd, "nvim-go"),
 			},
-			want: "./pathutil/pathutil_test.go",
+			want: "./internal/pathutil/pathutil_test.go",
 		},
 		{
 			name: "not shorten",

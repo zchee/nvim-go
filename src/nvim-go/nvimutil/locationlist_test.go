@@ -162,7 +162,7 @@ locationlist.go:199: ParseError redeclared in this block
 			args: args{
 				errors: []byte(`# nvim-go/internal/pathutil
 package_test.go:36: undeclared name: FindAll`),
-				cwd: "/Users/zchee/go/src/github.com/zchee/nvim-go/src/nvim-go/commands",
+				cwd: "/Users/zchee/go/src/github.com/zchee/nvim-go/src/nvim-go/command",
 				buildContext: &ctx.Build{
 					Tool:        "gb",
 					ProjectRoot: "/Users/zchee/go/src/github.com/zchee/nvim-go",
@@ -170,7 +170,7 @@ package_test.go:36: undeclared name: FindAll`),
 			},
 			want: []*nvim.QuickfixError{
 				&nvim.QuickfixError{
-					FileName: "../pathutil/package_test.go",
+					FileName: "../internal/pathutil/package_test.go",
 					LNum:     36,
 					Col:      0,
 					Text:     "undeclared name: FindAll",

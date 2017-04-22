@@ -117,7 +117,7 @@ vendor-guru:  ## Update the internal guru package
 	sed -i "s|package guru_test|// +build ignore\n\n\0|" ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru_test.go
 	${VENDOR_CMD} delete golang.org/x/tools/cmd/guru
 	${VENDOR_CMD} update golang.org/x/tools/cmd/guru/serial
-	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru_test.go ${PACKAGE_DIR}/src/nvim-go/internal/guru/unit_test.go ${PACKAGE_DIR}/src/nvim-go/commands/testdata
+	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru_test.go ${PACKAGE_DIR}/src/nvim-go/internal/guru/unit_test.go ${PACKAGE_DIR}/src/nvim-go/command/testdata
 
 
 docker: docker-run  ## Run the docker container test on Linux
