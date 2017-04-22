@@ -10,6 +10,7 @@ import (
 	"github.com/neovim/go-client/nvim/plugin"
 )
 
+// Register register nvim-go's delve command or function to Neovim over the msgpack-rpc plugin interface.
 func Register(p *plugin.Plugin, ctx *ctx.Context) {
 	d := NewDelve(p.Nvim, ctx)
 

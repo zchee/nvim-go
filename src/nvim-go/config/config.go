@@ -114,9 +114,9 @@ type debug struct {
 }
 
 var (
-	// ClientChannelID remote plugins channel id.
+	// ChannelID remote plugins channel id.
 	ChannelID int
-	// ClientServerName Neovim socket listen location.
+	// ServerName Neovim socket listen location.
 	ServerName string
 	// ErrorListType type of error list window.
 	ErrorListType string
@@ -125,7 +125,7 @@ var (
 	BuildAutosave bool
 	// BuildForce builds the binary instead of fake(use ioutil.TempFiile) build.
 	BuildForce bool
-	// BuildArgs force build args.
+	// BuildFlags flag of compile tools build command.
 	BuildFlags []string
 
 	// CoverFlags flags for cover command.
@@ -138,11 +138,14 @@ var (
 	// FmtMode formatting mode of Fmt command.
 	FmtMode string
 
-	// GenerateExclFuncs exclude function of generate test.
-	GenerateTestAllFuncs      bool
-	GenerateTestExclFuncs     string
+	// GenerateTestAllFuncs accept all functions to the GenerateTest.
+	GenerateTestAllFuncs bool
+	// GenerateTestExclFuncs exclude function of GenerateTest.
+	GenerateTestExclFuncs string
+	// GenerateTestExportedFuncs accept exported functions to the GenerateTest.
 	GenerateTestExportedFuncs bool
-	GenerateTestSubTest       bool
+	// GenerateTestSubTest whether the use Go subtest idiom or not.
+	GenerateTestSubTest bool
 
 	// GuruReflection use the type reflection on GoGuru commmands.
 	GuruReflection bool
@@ -195,7 +198,7 @@ var (
 	TestAutosave bool
 	// TestAll enable all package test on GoTest. similar "go test ./...", but ignored vendor and testdata.
 	TestAll bool
-	// TestArgs test command default args.
+	// TestFlags test command default flags.
 	TestFlags []string
 
 	// DebugEnable Enable debugging.
@@ -204,7 +207,7 @@ var (
 	DebugPprof bool
 )
 
-// GetConfig gets the user config variables and convert to global varialble.
+// Get gets the user config variables and convert to global varialble.
 func Get(v *nvim.Nvim, cfg *Config) {
 	// Client
 	ChannelID = cfg.Global.ChannelID

@@ -43,11 +43,14 @@ var (
 	setlistCmd   func(errlist []*nvim.QuickfixError) error
 )
 
+// ErrorListType represents a neovim error list type.
 type ErrorListType string
 
 const (
-	Quickfix     ErrorListType = "quickfix"
-	LocationList               = "locationlist"
+	// Quickfix quickfix error list type.
+	Quickfix ErrorListType = "quickfix"
+	// LocationList locationlist error list type.
+	LocationList = "locationlist"
 )
 
 func getListCmd(v *nvim.Nvim) {
@@ -164,6 +167,7 @@ func CloseQuickfix(v *nvim.Nvim) error {
 	return v.Command("cclose")
 }
 
+// GotoPos change current buffer from the pos position with 'zz' normal behavior.
 func GotoPos(v *nvim.Nvim, w nvim.Window, pos token.Position, cwd string) error {
 	fname, line, col := SplitPos(pos.String(), cwd)
 

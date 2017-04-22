@@ -16,6 +16,7 @@ import (
 
 const pkgBuffer = "nvim.buffer"
 
+// BufferName represents a buffer name.
 type BufferName string
 
 // Buffer represents a Neovim buffer.
@@ -44,6 +45,7 @@ func NewBuffer(v *nvim.Nvim) *Buffer {
 	}
 }
 
+// Buffer return the current nvim.Buffer.
 func (b *Buffer) Buffer() nvim.Buffer {
 	return b.buffer
 }
@@ -107,6 +109,7 @@ func (b *Buffer) Create(name, filetype, mode string, option map[NvimOption]map[s
 	return b.b.Execute()
 }
 
+// GetBufferContext gets the current buffers context.
 func (b *Buffer) GetBufferContext() error {
 	b.b.CurrentBuffer(&b.buffer)
 	b.b.CurrentWindow(&b.Window)
@@ -115,6 +118,7 @@ func (b *Buffer) GetBufferContext() error {
 	return b.b.Execute()
 }
 
+// BufferLines gets the current buffer lines.
 func (b *Buffer) BufferLines(start, end int, strict bool) {
 	if b.buffer == 0 {
 		b.GetBufferContext()
@@ -127,6 +131,7 @@ func (b *Buffer) BufferLines(start, end int, strict bool) {
 	b.Data = ToByteSlice(buf)
 }
 
+// SetBufferLines sets the replacement to current buffer.
 func (b *Buffer) SetBufferLines(start, end int, strict bool, replacement []byte) error {
 	if b.buffer == 0 {
 		err := errors.New("Does not exist of target buffer")
@@ -138,6 +143,7 @@ func (b *Buffer) SetBufferLines(start, end int, strict bool, replacement []byte)
 	return b.v.SetBufferLines(b.buffer, start, end, strict, ToBufferLines(replacement))
 }
 
+// SetBufferLinesAll wrapper of SetBufferLines with all lines.
 func (b *Buffer) SetBufferLinesAll(replacement []byte) error {
 	if b.buffer == 0 {
 		err := errors.New("Does not exist of target buffer")
@@ -255,7 +261,7 @@ func IsBufferValid(v *nvim.Nvim, b nvim.Buffer) bool {
 	return res
 }
 
-// BufContains reports whether buffer list is within b.
+// IsBufferContains reports whether buffer list is within b.
 func IsBufferContains(v *nvim.Nvim, b nvim.Buffer) bool {
 	bufs, _ := v.Buffers()
 	for _, buf := range bufs {
@@ -266,7 +272,7 @@ func IsBufferContains(v *nvim.Nvim, b nvim.Buffer) bool {
 	return false
 }
 
-// BufExists reports whether buffer list is within bufnr use vim bufexists function.
+// IsBufExists reports whether buffer list is within bufnr use vim bufexists function.
 func IsBufExists(v *nvim.Nvim, bufnr int) bool {
 	var res interface{}
 	v.Call("bufexists", &res, bufnr)

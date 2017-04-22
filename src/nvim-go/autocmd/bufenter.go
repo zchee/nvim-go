@@ -4,12 +4,14 @@
 
 package autocmd
 
+// BufEnterEval represents the current buffer number, windows ID and buffer files directory.
 type BufEnterEval struct {
 	BufNr int    `eval:"bufnr('%')"`
 	WinID int    `eval:"win_getid()"`
 	Dir   string `eval:"expand('%:p:h')"`
 }
 
+// BufEnter gets the current buffer number, windows ID and set context from the directory structure on BufEnter autocmd.
 func (a *Autocmd) BufEnter(eval *BufEnterEval) {
 	a.mu.Lock()
 	a.ctx.BufNr = eval.BufNr

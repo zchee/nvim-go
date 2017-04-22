@@ -25,6 +25,7 @@ import (
 	"golang.org/x/tools/go/loader"
 )
 
+// Definition parse definition from the current cursor.
 func Definition(q *guru.Query) (*serial.Definition, error) {
 	// First try the simple resolution done by parser.
 	// It only works for intra-file references but it is very fast.

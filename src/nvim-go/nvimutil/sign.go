@@ -13,15 +13,38 @@ import (
 
 const pkgNvimSign = "nvim.sign"
 
-var (
-	BreakpointSymbol         = "\u25cf" // ●  BLACK CIRCLE                         (U+25CF)
-	BreakpointSymbolLarge    = "\u2b24" // ⬤  BLACK LARGE CIRCLE                   (U+2B24)
-	TracepointSymbol         = "\u25c6" // ◆  BLACK DIAMOND                        (U+25C6)
-	TracepointSymbolMidium   = "\u2b25" // ⬥  BLACK DIAMOND SUIT                   (U+2B25)
-	ProgramCounterSymbol     = "\u25ce" // ◎  BULLSEYE                             (U+25CE)
-	ProgramCounterSymbolRing = "\u23e3" // ⏣  BENZENE RING WITH CIRCLE             (U+23e3)
-	ErrorSymbol              = "\u20e0" //  ⃠  COMBINING ENCLOSING CIRCLE BACKSLASH (U+20E0)
-	RestartSymbol            = "\u27f2" // ⟲  ANTICLOCKWISE GAPPED CIRCLE ARROW    (U+27F2)
+const (
+	// BreakpointSymbol symbol of breakpoint.
+	//
+	// ●  BLACK CIRCLE                         (U+25CF)
+	BreakpointSymbol = "\u25cf"
+	// BreakpointSymbolLarge symbol of breakpoint with large.
+	//
+	// ⬤  BLACK LARGE CIRCLE                   (U+2B24)
+	BreakpointSymbolLarge = "\u2b24"
+	// TracepointSymbol symbol of tracepoint.
+	//
+	// ◆  BLACK DIAMOND                        (U+25C6)
+	TracepointSymbol = "\u25c6"
+	// TracepointSymbolMidium symbol of tracepoint with midium.
+	//
+	// ⬥  BLACK DIAMOND SUIT                   (U+2B25)
+	TracepointSymbolMidium = "\u2b25"
+	// ProgramCounterSymbol symbol of program counter.
+	//
+	// ◎  BULLSEYE                             (U+25CE)
+	ProgramCounterSymbol = "\u25ce"
+	// ProgramCounterSymbolRing symbol of program counter with ring.
+	//
+	// ⏣  BENZENE RING WITH CIRCLE             (U+23e3)
+	ProgramCounterSymbolRing = "\u23e3"
+	// ErrorSymbol symbol of error.
+	//
+	//  ⃠  COMBINING ENCLOSING CIRCLE BACKSLASH (U+20E0)
+	ErrorSymbol = "\u20e0"
+	// RestartSymbol symbol of restart.
+	// ⟲  ANTICLOCKWISE GAPPED CIRCLE ARROW    (U+27F2)
+	RestartSymbol = "\u27f2"
 )
 
 // Sign represents a Neovim sign.

@@ -4,7 +4,7 @@
 
 package nvimutil
 
-// VimOption represents a Neovim buffer, window and tabpage options.
+// NvimOption represents a Neovim buffer, window and tabpage options.
 type NvimOption int
 
 const (
@@ -21,43 +21,74 @@ const (
 )
 
 const (
-	// Buffer options
-	BufOptionBufhidden  = "bufhidden"  // string
-	BufOptionBuflisted  = "buflisted"  // bool
-	BufOptionBuftype    = "buftype"    // string
-	BufOptionFiletype   = "filetype"   // string
+	// BufOptionBufhidden represents a bufhidden.
+	BufOptionBufhidden = "bufhidden" // string
+	// BufOptionBuflisted represents a buflisted.
+	BufOptionBuflisted = "buflisted" // bool
+	// BufOptionBuftype represents a buftype.
+	BufOptionBuftype = "buftype" // string
+	// BufOptionFiletype represents a filetype.
+	BufOptionFiletype = "filetype" // string
+	// BufOptionModifiable represents a modifiable.
 	BufOptionModifiable = "modifiable" // bool
-	BufOptionModified   = "modified"   // bool
-	BufOptionSwapfile   = "swapfile"   // bool
+	// BufOptionModified represents a modified.
+	BufOptionModified = "modified" // bool
+	// BufOptionSwapfile represents a swapfile.
+	BufOptionSwapfile = "swapfile" // bool
 
-	// Buffer var
+	// BufVarColorcolumn represents a colorcolumn.
 	BufVarColorcolumn = "colorcolumn" // string
 
-	// Window options
-	WinOptionList           = "list"           // bool
-	WinOptionNumber         = "number"         // bool
+	// WinOptionList represents a list.
+	WinOptionList = "list" // bool
+	// WinOptionNumber represents a number.
+	WinOptionNumber = "number" // bool
+	// WinOptionRelativenumber represents a relativenumbers.
 	WinOptionRelativenumber = "relativenumber" // bool
-	WinOptionWinfixheight   = "winfixheight"   // bool
+	// WinOptionWinfixheight represents a winfixheight.
+	WinOptionWinfixheight = "winfixheight" // bool
 )
 
 const (
-	BufhiddenDelete    = "delete"   // delete the buffer from the buffer list, also when 'hidden' is set or using :hide, like using :bdelete.
-	BufhiddenHide      = "hide"     // hide the buffer (don't unload it), also when 'hidden' is not set.
-	BufhiddenUnload    = "unload"   // unload the buffer, also when 'hidden' is set or using :hide.
-	BufhiddenWipe      = "wipe"     // wipe out the buffer from the buffer list, also when 'hidden' is set or using :hide, like using :bwipeout.
-	BuftypeAcwrite     = "acwrite"  // buffer which will always be written with BufWriteCmd autocommands.
-	BuftypeHelp        = "help"     // help buffer (you are not supposed to set this manually)
-	BuftypeNofile      = "nofile"   // buffer which is not related to a file and will not be written.
-	BuftypeNowrite     = "nowrite"  // buffer which will not be written.
-	BuftypeQuickfix    = "quickfix" // quickfix buffer, contains list of errors :cwindow or list of locations :lwindow
-	BuftypeTerminal    = "terminal" // terminal buffer, this is set automatically when a terminal is created. See nvim-terminal-emulator for more information.
-	FiletypeAsm        = "asm"
-	FiletypeC          = "c"
-	FiletypeCpp        = "cpp"
-	FiletypeDelve      = "delve"
-	FiletypeGas        = "gas"
-	FiletypeGo         = "go"
-	FiletypeSh         = "sh"
-	FiletypeTerminal   = "terminal"
+	// BufhiddenDelete delete the buffer from the buffer list, also when 'hidden' is set or using :hide, like using :bdelete.
+	BufhiddenDelete = "delete"
+	// BufhiddenHide hide the buffer (don't unload it), also when 'hidden' is not set.
+	BufhiddenHide = "hide"
+	// BufhiddenUnload unload the buffer, also when 'hidden' is set or using :hide.
+	BufhiddenUnload = "unload"
+	// BufhiddenWipe wipe out the buffer from the buffer list, also when 'hidden' is set or using :hide, like using :bwipeout.
+	BufhiddenWipe = "wipe"
+	// BuftypeAcwrite buffer which will always be written with BufWriteCmd autocommands.
+	BuftypeAcwrite = "acwrite"
+	// BuftypeHelp help buffer (you are not supposed to set this manually).
+	BuftypeHelp = "help"
+	// BuftypeNofile buffer which is not related to a file and will not be written.
+	BuftypeNofile = "nofile"
+	// BuftypeNowrite buffer which will not be written.
+	BuftypeNowrite = "nowrite"
+	// BuftypeQuickfix quickfix buffer, contains list of errors :cwindow or list of locations :lwindow.
+	BuftypeQuickfix = "quickfix"
+	// BuftypeTerminal terminal buffer, this is set automatically when a terminal is created. See nvim-terminal-emulator for more information.
+	BuftypeTerminal = "terminal"
+)
+
+const (
+	// FiletypeAsm represents a asm filetype.
+	FiletypeAsm = "asm"
+	// FiletypeC represents a c filetype.
+	FiletypeC = "c"
+	// FiletypeCpp represents a cpp filetype.
+	FiletypeCpp = "cpp"
+	// FiletypeDelve represents a delve filetype.
+	FiletypeDelve = "delve"
+	// FiletypeGas represents a gas filetype.
+	FiletypeGas = "gas"
+	// FiletypeGo represents a go filetype.
+	FiletypeGo = "go"
+	// FiletypeSh represents a sh filetype.
+	FiletypeSh = "sh"
+	// FiletypeTerminal represents a terminal filetype.
+	FiletypeTerminal = "terminal"
+	// FiletypeGoTerminal represents a go-terminal filetype.
 	FiletypeGoTerminal = "go-terminal"
 )

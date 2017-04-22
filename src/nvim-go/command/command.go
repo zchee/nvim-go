@@ -11,12 +11,14 @@ import (
 	"github.com/neovim/go-client/nvim/plugin"
 )
 
+// Command represents a nvim-go plugins commands.
 type Command struct {
 	Nvim *nvim.Nvim
 
 	ctx *ctx.Context
 }
 
+// NewCommand return the new Command type with initialize some variables.
 func NewCommand(v *nvim.Nvim, ctx *ctx.Context) *Command {
 	return &Command{
 		Nvim: v,
@@ -24,6 +26,7 @@ func NewCommand(v *nvim.Nvim, ctx *ctx.Context) *Command {
 	}
 }
 
+// Register register nvim-go command or function to Neovim over the msgpack-rpc plugin interface.
 func Register(p *plugin.Plugin, ctx *ctx.Context) *Command {
 	c := NewCommand(p.Nvim, ctx)
 

@@ -15,6 +15,7 @@ type bufWritePreEval struct {
 	File string
 }
 
+// BufWritePre run the commands on BufWritePre autocmd.
 func (a *Autocmd) BufWritePre(eval *bufWritePreEval) {
 	go a.bufWritePre(eval)
 }

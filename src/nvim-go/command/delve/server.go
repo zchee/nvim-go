@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Config represents a delve headless servers config.
 type Config struct {
 	addr  string
 	flags []string

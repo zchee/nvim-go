@@ -18,6 +18,7 @@ type bufWritePostEval struct {
 	File string
 }
 
+// BufWritePost run the 'autosave' commands on BufWritePost autocmd.
 func (a *Autocmd) BufWritePost(eval *bufWritePostEval) {
 	go a.bufWritePost(eval)
 }

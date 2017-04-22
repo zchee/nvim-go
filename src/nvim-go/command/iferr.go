@@ -100,6 +100,7 @@ type errorAssign struct {
 	ident     *ast.Ident
 }
 
+// RewriteFile rewrites f with 'if err' Go idiom.
 func RewriteFile(fset *token.FileSet, f *ast.File, info types.Info) {
 	errAssigns := []errorAssign{}
 
