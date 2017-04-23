@@ -397,7 +397,7 @@ cmd/gaos/versions.go:14: initialization loop:
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ParseError(tt.args.errors, tt.args.cwd, tt.args.buildContext)
+			got, err := ParseError(tt.args.errors, tt.args.cwd, tt.args.buildContext, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%q.\nParseError(%v, %v, %v) error = %v, wantErr %v", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext, err, tt.wantErr)
 				return
