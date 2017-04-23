@@ -79,6 +79,7 @@ type lint struct {
 	GolintMode              string   `eval:"g:go#lint#golint#mode"`
 	GoVetAutosave           int64    `eval:"g:go#lint#govet#autosave"`
 	GoVetFlags              []string `eval:"g:go#lint#govet#flags"`
+	GoVetIgnore             []string `eval:"g:go#lint#govet#ignore"`
 	MetalinterAutosave      int64    `eval:"g:go#lint#metalinter#autosave"`
 	MetalinterAutosaveTools []string `eval:"g:go#lint#metalinter#autosave#tools"`
 	MetalinterTools         []string `eval:"g:go#lint#metalinter#tools"`
@@ -169,6 +170,8 @@ var (
 	GoVetAutosave bool
 	// GoVetFlags default flags for GoVet commands
 	GoVetFlags []string
+	// GoVetIgnore ignore directories for go vet command.
+	GoVetIgnore []string
 	// MetalinterAutosave call the GoMetaLinter command automatically at during the BufWritePre.
 	MetalinterAutosave bool
 	// MetalinterAutosaveTools lint tool list for MetalinterAutosave.
@@ -248,6 +251,7 @@ func Get(v *nvim.Nvim, cfg *Config) {
 	GolintMode = cfg.Lint.GolintMode
 	GoVetAutosave = itob(cfg.Lint.GoVetAutosave)
 	GoVetFlags = cfg.Lint.GoVetFlags
+	GoVetIgnore = cfg.Lint.GoVetIgnore
 	MetalinterAutosave = itob(cfg.Lint.MetalinterAutosave)
 	MetalinterAutosaveTools = cfg.Lint.MetalinterAutosaveTools
 	MetalinterTools = cfg.Lint.MetalinterTools

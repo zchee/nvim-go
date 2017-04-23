@@ -90,7 +90,7 @@ func (c *Command) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, e
 
 	vetErr := vetCmd.Run()
 	if vetErr != nil {
-		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctx.Build)
+		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctx.Build, config.GoVetIgnore)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}

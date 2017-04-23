@@ -65,7 +65,7 @@ func (c *Command) cover(eval *cmdCoverEval) interface{} {
 	cmd.Stdout = &stdout
 
 	if coverErr := cmd.Run(); coverErr != nil && coverErr.(*exec.ExitError) != nil {
-		errlist, err := nvimutil.ParseError(stdout.Bytes(), filepath.Dir(eval.File), &c.ctx.Build)
+		errlist, err := nvimutil.ParseError(stdout.Bytes(), filepath.Dir(eval.File), &c.ctx.Build, nil)
 		if err != nil {
 			return errors.WithStack(err)
 		}
