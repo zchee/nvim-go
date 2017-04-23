@@ -9,7 +9,7 @@ function! s:neosnippet() abort
     return
   endif
 
-  let neosnippet_dir = globpath(&rtp, 'gosnippets/neosnippet')
+  let neosnippet_dir = globpath(&rtp, 'snippets/neosnippet')
   if !exists('g:neosnippet#snippets_directory')
     let g:neosnippet#snippets_directory = neosnippet_dir
     return
@@ -31,10 +31,10 @@ function! s:ultisnips() abort
   endif
 
   if exists("g:UltiSnipsSnippetDirectories")
-    let g:UltiSnipsSnippetDirectories += ["gosnippets/UltiSnips"]
+    let g:UltiSnipsSnippetDirectories += ["snippets/UltiSnips"]
     return
   endif
-  let g:UltiSnipsSnippetDirectories = ["gosnippets/UltiSnips"]
+  let g:UltiSnipsSnippetDirectories = ["snippets/UltiSnips"]
 endfunction
 
 let s:engine = get(g:, 'go#snippets#engine', 'neosnippet')
