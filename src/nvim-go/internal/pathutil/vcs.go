@@ -9,14 +9,27 @@ import (
 	"path/filepath"
 )
 
-var (
-	vcsDirs     = []string{".git", ".svn", ".hg"}
-	foundVCSDir bool
-)
+var vcsDirs = []string{".git", ".svn", ".hg"}
 
 // FindVCSRoot find package root path from arg path
 func FindVCSRoot(basedir string) string {
-	foundVCSDir = false
+	var foundVCSDir bool
+
+	findvcsDirWalkFunc := func(path string, info os.FileInfo, err error) error {
+		if err != nil || info == nil || info.IsDir() == false {
+			return nil
+		}
+
+		for _, d := range vcsDirs {
+			_, err := os.Stat(filepath.Join(path, d))
+			if err == nil {
+				foundVCSDir = true
+				break
+			}
+		}
+
+		return nil
+	}
 
 	for {
 		filepath.Walk(basedir, findvcsDirWalkFunc)
@@ -28,20 +41,4 @@ func FindVCSRoot(basedir string) string {
 	}
 
 	return filepath.Clean(basedir)
-}
-
-func findvcsDirWalkFunc(path string, fileInfo os.FileInfo, err error) error {
-	if err != nil || fileInfo == nil || fileInfo.IsDir() == false {
-		return nil
-	}
-
-	for _, d := range vcsDirs {
-		_, err := os.Stat(filepath.Join(path, d))
-		if err == nil {
-			foundVCSDir = true
-			break
-		}
-	}
-
-	return nil
 }
