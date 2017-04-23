@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 
 	"nvim-go/config"
+
+	"github.com/neovim/go-client/nvim"
 )
 
 type bufWritePreEval struct {
@@ -37,6 +39,7 @@ func (a *Autocmd) bufWritePre(eval *bufWritePreEval) {
 
 	if config.FmtAutosave {
 		go func() {
+			a.ctx.Errlist = make(map[string][]*nvim.QuickfixError)
 			a.bufWritePreChan <- a.cmd.Fmt(dir)
 		}()
 	}

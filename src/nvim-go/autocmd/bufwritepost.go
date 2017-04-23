@@ -35,8 +35,6 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 				return nvimutil.ErrorWrap(a.Nvim, e)
 			}
 		case []*nvim.QuickfixError:
-			// Cleanup Errlist
-			a.ctx.Errlist = make(map[string][]*nvim.QuickfixError)
 			a.ctx.Errlist["Fmt"] = e
 			return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
 		}
@@ -56,8 +54,6 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 				return nvimutil.ErrorWrap(a.Nvim, e)
 			}
 		case []*nvim.QuickfixError:
-			// Cleanup Errlist
-			a.ctx.Errlist = make(map[string][]*nvim.QuickfixError)
 			a.ctx.Errlist["Build"] = e
 			return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
 		}

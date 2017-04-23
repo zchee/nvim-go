@@ -26,6 +26,7 @@ var importsOptions = imports.Options{
 
 func (c *Command) cmdFmt(dir string) {
 	go func() {
+		delete(c.ctx.Errlist, "Fmt")
 		err := c.Fmt(dir)
 
 		switch e := err.(type) {
@@ -85,7 +86,6 @@ func (c *Command) Fmt(dir string) interface{} {
 
 		return errlist
 	}
-	delete(c.ctx.Errlist, "Fmt")
 
 	out := nvimutil.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
 	minUpdate(c.Nvim, b, in, out)
