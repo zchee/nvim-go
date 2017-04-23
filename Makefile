@@ -3,9 +3,8 @@ GITHUB_USER := zchee
 PACKAGE_NAME := nvim-go
 PACKAGE_DIR := $(shell pwd)
 PACKAGES = $(shell GOPATH="$$PWD:$$PWD/vendor" go list $(PACKAGE_NAME)/... | grep -v -e internal)
-BINARY_NAME := bin/nvim
 
-CC := clang
+CC := clang  # need compile cgo(on delve)
 CXX := clang++
 GOPATH ?= $(shell go env GOPATH)
 GOROOT ?= $(shell go env GOROOT)
@@ -36,10 +35,10 @@ GO_LDFLAGS += -ldflags "-w -s"
 endif
 
 ifneq ($(NVIM_GO_RACE),)
+GO_BUILD += -race
 build: std-build-race
 build: clean/binary
 rebuild: std-build-race
-GO_BUILD += -race
 manifest: PACKAGE_NAME=nvim-go-race
 endif
 
@@ -75,10 +74,10 @@ lint:
 	GOPATH="$$PWD:$$PWD/vendor" golint $(PACKAGES)
 
 lint/all:
-	GOPATH="$$PWD:$$PWD/vendor" golint $(PACKAGES)
-	GOPATH="$$PWD:$$PWD/vendor" unparam $(PACKAGES)
-	GOPATH="$$PWD:$$PWD/vendor" interfacer $(PACKAGES)
-	GOPATH="$$PWD:$$PWD/vendor" errcheck $(PACKAGES)
+	@GOPATH="$$PWD:$$PWD/vendor" golint $(PACKAGES)
+	@GOPATH="$$PWD:$$PWD/vendor" unparam $(PACKAGES)
+	@GOPATH="$$PWD:$$PWD/vendor" interfacer $(PACKAGES)
+	@GOPATH="$$PWD:$$PWD/vendor" errcheck $(PACKAGES)
 
 vet:
 	GOPATH="$$PWD:$$PWD/vendor" go vet $(PACKAGES)
