@@ -96,16 +96,22 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			// Cleanup old results
 			delete(a.ctx.Errlist, "Vet")
 
-			errlist, err := a.cmd.Vet(nil, &command.CmdVetEval{
+			err := a.cmd.Vet(nil, &command.CmdVetEval{
 				Cwd:  eval.Cwd,
 				File: eval.File,
 			})
-			if err != nil {
+			switch e := err.(type) {
+			case error:
 				// normal errros
-				nvimutil.ErrorWrap(a.Nvim, err)
-				return
+				if e != nil {
+					nvimutil.ErrorWrap(a.Nvim, e)
+				}
+			case []*nvim.QuickfixError:
+				// Cleanup Errlist
+				a.ctx.Errlist = make(map[string][]*nvim.QuickfixError)
+				a.ctx.Errlist["Vet"] = e
+				nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
 			}
-			a.ctx.Errlist["Vet"] = errlist
 		}()
 	}
 

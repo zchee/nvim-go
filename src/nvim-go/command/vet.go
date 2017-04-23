@@ -26,30 +26,23 @@ type CmdVetEval struct {
 }
 
 func (c *Command) cmdVet(args []string, eval *CmdVetEval) {
+	errch := make(chan interface{}, 1)
 	go func() {
-		// Cleanup old results
-		c.ctx.Errlist["Vet"] = nil
-
-		errlist, err := c.Vet(args, eval)
-		if err != nil {
-			nvimutil.ErrorWrap(c.Nvim, err)
-			return
-		}
-		if errlist != nil {
-			c.ctx.Errlist["Vet"] = errlist
-			if len(c.ctx.Errlist) > 0 {
-				nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
-				return
-			}
-		}
-		if c.ctx.Errlist["Vet"] == nil {
-			nvimutil.ClearErrorlist(c.Nvim, true)
-		}
+		delete(c.ctx.Errlist, "Vet") // cleanup
+		errch <- c.Vet(args, eval)
 	}()
+
+	switch err := <-errch; e := err.(type) {
+	case error:
+		nvimutil.ErrorWrap(c.Nvim, e)
+	case []*nvim.QuickfixError:
+		c.ctx.Errlist["Vet"] = e
+		nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
+	}
 }
 
 // Vet is a simple checker for static errors in Go source code use go tool vet command.
-func (c *Command) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, error) {
+func (c *Command) Vet(args []string, eval *CmdVetEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoVet")
 
 	vetCmd := exec.Command("go", "tool", "vet")
@@ -72,7 +65,7 @@ func (c *Command) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, e
 				vetCmd.Args = append(vetCmd.Args, path)
 			default:
 				err := errors.New("Invalid directory path")
-				return nil, errors.WithStack(err)
+				return errors.WithStack(err)
 			}
 		} else {
 			vetCmd.Args = append(vetCmd.Args, args...)
@@ -92,12 +85,12 @@ func (c *Command) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, e
 	if vetErr != nil {
 		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.ctx.Build, config.GoVetIgnore)
 		if err != nil {
-			return nil, errors.WithStack(err)
+			return errors.WithStack(err)
 		}
-		return errlist, nil
+		return errlist
 	}
 
-	return nil, nil
+	return nil
 }
 
 func (c *Command) cmdVetComplete(v *nvim.Nvim, a *nvim.CommandCompletionArgs, dir string) ([]string, error) {
