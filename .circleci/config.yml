@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: golang:1.8  # Use latest stable version
+      - image: golang:1.8.1  # Use latest stable version
 
     working_directory: '/go/src/github.com/zchee/nvim-go'
 
@@ -23,8 +23,6 @@ jobs:
             go get -u github.com/constabulary/gb/...
 
       - run:
-          environment:
-            COVERAGE_SERVICE: 'codecov'
           command: |
             ./scripts/coverage.sh
 
