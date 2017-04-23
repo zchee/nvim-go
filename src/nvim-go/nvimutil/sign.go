@@ -11,8 +11,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const pkgNvimSign = "nvim.sign"
-
 const (
 	// BreakpointSymbol symbol of breakpoint.
 	//
@@ -98,7 +96,7 @@ func (s *Sign) Place(v *nvim.Nvim, id, line int, file string, clearLastSign bool
 	}
 	place := fmt.Sprintf("sign place %d name=%s line=%d file=%s", id, s.Name, line, file)
 	if err := v.Command(place); err != nil {
-		return errors.Wrap(err, pkgNvimSign)
+		return errors.WithStack(err)
 	}
 	s.LastID = id
 	s.LastFile = file
@@ -110,7 +108,7 @@ func (s *Sign) Place(v *nvim.Nvim, id, line int, file string, clearLastSign bool
 func (s *Sign) Unplace(v *nvim.Nvim, id int, file string) error {
 	place := fmt.Sprintf("sign unplace %d file=%s", id, file)
 	if err := v.Command(place); err != nil {
-		return errors.Wrap(err, pkgNvimSign)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -120,7 +118,7 @@ func (s *Sign) Unplace(v *nvim.Nvim, id int, file string) error {
 func (s *Sign) UnplaceAll(v *nvim.Nvim, file string) error {
 	place := fmt.Sprintf("sign unplace * file=%s", file)
 	if err := v.Command(place); err != nil {
-		return errors.Wrap(err, pkgNvimSign)
+		return errors.WithStack(err)
 	}
 
 	return nil

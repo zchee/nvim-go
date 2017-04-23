@@ -14,14 +14,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-const pkgBuffer = "nvim.buffer"
-
 // BufferName represents a buffer name.
 type BufferName string
 
 // Buffer represents a Neovim buffer.
 type Buffer struct {
-	v *nvim.Nvim
+	n *nvim.Nvim
 	b *nvim.Batch
 
 	buffer   nvim.Buffer
@@ -38,10 +36,10 @@ type Buffer struct {
 }
 
 // NewBuffer return the new Buf instance with goroutine pipeline.
-func NewBuffer(v *nvim.Nvim) *Buffer {
+func NewBuffer(n *nvim.Nvim) *Buffer {
 	return &Buffer{
-		v: v,
-		b: v.NewBatch(),
+		n: n,
+		b: n.NewBatch(),
 	}
 }
 
@@ -56,13 +54,13 @@ func (b *Buffer) Create(name, filetype, mode string, option map[NvimOption]map[s
 	b.Filetype = filetype
 	b.Mode = mode
 
-	err := b.v.Command(fmt.Sprintf("silent %s %s", b.Mode, b.Name))
+	err := b.n.Command(fmt.Sprintf("silent %s %s", b.Mode, b.Name))
 	if err != nil {
-		return errors.Wrap(err, pkgBuffer)
+		return errors.WithStack(err)
 	}
 
 	if err := b.GetBufferContext(); err != nil {
-		return errors.Wrap(err, pkgBuffer)
+		return errors.WithStack(err)
 	}
 
 	if b.Height != 0 {
@@ -124,7 +122,7 @@ func (b *Buffer) BufferLines(start, end int, strict bool) {
 		b.GetBufferContext()
 	}
 
-	buf, err := b.v.BufferLines(b.buffer, start, end, strict)
+	buf, err := b.n.BufferLines(b.buffer, start, end, strict)
 	if err != nil {
 		return
 	}
@@ -134,20 +132,18 @@ func (b *Buffer) BufferLines(start, end int, strict bool) {
 // SetBufferLines sets the replacement to current buffer.
 func (b *Buffer) SetBufferLines(start, end int, strict bool, replacement []byte) error {
 	if b.buffer == 0 {
-		err := errors.New("Does not exist of target buffer")
-		return err
+		return errors.New("Does not exist of target buffer")
 	}
 
 	b.Data = replacement
 
-	return b.v.SetBufferLines(b.buffer, start, end, strict, ToBufferLines(replacement))
+	return b.n.SetBufferLines(b.buffer, start, end, strict, ToBufferLines(replacement))
 }
 
 // SetBufferLinesAll wrapper of SetBufferLines with all lines.
 func (b *Buffer) SetBufferLinesAll(replacement []byte) error {
 	if b.buffer == 0 {
-		err := errors.New("Does not exist of target buffer")
-		return err
+		return errors.New("Does not exist of target buffer")
 	}
 
 	b.Data = replacement
@@ -159,29 +155,29 @@ func (b *Buffer) SetBufferLinesAll(replacement []byte) error {
 // UpdateSyntax updates the syntax highlight of the buffer.
 func (b *Buffer) UpdateSyntax(syntax string) {
 	if b.Name != "" {
-		b.v.SetBufferName(b.buffer, b.Name)
+		b.n.SetBufferName(b.buffer, b.Name)
 	}
 
 	if syntax == "" {
 		var filetype interface{}
-		b.v.BufferOption(b.buffer, "filetype", &filetype)
+		b.n.BufferOption(b.buffer, "filetype", &filetype)
 		syntax = fmt.Sprintf("%s", filetype)
 	}
 
-	b.v.Command(fmt.Sprintf("runtime! syntax/%s.vim", syntax))
+	b.n.Command(fmt.Sprintf("runtime! syntax/%s.vim", syntax))
 }
 
 // SetLocalMapping sets buffer local mapping.
 // 'mapping' arg: [key]{destination}
 func (b *Buffer) SetLocalMapping(mode string, mapping map[string]string) error {
 	if mapping != nil {
-		cwin, err := b.v.CurrentWindow()
+		cwin, err := b.n.CurrentWindow()
 		if err != nil {
-			return errors.Wrap(err, "nvim/buffer.SetMapping")
+			return errors.WithStack(err)
 		}
 
 		b.b.SetCurrentWindow(b.Window)
-		defer b.v.SetCurrentWindow(cwin)
+		defer b.n.SetCurrentWindow(cwin)
 
 		for k, v := range mapping {
 			b.b.Command(fmt.Sprintf("silent %s <buffer><silent>%s %s", mode, k, v))
@@ -194,15 +190,15 @@ func (b *Buffer) SetLocalMapping(mode string, mapping map[string]string) error {
 // lineCount counts the Neovim buffer line count and check whether 1 count,
 // Because new(empty) buffer and one line buffer are both 1 count.
 func (b *Buffer) lineCount() (int, error) {
-	lineCount, err := b.v.BufferLineCount(b.buffer)
+	lineCount, err := b.n.BufferLineCount(b.buffer)
 	if err != nil {
-		return 0, errors.Wrap(err, pkgBuffer)
+		return 0, errors.WithStack(err)
 	}
 
 	if lineCount == 1 {
-		line, err := b.v.CurrentLine()
+		line, err := b.n.CurrentLine()
 		if err != nil {
-			return 0, errors.Wrap(err, pkgBuffer)
+			return 0, errors.WithStack(err)
 		}
 		// Set 0 to lineCount if buffer is empty
 		if len(line) == 0 {
@@ -217,11 +213,11 @@ func (b *Buffer) lineCount() (int, error) {
 func (b *Buffer) Write(p []byte) (int, error) {
 	lineCount, err := b.lineCount()
 	if err != nil {
-		return 0, errors.Wrap(err, pkgBuffer)
+		return 0, errors.WithStack(err)
 	}
 
 	buf := bytes.NewBuffer(p)
-	b.v.SetBufferLines(b.buffer, lineCount, -1, true, ToBufferLines(buf.Bytes()))
+	b.n.SetBufferLines(b.buffer, lineCount, -1, true, ToBufferLines(buf.Bytes()))
 
 	return len(p), nil
 }
@@ -230,18 +226,18 @@ func (b *Buffer) Write(p []byte) (int, error) {
 func (b *Buffer) WriteString(s string) error {
 	lineCount, err := b.lineCount()
 	if err != nil {
-		return errors.Wrap(err, pkgBuffer)
+		return errors.WithStack(err)
 	}
 
 	buf := bytes.NewBufferString(s)
 
-	return b.v.SetBufferLines(b.buffer, lineCount, -1, true, ToBufferLines(buf.Bytes()))
+	return b.n.SetBufferLines(b.buffer, lineCount, -1, true, ToBufferLines(buf.Bytes()))
 }
 
 // Truncate discards all but the first n unread bytes from the
 // Neovim buffer but continues to use the same allocated storage.
 func (b *Buffer) Truncate(n int) {
-	b.v.SetBufferLines(b.buffer, n, -1, true, [][]byte{})
+	b.n.SetBufferLines(b.buffer, n, -1, true, [][]byte{})
 }
 
 // Reset resets the Neovim buffer to be empty,
@@ -252,9 +248,9 @@ func (b *Buffer) Reset() { b.Truncate(0) }
 // ----------------------------------------------------------------------------
 // Utility
 
-// IsBufferValid wrapper of v.IsBufferValid function.
-func IsBufferValid(v *nvim.Nvim, b nvim.Buffer) bool {
-	res, err := v.IsBufferValid(b)
+// IsBufferValid wrapper of nvim.IsBufferValid function.
+func IsBufferValid(n *nvim.Nvim, b nvim.Buffer) bool {
+	res, err := n.IsBufferValid(b)
 	if err != nil {
 		return false
 	}
@@ -262,8 +258,8 @@ func IsBufferValid(v *nvim.Nvim, b nvim.Buffer) bool {
 }
 
 // IsBufferContains reports whether buffer list is within b.
-func IsBufferContains(v *nvim.Nvim, b nvim.Buffer) bool {
-	bufs, _ := v.Buffers()
+func IsBufferContains(n *nvim.Nvim, b nvim.Buffer) bool {
+	bufs, _ := n.Buffers()
 	for _, buf := range bufs {
 		if buf == b {
 			return true
@@ -273,23 +269,23 @@ func IsBufferContains(v *nvim.Nvim, b nvim.Buffer) bool {
 }
 
 // IsBufExists reports whether buffer list is within bufnr use vim bufexists function.
-func IsBufExists(v *nvim.Nvim, bufnr int) bool {
+func IsBufExists(n *nvim.Nvim, bufnr int) bool {
 	var res interface{}
-	v.Call("bufexists", &res, bufnr)
+	n.Call("bufexists", &res, bufnr)
 
 	return res.(int64) != 0
 }
 
 // IsVisible reports whether buffer list within buffer that &ft has filetype.
 // Useful for Check qf, preview or any specific buffer is whether the opened.
-func IsVisible(v *nvim.Nvim, filetype string) bool {
-	buffers, err := v.Buffers()
+func IsVisible(n *nvim.Nvim, filetype string) bool {
+	buffers, err := n.Buffers()
 	if err != nil {
 		return false
 	}
 	for _, b := range buffers {
 		var ft interface{}
-		err := v.BufferOption(b, "filetype", &ft)
+		err := n.BufferOption(b, "filetype", &ft)
 		if err != nil {
 			return false
 		}
@@ -300,13 +296,12 @@ func IsVisible(v *nvim.Nvim, filetype string) bool {
 	return false
 }
 
-// Modifiable sets modifiable to true,
-// The returned function restores modifiable to false.
-func Modifiable(v *nvim.Nvim, b nvim.Buffer) func() {
-	v.SetBufferOption(b, BufOptionModifiable, true)
+// Modifiable sets modifiable to true, The returned function restores modifiable to false.
+func Modifiable(n *nvim.Nvim, b nvim.Buffer) func() {
+	n.SetBufferOption(b, BufOptionModifiable, true)
 
 	return func() {
-		v.SetBufferOption(b, BufOptionModifiable, false)
+		n.SetBufferOption(b, BufOptionModifiable, false)
 	}
 }
 
@@ -317,9 +312,15 @@ func ToByteSlice(byt [][]byte) []byte { return bytes.Join(byt, []byte{'\n'}) }
 func ToBufferLines(byt []byte) [][]byte { return bytes.Split(byt, []byte{'\n'}) }
 
 // ByteOffset calculates the byte-offset of current cursor position.
-func ByteOffset(v *nvim.Nvim, b nvim.Buffer, w nvim.Window) (int, error) {
-	cursor, _ := v.WindowCursor(w)
-	byteBuf, _ := v.BufferLines(b, 0, -1, true)
+func ByteOffset(n *nvim.Nvim, b nvim.Buffer, w nvim.Window) (int, error) {
+	cursor, err := n.WindowCursor(w)
+	if err != nil {
+		return 0, errors.WithStack(err)
+	}
+	byteBuf, err := n.BufferLines(b, 0, -1, true)
+	if err != nil {
+		return 0, errors.WithStack(err)
+	}
 
 	if cursor[0] == 1 {
 		return (1 + (cursor[1] - 1)), nil
