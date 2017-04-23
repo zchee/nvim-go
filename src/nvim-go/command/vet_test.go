@@ -17,7 +17,7 @@ import (
 
 var testVetRoot = filepath.Join(testGoPath, "src", "vet")
 
-func TestCommands_Vet(t *testing.T) {
+func TestCommand_Vet(t *testing.T) {
 	type fields struct {
 		Nvim *nvim.Nvim
 		ctx  *ctx.Context
@@ -27,12 +27,11 @@ func TestCommands_Vet(t *testing.T) {
 		eval *CmdVetEval
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []*nvim.QuickfixError
-		wantErr bool
-		tool    string
+		name   string
+		fields fields
+		args   args
+		want   interface{}
+		tool   string
 	}{
 		// method.go:17: method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error
 		// method.go:21: method ReadByte() byte should have signature ReadByte() (byte, error)
@@ -60,8 +59,7 @@ func TestCommands_Vet(t *testing.T) {
 				Col:      0,
 				Text:     "method ReadByte() byte should have signature ReadByte() (byte, error)",
 			}},
-			wantErr: false,
-			tool:    "go",
+			tool: "go",
 		},
 
 		// method.go:17: method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error
@@ -126,31 +124,18 @@ func TestCommands_Vet(t *testing.T) {
 				Col:      0,
 				Text:     "result of fmt.Sprintf call not used",
 			}},
-			wantErr: false,
-			tool:    "go",
+			tool: "go",
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		tt.fields.ctx.Build.Tool = tt.tool
 		c := NewCommand(tt.fields.Nvim, tt.fields.ctx)
 
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := c.Vet(tt.args.args, tt.args.eval)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("%q. Commands.Vet(%v, %v) error = %v, wantErr %v", tt.name, tt.args.args, tt.args.eval, err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("%q. Commands.Vet(%v, %v) =", tt.name, tt.args.args, tt.args.eval)
-				for _, g := range got {
-					t.Errorf("%+v", g)
-				}
-				t.Error("want =")
-				for _, w := range tt.want {
-					t.Errorf("%+v", w)
-				}
+			if got := c.Vet(tt.args.args, tt.args.eval); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Command.Vet(%v, %v) = %v, want %v", tt.args.args, tt.args.eval, got, tt.want)
 			}
 		})
 	}
