@@ -57,8 +57,9 @@ func (c *Command) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, e
 
 	switch {
 	case len(args) > 0:
-		if path := filepath.Join(eval.Cwd, args[len(args)-1]); !strings.HasPrefix(path, "-") {
-			switch {
+		lastArg := args[len(args)-1]
+		if !strings.HasPrefix(lastArg, "-") {
+			switch path := filepath.Join(eval.Cwd, lastArg); {
 			case args[0] == ".":
 				vetCmd.Args = append(vetCmd.Args, ".")
 			case pathutil.IsDir(path):
@@ -73,8 +74,10 @@ func (c *Command) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, e
 				err := errors.New("Invalid directory path")
 				return nil, errors.WithStack(err)
 			}
+		} else {
+			vetCmd.Args = append(vetCmd.Args, args...)
+			vetCmd.Args = append(vetCmd.Args, ".")
 		}
-		vetCmd.Args = append(vetCmd.Args, config.GoVetFlags...)
 	case len(config.GoVetFlags) > 0:
 		vetCmd.Args = append(vetCmd.Args, config.GoVetFlags...)
 		vetCmd.Args = append(vetCmd.Args, ".")
