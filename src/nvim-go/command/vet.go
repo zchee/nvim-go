@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/nvimutil"
 	"nvim-go/internal/pathutil"
+	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -58,17 +58,18 @@ func (c *Command) Vet(args []string, eval *CmdVetEval) ([]*nvim.QuickfixError, e
 	switch {
 	case len(args) > 0:
 		if path := filepath.Join(eval.Cwd, args[len(args)-1]); !strings.HasPrefix(path, "-") {
-			if args[0] == "." {
+			switch {
+			case args[0] == ".":
 				vetCmd.Args = append(vetCmd.Args, ".")
-			} else if pathutil.IsDir(path) {
+			case pathutil.IsDir(path):
 				eval.Cwd = path
 				vetCmd.Args = append(vetCmd.Args, args[:len(args)-1]...)
-			} else if pathutil.IsExist(path) && pathutil.IsGoFile(path) {
+			case pathutil.IsExist(path) && pathutil.IsGoFile(path):
 				vetCmd.Args = append(vetCmd.Args, path)
-			} else if filepath.Base(path) == "%" {
+			case filepath.Base(path) == "%":
 				path = eval.File
 				vetCmd.Args = append(vetCmd.Args, path)
-			} else {
+			default:
 				err := errors.New("Invalid directory path")
 				return nil, errors.WithStack(err)
 			}
