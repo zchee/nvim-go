@@ -43,6 +43,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 	}
 
 	if config.BuildAutosave {
+		delete(a.ctx.Errlist, "Build")
 		err := a.cmd.Build(config.BuildForce, &command.CmdBuildEval{
 			Cwd:  eval.Cwd,
 			File: eval.File,

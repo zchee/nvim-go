@@ -27,6 +27,8 @@ type CmdBuildEval struct {
 
 func (c *Command) cmdBuild(bang bool, eval *CmdBuildEval) {
 	go func() {
+		delete(c.ctx.Errlist, "Build")
+
 		err := c.Build(bang, eval)
 
 		switch e := err.(type) {
@@ -65,9 +67,6 @@ func (c *Command) Build(bang bool, eval *CmdBuildEval) interface{} {
 		}
 		return errors.WithStack(buildErr)
 	}
-
-	// Build succeeded, clean up the Errlist
-	delete(c.ctx.Errlist, "Build")
 
 	return nvimutil.EchoSuccess(c.Nvim, "GoBuild", fmt.Sprintf("compiler: %s", c.ctx.Build.Tool))
 }
