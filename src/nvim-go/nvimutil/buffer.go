@@ -338,33 +338,3 @@ func ByteOffset(v *nvim.Nvim, b nvim.Buffer, w nvim.Window) (int, error) {
 
 	return (offset + (cursor[1] - 1)), nil
 }
-
-// ByteOffsetPipe calculates the byte-offset of current cursor position uses vim.Pipeline.
-func ByteOffsetPipe(p *nvim.Batch, b nvim.Buffer, w nvim.Window) (int, error) {
-	var cursor [2]int
-	p.WindowCursor(w, &cursor)
-
-	var byteBuf [][]byte
-	p.BufferLines(b, 0, -1, true, &byteBuf)
-
-	if err := p.Execute(); err != nil {
-		return 0, errors.Wrap(err, "nvim/buffer.ByteOffsetPipe")
-	}
-
-	if cursor[0] == 1 {
-		return (1 + (cursor[1] - 1)), nil
-	}
-
-	offset := 0
-	line := 1
-	for _, buf := range byteBuf {
-		if line == cursor[0] {
-			offset++
-			break
-		}
-		offset += (binary.Size(buf) + 1)
-		line++
-	}
-
-	return (offset + (cursor[1] - 1)), nil
-}
