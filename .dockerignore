@@ -2,10 +2,10 @@ _*
 bin
 doc
 ftplugin
-gosnippets
 pkg
 plugin
 rplugin
+snippets
 syntax
 
 .gitignore
