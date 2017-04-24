@@ -41,6 +41,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 	}
 
 	if config.BuildAutosave {
+		a.mu.Lock()
 		delete(a.ctx.Errlist, "Build")
 		err := a.cmd.Build(config.BuildForce, &command.CmdBuildEval{
 			Cwd:  eval.Cwd,
@@ -57,6 +58,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 			a.ctx.Errlist["Build"] = e
 			return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
 		}
+		a.mu.Unlock()
 	}
 
 	if config.GolintAutosave {
@@ -130,6 +132,8 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 
 	a.wg.Wait()
 
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	if len(a.ctx.Errlist) > 0 {
 		return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
 	} else {
