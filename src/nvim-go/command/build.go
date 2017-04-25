@@ -27,16 +27,21 @@ type CmdBuildEval struct {
 
 func (c *Command) cmdBuild(bang bool, eval *CmdBuildEval) {
 	go func() {
-		delete(c.ctx.Errlist, "Build")
+		c.errs.Delete("Build")
 
 		err := c.Build(bang, eval)
-
 		switch e := err.(type) {
 		case error:
 			nvimutil.ErrorWrap(c.Nvim, e)
 		case []*nvim.QuickfixError:
-			c.ctx.Errlist["Build"] = e
-			nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
+			c.errs.Store("Build", e)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			c.errs.Range(func(ki, vi interface{}) bool {
+				k, v := ki.(string), vi.([]*nvim.QuickfixError)
+				errlist[k] = append(errlist[k], v...)
+				return true
+			})
+			nvimutil.ErrorList(c.Nvim, errlist, true)
 		}
 	}()
 }

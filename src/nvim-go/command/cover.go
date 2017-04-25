@@ -38,8 +38,14 @@ func (c *Command) cmdCover(eval *cmdCoverEval) {
 		case error:
 			nvimutil.ErrorWrap(c.Nvim, e)
 		case []*nvim.QuickfixError:
-			c.ctx.Errlist["Cover"] = e
-			nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
+			c.errs.Store("Cover", e)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			c.errs.Range(func(ki, vi interface{}) bool {
+				k, v := ki.(string), vi.([]*nvim.QuickfixError)
+				errlist[k] = append(errlist[k], v...)
+				return true
+			})
+			nvimutil.ErrorList(c.Nvim, errlist, true)
 		}
 	}()
 }

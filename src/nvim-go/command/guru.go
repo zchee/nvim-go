@@ -39,16 +39,21 @@ type funcGuruEval struct {
 }
 
 func (c *Command) funcGuru(args []string, eval *funcGuruEval) {
-	go func() {
-		err := c.Guru(args, eval)
+	err := c.Guru(args, eval)
 
-		switch err := err.(type) {
-		case error:
-			nvimutil.ErrorWrap(c.Nvim, err)
-		default:
-			// nothing to do
-		}
-	}()
+	switch e := err.(type) {
+	case error:
+		nvimutil.ErrorWrap(c.Nvim, e)
+	case []*nvim.QuickfixError:
+		c.errs.Store("Guru", e)
+		errlist := make(map[string][]*nvim.QuickfixError)
+		c.errs.Range(func(ki, vi interface{}) bool {
+			k, v := ki.(string), vi.([]*nvim.QuickfixError)
+			errlist[k] = append(errlist[k], v...)
+			return true
+		})
+		nvimutil.ErrorList(c.Nvim, errlist, true)
+	}
 }
 
 // Guru go source analysis and output result to the quickfix or locationlist.
@@ -98,7 +103,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 	if mode == "definition" {
 		obj, err := Definition(&query)
 		if err != nil {
-			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+			return errors.WithStack(err)
 		}
 		fname, line, col := nvimutil.SplitPos(obj.ObjPos, eval.Cwd)
 
@@ -110,7 +115,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		}
 		batch.SetWindowCursor(w, [2]int{line, col - 1})
 		if err := batch.Execute(); err != nil {
-			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
+			return errors.WithStack(err)
 		}
 
 		return c.Nvim.Command(`lclose | normal! zz`)
@@ -153,7 +158,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		return errors.WithStack(err)
 	}
 	if len(loclist) == 0 {
-		return fmt.Errorf("%s not fount", mode)
+		return errors.Errorf("%s not found", mode)
 	}
 
 	defer nvimutil.ClearMsg(c.Nvim)

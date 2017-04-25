@@ -9,6 +9,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
+	"golang.org/x/sync/syncmap"
 )
 
 // Command represents a nvim-go plugins commands.
@@ -16,6 +17,7 @@ type Command struct {
 	Nvim *nvim.Nvim
 
 	ctx *ctx.Context
+	errs *syncmap.Map
 }
 
 // NewCommand return the new Command type with initialize some variables.
@@ -23,6 +25,7 @@ func NewCommand(v *nvim.Nvim, ctx *ctx.Context) *Command {
 	return &Command{
 		Nvim: v,
 		ctx:  ctx,
+		errs: new(syncmap.Map),
 	}
 }
 

@@ -25,18 +25,22 @@ var importsOptions = imports.Options{
 }
 
 func (c *Command) cmdFmt(dir string) {
-	go func() {
-		delete(c.ctx.Errlist, "Fmt")
-		err := c.Fmt(dir)
+	delete(c.ctx.Errlist, "Fmt")
+	err := c.Fmt(dir)
 
-		switch e := err.(type) {
-		case error:
-			nvimutil.ErrorWrap(c.Nvim, e)
-		case []*nvim.QuickfixError:
-			c.ctx.Errlist["Fmt"] = e
-			nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
-		}
-	}()
+	switch e := err.(type) {
+	case error:
+		nvimutil.ErrorWrap(c.Nvim, e)
+	case []*nvim.QuickfixError:
+		c.errs.Store("Fmt", e)
+		errlist := make(map[string][]*nvim.QuickfixError)
+		c.errs.Range(func(ki, vi interface{}) bool {
+			k, v := ki.(string), vi.([]*nvim.QuickfixError)
+			errlist[k] = append(errlist[k], v...)
+			return true
+		})
+		nvimutil.ErrorList(c.Nvim, errlist, true)
+	}
 }
 
 // Fmt format to the current buffer source uses gofmt behavior.
