@@ -141,6 +141,13 @@
 			"path": "/macho"
 		},
 		{
+			"importpath": "golang.org/x/sync/syncmap",
+			"repository": "https://go.googlesource.com/sync",
+			"revision": "de49d9dcd27d4f764488181bea099dfe6179bcf0",
+			"branch": "master",
+			"path": "/syncmap"
+		},
+		{
 			"importpath": "golang.org/x/sys/unix",
 			"repository": "https://go.googlesource.com/sys",
 			"revision": "f3918c30c5c2cb527c0b071a27c35120a6c0719a",
