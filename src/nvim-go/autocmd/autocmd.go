@@ -12,6 +12,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
+	"golang.org/x/sync/syncmap"
 )
 
 // Autocmd represents a autocmd context.
@@ -25,7 +26,7 @@ type Autocmd struct {
 	mu               sync.Mutex
 	wg               sync.WaitGroup
 
-	errors []error
+	errs *syncmap.Map
 }
 
 // Register register autocmd to nvim.
@@ -36,6 +37,7 @@ func Register(p *plugin.Plugin, ctx *ctx.Context, cmd *command.Command) {
 		cmd:              cmd,
 		bufWritePreChan:  make(chan interface{}),
 		bufWritePostChan: make(chan error),
+		errs:             new(syncmap.Map),
 	}
 
 	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufEnter", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.BufEnter)

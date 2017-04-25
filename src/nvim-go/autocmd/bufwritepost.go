@@ -30,56 +30,41 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 		err := <-a.bufWritePreChan
 		switch e := err.(type) {
 		case error:
-			if e != nil {
-				// normal errros
-				return nvimutil.ErrorWrap(a.Nvim, e)
-			}
+			return nvimutil.ErrorWrap(a.Nvim, e)
 		case []*nvim.QuickfixError:
-			a.ctx.Errlist["Fmt"] = e
-			return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			errlist["Fmt"] = e
+			return nvimutil.ErrorList(a.Nvim, errlist, true)
 		}
 	}
 
 	if config.BuildAutosave {
-		a.mu.Lock()
-		delete(a.ctx.Errlist, "Build")
 		err := a.cmd.Build(config.BuildForce, &command.CmdBuildEval{
 			Cwd:  eval.Cwd,
 			File: eval.File,
 		})
-
 		switch e := err.(type) {
 		case error:
-			// normal errros
-			if e != nil {
-				return nvimutil.ErrorWrap(a.Nvim, e)
-			}
+			return nvimutil.ErrorWrap(a.Nvim, e)
 		case []*nvim.QuickfixError:
-			a.ctx.Errlist["Build"] = e
-			return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			errlist["Build"] = e
+			return nvimutil.ErrorList(a.Nvim, errlist, true)
 		}
-		a.mu.Unlock()
 	}
 
 	if config.GolintAutosave {
 		a.wg.Add(1)
-		a.mu.Lock()
 		go func() {
-			defer func() {
-				a.wg.Done()
-				a.mu.Unlock()
-			}()
+			defer a.wg.Done()
 
-			// Cleanup old results
-			delete(a.ctx.Errlist, "Lint")
-
+			a.errs.Delete("Lint")
 			errlist, err := a.cmd.Lint(nil, eval.File)
 			if err != nil {
-				// normal errros
 				nvimutil.ErrorWrap(a.Nvim, err)
 				return
 			}
-			a.ctx.Errlist["Lint"] = errlist
+			a.errs.Store("Lint", errlist)
 		}()
 	}
 
@@ -92,24 +77,16 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 				a.mu.Unlock()
 			}()
 
-			// Cleanup old results
-			delete(a.ctx.Errlist, "Vet")
-
+			a.errs.Delete("Vet")
 			err := a.cmd.Vet(nil, &command.CmdVetEval{
 				Cwd:  eval.Cwd,
 				File: eval.File,
 			})
 			switch e := err.(type) {
 			case error:
-				// normal errros
-				if e != nil {
-					nvimutil.ErrorWrap(a.Nvim, e)
-				}
+				nvimutil.ErrorWrap(a.Nvim, e)
 			case []*nvim.QuickfixError:
-				// Cleanup Errlist
-				a.ctx.Errlist = make(map[string][]*nvim.QuickfixError)
-				a.ctx.Errlist["Vet"] = e
-				nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
+				a.errs.Store("Vet", e)
 			}
 		}()
 	}
@@ -126,19 +103,21 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			a.cmd.Test([]string{}, dir)
+			a.cmd.Test(nil, dir)
 		}()
 	}
 
 	a.wg.Wait()
+	errlist := make(map[string][]*nvim.QuickfixError)
+	a.errs.Range(func(ki, vi interface{}) bool {
+		k, v := ki.(string), vi.([]*nvim.QuickfixError)
+		errlist[k] = append(errlist[k], v...)
+		return true
+	})
 
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	if len(a.ctx.Errlist) > 0 {
-		return nvimutil.ErrorList(a.Nvim, a.ctx.Errlist, true)
-	} else {
-		nvimutil.ClearErrorlist(a.Nvim, true)
+	if len(errlist) > 0 {
+		return nvimutil.ErrorList(a.Nvim, errlist, true)
 	}
 
-	return nil
+	return nvimutil.ClearErrorlist(a.Nvim, true)
 }
