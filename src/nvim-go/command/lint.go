@@ -49,7 +49,6 @@ const (
 // TODO(zchee): Support go packages.
 func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
 	defer nvimutil.Profile(time.Now(), "GoLint")
-	buildContext = build.Default
 
 	var (
 		errlist []*nvim.QuickfixError
@@ -209,8 +208,6 @@ func (c *Command) lintImportedPackage(pkg *build.Package, err error) ([]*nvim.Qu
 // ----------------------------------------------------------------------------
 // The below code is carried from github.com/golang/lint/golint/import.go
 
-var buildContext = build.Default
-
 var (
 	goroot    = filepath.Clean(runtime.GOROOT())
 	gorootSrc = filepath.Join(goroot, "src")
@@ -338,6 +335,7 @@ func matchPackages(pattern string) []string {
 	have := map[string]bool{
 		"builtin": true, // ignore pseudo-package that exists only for documentation
 	}
+	buildContext := build.Default
 	if !buildContext.CgoEnabled {
 		have["runtime/cgo"] = true // ignore during walk
 	}
