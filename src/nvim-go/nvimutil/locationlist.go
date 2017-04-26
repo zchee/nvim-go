@@ -54,9 +54,7 @@ const (
 )
 
 func getListCmd(v *nvim.Nvim) {
-	if listtype == "" {
-		listtype = ErrorListType(config.ErrorListType)
-	}
+	listtype = ErrorListType(config.ErrorListType)
 	switch listtype {
 	case Quickfix:
 		openlistCmd = func() error { return v.Command("copen") }
