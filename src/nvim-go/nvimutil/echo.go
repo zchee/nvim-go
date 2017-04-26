@@ -73,7 +73,7 @@ func ErrorWrap(v *nvim.Nvim, err error) error {
 		funcName = "nvim-go"
 	}
 
-	return v.Command("redraw | echo \"" + funcName + ": \" | echohl " + ErrorColor + " | echon \"" + err.Error() + "\" | echohl None")
+	return v.WritelnErr(fmt.Sprintf("%s: %s", funcName, err))
 }
 
 // EchohlErr provide the vim 'echo' command with the 'echohl' highlighting prefix text.
