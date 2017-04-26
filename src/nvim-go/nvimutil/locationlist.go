@@ -70,9 +70,6 @@ func getListCmd(v *nvim.Nvim) {
 }
 
 // ErrorList merges the errlist map items and open the locationlist window.
-// TODO(zchee): This function will reports the errors with open the quickfix window, but will close
-// the quickfix window if no errors.
-// Do ErrorList function name is appropriate?
 func ErrorList(v *nvim.Nvim, errors map[string][]*nvim.QuickfixError, keep bool) error {
 	if listtype == "" {
 		getListCmd(v)
