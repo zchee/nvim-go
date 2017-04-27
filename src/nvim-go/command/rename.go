@@ -72,7 +72,7 @@ func (c *Command) Rename(args []string, bang bool, eval *cmdRenameEval) interfac
 			}
 		}
 		if toResult.(string) == "" {
-			return nvimutil.EchohlErr(c.Nvim, pkgRename, "Not enough arguments for rename destination name")
+			return nvimutil.Echoerr(c.Nvim, "GoRename: Not enough arguments for rename destination name")
 		}
 		renameTo = fmt.Sprintf("%s", toResult)
 	}

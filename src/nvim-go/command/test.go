@@ -179,7 +179,7 @@ func (c *Command) SwitchTest(eval *cmdTestSwitchEval) error {
 	ast.Walk(visitorFunc(matchFunc), fswitch)
 
 	if !pos.IsValid() {
-		return nvimutil.EchohlErr(c.Nvim, "GoSwitchTest", "Not found the switch destination function")
+		return nvimutil.Echoerr(c.Nvim, "GoSwitchTest: Not found the switch destination function")
 	}
 
 	// Goto the destination file and function position

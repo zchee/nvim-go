@@ -76,16 +76,6 @@ func ErrorWrap(v *nvim.Nvim, err error) error {
 	return v.WritelnErr(fmt.Sprintf("%s: %s", funcName, err))
 }
 
-// EchohlErr provide the vim 'echo' command with the 'echohl' highlighting prefix text.
-func EchohlErr(v *nvim.Nvim, prefix string, a ...interface{}) error {
-	v.Command("redraw")
-	if prefix != "" {
-		prefix += ": "
-	}
-	er := fmt.Sprintf("%s", a...)
-	return v.Command("echo '" + prefix + "' | echohl " + ErrorColor + " | echon \"" + er + "\" | echohl None")
-}
-
 // EchohlBefore provide the vim 'echo' command with the 'echohl' highlighting prefix text.
 func EchohlBefore(v *nvim.Nvim, prefix string, highlight string, format string, a ...interface{}) error {
 	v.Command("redraw")
