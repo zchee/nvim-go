@@ -7,7 +7,6 @@ package nvimutil
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"nvim-go/config"
 
@@ -38,14 +37,12 @@ func EchoRaw(v *nvim.Nvim, a string) error {
 
 // Echomsg provide the vim 'echomsg' command.
 func Echomsg(v *nvim.Nvim, a ...interface{}) error {
-	v.Command("redraw")
-	return v.Command("echomsg '" + strings.TrimSpace(fmt.Sprintln(a...)) + "'")
+	return v.WriteOut(fmt.Sprintln(a...))
 }
 
 // Echoerr provide the vim 'echoerr' command.
 func Echoerr(v *nvim.Nvim, format string, a ...interface{}) error {
-	v.Command("redraw")
-	return v.Command("echoerr '" + fmt.Sprintf(format, a...) + "'")
+	return v.WritelnErr(fmt.Sprintf(format, a...))
 }
 
 type stackTracer interface {
