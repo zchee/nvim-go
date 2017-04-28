@@ -5,10 +5,11 @@
 package autocmd
 
 import (
+	"path/filepath"
+
 	"nvim-go/command"
 	"nvim-go/config"
 	"nvim-go/nvimutil"
-	"path/filepath"
 
 	"github.com/neovim/go-client/nvim"
 )
@@ -18,12 +19,12 @@ type bufWritePostEval struct {
 	File string
 }
 
-// BufWritePost run the 'autosave' commands on BufWritePost autocmd.
-func (a *Autocmd) BufWritePost(eval *bufWritePostEval) {
-	go a.bufWritePost(eval)
+func (a *Autocmd) bufWritePost(eval *bufWritePostEval) {
+	go a.BufWritePost(eval)
 }
 
-func (a *Autocmd) bufWritePost(eval *bufWritePostEval) error {
+// BufWritePost run the 'autosave' commands on BufWritePost autocmd.
+func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 	dir := filepath.Dir(eval.File)
 
 	if config.FmtAutosave {
