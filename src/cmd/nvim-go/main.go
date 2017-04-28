@@ -21,6 +21,11 @@ import (
 	"github.com/neovim/go-client/nvim/plugin"
 )
 
+var (
+	debug = os.Getenv("NVIM_GO_DEBUG")
+	pprof = os.Getenv("NVIM_GO_PPROF")
+)
+
 func main() {
 	register := func(p *plugin.Plugin) error {
 		log.SetFlags(log.Lshortfile)
@@ -30,13 +35,13 @@ func main() {
 		delve.Register(p, ctxt)
 		autocmd.Register(p, ctxt, c)
 
-		if os.Getenv("NVIM_GO_DEBUG") != "" {
+		if len(debug) >= 1 {
 			// starts the gops agent
 			if err := agent.Listen(&agent.Options{NoShutdownCleanup: true}); err != nil {
 				return err
 			}
 
-			if os.Getenv("NVIM_GO_PPROF") != "" {
+			if len(pprof) >= 1 {
 				addr := "localhost:14715" // (n: 14)vim-(g: 7)(o: 15)
 				log.Printf("Start the pprof debugging, listen at %s\n", addr)
 
@@ -47,7 +52,6 @@ func main() {
 				}()
 			}
 		}
-
 		return nil
 	}
 
