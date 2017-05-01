@@ -94,13 +94,11 @@ func (c *Command) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 	switch c.ctx.Build.Tool {
 	case "go":
 		// Outputs the binary to DevNull if without bang
-		if !bang && !isTest {
+		if !bang {
 			args = append(args, "-o", os.DevNull)
 		}
 	case "gb":
-		if !isTest {
-			cmd.Dir = c.ctx.Build.ProjectRoot
-		}
+		cmd.Dir = c.ctx.Build.ProjectRoot
 	}
 
 	cmd.Args = append(cmd.Args, args...)
