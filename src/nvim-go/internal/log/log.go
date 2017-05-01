@@ -75,7 +75,7 @@ func Debugf(format string, v ...interface{}) {
 	debugLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
-func Debugln(format string, v ...interface{}) {
+func Debugln(v ...interface{}) {
 	if len(debug) == 0 {
 		return
 	}
