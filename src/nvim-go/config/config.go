@@ -4,7 +4,9 @@
 
 package config
 
-import "github.com/neovim/go-client/nvim"
+import (
+	"github.com/neovim/go-client/nvim"
+)
 
 // Config represents a config variable for nvim-go.
 // Each type must be exported for plugin.HandleAutocmd Eval option.
