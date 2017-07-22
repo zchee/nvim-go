@@ -68,7 +68,7 @@ func Definition(q *guru.Query) (*serial.Definition, error) {
 	}
 
 	// Set loader.Config, same allowErrors() function result except CgoEnabled = false
-	q.Build.CgoEnabled = false
+	q.Build.CgoEnabled = true
 	// Run the type checker.
 	lconf := loader.Config{
 		Build:       q.Build,
