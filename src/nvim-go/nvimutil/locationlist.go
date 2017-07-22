@@ -223,7 +223,7 @@ func ParseError(errs []byte, cwd string, buildContext *ctx.Build, ignoreDirs []s
 		filename := string(m[2])
 
 		// Avoid the local package error. like "package foo" and edit "cmd/foo/main.go"
-		if !strings.Contains(filename, "../") && (!filepath.IsAbs(filename) && packagePath != "") {
+		if !filepath.IsAbs(filename) && packagePath != "" {
 			// Joins the packagePath and error file
 			filename = filepath.Join(packagePath, filepath.Base(filename))
 		}
