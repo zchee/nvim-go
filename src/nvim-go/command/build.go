@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"nvim-go/config"
+	"nvim-go/internal/pathutil"
 	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
@@ -97,8 +98,21 @@ func (c *Command) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 		if !bang {
 			args = append(args, "-o", os.DevNull)
 		}
+		if config.BuildAppengine {
+			cmd.Args[0] = cmd.Args[0] + "app"
+		}
 	case "gb":
 		cmd.Dir = c.ctx.Build.ProjectRoot
+		if config.BuildAppengine {
+			cmd.Args = append([]string{cmd.Args[0], "gae"}, cmd.Args[1:]...)
+			pkgs, err := pathutil.GbPackages(cmd.Dir)
+			if err != nil {
+				return nil, err
+			}
+			for _, pkg := range pkgs {
+				cmd.Args = append(cmd.Args, pkg+string(filepath.Separator)+"...")
+			}
+		}
 	}
 
 	cmd.Args = append(cmd.Args, args...)
