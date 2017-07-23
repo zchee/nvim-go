@@ -6,7 +6,10 @@ package pathutil
 
 import (
 	"fmt"
+	"io/ioutil"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 )
 
 // IsGb check the current buffer directory whether gb directory structure.
@@ -36,7 +39,7 @@ func IsGb(dir string) (string, bool) {
 //  github.com/constabulary/gb/cmd/path.go
 func FindGbProjectRoot(path string) (string, error) {
 	if path == "" {
-		return "", fmt.Errorf("project root is blank")
+		return "", errors.New("project root is blank")
 	}
 	start := path
 	for path != filepath.Dir(path) {
@@ -53,4 +56,18 @@ func FindGbProjectRoot(path string) (string, error) {
 // GbProjectName return the gb project name.
 func GbProjectName(projectRoot string) string {
 	return filepath.Base(projectRoot)
+}
+
+func GbPackages(root string) ([]string, error) {
+	dir := filepath.Join(root, "src")
+	paths, err := ioutil.ReadDir(dir)
+	if err != nil {
+		errors.Wrapf(err, "could not read %s dir", dir)
+	}
+	pkgs := make([]string, len(paths))
+	for i, path := range paths {
+		pkgs[i] = path.Name()
+	}
+
+	return pkgs, nil
 }
