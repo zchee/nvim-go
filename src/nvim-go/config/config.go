@@ -27,6 +27,7 @@ func CreateConfigHome() error {
 		if _, e := os.Stat(ConfigHome); e != nil && os.IsNotExist(e) {
 			if e := os.MkdirAll(ConfigHome, 0700); e != nil {
 				err = e
+				return
 			}
 			err = e
 		}
