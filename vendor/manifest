@@ -50,6 +50,12 @@
 			"path": "/service/rpc2"
 		},
 		{
+			"importpath": "github.com/go-yaml/yaml",
+			"repository": "https://github.com/go-yaml/yaml",
+			"revision": "25c4ec802a7d637f88d584ab26798e94ad14c13b",
+			"branch": "v2"
+		},
+		{
 			"importpath": "github.com/golang/lint",
 			"repository": "https://github.com/golang/lint",
 			"revision": "cb00e5669539f047b2f4c53a421a01b0c8e172c6",
