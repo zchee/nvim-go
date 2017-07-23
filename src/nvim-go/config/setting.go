@@ -76,7 +76,7 @@ type iferr struct {
 
 // lint represents a code lint commands config variable.
 type lint struct {
-	GolintAutosave          bool     `eval:"g:go#lint#golint#autosave"`
+	GolintAutosave          int64    `eval:"g:go#lint#golint#autosave"`
 	GolintIgnore            []string `eval:"g:go#lint#golint#ignore"`
 	GolintMinConfidence     float64  `eval:"g:go#lint#golint#min_confidence"`
 	GolintMode              string   `eval:"g:go#lint#golint#mode"`
@@ -251,7 +251,7 @@ func Get(v *nvim.Nvim, cfg *Config) {
 	IferrAutosave = itob(cfg.Iferr.Autosave)
 
 	// Lint
-	GolintAutosave = cfg.Lint.GolintAutosave
+	GolintAutosave = itob(cfg.Lint.GolintAutosave)
 	GolintIgnore = cfg.Lint.GolintIgnore
 	GolintMinConfidence = cfg.Lint.GolintMinConfidence
 	GolintMode = cfg.Lint.GolintMode
