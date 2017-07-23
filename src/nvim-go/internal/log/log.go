@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 var (
@@ -80,4 +82,11 @@ func Debugln(v ...interface{}) {
 		return
 	}
 	debugLogger.Output(2, fmt.Sprintln(v...))
+}
+
+func DebugDump(v ...interface{}) {
+	if len(debug) == 0 {
+		return
+	}
+	debugLogger.Output(2, spew.Sdump(v...))
 }
