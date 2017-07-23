@@ -21,7 +21,7 @@ var (
 	ConfigFile = filepath.Join(ConfigHome, "config.yml")
 )
 
-func CreateConfigDir() error {
+func CreateConfigHome() error {
 	var err error
 	mkdirOnce.Do(func() {
 		if _, e := os.Stat(ConfigHome); e != nil && os.IsNotExist(e) {
@@ -41,6 +41,9 @@ func CreateConfigDir() error {
 func open() (*os.File, error) {
 	f, err := os.Open(ConfigFile)
 	if err != nil && os.IsNotExist(err) {
+		if err := CreateConfigHome(); err != nil {
+			return nil, err
+		}
 		f, err = os.Create(ConfigFile)
 		if err != nil {
 			return nil, errors.Wrapf(err, "could not create %s", ConfigFile)
