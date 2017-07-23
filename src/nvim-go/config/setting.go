@@ -12,20 +12,20 @@ import (
 // Each type must be exported for plugin.HandleAutocmd Eval option.
 // Also it does not support embeded type.
 type Config struct {
-	Global Global
+	Global *Global
 
-	Build    build
-	Cover    cover
-	Fmt      fmt
-	Generate generate
-	Guru     guru
-	Iferr    iferr
-	Lint     lint
-	Rename   rename
-	Terminal terminal
-	Test     test
+	Build    *build
+	Cover    *cover
+	Fmt      *fmt
+	Generate *generate
+	Guru     *guru
+	Iferr    *iferr
+	Lint     *lint
+	Rename   *rename
+	Terminal *terminal
+	Test     *test
 
-	Debug debug
+	Debug *debug
 }
 
 // Global represents a global config variable.
