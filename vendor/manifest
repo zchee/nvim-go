@@ -113,6 +113,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/zchee/go-xdgbasedir",
+			"repository": "https://github.com/zchee/go-xdgbasedir",
+			"revision": "e894686011046080875db61fdaaa3ef31163df72",
+			"branch": "master"
+		},
+		{
 			"importpath": "golang.org/x/arch/x86/x86asm",
 			"repository": "https://go.googlesource.com/arch",
 			"revision": "58ea1a195b1a354bcd572b7ef6bbbd264dc63732",
