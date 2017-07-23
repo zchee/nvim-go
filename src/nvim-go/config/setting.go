@@ -37,9 +37,10 @@ type Global struct {
 
 // build GoBuild command config variable.
 type build struct {
-	Autosave int64    `eval:"g:go#build#autosave"`
-	Force    int64    `eval:"g:go#build#force"`
-	Flags    []string `eval:"g:go#build#flags"`
+	Appengine int64    `eval:"g:go#build#appengine"`
+	Autosave  int64    `eval:"g:go#build#autosave"`
+	Force     int64    `eval:"g:go#build#force"`
+	Flags     []string `eval:"g:go#build#flags"`
 }
 
 type cover struct {
@@ -124,6 +125,8 @@ var (
 	// ErrorListType type of error list window.
 	ErrorListType string
 
+	// BuildAppengine enable appengine bulid.
+	BuildAppengine bool
 	// BuildAutosave call the GoBuild command automatically at during the BufWritePost.
 	BuildAutosave bool
 	// BuildForce builds the binary instead of fake(use ioutil.TempFiile) build.
@@ -220,6 +223,7 @@ func Get(v *nvim.Nvim, cfg *Config) {
 	ErrorListType = cfg.Global.ErrorListType
 
 	// Build
+	BuildAppengine = itob(cfg.Build.Appengine)
 	BuildAutosave = itob(cfg.Build.Autosave)
 	BuildForce = itob(cfg.Build.Force)
 	BuildFlags = cfg.Build.Flags
