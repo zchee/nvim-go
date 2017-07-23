@@ -50,7 +50,7 @@ func open() (*os.File, error) {
 	return f, nil
 }
 
-func ReadConfig() (*Config, error) {
+func Read() (*Config, error) {
 	f, err := open()
 	if err != nil {
 		return nil, err
