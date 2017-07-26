@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"go/build"
 	"go/token"
-	"log"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -21,6 +20,7 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/internal/guru"
+	"nvim-go/internal/log"
 	"nvim-go/internal/pathutil"
 	"nvim-go/nvimutil"
 
@@ -121,18 +121,26 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		return c.Nvim.Command(`lclose | normal! zz`)
 	}
 
-	var scope string
+	var scopes []string
 	switch c.ctx.Build.Tool {
 	case "go":
 		pkgID, err := pathutil.PackageID(filepath.Dir(eval.File))
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		scope = pkgID
+		scopes = []string{pathutil.ToWildcard(pkgID)}
 	case "gb":
-		scope = pathutil.GbProjectName(c.ctx.Build.ProjectRoot)
+		var err error
+		scopes, err = pathutil.GbPackages(c.ctx.Build.ProjectRoot)
+		if err != nil {
+			return errors.Wrap(err, "could not get gb packages")
+		}
+		for i, pkg := range scopes {
+			scopes[i] = pathutil.ToWildcard(pkg)
+		}
+		log.Debug(scopes)
 	}
-	query.Scope = append(query.Scope, filepath.Join(scope, "..."))
+	query.Scope = append(query.Scope, scopes...)
 
 	var (
 		outputMu sync.Mutex
