@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -64,9 +65,11 @@ func GbPackages(root string) ([]string, error) {
 	if err != nil {
 		errors.Wrapf(err, "could not read %s dir", dir)
 	}
-	pkgs := make([]string, len(paths))
-	for i, path := range paths {
-		pkgs[i] = path.Name()
+	pkgs := make([]string, 0, len(paths))
+	for _, path := range paths {
+		if path.IsDir() && !strings.HasPrefix(path.Name(), "_") {
+			pkgs = append(pkgs, path.Name())
+		}
 	}
 
 	return pkgs, nil
