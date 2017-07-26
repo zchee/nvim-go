@@ -25,12 +25,6 @@ func IsGb(dir string) (string, bool) {
 	if filepath.Base(root) == "vendor" {
 		root = filepath.Dir(root)
 	}
-	// FindGbProjectRoot gets the GOPATH root if go directory structure.
-	// Recheck use vendor directory.
-	vendor := filepath.Join(root, "vendor")
-	if IsNotExist(vendor) {
-		return "", false
-	}
 	return root, true
 }
 
