@@ -102,3 +102,8 @@ func IsGoFile(filename string) bool {
 	f, err := os.Stat(filename)
 	return err == nil && filepath.Ext(f.Name()) == ".go"
 }
+
+// ToWildcard returns the path with wildcard(...) suffix.
+func ToWildcard(path string) string {
+	return path + string(filepath.Separator) + "..."
+}
