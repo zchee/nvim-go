@@ -608,7 +608,7 @@ func decodeNoReflect(ds *decodeState) (x interface{}) {
 				if ds.errSaved != nil {
 					ds.errSaved = e
 				}
-			} else {
+			} else if err != nil {
 				abort(err)
 			}
 			return v

@@ -77,16 +77,16 @@ type notification struct {
 	call   func([]reflect.Value) []reflect.Value
 	args   []reflect.Value
 	method string
+	next   *notification
 }
 
 // Endpoint represents a MessagePack RPC peer.
 type Endpoint struct {
-	logf          func(fmt string, args ...interface{})
-	arg           reflect.Value
-	dec           *msgpack.Decoder
-	closer        io.Closer
-	done          chan struct{}
-	notifications chan notification
+	logf   func(fmt string, args ...interface{})
+	arg    reflect.Value
+	dec    *msgpack.Decoder
+	closer io.Closer
+	done   chan struct{}
 
 	packMu sync.Mutex
 	enc    *msgpack.Encoder
@@ -100,9 +100,13 @@ type Endpoint struct {
 
 	handlersMu sync.RWMutex
 	handlers   map[string]*handler
+
+	notificationsMu   sync.Mutex
+	notificationsCond *sync.Cond
+	notifications     []*notification
 }
 
-// New returns a new endpoint with the specified options.
+// NewEndpoint returns a new endpoint with the specified options.
 func NewEndpoint(r io.Reader, w io.Writer, c io.Closer, options ...Option) (*Endpoint, error) {
 	bw := bufio.NewWriter(w)
 	e := &Endpoint{
@@ -203,7 +207,7 @@ func (e *Endpoint) Register(method string, fn interface{}, args ...interface{}) 
 		}
 	}
 
-	if t.NumOut() > 2 || (t.NumOut() > 1 && t.Out(t.NumOut()-1) != errorType) {
+	if t.NumOut() > 2 || (t.NumOut() > 0 && t.Out(t.NumOut()-1) != errorType) {
 		return errors.New("msgpack/rpc: handler return must be (), (error) or (valueType, error)")
 	}
 
@@ -372,8 +376,8 @@ func (e *Endpoint) reply(id uint64, replyErr error, reply interface{}) error {
 // Serve serves incoming requests. Serve blocks until the peer disconnects or
 // there is an error.
 func (e *Endpoint) Serve() error {
-	e.notifications = make(chan notification, 64)
-	defer close(e.notifications)
+	e.notificationsCond = sync.NewCond(&e.notificationsMu)
+	defer e.enqueNotification(nil)
 	go e.runNotifications()
 
 	for {
@@ -507,7 +511,6 @@ func (e *Endpoint) createCall(h *handler) (func([]reflect.Value) []reflect.Value
 	}
 
 	if !t.IsVariadic() {
-
 		// Skip extra arguments
 
 		n := srcLen - srcIndex
@@ -624,19 +627,44 @@ func (e *Endpoint) handleNotification(messageLen int) error {
 		return err
 	}
 
-	e.notifications <- notification{call: call, args: args, method: method}
+	e.enqueNotification(&notification{call: call, args: args, method: method})
 	return nil
+}
+
+func (e *Endpoint) enqueNotification(n *notification) {
+	e.notificationsMu.Lock()
+	e.notifications = append(e.notifications, n)
+	e.notificationsCond.Signal()
+	e.notificationsMu.Unlock()
+}
+
+func (e *Endpoint) dequeueNotifications() []*notification {
+	e.notificationsMu.Lock()
+	for e.notifications == nil {
+		e.notificationsCond.Wait()
+	}
+	notifications := e.notifications
+	e.notifications = nil
+	e.notificationsMu.Unlock()
+	return notifications
 }
 
 // runNotifications runs notifications in a single goroutine to ensure that the
 // notifications are processed in order by the application.
 func (e *Endpoint) runNotifications() {
-	for n := range e.notifications {
-		out := n.call(n.args)
-		if len(out) > 0 {
-			replyErr, _ := out[len(out)-1].Interface().(error)
-			if replyErr != nil {
-				e.logf("msgpack/rpc: service method %s returned %v", n.method, replyErr)
+	for {
+		notifications := e.dequeueNotifications()
+		for _, n := range notifications {
+			if n == nil {
+				// Serve() enqueues nil on return
+				return
+			}
+			out := n.call(n.args)
+			if len(out) > 0 {
+				replyErr, _ := out[len(out)-1].Interface().(error)
+				if replyErr != nil {
+					e.logf("msgpack/rpc: service method %s returned %v", n.method, replyErr)
+				}
 			}
 		}
 	}

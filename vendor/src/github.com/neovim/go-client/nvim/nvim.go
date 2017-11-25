@@ -18,10 +18,10 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"reflect"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/neovim/go-client/msgpack"
@@ -30,24 +30,55 @@ import (
 
 //go:generate go run apitool.go -generate apiimp.go
 
+var embedProcAttr *syscall.SysProcAttr
+
 // Nvim represents a remote instance of Nvim. It is safe to call Nvim methods
 // concurrently.
 type Nvim struct {
 	ep *rpc.Endpoint
 
-	mu        sync.Mutex
-	channelID int
+	channelIDMu sync.Mutex
+	channelID   int
+
+	// cmd is the child process, if any.
+	cmd *exec.Cmd
+
+	// readMu prevents concurrent calls to read on the child process stdout pipe and
+	// calls to cmd.Wait().
+	readMu sync.Mutex
 }
 
 // Serve serves incoming requests. Serve blocks until Nvim disconnects or there
 // is an error.
 func (v *Nvim) Serve() error {
+	v.readMu.Lock()
+	defer v.readMu.Unlock()
 	return v.ep.Serve()
 }
 
 // Close releases the resources used the client.
 func (v *Nvim) Close() error {
-	return v.ep.Close()
+
+	if v.cmd != nil && v.cmd.Process != nil {
+		// The child process should exit cleanly on call to v.ep.Close(). Kill
+		// the process if it does not exit as expected.
+		t := time.AfterFunc(5*time.Second, func() { v.cmd.Process.Kill() })
+		defer t.Stop()
+	}
+
+	err := v.ep.Close()
+
+	if v.cmd != nil {
+		v.readMu.Lock()
+		defer v.readMu.Unlock()
+
+		errWait := v.cmd.Wait()
+		if err == nil {
+			err = errWait
+		}
+	}
+
+	return err
 }
 
 // New creates an Nvim client. When connecting to Nvim over stdio, use stdin as
@@ -56,7 +87,7 @@ func (v *Nvim) Close() error {
 //
 // The application must call Serve() to handle RPC requests and responses.
 //
-//  :help msgpack-rpc-connecting
+//  :help rpc-connecting
 func New(r io.Reader, w io.Writer, c io.Closer, logf func(string, ...interface{})) (*Nvim, error) {
 	ep, err := rpc.NewEndpoint(r, w, c, rpc.WithLogf(logf), withExtensions())
 	if err != nil {
@@ -72,7 +103,7 @@ type EmbedOptions struct {
 	Args []string
 
 	// Dir specifies the working directory of the command. The working
-	// directory in the current process is sued if Dir is "".
+	// directory in the current process is used if Dir is "".
 	Dir string
 
 	// Env specifies the environment of the Nvim process. The current process
@@ -86,85 +117,39 @@ type EmbedOptions struct {
 	Logf func(string, ...interface{})
 }
 
-type embedCloser struct {
-	w io.WriteCloser
-	p *os.Process
-}
-
-func (c *embedCloser) Close() error {
-	err := c.w.Close()
-
-	t := time.AfterFunc(5*time.Second, func() { c.p.Kill() })
-	defer t.Stop()
-
-	state, e := c.p.Wait()
-	if e != nil {
-		err = e
-	}
-
-	if err != nil || !state.Success() {
-		err = fmt.Errorf("%s", state)
-	}
-
-	return err
-}
-
 // NewEmbedded starts an embedded instance of Nvim using the specified options.
 func NewEmbedded(options *EmbedOptions) (*Nvim, error) {
-	var closeOnExit []io.Closer
-	defer func() {
-		for _, c := range closeOnExit {
-			c.Close()
-		}
-	}()
 	if options == nil {
 		options = &EmbedOptions{}
 	}
 
 	path := options.Path
 	if path == "" {
-		var err error
-		path, err = exec.LookPath("nvim")
-		if err != nil {
-			return nil, err
-		}
+		path = "nvim"
 	}
 
-	outr, outw, err := os.Pipe()
-	if err != nil {
-		return nil, err
-	}
-	closeOnExit = append(closeOnExit, outr, outw)
+	cmd := exec.Command(path, append([]string{"--embed"}, options.Args...)...)
+	cmd.Env = options.Env
+	cmd.Dir = options.Dir
+	cmd.SysProcAttr = embedProcAttr
 
-	inr, inw, err := os.Pipe()
-	if err != nil {
-		return nil, err
-	}
-	closeOnExit = append(closeOnExit, inr, inw)
-
-	c := &embedCloser{
-		w: inw,
-	}
-
-	v, err := New(outr, inw, c, options.Logf)
-	if err != nil {
-		return nil, err
-	}
-	closeOnExit = append(closeOnExit, v.ep)
-
-	c.p, err = os.StartProcess(path,
-		append([]string{path, "--embed"}, options.Args...),
-		&os.ProcAttr{
-			Env:   options.Env,
-			Files: []*os.File{inr, outw},
-		})
+	inw, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
 	}
 
-	outw.Close()
-	inr.Close()
-	closeOnExit = nil
+	outr, err := cmd.StdoutPipe()
+	if err != nil {
+		inw.Close()
+		return nil, err
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	v, _ := New(outr, inw, inw, options.Logf)
 	return v, nil
 }
 
@@ -195,8 +180,8 @@ func (v *Nvim) RegisterHandler(method string, fn interface{}) error {
 
 // ChannelID returns Nvim's channel id for this client.
 func (v *Nvim) ChannelID() int {
-	v.mu.Lock()
-	defer v.mu.Unlock()
+	v.channelIDMu.Lock()
+	defer v.channelIDMu.Unlock()
 	if v.channelID != 0 {
 		return v.channelID
 	}
@@ -315,7 +300,7 @@ type batchArg struct {
 }
 
 func (a *batchArg) MarshalMsgPack(enc *msgpack.Encoder) error {
-	enc.PackArrayLen(a.n)
+	enc.PackArrayLen(int64(a.n))
 	return enc.PackRaw(a.p)
 }
 
@@ -370,7 +355,23 @@ func (b *Batch) Call(fname string, result interface{}, args ...interface{}) {
 	b.call("nvim_call_function", result, fname, args)
 }
 
-// decodeExt decodes a MsgPack encoded number to an integer.
+// ExecuteLua executes a Lua block.
+func (v *Nvim) ExecuteLua(code string, result interface{}, args ...interface{}) error {
+	if args == nil {
+		args = []interface{}{}
+	}
+	return v.call("nvim_execute_lua", result, code, args)
+}
+
+// ExecuteLua executes a Lua block.
+func (b *Batch) ExecuteLua(code string, result interface{}, args ...interface{}) {
+	if args == nil {
+		args = []interface{}{}
+	}
+	b.call("nvim_execute_lua", result, code, args)
+}
+
+// decodeExt decodes a MsgPack encoded number to go int value.
 func decodeExt(p []byte) (int, error) {
 	switch {
 	case len(p) == 1 && p[0] <= 0x7f:
@@ -397,4 +398,24 @@ func decodeExt(p []byte) (int, error) {
 // encodeExt encodes n to MsgPack format.
 func encodeExt(n int) []byte {
 	return []byte{0xd2, byte(n >> 24), byte(n >> 16), byte(n >> 8), byte(n)}
+}
+
+func unmarshalExt(dec *msgpack.Decoder, id int, v interface{}) (int, error) {
+	if dec.Type() != msgpack.Extension || dec.Extension() != id {
+		err := &msgpack.DecodeConvertError{
+			SrcType:  dec.Type(),
+			DestType: reflect.TypeOf(v).Elem(),
+		}
+		dec.Skip()
+		return 0, err
+	}
+	return decodeExt(dec.BytesNoCopy())
+}
+
+type Mode struct {
+	// Mode is the current mode.
+	Mode string `msgpack:"mode"`
+
+	// Blocking is true if Nvim is waiting for input.
+	Blocking bool `msgpack:"blocking"`
 }

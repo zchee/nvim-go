@@ -89,8 +89,11 @@ func SetBufferOption(buffer Buffer, name string, value interface{}) {
 }
 
 // BufferNumber gets a buffer's number.
+//
+// Deprecated: use int(buffer) to get the buffer's number as an integer.
 func BufferNumber(buffer Buffer) int {
 	name(nvim_buf_get_number)
+	deprecatedSince(2)
 }
 
 // BufferName gets the full file name of a buffer.
@@ -125,7 +128,7 @@ func BufferMark(buffer Buffer, name string) [2]int {
 //
 // The srcID is useful for batch deletion/updating of a set of highlights. When
 // called with srcID = 0, an unique source id is generated and returned.
-// Succesive calls can pass in it as srcID to add new highlights to the same
+// Successive calls can pass in it as srcID to add new highlights to the same
 // source group. All highlights in the same group can then be cleared with
 // ClearBufferHighlight. If the highlight never will be manually deleted pass
 // in -1 for srcID.
@@ -412,6 +415,12 @@ func ColorByName(name string) int {
 func ColorMap() map[string]interface{} {
 	// TODO: should this functino return map[string]int?
 	name(nvim_get_color_map)
+}
+
+// Mode gets Nvim's current mode.
+func Mode() Mode {
+	name(nvim_get_mode)
+	returnPtr()
 }
 
 func APIInfo() []interface{} {
