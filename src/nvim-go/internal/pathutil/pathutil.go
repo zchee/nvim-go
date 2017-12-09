@@ -79,6 +79,24 @@ func ExpandGoRoot(p string) string {
 	return p // Not hit
 }
 
+func Create(filename string) error {
+	if IsNotExist(filename) {
+		if _, err := os.Create(filename); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func Mkdir(dir string, perm os.FileMode) error {
+	if !IsDirExist(dir) {
+		if err := os.MkdirAll(dir, perm); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // IsDir returns whether the filename is directory.
 func IsDir(filename string) bool {
 	fi, err := os.Stat(filename)
@@ -95,6 +113,12 @@ func IsExist(filename string) bool {
 func IsNotExist(filename string) bool {
 	_, err := os.Stat(filename)
 	return os.IsNotExist(err)
+}
+
+// IsDirExist reports whether dir exists and which is directory.
+func IsDirExist(dir string) bool {
+	fi, err := os.Stat(dir)
+	return err == nil && fi.IsDir()
 }
 
 // IsGoFile returns whether the filename is exists.
