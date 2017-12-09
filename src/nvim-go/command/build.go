@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/pathutil"
 	"nvim-go/nvimutil"
+	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -110,6 +110,7 @@ func (c *Command) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 				return nil, err
 			}
 			for _, pkg := range pkgs {
+				// "gb gae build" doesn't compatible "gb build" arg. actually, "goapp build ..."
 				cmd.Args = append(cmd.Args, pkg+string(filepath.Separator)+"...")
 			}
 		}
