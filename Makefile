@@ -1,19 +1,18 @@
-GITHUB_USER := zchee
+.DEFAULT_GOAL := build
 
-PACKAGE_NAME := nvim-go
-PACKAGE_DIR := $(shell pwd)
-PACKAGES = $(shell GOPATH="$$PWD:$$PWD/vendor" go list $(PACKAGE_NAME)/... | grep -v -e internal)
+# ----------------------------------------------------------------------------
+# package level setting
 
-CC := clang  # need compile cgo(on delve)
+APP := $(notdir $(CURDIR))
+# PACKAGES := $(patsubst %,./%, $(shell gb list ./...))
+PACKAGES := $(shell gb list ./...)
+
+# ----------------------------------------------------------------------------
+# common environment variables
+
+SHELL := /usr/bin/env bash
+CC := clang  # need compile cgo for delve
 CXX := clang++
-GOPATH ?= $(shell go env GOPATH)
-GOROOT ?= $(shell go env GOROOT)
-
-GO_CMD := go
-GB_CMD := $(GOPATH)/bin/gb
-VENDOR_CMD := ${GB_CMD} vendor
-DOCKER_CMD := docker
-
 GO_LDFLAGS ?=
 GO_GCFLAGS ?=
 CGO_CFLAGS ?=
@@ -21,87 +20,108 @@ CGO_CPPFLAGS ?=
 CGO_CXXFLAGS ?=
 CGO_LDFLAGS ?=
 
-GO_TEST_FLAGS ?= -v -race
-test-bench: GO_TEST_FLAGS += -bench=. -benchmem
+# ----------------------------------------------------------------------------
+# build and test flags
 
-GO_BUILD := ${GB_CMD} build
-GO_TEST := ${GB_CMD} test
-GO_LINT := golint
+GB_PROJECT_DIR := $(shell gb env GB_PROJECT_DIR)
+INTERNAL_GOPATH := ${GB_PROJECT_DIR}:${GB_PROJECT_DIR}/vendor
+GO_GLOBAL_FLAGS := -v
+GO_BUILD_FLAGS ?=
+GO_TEST_FLAGS ?= ${GO_GLOBAL_FLAGS} -race
+GO_BENCH_FUNCS ?= .
+GO_BENCH_FLAGS ?= -run=^$$ -bench=${GO_BENCH_FUNCS} -benchmem
 
 ifneq ($(NVIM_GO_DEBUG),)
-GO_GCFLAGS += -gcflags "-N -l"
+GO_GCFLAGS+=-gcflags "-N -l"
 else
-GO_LDFLAGS += -ldflags "-w -s"
+GO_LDFLAGS+=-ldflags "-w -s"
 endif
 
 ifneq ($(NVIM_GO_RACE),)
-GO_BUILD += -race
-build: std-build-race
-build: clean/binary
+GO_BUILD_FLAGS+=-race
+build: clean std-build-race
 rebuild: std-build-race
-manifest: PACKAGE_NAME=nvim-go-race
+manifest: APP=${APP}-race
 endif
 
-default: build
+# ----------------------------------------------------------------------------
+# targets
+
+init:  # Install dependency tools
+	go get -u -v \
+		github.com/golang/lint/golint \
+		honnef.co/go/tools/cmd/staticcheck \
+		honnef.co/go/tools/cmd/gosimple \
+		honnef.co/go/tools/cmd/errcheck-ng
+
 
 build:  ## Build the nvim-go binary
-	${GO_BUILD} $(GO_LDFLAGS) ${GO_GCFLAGS}
+	gb build ${GO_BUILD_FLAGS} ${GO_GCFLAGS} ${GO_LDFLAGS} ./cmd/...
+.PHONY: build
 
-rebuild: clean  ## Rebuild the nvim-go binary
-	${GO_BUILD} -f $(GO_LDFLAGS) ${GO_GCFLAGS}
+rebuild: GO_BUILD_FLAGS+=-f
+rebuild: clean build  ## Rebuild the nvim-go binary
+.PHONY: rebuild
 
 std-build-race:  ## Build the Go stdlib runtime with -race
-	$(GO_CMD) install -v -x -race std
+	go install -v -x -race std
+.PHONY: std-build-race
 
-$(PACKAGE_DIR)/plugin/manifest:  ## Build the automatic writing neovim manifest utility binary
-	go build -o $(PACKAGE_DIR)/plugin/manifest $(PACKAGE_DIR)/plugin/manifest.go
+${CURDIR}/plugin/manifest:  ## Build the automatic writing neovim manifest utility binary
+	go build -o ${CURDIR}/plugin/manifest ${CURDIR}/plugin/manifest.go
 
-manifest: build $(PACKAGE_DIR)/plugin/manifest  ## Write plugin manifest (for developers)
-	$(PACKAGE_DIR)/plugin/manifest -w $(PACKAGE_NAME)
+manifest: build ${CURDIR}/plugin/manifest  ## Write plugin manifest for developer
+	${CURDIR}/plugin/manifest -w ${APP}
+.PHONY: manifest
 
-test: std-build-race  ## Run the package test
-	${GO_TEST} $(GO_TEST_FLAGS)
+manifest-dump: build ${CURDIR}/plugin/manifest  ## Dump plugin manifest
+	${CURDIR}/plugin/manifest -manifest ${APP}
+.PHONY: manifest-dump
 
-test-docker: docker-run  ## Run the package test with docker container
 
-test-bench:  ## Run the package test with -bench=.
-	${GO_TEST} $(GO_TEST_FLAGS)
+test:  ## Run the package test
+	gb test ${GO_TEST_FLAGS} ${PACKAGES}
+.PHONY: test
 
-test-run:  ## Run the package test only those tests and examples
-	${GO_TEST_RUN}
+test-bench: GO_TEST_FLAGS+=${GO_BENCH_FLAGS}
+test-bench: test ## Run the package test
+.PHONY: test-bench
+
 
 lint:
-	GOPATH="$$PWD:$$PWD/vendor" golint $(PACKAGES)
-
-lint/all:
-	@GOPATH="$$PWD:$$PWD/vendor" golint $(PACKAGES)
-	@GOPATH="$$PWD:$$PWD/vendor" unparam $(PACKAGES)
-	@GOPATH="$$PWD:$$PWD/vendor" interfacer $(PACKAGES)
-	@GOPATH="$$PWD:$$PWD/vendor" errcheck $(PACKAGES)
+	GOPATH=${INTERNAL_GOPATH} golint ${PACKAGES}
+	GOPATH=${INTERNAL_GOPATH} errcheck-ng ${PACKAGES}
+	GOPATH=${INTERNAL_GOPATH} gosimple ${PACKAGES}
+	GOPATH=${INTERNAL_GOPATH} interfacer $(PACKAGES)
+	GOPATH=${INTERNAL_GOPATH} staticcheck ${PACKAGES}
+	GOPATH=${INTERNAL_GOPATH} unparam $(PACKAGES)
+.PHONY: lint
 
 vet:
-	GOPATH="$$PWD:$$PWD/vendor" go vet $(PACKAGES)
+	go vet ${PACKAGES}
+.PHONY: vet
 
-vendor-all:  ## Update the all vendor packages
-	${VENDOR_CMD} update -all
+
+vendor-install:  # Install vendor packages for gocode completion
+	go install -v -x ./vendor/...
+.PHONY: vendor-install
+
+vendor-update:  ## Update the all vendor packages
+	gb vendor -d update -all
 	${MAKE} vendor-clean
-
-vendor-clean:  ## Cleanup vendor packages "*_test" files, testdata and nogo files.
-	@find ./vendor -type d -name 'testdata' -print | xargs rm -rf
-	@find ./vendor -type f -name '*_test.go' -print -exec rm {} ";"
-	@find ./vendor \
-		\( -name '*.sh' \
-		-or -name 'Makefile' \
-		-or -name '*.yml' \
-		-or -name '*.txtr' \
-		-or -name '*.vim' \
-		-or -name '*.el' \) \
-		-type f -print -exec rm {} ";"
+.PHONY: vendor-update
 
 vendor-guru:  ## Update the internal guru package
-	${RM} $(shell find ${PACKAGE_DIR}/src/nvim-go/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
-	${VENDOR_CMD} fetch golang.org/x/tools/cmd/guru
+	${RM} -r $(shell find ${PACKAGE_DIR}/src/nvim-go/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
+	gb vendor -d fetch golang.org/x/tools/cmd/guru
 	mv ${PACKAGE_DIR}/vendor/src/golang.org/x/tools/cmd/guru/*.go ${PACKAGE_DIR}/src/nvim-go/internal/guru
+	${MAKE} vendor-guru-rename
+	gb vendor -d delete golang.org/x/tools/cmd/guru
+	gb vendor -d update golang.org/x/tools/cmd/guru/serial
+	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru_test.go ${PACKAGE_DIR}/src/nvim-go/internal/guru/unit_test.go ${PACKAGE_DIR}/src/nvim-go/command/testdata
+.PHONY: vendor-guru
+
+vendor-guru-rename:
 	# Rename main to guru
 	grep "package main" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
 	# Add Result interface
@@ -114,37 +134,52 @@ vendor-guru:  ## Update the internal guru package
 	sed -i "s|package guru // import \"golang.org/x/tools/cmd/guru\"|\n// +build ignore\n\n\0|" ${PACKAGE_DIR}/src/nvim-go/internal/guru/main.go
 	# ignore build guru_test.go
 	sed -i "s|package guru_test|// +build ignore\n\n\0|" ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru_test.go
-	${VENDOR_CMD} delete golang.org/x/tools/cmd/guru
-	${VENDOR_CMD} update golang.org/x/tools/cmd/guru/serial
-	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru_test.go ${PACKAGE_DIR}/src/nvim-go/internal/guru/unit_test.go ${PACKAGE_DIR}/src/nvim-go/command/testdata
+.PHONY: vendor-guru-rename
 
+vendor-clean:  ## Cleanup vendor packages "*_test" files, testdata and nogo files.
+	gb vendor -d purge
+	@find ./vendor -type d -name 'testdata' -print | xargs rm -rf
+	@find ./vendor -type f -name '*_test.go' -print -exec rm {} ";"
+	@find ./vendor \
+		\( -name '*.sh' \
+		-or -name 'Makefile' \
+		-or -name '*.yml' \
+		-or -name '*.txtr' \
+		-or -name '*.vim' \
+		-or -name '*.el' \) \
+		-type f -print -exec rm {} ";"
+.PHONY: vendor-clean
 
-docker: docker-run  ## Run the docker container test on Linux
-
-docker-build:  ## Build the zchee/nvim-go docker container for testing on the Linux
-	${DOCKER_CMD} build --rm -t ${GITHUB_USER}/${PACKAGE_NAME} .
-
-docker-build-nocache:  ## Build the zchee/nvim-go docker container for testing on the Linux without cache
-	${DOCKER_CMD} build --rm --no-cache -t ${GITHUB_USER}/${PACKAGE_NAME} .
-
-docker-run: docker-build  ## Run the zchee/nvim-go docker container test
-	${DOCKER_CMD} run --rm -it ${GITHUB_USER}/${PACKAGE_NAME} gb test $(GO_TEST_FLAGS)
 
 clean:  ## Clean the {bin,pkg} directory
 	${RM} -r ./bin ./pkg
+.PHONY: clean
 
-clean/binary:
-	@${RM} ./bin/nvim-go-race
+
+docker: docker-run  ## Run the docker container test on Linux
+.PHONY: docker
+
+docker-build:  ## Build the zchee/nvim-go docker container for testing on the Linux
+	docker build --rm -t ${USER}/${APP} .
+.PHONY: docker-build
+
+docker-build-nocache:  ## Build the zchee/nvim-go docker container for testing on the Linux without cache
+	docker build --rm --no-cache -t ${USER}/${APP} .
+.PHONY: docker-build-nocache
+
+docker-test: docker-build  ## Run the package test with docker container
+	docker run --rm -it ${USER}/${APP} go test ${GO_TEST_FLAGS} ${PACKAGES}
+.PHONY: docker-test
 
 
 todo:  ## Print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
-	@pt -e 'TODO(\(.+\):|:)' --after=1 --ignore vendor --ignore internal --ignore Makefile || true
-	@pt -e 'BUG(\(.+\):|:)' --after=1 --ignore vendor --ignore internal  --ignore Makefile || true
-	@pt -e 'XXX(\(.+\):|:)' --after=1 --ignore vendor --ignore internal  --ignore Makefile || true
+	@pt -e 'TODO(\(.+\):|:)' --after=1 --ignore vendor --ignore internal --ignore Makefile  || true
+	@pt -e 'BUG(\(.+\):|:)' --after=1 --ignore vendor --ignore internal  --ignore Makefile  || true
+	@pt -e 'XXX(\(.+\):|:)' --after=1 --ignore vendor --ignore internal  --ignore Makefile  || true
 	@pt -e 'FIXME(\(.+\):|:)' --after=1 --ignore vendor --ignore internal --ignore Makefile || true
-	@pt -e 'NOTE(\(.+\):|:)' --after=1 --ignore vendor --ignore internal --ignore Makefile || true
+	@pt -e 'NOTE(\(.+\):|:)' --after=1 --ignore vendor --ignore internal --ignore Makefile  || true
+.PHONY: todo
 
 help:  ## Print this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
-
-.PHONY: clean test build build-race rebuild manifest test test-docker test-bench test-run vendor-all vendor-guru docker docker-build docker-build-nocache todo help
+.PHONY: help
