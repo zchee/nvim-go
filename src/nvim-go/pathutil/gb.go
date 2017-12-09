@@ -59,6 +59,7 @@ func GbProjectName(projectRoot string) string {
 	return filepath.Base(projectRoot)
 }
 
+// GbPackages return the gb packages.
 func GbPackages(root string) ([]string, error) {
 	dir := filepath.Join(root, "src")
 	paths, err := ioutil.ReadDir(dir)

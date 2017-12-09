@@ -15,16 +15,13 @@ import (
 	"github.com/neovim/go-client/nvim"
 )
 
-var pkgPathutil = "pathutil"
-
 // Chdir changes the vim current working directory.
 // The returned function restores working directory to `getcwd()` result path
 // and unlocks the mutex.
 func Chdir(v *nvim.Nvim, dir string) func() {
-	var (
-		m   sync.Mutex
-		cwd interface{}
-	)
+	var m sync.Mutex
+	var cwd interface{}
+
 	m.Lock()
 	v.Eval("getcwd()", &cwd)
 	v.SetCurrentDirectory(dir)
@@ -34,12 +31,16 @@ func Chdir(v *nvim.Nvim, dir string) func() {
 	}
 }
 
+// JoinGoPath joins the $GOPATH + "src" to p
+func JoinGoPath(p string) string {
+	return filepath.Join(build.Default.GOPATH, "src", p)
+}
+
 // TrimGoPath trims the GOPATH and {bin,pkg,src}, basically for the converts
 // the package ID
 func TrimGoPath(p string) string {
 	// Separate trim work for p equal GOPATH
-	p = strings.TrimPrefix(p, build.Default.GOPATH)
-	p = strings.TrimPrefix(p, string(filepath.Separator))
+	p = strings.TrimPrefix(p, build.Default.GOPATH+string(filepath.Separator))
 
 	if len(p) >= 4 {
 		switch p[:3] {
@@ -51,9 +52,13 @@ func TrimGoPath(p string) string {
 	return p
 }
 
-// JoinGoPath joins the $GOPATH + "src" to p
-func JoinGoPath(p string) string {
-	return filepath.Join(build.Default.GOPATH, "src", p)
+// ExpandGoRoot expands the "$GOROOT" include from p.
+func ExpandGoRoot(p string) string {
+	if strings.Index(p, "$GOROOT") != -1 {
+		return strings.Replace(p, "$GOROOT", runtime.GOROOT(), 1)
+	}
+
+	return p // Not hit
 }
 
 // ShortFilePath return the simply trim cwd into p.
@@ -70,13 +75,9 @@ func Rel(cwd, f string) string {
 	return rel
 }
 
-// ExpandGoRoot expands the "$GOROOT" include from p.
-func ExpandGoRoot(p string) string {
-	if strings.Index(p, "$GOROOT") != -1 {
-		return strings.Replace(p, "$GOROOT", runtime.GOROOT(), 1)
-	}
-
-	return p // Not hit
+// ToWildcard returns the path with wildcard(...) suffix.
+func ToWildcard(path string) string {
+	return path + string(filepath.Separator) + "..."
 }
 
 func Create(filename string) error {
@@ -125,9 +126,4 @@ func IsDirExist(dir string) bool {
 func IsGoFile(filename string) bool {
 	f, err := os.Stat(filename)
 	return err == nil && filepath.Ext(f.Name()) == ".go"
-}
-
-// ToWildcard returns the path with wildcard(...) suffix.
-func ToWildcard(path string) string {
-	return path + string(filepath.Separator) + "..."
 }
