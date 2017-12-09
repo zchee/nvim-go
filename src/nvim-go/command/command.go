@@ -16,7 +16,7 @@ import (
 type Command struct {
 	Nvim *nvim.Nvim
 
-	ctx *ctx.Context
+	ctx  *ctx.Context
 	errs *syncmap.Map
 }
 
