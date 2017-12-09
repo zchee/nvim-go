@@ -77,7 +77,7 @@ func Rel(cwd, f string) string {
 
 // ToWildcard returns the path with wildcard(...) suffix.
 func ToWildcard(path string) string {
-	return path + string(filepath.Separator) + "..."
+	return filepath.Join(path, string(filepath.Separator), "...")
 }
 
 func Create(filename string) error {
