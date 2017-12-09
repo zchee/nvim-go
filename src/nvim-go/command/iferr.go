@@ -90,7 +90,6 @@ var errorType types.Type
 
 func init() {
 	errorType = types.Universe.Lookup("error").Type()
-	log.SetFlags(log.Lshortfile)
 }
 
 // errorAssign is an assign statement which involves an error-typed variable.
