@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"nvim-go/internal/pathutil"
+	"nvim-go/pathutil"
 	"nvim-go/nvimutil"
 	"sort"
 

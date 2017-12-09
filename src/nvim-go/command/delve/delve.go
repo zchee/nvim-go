@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"nvim-go/ctx"
-	"nvim-go/internal/pathutil"
+	"nvim-go/pathutil"
 	"nvim-go/nvimutil"
 
 	delveterm "github.com/derekparker/delve/pkg/terminal"

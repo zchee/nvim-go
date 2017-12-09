@@ -21,7 +21,7 @@ import (
 	"nvim-go/config"
 	"nvim-go/internal/guru"
 	"nvim-go/internal/log"
-	"nvim-go/internal/pathutil"
+	"nvim-go/pathutil"
 	"nvim-go/nvimutil"
 
 	"github.com/davecgh/go-spew/spew"

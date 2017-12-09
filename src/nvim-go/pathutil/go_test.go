@@ -6,7 +6,7 @@ package pathutil_test
 
 import (
 	"go/build"
-	"nvim-go/internal/pathutil"
+	"nvim-go/pathutil"
 	"path/filepath"
 	"testing"
 )

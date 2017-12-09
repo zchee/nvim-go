@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/internal/pathutil"
+	"nvim-go/pathutil"
 	"nvim-go/nvimutil"
 
 	"github.com/golang/lint"
