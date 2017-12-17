@@ -125,6 +125,24 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "go.uber.org/atomic",
+			"repository": "https://github.com/uber-go/atomic",
+			"revision": "8474b86a5a6f79c443ce4b2992817ff32cf208b8",
+			"branch": "master"
+		},
+		{
+			"importpath": "go.uber.org/multierr",
+			"repository": "https://github.com/uber-go/multierr",
+			"revision": "fb7d312c2c04c34f0ad621048bbb953b168f9ff6",
+			"branch": "master"
+		},
+		{
+			"importpath": "go.uber.org/zap",
+			"repository": "https://github.com/uber-go/zap",
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"branch": "master"
+		},
+		{
 			"importpath": "golang.org/x/arch/x86/x86asm",
 			"repository": "https://go.googlesource.com/arch",
 			"revision": "58ea1a195b1a354bcd572b7ef6bbbd264dc63732",
