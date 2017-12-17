@@ -79,7 +79,6 @@ func TestCommands_Lint(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Logf("%+v\n%+v", got[0], got[1])
 				t.Errorf("%q. Commands.Lint(%v, %v) = %v, want %v", tt.name, tt.args.args, tt.args.file, got, tt.want)
 			}
 		})
