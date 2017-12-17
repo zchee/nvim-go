@@ -25,14 +25,13 @@ CGO_LDFLAGS ?=
 
 GB_PROJECT_DIR := $(shell gb env GB_PROJECT_DIR)
 INTERNAL_GOPATH := ${GB_PROJECT_DIR}:${GB_PROJECT_DIR}/vendor
-GO_GLOBAL_FLAGS := -v
 GO_BUILD_FLAGS ?=
-GO_TEST_FLAGS ?= ${GO_GLOBAL_FLAGS} -race
+GO_TEST_FLAGS ?=
 GO_BENCH_FUNCS ?= .
 GO_BENCH_FLAGS ?= -run=^$$ -bench=${GO_BENCH_FUNCS} -benchmem
 
 ifneq ($(NVIM_GO_DEBUG),)
-GO_GCFLAGS+=-gcflags "-N -l"
+GO_GCFLAGS+=-gcflags "-N -l -dwarflocationlists=true"  # https://tip.golang.org/doc/diagnostics.html#debugging
 else
 GO_LDFLAGS+=-ldflags "-w -s"
 endif
@@ -80,7 +79,7 @@ manifest-dump: build ${CURDIR}/plugin/manifest  ## Dump plugin manifest
 
 
 test:  ## Run the package test
-	gb test ${GO_TEST_FLAGS} ${PACKAGES}
+	gb test -v -race ${GO_TEST_FLAGS} ${PACKAGES}
 .PHONY: test
 
 test-bench: GO_TEST_FLAGS+=${GO_BENCH_FLAGS}
@@ -168,7 +167,7 @@ docker-build-nocache:  ## Build the zchee/nvim-go docker container for testing o
 .PHONY: docker-build-nocache
 
 docker-test: docker-build  ## Run the package test with docker container
-	docker run --rm -it ${USER}/${APP} go test ${GO_TEST_FLAGS} ${PACKAGES}
+	docker run --rm -it ${USER}/${APP} go test -v -race ${GO_TEST_FLAGS} ${PACKAGES}
 .PHONY: docker-test
 
 
