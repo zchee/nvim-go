@@ -1,32 +1,58 @@
----
 version: 2
+
+defaults: &defaults
+  docker:
+    - image: golang:1.9-stretch
+  working_directory: /go/src/github.com/zchee/nvim-go
+
 jobs:
   build:
-    docker:
-      - image: golang:1.8.1  # Use latest stable version
-
-    working_directory: '/go/src/github.com/zchee/nvim-go'
-
+    <<: *defaults
     steps:
       - checkout
-
       - run:
           name: "Install nvim binary"
           command: |
             set -eux
             wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xzf - --strip-components=1 -C "/usr/local"
             nvim --version
-
       - run:
           name: "Install go dependencies tools"
           command: |
-            go get -u github.com/constabulary/gb/...
-
+            go get -u \
+              github.com/constabulary/gb/... \
+              github.com/haya14busa/goverage
       - run:
+          name: "Take a coverage"
+          environment:
+            GOPATH: '/go/src/github.com/zchee/nvim-go:/go/src/github.com/zchee/nvim-go/vendor'
           command: |
-            ./scripts/coverage.sh
-
+            goverage -v -race -covermode=atomic -coverprofile=coverage.txt ./src/nvim-go/...
       - run:
-          name: "Uploading coverage reports to codecov"
+          name: "Send coverage reports to codecov.io"
           command: |
             bash <(curl -s https://codecov.io/bash)
+
+  reviewdog:
+    docker:
+      - image: zchee/reviewdog
+    working_directory: /go/src/github.com/zchee/nvim-go
+    steps:
+      - checkout
+      - run:
+          name: reviewdog
+          command: reviewdog -ci='circle-ci'
+
+workflows:
+  version: 2
+  build-workflow:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+      - reviewdog:
+          context: org-global
+          filters:
+            branches:
+              ignore: master
