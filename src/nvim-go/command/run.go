@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/pathutil"
 	"nvim-go/nvimutil"
+	"nvim-go/pathutil"
 
 	"github.com/pkg/errors"
 )

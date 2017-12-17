@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/pathutil"
 	"nvim-go/nvimutil"
+	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"

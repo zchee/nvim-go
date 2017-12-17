@@ -9,8 +9,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"nvim-go/pathutil"
 	"nvim-go/nvimutil"
+	"nvim-go/pathutil"
 	"sort"
 
 	delveapi "github.com/derekparker/delve/service/api"
