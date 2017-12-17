@@ -6,7 +6,7 @@ package autocmd
 
 import (
 	"nvim-go/config"
-	"nvim-go/internal/log"
+	"nvim-go/log"
 )
 
 // VimEnter gets user config variables and assign to global variable when autocmd VimEnter.

@@ -20,9 +20,9 @@ import (
 
 	"nvim-go/config"
 	"nvim-go/internal/guru"
-	"nvim-go/internal/log"
-	"nvim-go/pathutil"
+	"nvim-go/log"
 	"nvim-go/nvimutil"
+	"nvim-go/pathutil"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/neovim/go-client/nvim"
