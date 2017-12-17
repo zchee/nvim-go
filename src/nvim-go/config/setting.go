@@ -41,6 +41,7 @@ type build struct {
 	Autosave  int64    `eval:"g:go#build#autosave"`
 	Force     int64    `eval:"g:go#build#force"`
 	Flags     []string `eval:"g:go#build#flags"`
+	IsNotGb   int64    `eval:"g:go#build#is_not_gb"`
 }
 
 type cover struct {
@@ -133,6 +134,9 @@ var (
 	BuildForce bool
 	// BuildFlags flag of compile tools build command.
 	BuildFlags []string
+
+	// BuildIsNotGb workaround for not ues gb compiler.
+	BuildIsNotGb bool
 
 	// CoverFlags flags for cover command.
 	CoverFlags []string
@@ -227,6 +231,7 @@ func Get(v *nvim.Nvim, cfg *Config) {
 	BuildAutosave = itob(cfg.Build.Autosave)
 	BuildForce = itob(cfg.Build.Force)
 	BuildFlags = cfg.Build.Flags
+	BuildIsNotGb = itob(cfg.Build.IsNotGb)
 
 	// Cover
 	CoverFlags = cfg.Cover.Flags
