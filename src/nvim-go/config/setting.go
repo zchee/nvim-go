@@ -32,90 +32,90 @@ type Config struct {
 type Global struct {
 	ChannelID     int
 	ServerName    string `eval:"v:servername"`
-	ErrorListType string `eval:"g:go#global#errorlisttype"`
+	ErrorListType string `eval:"get(g:, 'go#global#errorlisttype', 'locationlist')"`
 }
 
 // build GoBuild command config variable.
 type build struct {
-	Appengine int64    `eval:"g:go#build#appengine"`
-	Autosave  int64    `eval:"g:go#build#autosave"`
-	Force     int64    `eval:"g:go#build#force"`
-	Flags     []string `eval:"g:go#build#flags"`
-	IsNotGb   int64    `eval:"g:go#build#is_not_gb"`
+	Appengine int64    `eval:"get(g:, 'go#build#appengine', 0)"`
+	Autosave  int64    `eval:"get(g:, 'go#build#autosave', 0)"`
+	Force     int64    `eval:"get(g:, 'go#build#force', 0)"`
+	Flags     []string `eval:"get(g:, 'go#build#flags', [])"`
+	IsNotGb   int64    `eval:"get(g:, 'go#build#is_not_gb', 0)"`
 }
 
 type cover struct {
-	Flags []string `eval:"g:go#cover#flags"`
-	Mode  string   `eval:"g:go#cover#mode"`
+	Flags []string `eval:"get(g:, 'go#cover#flags', [])"`
+	Mode  string   `eval:"get(g:, 'go#cover#mode', '')"`
 }
 
 // fmt represents a GoFmt command config variable.
 type fmt struct {
-	Autosave int64  `eval:"g:go#fmt#autosave"`
-	Mode     string `eval:"g:go#fmt#mode"`
+	Autosave int64  `eval:"get(g:, 'go#fmt#autosave', 0)"`
+	Mode     string `eval:"get(g:, 'go#fmt#mode', 'goimports')"`
 }
 
 // generate represents a GoGenerate command config variables.
 type generate struct {
-	TestAllFuncs      int64  `eval:"g:go#generate#test#allfuncs"`
-	TestExclFuncs     string `eval:"g:go#generate#test#exclude"`
-	TestExportedFuncs int64  `eval:"g:go#generate#test#exportedfuncs"`
-	TestSubTest       int64  `eval:"g:go#generate#test#subtest"`
+	TestAllFuncs      int64  `eval:"get(g:, 'go#generate#test#allfuncs', 1)"`
+	TestExclFuncs     string `eval:"get(g:, 'go#generate#test#exclude', '')"`
+	TestExportedFuncs int64  `eval:"get(g:, 'go#generate#test#exportedfuncs', 0)"`
+	TestSubTest       int64  `eval:"get(g:, 'go#generate#test#subtest', 1)"`
 }
 
 // guru represents a GoGuru command config variable.
 type guru struct {
-	Reflection int64            `eval:"g:go#guru#reflection"`
-	KeepCursor map[string]int64 `eval:"g:go#guru#keep_cursor"`
-	JumpFirst  int64            `eval:"g:go#guru#jump_first"`
+	Reflection int64            `eval:"get(g:, 'go#guru#reflection', 0)"`
+	KeepCursor map[string]int64 `eval:"get(g:, 'go#guru#keep_cursor', {'callees':0,'callers':0,'callstack':0,'definition':0,'describe':0,'freevars':0,'implements':0,'peers':0,'pointsto':0,'referrers':0,'whicherrs':0})"`
+	JumpFirst  int64            `eval:"get(g:, 'go#guru#jump_first', 0)"`
 }
 
 // iferr represents a GoIferr command config variable.
 type iferr struct {
-	Autosave int64 `eval:"g:go#iferr#autosave"`
+	Autosave int64 `eval:"get(g:, 'go#iferr#autosave', 0)"`
 }
 
 // lint represents a code lint commands config variable.
 type lint struct {
-	GolintAutosave          int64    `eval:"g:go#lint#golint#autosave"`
-	GolintIgnore            []string `eval:"g:go#lint#golint#ignore"`
-	GolintMinConfidence     float64  `eval:"g:go#lint#golint#min_confidence"`
-	GolintMode              string   `eval:"g:go#lint#golint#mode"`
-	GoVetAutosave           int64    `eval:"g:go#lint#govet#autosave"`
-	GoVetFlags              []string `eval:"g:go#lint#govet#flags"`
-	GoVetIgnore             []string `eval:"g:go#lint#govet#ignore"`
-	MetalinterAutosave      int64    `eval:"g:go#lint#metalinter#autosave"`
-	MetalinterAutosaveTools []string `eval:"g:go#lint#metalinter#autosave#tools"`
-	MetalinterTools         []string `eval:"g:go#lint#metalinter#tools"`
-	MetalinterDeadline      string   `eval:"g:go#lint#metalinter#deadline"`
-	MetalinterSkipDir       []string `eval:"g:go#lint#metalinter#skip_dir"`
+	GolintAutosave          int64    `eval:"get(g:, 'go#lint#golint#autosave', 0)"`
+	GolintIgnore            []string `eval:"get(g:, 'go#lint#golint#ignore', [])"`
+	GolintMinConfidence     float64  `eval:"get(g:, 'go#lint#golint#min_confidence', 0.8)"`
+	GolintMode              string   `eval:"get(g:, 'go#lint#golint#mode', 'current')"`
+	GoVetAutosave           int64    `eval:"get(g:, 'go#lint#govet#autosave', 0)"`
+	GoVetFlags              []string `eval:"get(g:, 'go#lint#govet#flags', [])"`
+	GoVetIgnore             []string `eval:"get(g:, 'go#lint#govet#ignore', [])"`
+	MetalinterAutosave      int64    `eval:"get(g:, 'go#lint#metalinter#autosave', 0)"`
+	MetalinterAutosaveTools []string `eval:"get(g:, 'go#lint#metalinter#autosave#tools', ['vet', 'golint'])"`
+	MetalinterTools         []string `eval:"get(g:, 'go#lint#metalinter#tools', ['vet', 'golint'])"`
+	MetalinterDeadline      string   `eval:"get(g:, 'go#lint#metalinter#deadline', '5s')"`
+	MetalinterSkipDir       []string `eval:"get(g:, 'go#lint#metalinter#skip_dir', [])"`
 }
 
 // rename represents a GoRename command config variable.
 type rename struct {
-	Prefill int64 `eval:"g:go#rename#prefill"`
+	Prefill int64 `eval:"get(g:, 'go#rename#prefill', 0)"`
 }
 
 // terminal represents a configure of Neovim terminal buffer.
 type terminal struct {
-	Mode       string `eval:"g:go#terminal#mode"`
-	Position   string `eval:"g:go#terminal#position"`
-	Height     int64  `eval:"g:go#terminal#height"`
-	Width      int64  `eval:"g:go#terminal#width"`
-	StopInsert int64  `eval:"g:go#terminal#stop_insert"`
+	Mode       string `eval:"get(g:, 'go#terminal#mode', 'vsplit')"`
+	Position   string `eval:"get(g:, 'go#terminal#position', 'belowright')"`
+	Height     int64  `eval:"get(g:, 'go#terminal#height', 0)"`
+	Width      int64  `eval:"get(g:, 'go#terminal#width', 0)"`
+	StopInsert int64  `eval:"get(g:, 'go#terminal#stop_insert', 1)"`
 }
 
 // Test represents a GoTest command config variables.
 type test struct {
-	AllPackage int64    `eval:"g:go#test#all_package"`
-	Autosave   int64    `eval:"g:go#test#autosave"`
-	Flags      []string `eval:"g:go#test#flags"`
+	AllPackage int64    `eval:"get(g:, 'go#test#all_package', 0)"`
+	Autosave   int64    `eval:"get(g:, 'go#test#autosave', 0)"`
+	Flags      []string `eval:"get(g:, 'go#test#flags', [])"`
 }
 
 // Debug represents a debug of nvim-go config variable.
 type debug struct {
-	Enable int64 `eval:"g:go#debug"`
-	Pprof  int64 `eval:"g:go#debug#pprof"`
+	Enable int64 `eval:"get(g:, 'go#debug', 0)"`
+	Pprof  int64 `eval:"get(g:, 'go#debug#pprof', 0)"`
 }
 
 var (
