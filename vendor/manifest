@@ -58,7 +58,7 @@
 		{
 			"importpath": "github.com/golang/lint",
 			"repository": "https://github.com/golang/lint",
-			"revision": "cb00e5669539f047b2f4c53a421a01b0c8e172c6",
+			"revision": "f635bddafc7154957bd70209ee858a4b97e64a9b",
 			"branch": "master"
 		},
 		{
