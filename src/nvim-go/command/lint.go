@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/log"
 	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
