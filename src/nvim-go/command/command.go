@@ -39,13 +39,7 @@ func NewCommand(ctx context.Context, v *nvim.Nvim, buildctxt *buildctx.Context) 
 
 // Register register nvim-go command or function to Neovim over the msgpack-rpc plugin interface.
 func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context) *Command {
-	c := &Command{
-		ctx:       ctx,
-		log:       logger.FromContext(ctx).Named("command"),
-		Nvim:      p.Nvim,
-		buildctxt: buildctxt,
-		errs:      new(syncmap.Map),
-	}
+	c := NewCommand(ctx, p.Nvim, buildctxt)
 
 	// Register command and function
 	// CommandOptions order: Name, NArgs, Range, Count, Addr, Bang, Register, Eval, Bar, Complete
