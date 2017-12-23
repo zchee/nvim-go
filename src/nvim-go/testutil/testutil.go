@@ -10,6 +10,6 @@ import (
 	"nvim-go/logger"
 )
 
-func TestContext() context.Context {
-	return logger.NewContext(context.Background(), logger.NewZapLogger())
+func TestContext(ctx context.Context) context.Context {
+	return logger.NewContext(ctx, logger.NewZapLogger())
 }
