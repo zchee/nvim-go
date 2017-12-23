@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"nvim-go/config"
-	"nvim-go/log"
 	"nvim-go/nvimutil"
+
+	"go.uber.org/zap"
 )
 
 // VimEnter gets user config variables and assign to global variable when autocmd VimEnter.
@@ -19,11 +20,12 @@ func (a *Autocmd) VimEnter(cfg *config.Config) {
 	cfg.Global.ChannelID = a.Nvim.ChannelID()
 
 	config.Get(a.Nvim, cfg)
+	a.log.Debug("VimEnter", zap.Any("cfg", cfg))
+
 	cfg2, err := config.Read()
 	if err != nil {
-		log.Debugln(err)
+		a.log.Error("VimEnter", zap.Error(err))
 	}
-	// log.DebugDump(cfg2)
 	config.Merge(cfg, cfg2)
 
 	a.buildctxt.SetContext(a.buildctxt.Dir)
