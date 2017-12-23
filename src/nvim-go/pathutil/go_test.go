@@ -168,3 +168,40 @@ func TestPackageID(t *testing.T) {
 		})
 	}
 }
+
+func TestPackageRoot(t *testing.T) {
+	gopath := filepath.Join("testdata", "go", "src")
+	build.Default.GOPATH = gopath
+
+	type args struct {
+		path string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *build.Package
+		wantErr bool
+	}{
+		{
+			name:    "default",
+			args:    args{filepath.Join(gopath, "foo.org", "foo", "foo.go")},
+			want:    nil,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := pathutil.PackageRoot(tt.args.path)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PackageRoot(%v) error = %#v, wantErr %#v", tt.args.path, err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PackageRoot(%v) got: %#v, want: %#v", tt.args.path, got, tt.want)
+			}
+			t.Logf("PackageRoot(%#v) got: %#v, want: %#v", tt.args.path, got, tt.want)
+		})
+	}
+}
