@@ -50,12 +50,11 @@ const (
 func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
 	defer nvimutil.Profile(time.Now(), "GoLint")
 
-	var (
-		errlist []*nvim.QuickfixError
-		err     error
-	)
-	switch {
-	case len(args) == 0:
+	var errlist []*nvim.QuickfixError
+	var err error
+
+	switch len(args) {
+	case 0:
 		switch lintMode(config.GolintMode) {
 		case current:
 			errlist, err = c.lintDir(filepath.Dir(file))
@@ -80,7 +79,7 @@ func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error
 			}
 		}
 
-	case len(args) == 1:
+	case 1:
 		path := args[0]
 		if path == "%" {
 			path = file
@@ -96,7 +95,7 @@ func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error
 			}
 		}
 
-	case len(args) >= 2:
+	default: // more than 2
 		errlist, err = c.lintFiles(args...)
 	}
 
