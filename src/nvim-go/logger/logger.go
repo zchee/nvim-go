@@ -6,12 +6,14 @@ package logger
 
 import (
 	"fmt"
+	"os"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-func NewZapLogger(level string, debug bool, opts ...zap.Option) *zap.Logger {
+func NewZapLogger(opts ...zap.Option) *zap.Logger {
+	debug := os.Getenv("NVIM_GO_DEBUG") != ""
 	var cfg zap.Config
 	if !debug {
 		cfg = zap.NewProductionConfig()
@@ -22,7 +24,7 @@ func NewZapLogger(level string, debug bool, opts ...zap.Option) *zap.Logger {
 	}
 	cfg.EncoderConfig.EncodeTime = nil
 
-	if level != "" {
+	if level := os.Getenv("NVIM_GO_LOG_LEVEL"); level != "" {
 		var lv zapcore.Level
 		if err := lv.UnmarshalText([]byte(level)); err != nil {
 			panic(fmt.Sprintf("unknown zap log level: %v", level))

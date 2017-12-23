@@ -33,16 +33,15 @@ const (
 )
 
 var (
-	logLevel = os.Getenv(EnvLogLevel)
-	debug    = os.Getenv(EnvDebug) != ""
-	pprof    = os.Getenv(EnvPprof) != ""
+	debug = os.Getenv(EnvDebug) != ""
+	pprof = os.Getenv(EnvPprof) != ""
 )
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	zapLogger := logger.NewZapLogger(logLevel, debug)
+	zapLogger := logger.NewZapLogger()
 	undo := zap.RedirectStdLog(zapLogger)
 	defer undo()
 	ctx = logger.NewContext(ctx, zapLogger)
