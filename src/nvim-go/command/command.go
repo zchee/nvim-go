@@ -31,6 +31,7 @@ func NewCommand(ctx context.Context, v *nvim.Nvim, buildctxt *buildctx.Context) 
 	return &Command{
 		Nvim:      v,
 		ctx:       ctx,
+		log:       logger.FromContext(ctx).Named("command"),
 		buildctxt: buildctxt,
 		errs:      new(syncmap.Map),
 	}
