@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"go/build"
 	"go/token"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -124,11 +123,8 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 	var scopes []string
 	switch c.buildctxt.Build.Tool {
 	case "go":
-		pkgID, err := pathutil.PackageID(filepath.Dir(eval.File))
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		scopes = []string{pathutil.ToWildcard(pkgID)}
+		rootDir := pathutil.TrimGoPath(pathutil.FindVCSRoot(eval.File))
+		scopes = []string{pathutil.ToWildcard(rootDir)}
 	case "gb":
 		var err error
 		scopes, err = pathutil.GbPackages(c.buildctxt.Build.ProjectRoot)
@@ -138,7 +134,6 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		for i, pkg := range scopes {
 			scopes[i] = pathutil.ToWildcard(pkg)
 		}
-		log.Debug(scopes)
 	}
 	query.Scope = append(query.Scope, scopes...)
 
