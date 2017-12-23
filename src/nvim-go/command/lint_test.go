@@ -12,6 +12,7 @@ import (
 
 	buildctx "nvim-go/ctx"
 	"nvim-go/nvimutil"
+	"nvim-go/testutil"
 
 	"github.com/neovim/go-client/nvim"
 )
@@ -19,7 +20,10 @@ import (
 var testLintDir = filepath.Join("../testdata", "go", "src", "lint")
 
 func TestCommands_Lint(t *testing.T) {
+	ctx := testutil.TestContext()
+
 	type fields struct {
+		ctx       context.Context
 		Nvim      *nvim.Nvim
 		buildctxt *buildctx.Context
 	}
@@ -37,6 +41,7 @@ func TestCommands_Lint(t *testing.T) {
 		{
 			name: "no suggest(go)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "blank-import-main.go")),
 				buildctxt: buildctx.NewContext(),
 			},
@@ -49,6 +54,7 @@ func TestCommands_Lint(t *testing.T) {
 		{
 			name: "2 suggest(go)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "time.go")),
 				buildctxt: buildctx.NewContext(),
 			},
@@ -74,8 +80,7 @@ func TestCommands_Lint(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := context.Background()
-			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
+			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
 			c.Nvim.SetCurrentDirectory(filepath.Dir(tt.args.file))
 
 			got, err := c.Lint(tt.args.args, tt.args.file)
@@ -91,7 +96,10 @@ func TestCommands_Lint(t *testing.T) {
 }
 
 func TestCommands_cmdLintComplete(t *testing.T) {
+	ctx := testutil.TestContext()
+
 	type fields struct {
+		ctx       context.Context
 		Nvim      *nvim.Nvim
 		buildctxt *buildctx.Context
 	}
@@ -109,6 +117,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		{
 			name: "lint dir - no args (go)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "make.go")),
 				buildctxt: buildctx.NewContext(),
 			},
@@ -121,6 +130,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		{
 			name: "lint dir - 'ma' (go)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "make.go")),
 				buildctxt: buildctx.NewContext(),
 			},
@@ -135,6 +145,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		{
 			name: "astdump (go)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, astdumpMain),
 				buildctxt: buildctx.NewContext(),
 			},
@@ -147,6 +158,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		{
 			name: "gsftp (gb)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, gsftpMain),
 				buildctxt: buildctx.NewContext(),
 			},
@@ -161,8 +173,7 @@ func TestCommands_cmdLintComplete(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := context.Background()
-			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
+			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
 
 			gotFilelist, err := c.cmdLintComplete(tt.args.a, tt.args.cwd)
 			if (err != nil) != tt.wantErr {

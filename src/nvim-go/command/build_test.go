@@ -7,14 +7,20 @@ import (
 
 	buildctx "nvim-go/ctx"
 	"nvim-go/nvimutil"
+	"nvim-go/testutil"
 
 	"github.com/neovim/go-client/nvim"
+	"golang.org/x/sync/syncmap"
 )
 
 func TestCommands_Build(t *testing.T) {
+	ctx := testutil.TestContext()
+
 	type fields struct {
+		ctx       context.Context
 		Nvim      *nvim.Nvim
 		buildctxt *buildctx.Context
+		errs      *syncmap.Map
 	}
 	type args struct {
 		bang bool
@@ -30,6 +36,7 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "nvim-go File: filepath.Join(projectRoot, \"src/nvim-go/command\")",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, "testdata"),
 				buildctxt: buildctx.NewContext(),
 			},
@@ -44,6 +51,7 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "gsftp",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, gsftpRoot),
 				buildctxt: buildctx.NewContext(),
 			},
@@ -58,6 +66,7 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "correct (astdump)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(astdump, "astdump.go")), // correct file
 				buildctxt: buildctx.NewContext(),
 			},
@@ -72,6 +81,7 @@ func TestCommands_Build(t *testing.T) {
 		{
 			name: "broken (broken)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, brokenMain), // broken file
 				buildctxt: buildctx.NewContext(),
 			},
@@ -86,9 +96,8 @@ func TestCommands_Build(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
-			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
-			c.ctx.SetContext(filepath.Dir(tt.args.eval.File))
+			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
+			c.buildctxt.SetContext(filepath.Dir(tt.args.eval.File))
 
 			err := c.Build(tt.args.bang, tt.args.eval)
 			if e, ok := err.(error); ok {
@@ -108,7 +117,7 @@ func TestCommands_Build(t *testing.T) {
 }
 
 func BenchmarkBuildGo(b *testing.B) {
-	ctx := context.Background()
+	ctx := testutil.TestContext()
 	buildctxt := buildctx.NewContext()
 	c := NewCommand(ctx, benchVim(b, astdumpMain), buildctxt)
 
@@ -117,14 +126,14 @@ func BenchmarkBuildGo(b *testing.B) {
 			Cwd:  astdump,
 			File: astdump,
 		})
-		if len(c.ctx.Errlist) != 0 {
-			b.Errorf("BenchmarkBuildGo: %v", c.ctx.Errlist)
+		if len(c.buildctxt.Errlist) != 0 {
+			b.Errorf("BenchmarkBuildGo: %v", c.buildctxt.Errlist)
 		}
 	}
 }
 
 func BenchmarkBuildGb(b *testing.B) {
-	ctx := context.Background()
+	ctx := testutil.TestContext()
 	buildctxt := buildctx.NewContext()
 	c := NewCommand(ctx, benchVim(b, gsftpMain), buildctxt)
 
@@ -133,8 +142,8 @@ func BenchmarkBuildGb(b *testing.B) {
 			Cwd:  gsftpRoot,
 			File: gsftpRoot,
 		})
-		if len(c.ctx.Errlist) != 0 {
-			b.Errorf("BenchmarkBuildGb: %v", c.ctx.Errlist)
+		if len(c.buildctxt.Errlist) != 0 {
+			b.Errorf("BenchmarkBuildGb: %v", c.buildctxt.Errlist)
 		}
 	}
 }

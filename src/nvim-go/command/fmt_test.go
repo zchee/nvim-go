@@ -13,12 +13,16 @@ import (
 	"nvim-go/config"
 	buildctx "nvim-go/ctx"
 	"nvim-go/nvimutil"
+	"nvim-go/testutil"
 
 	"github.com/neovim/go-client/nvim"
 )
 
 func TestCommands_Fmt(t *testing.T) {
+	ctx := testutil.TestContext()
+
 	type fields struct {
+		ctx       context.Context
 		Nvim      *nvim.Nvim
 		buildctxt *buildctx.Context
 	}
@@ -34,6 +38,7 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "correct (astdump)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, astdumpMain), // correct file
 				buildctxt: buildctx.NewContext(),
 			},
@@ -45,6 +50,7 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "broken (astdump)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, brokenMain), // broken file
 				buildctxt: buildctx.NewContext(),
 			},
@@ -56,6 +62,7 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "correct (gsftp)",
 			fields: fields{
+				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, gsftpMain), // correct file
 				buildctxt: buildctx.NewContext(),
 			},
@@ -70,8 +77,7 @@ func TestCommands_Fmt(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := context.Background()
-			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
+			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
 
 			err := c.Fmt(tt.args.dir)
 			if errlist, ok := err.([]*nvim.QuickfixError); !ok {
