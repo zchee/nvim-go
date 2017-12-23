@@ -27,6 +27,8 @@ func (a *Autocmd) BufEnter(eval *bufEnterEval) error {
 	a.buildctxt.Dir = eval.Dir
 	a.mu.Unlock()
 
-	a.buildctxt.SetContext(eval.Dir)
+	if eval.Dir != "" && a.buildctxt.PrevDir != eval.Dir {
+		a.buildctxt.SetContext(eval.Dir)
+	}
 	return nil
 }
