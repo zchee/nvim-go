@@ -10,15 +10,18 @@ import (
 
 	"nvim-go/command"
 	buildctx "nvim-go/ctx"
+	"nvim-go/logger"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
+	"go.uber.org/zap"
 	"golang.org/x/sync/syncmap"
 )
 
 // Autocmd represents a autocmd context.
 type Autocmd struct {
 	ctx context.Context
+	log *zap.Logger
 
 	Nvim      *nvim.Nvim
 	buildctxt *buildctx.Context
@@ -33,9 +36,10 @@ type Autocmd struct {
 }
 
 // Register register autocmd to nvim.
-func Register(p *plugin.Plugin, buildctxt *buildctx.Context, cmd *command.Command) {
+func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context, cmd *command.Command) {
 	autocmd := &Autocmd{
-		ctx:              cmd.Ctx,
+		ctx:              ctx,
+		log:              logger.FromContext(ctx).Named("autocmd"),
 		Nvim:             p.Nvim,
 		buildctxt:        buildctxt,
 		cmd:              cmd,

@@ -8,15 +8,18 @@ import (
 	"context"
 
 	buildctx "nvim-go/ctx"
+	"nvim-go/logger"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
+	"go.uber.org/zap"
 	"golang.org/x/sync/syncmap"
 )
 
 // Command represents a nvim-go plugins commands.
 type Command struct {
 	ctx context.Context
+	log *zap.Logger
 
 	Nvim      *nvim.Nvim
 	buildctxt *buildctx.Context
@@ -37,6 +40,7 @@ func NewCommand(ctx context.Context, v *nvim.Nvim, buildctxt *buildctx.Context) 
 func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context) *Command {
 	c := &Command{
 		ctx:       ctx,
+		log:       logger.FromContext(ctx).Named("command"),
 		Nvim:      p.Nvim,
 		buildctxt: buildctxt,
 		errs:      new(syncmap.Map),
