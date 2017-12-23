@@ -6,11 +6,12 @@ package command
 
 import (
 	"bytes"
+	"context"
 	"reflect"
 	"testing"
 
 	"nvim-go/config"
-	"nvim-go/ctx"
+	buildctx "nvim-go/ctx"
 	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
@@ -18,8 +19,8 @@ import (
 
 func TestCommands_Fmt(t *testing.T) {
 	type fields struct {
-		Nvim *nvim.Nvim
-		ctx  *ctx.Context
+		Nvim      *nvim.Nvim
+		buildctxt *buildctx.Context
 	}
 	type args struct {
 		dir string
@@ -33,7 +34,8 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "correct (astdump)",
 			fields: fields{
-				Nvim: nvimutil.TestNvim(t, astdumpMain), // correct file
+				Nvim:      nvimutil.TestNvim(t, astdumpMain), // correct file
+				buildctxt: buildctx.NewContext(),
 			},
 			args: args{
 				dir: astdump,
@@ -43,7 +45,8 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "broken (astdump)",
 			fields: fields{
-				Nvim: nvimutil.TestNvim(t, brokenMain), // broken file
+				Nvim:      nvimutil.TestNvim(t, brokenMain), // broken file
+				buildctxt: buildctx.NewContext(),
 			},
 			args: args{
 				dir: broken,
@@ -53,7 +56,8 @@ func TestCommands_Fmt(t *testing.T) {
 		{
 			name: "correct (gsftp)",
 			fields: fields{
-				Nvim: nvimutil.TestNvim(t, gsftpMain), // correct file
+				Nvim:      nvimutil.TestNvim(t, gsftpMain), // correct file
+				buildctxt: buildctx.NewContext(),
 			},
 			args: args{
 				dir: gsftp,
@@ -61,14 +65,13 @@ func TestCommands_Fmt(t *testing.T) {
 			wantErr: false,
 		},
 	}
+	config.FmtMode = "goimports"
 	for _, tt := range tests {
-		config.FmtMode = "goimports"
-
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := ctx.NewContext()
-			c := NewCommand(tt.fields.Nvim, ctx)
+			ctx := context.Background()
+			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
 
 			err := c.Fmt(tt.args.dir)
 			if errlist, ok := err.([]*nvim.QuickfixError); !ok {

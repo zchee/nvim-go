@@ -73,8 +73,8 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		return nil
 	}()
 
-	b := nvim.Buffer(c.ctx.BufNr)
-	w := nvim.Window(c.ctx.WinID)
+	b := nvim.Buffer(c.buildctxt.BufNr)
+	w := nvim.Window(c.buildctxt.WinID)
 	batch := c.Nvim.NewBatch()
 
 	guruContext := &build.Default
@@ -122,7 +122,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 	}
 
 	var scopes []string
-	switch c.ctx.Build.Tool {
+	switch c.buildctxt.Build.Tool {
 	case "go":
 		pkgID, err := pathutil.PackageID(filepath.Dir(eval.File))
 		if err != nil {
@@ -131,7 +131,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		scopes = []string{pathutil.ToWildcard(pkgID)}
 	case "gb":
 		var err error
-		scopes, err = pathutil.GbPackages(c.ctx.Build.ProjectRoot)
+		scopes, err = pathutil.GbPackages(c.buildctxt.Build.ProjectRoot)
 		if err != nil {
 			return errors.Wrap(err, "could not get gb packages")
 		}

@@ -25,7 +25,7 @@ var importsOptions = imports.Options{
 }
 
 func (c *Command) cmdFmt(dir string) {
-	delete(c.ctx.Errlist, "Fmt")
+	delete(c.buildctxt.Errlist, "Fmt")
 	err := c.Fmt(dir)
 
 	switch e := err.(type) {
@@ -47,7 +47,7 @@ func (c *Command) cmdFmt(dir string) {
 func (c *Command) Fmt(dir string) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoFmt")
 
-	b := nvim.Buffer(c.ctx.BufNr)
+	b := nvim.Buffer(c.buildctxt.BufNr)
 	in, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return errors.WithStack(err)

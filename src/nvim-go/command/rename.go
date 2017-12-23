@@ -35,8 +35,8 @@ func (c *Command) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 		case error:
 			nvimutil.ErrorWrap(c.Nvim, e)
 		case []*nvim.QuickfixError:
-			c.ctx.Errlist["Rename"] = e
-			nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
+			c.buildctxt.Errlist["Rename"] = e
+			nvimutil.ErrorList(c.Nvim, c.buildctxt.Errlist, true)
 		}
 	}()
 }
@@ -45,8 +45,8 @@ func (c *Command) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 func (c *Command) Rename(args []string, bang bool, eval *cmdRenameEval) interface{} {
 	defer nvimutil.Profile(time.Now(), "GoRename")
 
-	b := nvim.Buffer(c.ctx.BufNr)
-	w := nvim.Window(c.ctx.WinID)
+	b := nvim.Buffer(c.buildctxt.BufNr)
+	w := nvim.Window(c.buildctxt.WinID)
 
 	offset, err := nvimutil.ByteOffset(c.Nvim, b, w)
 	if err != nil {
@@ -103,7 +103,7 @@ func (c *Command) Rename(args []string, bang bool, eval *cmdRenameEval) interfac
 			return errors.WithStack(err)
 		}
 
-		loclist, _ := nvimutil.ParseError(renameErr, eval.Cwd, &c.ctx.Build, nil)
+		loclist, _ := nvimutil.ParseError(renameErr, eval.Cwd, &c.buildctxt.Build, nil)
 		nvimutil.SetLoclist(c.Nvim, loclist)
 		nvimutil.OpenLoclist(c.Nvim, w, loclist, true)
 

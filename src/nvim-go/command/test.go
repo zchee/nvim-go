@@ -40,14 +40,14 @@ var testTerm *nvimutil.Terminal
 func (c *Command) Test(args []string, dir string) error {
 	defer nvimutil.Profile(time.Now(), "GoTest")
 
-	cmd := []string{c.ctx.Build.Tool, "test", strings.Join(config.TestFlags, " ")}
+	cmd := []string{c.buildctxt.Build.Tool, "test", strings.Join(config.TestFlags, " ")}
 	if len(args) > 0 {
 		cmd = append(cmd, args...)
 	}
 
 	var testPkgs []string
 	if config.TestAll {
-		switch c.ctx.Build.Tool {
+		switch c.buildctxt.Build.Tool {
 		case "go":
 			pkgs, err := pathutil.FindAllPackage(dir, build.Default, nil, pathutil.ModeExcludeVendor)
 			if err != nil {
@@ -131,8 +131,8 @@ func (c *Command) SwitchTest(eval *cmdTestSwitchEval) error {
 		return errors.New("Does not exist the switching destination file")
 	}
 
-	b := nvim.Buffer(c.ctx.BufNr)
-	w := nvim.Window(c.ctx.WinID)
+	b := nvim.Buffer(c.buildctxt.BufNr)
+	w := nvim.Window(c.buildctxt.WinID)
 
 	// Get the 2D byte slice of current buffer
 	buf, err := c.Nvim.BufferLines(b, 0, -1, true)

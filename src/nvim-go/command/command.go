@@ -5,7 +5,9 @@
 package command
 
 import (
-	"nvim-go/ctx"
+	"context"
+
+	buildctx "nvim-go/ctx"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
@@ -14,24 +16,31 @@ import (
 
 // Command represents a nvim-go plugins commands.
 type Command struct {
-	Nvim *nvim.Nvim
+	ctx context.Context
 
-	ctx  *ctx.Context
-	errs *syncmap.Map
+	Nvim      *nvim.Nvim
+	buildctxt *buildctx.Context
+	errs      *syncmap.Map
 }
 
 // NewCommand return the new Command type with initialize some variables.
-func NewCommand(v *nvim.Nvim, ctx *ctx.Context) *Command {
+func NewCommand(ctx context.Context, v *nvim.Nvim, buildctxt *buildctx.Context) *Command {
 	return &Command{
-		Nvim: v,
-		ctx:  ctx,
-		errs: new(syncmap.Map),
+		Nvim:      v,
+		ctx:       ctx,
+		buildctxt: buildctxt,
+		errs:      new(syncmap.Map),
 	}
 }
 
 // Register register nvim-go command or function to Neovim over the msgpack-rpc plugin interface.
-func Register(p *plugin.Plugin, ctx *ctx.Context) *Command {
-	c := NewCommand(p.Nvim, ctx)
+func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context) *Command {
+	c := &Command{
+		ctx:       ctx,
+		Nvim:      p.Nvim,
+		buildctxt: buildctxt,
+		errs:      new(syncmap.Map),
+	}
 
 	// Register command and function
 	// CommandOptions order: Name, NArgs, Range, Count, Addr, Bang, Register, Eval, Bar, Complete

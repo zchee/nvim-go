@@ -5,11 +5,12 @@
 package command
 
 import (
+	"context"
 	"path/filepath"
 	"reflect"
 	"testing"
 
-	"nvim-go/ctx"
+	buildctx "nvim-go/ctx"
 	"nvim-go/nvimutil"
 
 	"github.com/neovim/go-client/nvim"
@@ -19,8 +20,8 @@ var testVetRoot = filepath.Join(testGoPath, "src", "vet")
 
 func TestCommand_Vet(t *testing.T) {
 	type fields struct {
-		Nvim *nvim.Nvim
-		ctx  *ctx.Context
+		Nvim      *nvim.Nvim
+		buildctxt *buildctx.Context
 	}
 	type args struct {
 		args []string
@@ -38,8 +39,8 @@ func TestCommand_Vet(t *testing.T) {
 		{
 			name: "method.go (2 suggest)",
 			fields: fields{
-				Nvim: nvimutil.TestNvim(t, filepath.Join(testVetRoot, "method.go")),
-				ctx:  ctx.NewContext(),
+				Nvim:      nvimutil.TestNvim(t, filepath.Join(testVetRoot, "method.go")),
+				buildctxt: buildctx.NewContext(),
 			},
 			args: args{
 				args: []string{"method.go"},
@@ -73,8 +74,8 @@ func TestCommand_Vet(t *testing.T) {
 		{
 			name: "method.go and unused.go(8 suggest)",
 			fields: fields{
-				Nvim: nvimutil.TestNvim(t, filepath.Join(testVetRoot, "unused.go")),
-				ctx:  ctx.NewContext(),
+				Nvim:      nvimutil.TestNvim(t, filepath.Join(testVetRoot, "unused.go")),
+				buildctxt: buildctx.NewContext(),
 			},
 			args: args{
 				args: []string{"."},
@@ -129,11 +130,11 @@ func TestCommand_Vet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		tt.fields.ctx.Build.Tool = tt.tool
-		c := NewCommand(tt.fields.Nvim, tt.fields.ctx)
-
+		tt.fields.buildctxt.Build.Tool = tt.tool
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			ctx := context.Background()
+			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
 			if got := c.Vet(tt.args.args, tt.args.eval); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Command.Vet(%v, %v) = %v, want %v", tt.args.args, tt.args.eval, got, tt.want)
 			}

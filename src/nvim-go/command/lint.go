@@ -26,15 +26,15 @@ import (
 
 func (c *Command) cmdLint(v *nvim.Nvim, args []string, file string) {
 	// Cleanup error list
-	delete(c.ctx.Errlist, "Lint")
+	delete(c.buildctxt.Errlist, "Lint")
 
 	go func() {
 		errlist, err := c.Lint(args, file)
 		if err != nil {
 			nvimutil.ErrorWrap(c.Nvim, err)
 		}
-		c.ctx.Errlist["Lint"] = errlist
-		nvimutil.ErrorList(c.Nvim, c.ctx.Errlist, true)
+		c.buildctxt.Errlist["Lint"] = errlist
+		nvimutil.ErrorList(c.Nvim, c.buildctxt.Errlist, true)
 	}()
 }
 
@@ -61,15 +61,15 @@ func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error
 			errlist, err = c.lintDir(filepath.Dir(file))
 		case root:
 			var rootDir string
-			switch c.ctx.Build.Tool {
+			switch c.buildctxt.Build.Tool {
 			case "go":
-				root, err := pathutil.PackageID(c.ctx.Build.ProjectRoot)
+				root, err := pathutil.PackageID(c.buildctxt.Build.ProjectRoot)
 				if err != nil {
 					return nil, errors.WithStack(err)
 				}
 				rootDir = root
 			case "gb":
-				rootDir = filepath.Base(c.ctx.Build.ProjectRoot)
+				rootDir = filepath.Base(c.buildctxt.Build.ProjectRoot)
 			}
 			for _, pkgname := range importPaths([]string{rootDir + "/..."}) {
 				errors, err := c.lintPackage(pkgname)
