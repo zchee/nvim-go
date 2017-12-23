@@ -42,7 +42,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	zapLogger := logger.NewZapLogger(logLevel, debug).With(zap.Namespace("nvim-go"))
+	zapLogger := logger.NewZapLogger(logLevel, debug)
 	undo := zap.RedirectStdLog(zapLogger)
 	defer undo()
 	ctx = logger.NewContext(ctx, zapLogger)
