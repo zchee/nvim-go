@@ -62,9 +62,10 @@ rebuild: GO_BUILD_FLAGS+=-f
 rebuild: clean build  ## Rebuild the nvim-go binary
 .PHONY: rebuild
 
-std-build-race:  ## Build the Go stdlib runtime with -race
+$(shell go env GOPATH)/pkg/darwin_amd64_race:
 	go install -v -x -race std
-.PHONY: std-build-race
+
+std-build-race: $(shell go env GOPATH)/pkg/darwin_amd64_race  ## Build the Go stdlib runtime with -race
 
 ${CURDIR}/plugin/manifest: ${CURDIR}/plugin/manifest.go  ## Build the automatic writing neovim manifest utility binary
 	go build -o ${CURDIR}/plugin/manifest ${CURDIR}/plugin/manifest.go
