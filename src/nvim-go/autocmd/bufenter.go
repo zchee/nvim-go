@@ -14,10 +14,11 @@ type bufEnterEval struct {
 // BufEnter gets the current buffer number, windows ID and set context from the directory structure on BufEnter autocmd.
 func (a *Autocmd) BufEnter(eval *bufEnterEval) error {
 	a.mu.Lock()
-	a.ctx.BufNr = eval.BufNr
-	a.ctx.WinID = eval.WinID
+	a.buildctxt.BufNr = eval.BufNr
+	a.buildctxt.WinID = eval.WinID
+	a.buildctxt.Dir = eval.Dir
 	a.mu.Unlock()
 
-	a.ctx.SetContext(eval.Dir)
+	a.buildctxt.SetContext(eval.Dir)
 	return nil
 }
