@@ -83,3 +83,55 @@ func PackageID(dir string) (string, error) {
 
 	return pkg.ImportPath, nil
 }
+
+// PackageRoot finds repository root of package from path.
+// Return the '/root' if path is '/root/foo/bar'.
+// If path package directory archtecture uses '/root/src/foo', returns the '/root/src'.
+func PackageRoot(path string) (*build.Package, error) {
+	if !IsDir(path) {
+		path = filepath.Dir(path)
+	}
+	path = filepath.Clean(path)
+
+	// for save the before(child) package information
+	savePkg := new(build.Package)
+	for {
+		// Raise the error if dir is reaches root("/") or GOPATH or GOROOT
+		if path == "/" || path == build.Default.GOPATH || path == build.Default.GOROOT {
+			return nil, errors.New("couldn't find the package")
+		}
+
+		// Get the current dir package information
+		pkg, err := build.Default.ImportDir(path, build.ImportMode(0))
+		if err != nil {
+			// Check the exists .go file in the dir
+			if _, ok := err.(*build.NoGoError); ok {
+				// Case of recursive loop of second and subsequent,
+				// Use child(before) directory if NoGoError
+				if savePkg.Dir != "" {
+					return savePkg, nil
+				} else {
+					savePkg = pkg
+					path = filepath.Dir(path)
+					continue
+				}
+			} else if err != nil { // Failed ImportDir() on other errors
+				return nil, errors.WithStack(err)
+			}
+		}
+
+		// return the current directory if package is main
+		if pkg.IsCommand() {
+			return pkg, nil
+		}
+
+		// Return the child(before) package directory if different to current package name
+		if beforePkgName := savePkg.Name; beforePkgName != "" && beforePkgName != pkg.Name {
+			return savePkg, nil
+		}
+
+		// Save the current package and re-assign dir to parent dir for the next recursive loop
+		savePkg = pkg
+		path = filepath.Dir(path)
+	}
+}
