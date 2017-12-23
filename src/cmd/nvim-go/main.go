@@ -6,54 +6,82 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	_ "net/http/pprof" // For pprof debugging.
 	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 
 	"nvim-go/autocmd"
 	"nvim-go/command"
 	"nvim-go/command/delve"
-	"nvim-go/ctx"
+	buildctx "nvim-go/ctx"
+	"nvim-go/logger"
 
 	"github.com/google/gops/agent"
 	"github.com/neovim/go-client/nvim/plugin"
+	"go.uber.org/zap"
+)
+
+const (
+	EnvLogLevel = "NVIM_GO_LOG_LEVEL"
+	EnvDebug    = "NVIM_GO_DEBUG"
+	EnvPprof    = "NVIM_GO_PPROF"
 )
 
 var (
-	debug = os.Getenv("NVIM_GO_DEBUG")
-	pprof = os.Getenv("NVIM_GO_PPROF")
+	logLevel = os.Getenv(EnvLogLevel)
+	debug    = os.Getenv(EnvDebug) != ""
+	pprof    = os.Getenv(EnvPprof) != ""
 )
 
 func main() {
-	register := func(p *plugin.Plugin) error {
-		log.SetFlags(log.Lshortfile)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-		ctxt := ctx.NewContext()
-		c := command.Register(p, ctxt)
-		delve.Register(p, ctxt)
-		autocmd.Register(p, ctxt, c)
+	zapLogger := logger.NewZapLogger(logLevel, debug).With(zap.Namespace("nvim-go"))
+	undo := zap.RedirectStdLog(zapLogger)
+	defer undo()
+	ctx = logger.NewContext(ctx, zapLogger)
 
-		if len(debug) >= 1 {
+	registerFn := func(p *plugin.Plugin) error {
+		buildctxt := buildctx.NewContext()
+		delve.Register(p, buildctxt)
+		c := command.Register(ctx, p, buildctxt)
+		autocmd.Register(ctx, p, buildctxt, c)
+
+		if debug {
 			// starts the gops agent
 			if err := agent.Listen(&agent.Options{NoShutdownCleanup: true}); err != nil {
 				return err
 			}
 
-			if len(pprof) >= 1 {
-				addr := "localhost:14715" // (n: 14)vim-(g: 7)(o: 15)
-				log.Printf("Start the pprof debugging, listen at %s\n", addr)
+			if pprof {
+				const addr = "localhost:14715" // (n: 14)vim-(g: 7)(o: 15)
+				zapLogger.Debug("start the pprof debugging", zap.String("listen at", addr))
 
 				// enable the report of goroutine blocking events
 				runtime.SetBlockProfileRate(1)
-				go func() {
-					log.Println(http.ListenAndServe(addr, nil))
-				}()
+				go log.Println(http.ListenAndServe(addr, nil))
 			}
 		}
+
 		return nil
 	}
+	go plugin.Main(registerFn)
 
-	plugin.Main(register)
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case sig := <-sigc:
+		switch sig {
+		case syscall.SIGINT, syscall.SIGTERM:
+			zapLogger.Debug("main", zap.String("interrupted %s signal", sig.String()))
+			return
+		}
+	}
 }
