@@ -18,7 +18,7 @@ import (
 	"github.com/neovim/go-client/nvim"
 )
 
-func TestCommands_Fmt(t *testing.T) {
+func TestCommand_Fmt(t *testing.T) {
 	ctx := testutil.TestContext()
 
 	type fields struct {

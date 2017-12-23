@@ -13,7 +13,7 @@ import (
 	"golang.org/x/sync/syncmap"
 )
 
-func TestCommands_Build(t *testing.T) {
+func TestCommand_Build(t *testing.T) {
 	ctx := testutil.TestContext()
 
 	type fields struct {
@@ -148,7 +148,7 @@ func BenchmarkBuildGb(b *testing.B) {
 	}
 }
 
-// func TestCommands_compileCmd(t *testing.T) {
+// func TestCommand_compileCmd(t *testing.T) {
 // 	gobinary, err := exec.LookPath("go")
 // 	if err != nil {
 // 		t.Error(err)

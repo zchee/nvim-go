@@ -19,7 +19,7 @@ import (
 
 var testLintDir = filepath.Join("../testdata", "go", "src", "lint")
 
-func TestCommands_Lint(t *testing.T) {
+func TestCommand_Lint(t *testing.T) {
 	ctx := testutil.TestContext()
 
 	type fields struct {
@@ -95,7 +95,7 @@ func TestCommands_Lint(t *testing.T) {
 	}
 }
 
-func TestCommands_cmdLintComplete(t *testing.T) {
+func TestCommand_cmdLintComplete(t *testing.T) {
 	ctx := testutil.TestContext()
 
 	type fields struct {
