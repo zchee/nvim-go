@@ -17,5 +17,5 @@ import (
 // Usage: defer nvim.Profile(time.Now(), "func name")
 func Profile(ctx context.Context, start time.Time, name string) {
 	elapsed := time.Since(start).Seconds()
-	logger.FromContext(ctx).Debug("Profile", zap.Float64(name, elapsed))
+	logger.FromContext(ctx).WithOptions(zap.AddCallerSkip(2)).Named("profile").Debug("elapsed", zap.Float64(name, elapsed))
 }
