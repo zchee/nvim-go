@@ -7,9 +7,12 @@ package ctx
 import (
 	"go/build"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 
+	"nvim-go/config"
 	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"
@@ -20,7 +23,7 @@ type Context struct {
 	// Errlist map the nvim quickfix errors.
 	Errlist map[string][]*nvim.QuickfixError
 
-	prevDir string // for cache
+	PrevDir string // for cache
 	m       sync.Mutex
 
 	Buffer
@@ -33,6 +36,9 @@ type Buffer struct {
 	BufNr int
 	// WinID id of current window.
 	WinID int
+
+	// Dir current directory.
+	Dir string
 }
 
 // Build represents a build tool information.
@@ -61,30 +67,45 @@ func buildContext(dir string, defaultContext build.Context) (string, string, bui
 	// Assign package directory full path from dir
 	projectRoot, _ := pathutil.PackagePath(dir)
 
+	if config.BuildIsNotGb {
+		return tool, pathutil.FindVCSRoot(projectRoot), buildContext
+	}
+
 	// Check whether the dir is Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
 	if gbpath, ok := pathutil.IsGb(filepath.Clean(dir)); ok {
 		tool = "gb"
 		projectRoot = gbpath
 		buildContext.GOPATH = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")
+		if config.BuildAppengine {
+			buildContext.GOROOT = goappEnv("GOROOT")
+		}
 	}
 
 	return tool, projectRoot, buildContext
 }
 
+func goappEnv(env string) string {
+	cmd := exec.Command("goapp", "env", env)
+	out, err := cmd.Output()
+	if err != nil {
+		return build.Default.GOROOT
+	}
+
+	return strings.TrimSpace(string(out))
+}
+
 // SetContext sets the Tool, ProjectRoot, go/build.Default and $GOPATH to buildContext.
 // This function initializes for functions that use go/build.Default.
 func (ctx *Context) SetContext(dir string) {
-	if dir != "" && ctx.prevDir != dir {
-		ctx.m.Lock()
-		defer ctx.m.Unlock()
+	ctx.m.Lock()
+	defer ctx.m.Unlock()
 
-		ctx.Build.Tool, ctx.Build.ProjectRoot, build.Default = buildContext(dir, build.Default)
-		if ctx.Build.Tool == "gb" {
-			build.Default.JoinPath = ctx.Build.GbJoinPath
-		}
-		ctx.prevDir = dir
-
-		os.Setenv("GOPATH", build.Default.GOPATH)
+	ctx.Build.Tool, ctx.Build.ProjectRoot, build.Default = buildContext(dir, build.Default)
+	if ctx.Build.Tool == "gb" {
+		build.Default.JoinPath = ctx.Build.GbJoinPath
 	}
+	ctx.PrevDir = dir
+
+	os.Setenv("GOPATH", build.Default.GOPATH)
 }
