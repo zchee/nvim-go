@@ -6,8 +6,10 @@ package autocmd
 
 import (
 	"path/filepath"
+	"time"
 
 	"nvim-go/config"
+	"nvim-go/nvimutil"
 )
 
 type bufWritePreEval struct {
@@ -21,6 +23,8 @@ func (a *Autocmd) bufWritePre(eval *bufWritePreEval) {
 
 // BufWritePre run the commands on BufWritePre autocmd.
 func (a *Autocmd) BufWritePre(eval *bufWritePreEval) {
+	defer nvimutil.Profile(time.Now(), "BufWritePre")
+
 	dir := filepath.Dir(eval.File)
 
 	// Iferr need execute before Fmt function because that function calls "noautocmd write"

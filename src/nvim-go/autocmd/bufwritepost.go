@@ -6,6 +6,7 @@ package autocmd
 
 import (
 	"path/filepath"
+	"time"
 
 	"nvim-go/command"
 	"nvim-go/config"
@@ -25,6 +26,8 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) {
 
 // BufWritePost run the 'autosave' commands on BufWritePost autocmd.
 func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
+	defer nvimutil.Profile(time.Now(), "BufWritePost")
+
 	dir := filepath.Dir(eval.File)
 
 	if config.FmtAutosave {

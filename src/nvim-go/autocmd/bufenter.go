@@ -4,6 +4,12 @@
 
 package autocmd
 
+import (
+	"time"
+
+	"nvim-go/nvimutil"
+)
+
 // bufEnterEval represents the current buffer number, windows ID and buffer files directory.
 type bufEnterEval struct {
 	BufNr int    `eval:"bufnr('%')"`
@@ -13,6 +19,8 @@ type bufEnterEval struct {
 
 // BufEnter gets the current buffer number, windows ID and set context from the directory structure on BufEnter autocmd.
 func (a *Autocmd) BufEnter(eval *bufEnterEval) error {
+	defer nvimutil.Profile(time.Now(), "BufEnter")
+
 	a.mu.Lock()
 	a.buildctxt.BufNr = eval.BufNr
 	a.buildctxt.WinID = eval.WinID

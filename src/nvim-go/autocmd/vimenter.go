@@ -5,12 +5,17 @@
 package autocmd
 
 import (
+	"time"
+
 	"nvim-go/config"
 	"nvim-go/log"
+	"nvim-go/nvimutil"
 )
 
 // VimEnter gets user config variables and assign to global variable when autocmd VimEnter.
 func (a *Autocmd) VimEnter(cfg *config.Config) {
+	defer nvimutil.Profile(time.Now(), "VimEnter")
+
 	cfg.Global.ChannelID = a.Nvim.ChannelID()
 
 	config.Get(a.Nvim, cfg)
