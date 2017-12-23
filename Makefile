@@ -78,7 +78,7 @@ manifest-dump: build ${CURDIR}/plugin/manifest  ## Dump plugin manifest
 .PHONY: manifest-dump
 
 
-test:  ## Run the package test
+test: std-build-race  ## Run the package test
 	gb test -v -race ${GO_TEST_FLAGS} ${PACKAGES}
 .PHONY: test
 
