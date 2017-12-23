@@ -57,7 +57,7 @@ func (c *Command) funcGuru(args []string, eval *funcGuruEval) {
 
 // Guru go source analysis and output result to the quickfix or locationlist.
 func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
-	defer nvimutil.Profile(time.Now(), "Guru")
+	defer nvimutil.Profile(c.ctx, time.Now(), "Guru")
 
 	mode := args[0]
 	if len(args) > 1 {

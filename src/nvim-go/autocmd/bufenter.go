@@ -19,7 +19,7 @@ type bufEnterEval struct {
 
 // BufEnter gets the current buffer number, windows ID and set context from the directory structure on BufEnter autocmd.
 func (a *Autocmd) BufEnter(eval *bufEnterEval) error {
-	defer nvimutil.Profile(time.Now(), "BufEnter")
+	defer nvimutil.Profile(a.ctx, time.Now(), "BufEnter")
 
 	a.mu.Lock()
 	a.buildctxt.BufNr = eval.BufNr

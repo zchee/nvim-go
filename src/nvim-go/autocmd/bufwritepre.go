@@ -23,7 +23,7 @@ func (a *Autocmd) bufWritePre(eval *bufWritePreEval) {
 
 // BufWritePre run the commands on BufWritePre autocmd.
 func (a *Autocmd) BufWritePre(eval *bufWritePreEval) {
-	defer nvimutil.Profile(time.Now(), "BufWritePre")
+	defer nvimutil.Profile(a.ctx, time.Now(), "BufWritePre")
 
 	dir := filepath.Dir(eval.File)
 

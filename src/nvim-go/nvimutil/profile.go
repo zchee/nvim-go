@@ -5,17 +5,17 @@
 package nvimutil
 
 import (
-	"log"
+	"context"
 	"time"
 
-	"nvim-go/config"
+	"nvim-go/logger"
+
+	"go.uber.org/zap"
 )
 
 // Profile measurement of the time it took to any func and output log file.
 // Usage: defer nvim.Profile(time.Now(), "func name")
-func Profile(start time.Time, name string) {
-	if config.DebugEnable {
-		elapsed := time.Since(start).Seconds()
-		log.Printf("%s: %fsec\n", name, elapsed)
-	}
+func Profile(ctx context.Context, start time.Time, name string) {
+	elapsed := time.Since(start).Seconds()
+	logger.FromContext(ctx).Debug("Profile", zap.Float64(name, elapsed))
 }

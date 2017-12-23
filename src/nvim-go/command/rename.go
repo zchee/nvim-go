@@ -43,7 +43,7 @@ func (c *Command) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
 func (c *Command) Rename(args []string, bang bool, eval *cmdRenameEval) interface{} {
-	defer nvimutil.Profile(time.Now(), "GoRename")
+	defer nvimutil.Profile(c.ctx, time.Now(), "GoRename")
 
 	b := nvim.Buffer(c.buildctxt.BufNr)
 	w := nvim.Window(c.buildctxt.WinID)

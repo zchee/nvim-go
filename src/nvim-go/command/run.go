@@ -44,7 +44,7 @@ func (c *Command) cmdRunLast(file string) {
 
 // Run runs the go run command for current buffer's packages.
 func (c *Command) Run(args []string, file string) error {
-	defer nvimutil.Profile(time.Now(), "GoRun")
+	defer nvimutil.Profile(c.ctx, time.Now(), "GoRun")
 
 	cmd := []string{"go", "run", file}
 	if len(args) != 0 {

@@ -30,7 +30,7 @@ func (c *Command) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir s
 // GenerateTest generates the test files based by current buffer or args files
 // functions.
 func (c *Command) GenerateTest(args []string, ranges [2]int, bang bool, dir string) error {
-	defer nvimutil.Profile(time.Now(), "GenerateTest")
+	defer nvimutil.Profile(c.ctx, time.Now(), "GenerateTest")
 
 	b := nvim.Buffer(c.buildctxt.BufNr)
 	if len(args) == 0 {

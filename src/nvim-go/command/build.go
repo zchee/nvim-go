@@ -50,7 +50,7 @@ func (c *Command) cmdBuild(bang bool, eval *CmdBuildEval) {
 // Build builds the current buffers package use compile tool that determined
 // from the package directory structure.
 func (c *Command) Build(bang bool, eval *CmdBuildEval) interface{} {
-	defer nvimutil.Profile(time.Now(), "GoBuild")
+	defer nvimutil.Profile(c.ctx, time.Now(), "GoBuild")
 
 	if !bang {
 		bang = config.BuildForce

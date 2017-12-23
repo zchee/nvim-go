@@ -32,7 +32,7 @@ func (c *Command) cmdIferr(file string) {
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func (c *Command) Iferr(file string) error {
-	defer nvimutil.Profile(time.Now(), "GoIferr")
+	defer nvimutil.Profile(c.ctx, time.Now(), "GoIferr")
 
 	b := nvim.Buffer(c.buildctxt.BufNr)
 	buflines, err := c.Nvim.BufferLines(b, 0, -1, true)

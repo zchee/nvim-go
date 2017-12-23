@@ -26,7 +26,7 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) {
 
 // BufWritePost run the 'autosave' commands on BufWritePost autocmd.
 func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
-	defer nvimutil.Profile(time.Now(), "BufWritePost")
+	defer nvimutil.Profile(a.ctx, time.Now(), "BufWritePost")
 
 	dir := filepath.Dir(eval.File)
 

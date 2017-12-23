@@ -48,7 +48,7 @@ const (
 // Lint lints a go source file. The argument is a filename or directory path.
 // TODO(zchee): Support go packages.
 func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
-	defer nvimutil.Profile(time.Now(), "GoLint")
+	defer nvimutil.Profile(c.ctx, time.Now(), "GoLint")
 
 	var errlist []*nvim.QuickfixError
 	var err error

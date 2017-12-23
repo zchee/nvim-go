@@ -38,7 +38,7 @@ var testTerm *nvimutil.Terminal
 // Test run the package test command use compile tool that determined from
 // the directory structure.
 func (c *Command) Test(args []string, dir string) error {
-	defer nvimutil.Profile(time.Now(), "GoTest")
+	defer nvimutil.Profile(c.ctx, time.Now(), "GoTest")
 
 	cmd := []string{c.buildctxt.Build.Tool, "test", strings.Join(config.TestFlags, " ")}
 	if len(args) > 0 {
@@ -110,7 +110,7 @@ func (c *Command) cmdSwitchTest(eval *cmdTestSwitchEval) {
 
 // SwitchTest switch to the corresponds current cursor (Test)function.
 func (c *Command) SwitchTest(eval *cmdTestSwitchEval) error {
-	defer nvimutil.Profile(time.Now(), "GoSwitchTest")
+	defer nvimutil.Profile(c.ctx, time.Now(), "GoSwitchTest")
 
 	fname := eval.File
 	ext := filepath.Ext(fname)

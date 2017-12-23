@@ -15,7 +15,7 @@ import (
 
 // VimEnter gets user config variables and assign to global variable when autocmd VimEnter.
 func (a *Autocmd) VimEnter(cfg *config.Config) {
-	defer nvimutil.Profile(time.Now(), "VimEnter")
+	defer nvimutil.Profile(a.ctx, time.Now(), "VimEnter")
 
 	cfg.Global.ChannelID = a.Nvim.ChannelID()
 

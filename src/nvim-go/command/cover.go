@@ -53,7 +53,7 @@ func (c *Command) cmdCover(eval *cmdCoverEval) {
 // cover run the go tool cover command and highlight current buffer based cover
 // profile result.
 func (c *Command) cover(eval *cmdCoverEval) interface{} {
-	defer nvimutil.Profile(time.Now(), "GoCover")
+	defer nvimutil.Profile(c.ctx, time.Now(), "GoCover")
 
 	coverFile, err := ioutil.TempFile(os.TempDir(), "nvim-go-cover")
 	if err != nil {
