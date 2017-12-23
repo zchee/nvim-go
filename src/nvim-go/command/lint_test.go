@@ -20,7 +20,7 @@ import (
 var testLintDir = filepath.Join("../testdata", "go", "src", "lint")
 
 func TestCommand_Lint(t *testing.T) {
-	ctx := testutil.TestContext()
+	ctx := testutil.TestContext(context.Background())
 
 	type fields struct {
 		ctx       context.Context
@@ -96,7 +96,7 @@ func TestCommand_Lint(t *testing.T) {
 }
 
 func TestCommand_cmdLintComplete(t *testing.T) {
-	ctx := testutil.TestContext()
+	ctx := testutil.TestContext(context.Background())
 
 	type fields struct {
 		ctx       context.Context

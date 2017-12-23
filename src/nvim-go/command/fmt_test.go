@@ -19,7 +19,7 @@ import (
 )
 
 func TestCommand_Fmt(t *testing.T) {
-	ctx := testutil.TestContext()
+	ctx := testutil.TestContext(context.Background())
 
 	type fields struct {
 		ctx       context.Context

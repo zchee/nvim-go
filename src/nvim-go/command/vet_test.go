@@ -17,10 +17,9 @@ import (
 	"github.com/neovim/go-client/nvim"
 )
 
-var testVetRoot = filepath.Join(testGoPath, "src", "vet")
-
 func TestCommand_Vet(t *testing.T) {
-	ctx := testutil.TestContext()
+	testVetRoot := filepath.Join(testGoPath, "src", "vet")
+	ctx := testutil.TestContext(context.Background())
 
 	type fields struct {
 		ctx       context.Context
