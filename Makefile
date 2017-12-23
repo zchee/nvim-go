@@ -66,7 +66,7 @@ std-build-race:  ## Build the Go stdlib runtime with -race
 	go install -v -x -race std
 .PHONY: std-build-race
 
-${CURDIR}/plugin/manifest:  ## Build the automatic writing neovim manifest utility binary
+${CURDIR}/plugin/manifest: ${CURDIR}/plugin/manifest.go  ## Build the automatic writing neovim manifest utility binary
 	go build -o ${CURDIR}/plugin/manifest ${CURDIR}/plugin/manifest.go
 
 manifest: build ${CURDIR}/plugin/manifest  ## Write plugin manifest for developer
