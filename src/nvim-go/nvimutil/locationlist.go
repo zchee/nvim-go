@@ -14,8 +14,8 @@ import (
 	"strconv"
 	"strings"
 
-	"nvim-go/config"
 	"nvim-go/buildctx"
+	"nvim-go/config"
 	"nvim-go/pathutil"
 
 	"github.com/neovim/go-client/nvim"

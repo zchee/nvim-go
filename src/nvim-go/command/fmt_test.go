@@ -10,8 +10,8 @@ import (
 	"reflect"
 	"testing"
 
-	"nvim-go/config"
 	"nvim-go/buildctx"
+	"nvim-go/config"
 	"nvim-go/nvimutil"
 	"nvim-go/testutil"
 

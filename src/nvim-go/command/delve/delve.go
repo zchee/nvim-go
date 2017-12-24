@@ -66,8 +66,8 @@ type SignContext struct {
 // NewDelve represents a delve client interface.
 func NewDelve(v *nvim.Nvim, buildContext *buildctx.Context) *Delve {
 	return &Delve{
-		Nvim: v,
-		buildContext:  buildContext,
+		Nvim:         v,
+		buildContext: buildContext,
 	}
 }
 

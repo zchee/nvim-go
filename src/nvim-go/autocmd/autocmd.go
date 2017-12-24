@@ -8,8 +8,8 @@ import (
 	"context"
 	"sync"
 
-	"nvim-go/command"
 	"nvim-go/buildctx"
+	"nvim-go/command"
 	"nvim-go/logger"
 
 	"github.com/neovim/go-client/nvim"
