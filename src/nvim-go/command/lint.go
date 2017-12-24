@@ -8,7 +8,7 @@ import (
 	"go/build"
 	"io/ioutil"
 	"os"
-	pathPkg "path"
+	pathpkg "path"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -231,12 +231,12 @@ func importPathsNoDotExpansion(args []string) []string {
 
 		// Put argument in canonical form, but preserve leading ./.
 		if strings.HasPrefix(a, "./") {
-			a = "./" + pathPkg.Clean(a)
+			a = "./" + pathpkg.Clean(a)
 			if a == "./." {
 				a = "."
 			}
 		} else {
-			a = pathPkg.Clean(a)
+			a = pathpkg.Clean(a)
 		}
 		if a == "all" || a == "std" {
 			out = append(out, allPackages(a)...)
@@ -443,7 +443,7 @@ func matchPackagesInFS(pattern string) []string {
 	// is enough for now, since ... is usually at the
 	// end of a path.
 	i := strings.Index(pattern, "...")
-	dir, _ := pathPkg.Split(pattern[:i])
+	dir, _ := pathpkg.Split(pattern[:i])
 
 	// pattern begins with ./ or ../.
 	// path.Clean will discard the ./ but not the ../.
