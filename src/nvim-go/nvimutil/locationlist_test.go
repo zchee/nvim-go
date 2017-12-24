@@ -74,7 +74,7 @@ func TestParseError(t *testing.T) {
 	var (
 		cwd, _       = os.Getwd()
 		gbProjectDir = filepath.Dir(cwd)
-		gopath       = filepath.Join(os.Getenv("HOME"), "go")
+		gopath       = build.Default.GOPATH
 	)
 
 	type args struct {
