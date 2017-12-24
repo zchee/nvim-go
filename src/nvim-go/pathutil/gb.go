@@ -29,7 +29,7 @@ func IsGb(dir string) (string, bool) {
 	// Recheck use vendor directory.
 	vendor := filepath.Join(root, "vendor")
 	if IsNotExist(vendor) {
-		return dir, false
+		return "", false
 	}
 	return root, true
 }
