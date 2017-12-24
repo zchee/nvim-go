@@ -16,8 +16,8 @@ import (
 func TestIsGb(t *testing.T) {
 	var (
 		cwd, _ = os.Getwd()
-		gopath = os.Getenv("GOPATH")
-		gbroot = filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(cwd))))
+		gopath = build.Default.GOROOT
+		gbroot = filepath.Dir(filepath.Dir(filepath.Dir(cwd)))
 	)
 
 	type args struct {
@@ -95,21 +95,19 @@ func TestIsGb(t *testing.T) {
 		},
 		{
 			name:  "GOROOT",
-			tool:  "gb",
-			args:  args{dir: filepath.Join(build.Default.GOROOT, "src", "go")},
+			tool:  "go",
+			args:  args{dir: filepath.Join(build.Default.GOROOT)},
 			want:  "",
 			want1: false,
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		switch tt.tool {
-		case "go":
-			build.Default.GOPATH = gopath
 		case "gb":
 			build.Default.GOPATH = fmt.Sprintf("%s:%s/vendor", projectRoot, projectRoot)
 		}
 
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, got1 := pathutil.IsGb(tt.args.dir)
