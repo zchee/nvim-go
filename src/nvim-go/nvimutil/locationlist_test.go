@@ -5,7 +5,6 @@
 package nvimutil
 
 import (
-	"fmt"
 	"go/build"
 	"os"
 	"path/filepath"
@@ -179,87 +178,6 @@ package_test.go:36: undeclared name: FindAll`),
 			wantErr: false,
 		},
 		{
-			name: "go build(hyperkitctl)",
-			args: args{
-				errors: []byte(`# github.com/zchee/hyperkitctl/cmd/hyperkitctl
-		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.WalkDir
-		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.DatabasePath`),
-				cwd: filepath.Join(gopath, "src/github.com/zchee/hyperkitctl"),
-				buildContext: &buildctx.Build{
-					Tool: "go",
-				},
-			},
-			want: []*nvim.QuickfixError{
-				{
-					FileName: "cmd/hyperkitctl/test.go",
-					LNum:     26,
-					Col:      0,
-					Text:     "undefined: hyperkitctl.WalkDir",
-				},
-				{
-					FileName: "cmd/hyperkitctl/test.go",
-					LNum:     26,
-					Col:      0,
-					Text:     "undefined: hyperkitctl.DatabasePath",
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "go build(hyperkitctl) 2",
-			args: args{
-				errors: []byte(`# github.com/zchee/hyperkitctl/cmd/hyperkitctl
-		test.go:26: undefined: hyperkitctl.WalkDir
-		test.go:26: undefined: hyperkitctl.DatabasePath`),
-				cwd: filepath.Join(gopath, "src/github.com/zchee/hyperkitctl/cmd/hyperkitctl"),
-				buildContext: &buildctx.Build{
-					Tool: "go",
-				},
-			},
-			want: []*nvim.QuickfixError{
-				{
-					FileName: "test.go",
-					LNum:     26,
-					Col:      0,
-					Text:     "undefined: hyperkitctl.WalkDir",
-				},
-				{
-					FileName: "test.go",
-					LNum:     26,
-					Col:      0,
-					Text:     "undefined: hyperkitctl.DatabasePath",
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "go build relative path",
-			args: args{
-				errors: []byte(`# github.com/zchee/appleopensource
-../../appleopensource.go:26: cannot use ModeTarballs (type ListMode) as type string in argument to ListPackage
-../../appleopensource.go:31: cannot use ModeSource (type ListMode) as type string in argument to ListPackage`),
-				cwd: filepath.Join(gopath, "src/github.com/zchee/appleopensource/cmd/gaos"),
-				buildContext: &buildctx.Build{
-					Tool: "go",
-				},
-			},
-			want: []*nvim.QuickfixError{
-				{
-					FileName: "../../appleopensource.go",
-					LNum:     26,
-					Col:      0,
-					Text:     "cannot use ModeTarballs (type ListMode) as type string in argument to ListPackage",
-				},
-				{
-					FileName: "../../appleopensource.go",
-					LNum:     31,
-					Col:      0,
-					Text:     "cannot use ModeSource (type ListMode) as type string in argument to ListPackage",
-				},
-			},
-			wantErr: false,
-		},
-		{
 			name: "have_want Go compiler type suggestion",
 			args: args{
 				errors: []byte(`# nvim-go/command/delve
@@ -341,54 +259,6 @@ FATAL: command "build" failed: exit status 2`),
 			},
 			wantErr: false,
 		},
-		{
-			name: "initialization loop error",
-			args: args{
-				errors: []byte(fmt.Sprintf(`# github.com/zchee/appleopensource/cmd/gaos
-cmd/gaos/versions.go:14: initialization loop:
-		%s/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:14 cmdVersions refers to
-		%s/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:19 runVersions refers to
-		%s/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:16 versionsPkg refers to
-		%s/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:14 cmdVersions`, gopath, gopath, gopath, gopath)),
-				cwd: filepath.Join(gopath, "src/github.com/zchee/appleopensource/cmd/gaos"),
-				buildContext: &buildctx.Build{
-					Tool: "go",
-				},
-			},
-			want: []*nvim.QuickfixError{
-				{
-					FileName: "versions.go",
-					LNum:     14,
-					Col:      0,
-					Text:     "initialization loop:",
-				},
-				{
-					FileName: "versions.go",
-					LNum:     14,
-					Col:      0,
-					Text:     "cmdVersions refers to",
-				},
-				{
-					FileName: "versions.go",
-					LNum:     19,
-					Col:      0,
-					Text:     "runVersions refers to",
-				},
-				{
-					FileName: "versions.go",
-					LNum:     16,
-					Col:      0,
-					Text:     "versionsPkg refers to",
-				},
-				{
-					FileName: "versions.go",
-					LNum:     14,
-					Col:      0,
-					Text:     "cmdVersions",
-				},
-			},
-			wantErr: false,
-		},
 	}
 
 	build.Default.GOPATH = gopath
@@ -399,11 +269,11 @@ cmd/gaos/versions.go:14: initialization loop:
 			t.Parallel()
 			got, err := ParseError(tt.args.errors, tt.args.cwd, tt.args.buildContext, nil)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("%q.\nParseError(%v, %v, %v) error = %v, wantErr %v", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext, err, tt.wantErr)
+				t.Errorf("%q. ParseError(%v, %v, %v) error = %v, wantErr %v", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext, err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("%q.\nParseError(errors: %v,\ncwd: %v,\nctx: %v) = \n", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext, got, tt.want)
+				t.Errorf("%q. ParseError(errors: %v,\ncwd: %v,\nbuildContext: %v) = \n", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext, got, tt.want)
 				for _, got := range got {
 					t.Logf("=====  got =====: %+v", got)
 				}
