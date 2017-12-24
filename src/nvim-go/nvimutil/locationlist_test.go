@@ -12,7 +12,7 @@ import (
 	"reflect"
 	"testing"
 
-	"nvim-go/ctx"
+	buildctx "nvim-go/ctx"
 
 	"github.com/neovim/go-client/nvim"
 )
@@ -80,7 +80,7 @@ func TestParseError(t *testing.T) {
 	type args struct {
 		errors       []byte
 		cwd          string
-		buildContext *ctx.Build
+		buildContext *buildctx.Build
 	}
 	tests := []struct {
 		name    string
@@ -94,7 +94,7 @@ func TestParseError(t *testing.T) {
 				errors: []byte(`# nvim-go/nvim
 echo.go:79: syntax error: non-declaration statement outside function body`),
 				cwd: cwd,
-				buildContext: &ctx.Build{
+				buildContext: &buildctx.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -114,7 +114,7 @@ echo.go:79: syntax error: non-declaration statement outside function body`),
 locationlist.go:152: syntax error: unexpected case, expecting }
 locationlist.go:160: syntax error: non-declaration statement outside function body`),
 				cwd: cwd,
-				buildContext: &ctx.Build{
+				buildContext: &buildctx.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -142,7 +142,7 @@ locationlist.go:160: syntax error: non-declaration statement outside function bo
 locationlist.go:199: ParseError redeclared in this block
         previous declaration at locationlist.go:149`),
 				cwd: cwd,
-				buildContext: &ctx.Build{
+				buildContext: &buildctx.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -163,7 +163,7 @@ locationlist.go:199: ParseError redeclared in this block
 				errors: []byte(`# nvim-go/pathutil
 package_test.go:36: undeclared name: FindAll`),
 				cwd: "/Users/zchee/go/src/github.com/zchee/nvim-go/src/nvim-go/command",
-				buildContext: &ctx.Build{
+				buildContext: &buildctx.Build{
 					Tool:        "gb",
 					ProjectRoot: "/Users/zchee/go/src/github.com/zchee/nvim-go",
 				},
@@ -185,7 +185,7 @@ package_test.go:36: undeclared name: FindAll`),
 		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.WalkDir
 		cmd/hyperkitctl/test.go:26: undefined: hyperkitctl.DatabasePath`),
 				cwd: filepath.Join(gopath, "src/github.com/zchee/hyperkitctl"),
-				buildContext: &ctx.Build{
+				buildContext: &buildctx.Build{
 					Tool: "go",
 				},
 			},
@@ -212,7 +212,7 @@ package_test.go:36: undeclared name: FindAll`),
 		test.go:26: undefined: hyperkitctl.WalkDir
 		test.go:26: undefined: hyperkitctl.DatabasePath`),
 				cwd: filepath.Join(gopath, "src/github.com/zchee/hyperkitctl/cmd/hyperkitctl"),
-				buildContext: &ctx.Build{
+				buildContext: &buildctx.Build{
 					Tool: "go",
 				},
 			},
@@ -239,7 +239,7 @@ package_test.go:36: undeclared name: FindAll`),
 ../../appleopensource.go:26: cannot use ModeTarballs (type ListMode) as type string in argument to ListPackage
 ../../appleopensource.go:31: cannot use ModeSource (type ListMode) as type string in argument to ListPackage`),
 				cwd: filepath.Join(gopath, "src/github.com/zchee/appleopensource/cmd/gaos"),
-				buildContext: &ctx.Build{
+				buildContext: &buildctx.Build{
 					Tool: "go",
 				},
 			},
@@ -278,7 +278,7 @@ server.go:38: invalid case "connect" in switch on cmd (mismatched types string a
 server.go:40: cannot use cfg.flags (type []string) as type string in append
 FATAL: command "build" failed: exit status 2`),
 				cwd: cwd,
-				buildContext: &ctx.Build{
+				buildContext: &buildctx.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -351,7 +351,7 @@ cmd/gaos/versions.go:14: initialization loop:
 		%s/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:16 versionsPkg refers to
 		%s/src/github.com/zchee/appleopensource/cmd/gaos/versions.go:14 cmdVersions`, gopath, gopath, gopath, gopath)),
 				cwd: filepath.Join(gopath, "src/github.com/zchee/appleopensource/cmd/gaos"),
-				buildContext: &ctx.Build{
+				buildContext: &buildctx.Build{
 					Tool: "go",
 				},
 			},
