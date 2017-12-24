@@ -99,7 +99,7 @@ echo.go:79: syntax error: non-declaration statement outside function body`),
 					ProjectRoot: gbProjectDir,
 				},
 			},
-			want: []*nvim.QuickfixError{&nvim.QuickfixError{
+			want: []*nvim.QuickfixError{{
 				FileName: "../src/nvim-go/nvim/echo.go",
 				LNum:     79,
 				Col:      0,
@@ -120,13 +120,13 @@ locationlist.go:160: syntax error: non-declaration statement outside function bo
 				},
 			},
 			want: []*nvim.QuickfixError{
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/nvim/quickfix/locationlist.go",
 					LNum:     152,
 					Col:      0,
 					Text:     "syntax error: unexpected case, expecting }",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/nvim/quickfix/locationlist.go",
 					LNum:     160,
 					Col:      0,
@@ -148,7 +148,7 @@ locationlist.go:199: ParseError redeclared in this block
 				},
 			},
 			want: []*nvim.QuickfixError{
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/nvim/quickfix/locationlist.go",
 					LNum:     199,
 					Col:      0,
@@ -169,7 +169,7 @@ package_test.go:36: undeclared name: FindAll`),
 				},
 			},
 			want: []*nvim.QuickfixError{
-				&nvim.QuickfixError{
+				{
 					FileName: "../pathutil/package_test.go",
 					LNum:     36,
 					Col:      0,
@@ -190,13 +190,13 @@ package_test.go:36: undeclared name: FindAll`),
 				},
 			},
 			want: []*nvim.QuickfixError{
-				&nvim.QuickfixError{
+				{
 					FileName: "cmd/hyperkitctl/test.go",
 					LNum:     26,
 					Col:      0,
 					Text:     "undefined: hyperkitctl.WalkDir",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "cmd/hyperkitctl/test.go",
 					LNum:     26,
 					Col:      0,
@@ -217,13 +217,13 @@ package_test.go:36: undeclared name: FindAll`),
 				},
 			},
 			want: []*nvim.QuickfixError{
-				&nvim.QuickfixError{
+				{
 					FileName: "test.go",
 					LNum:     26,
 					Col:      0,
 					Text:     "undefined: hyperkitctl.WalkDir",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "test.go",
 					LNum:     26,
 					Col:      0,
@@ -244,13 +244,13 @@ package_test.go:36: undeclared name: FindAll`),
 				},
 			},
 			want: []*nvim.QuickfixError{
-				&nvim.QuickfixError{
+				{
 					FileName: "../../appleopensource.go",
 					LNum:     26,
 					Col:      0,
 					Text:     "cannot use ModeTarballs (type ListMode) as type string in argument to ListPackage",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "../../appleopensource.go",
 					LNum:     31,
 					Col:      0,
@@ -284,55 +284,55 @@ FATAL: command "build" failed: exit status 2`),
 				},
 			},
 			want: []*nvim.QuickfixError{
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/command/delve/delve.go",
 					LNum:     129,
 					Col:      0,
 					Text:     "too many arguments in call to d.startServer",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/command/delve/delve.go",
 					LNum:     159,
 					Col:      0,
 					Text:     "too many arguments in call to d.startServer",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/command/delve/server.go",
 					LNum:     31,
 					Col:      0,
 					Text:     "cannot use cmd (type serverConfig) as type string in argument to exec.Command",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/command/delve/server.go",
 					LNum:     33,
 					Col:      0,
 					Text:     "cannot switch on cmd (type serverConfig) (struct containing []string cannot be compared)",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/command/delve/server.go",
 					LNum:     34,
 					Col:      0,
 					Text:     "invalid case \"exec\" in switch on cmd (mismatched types string and serverConfig)",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/command/delve/server.go",
 					LNum:     36,
 					Col:      0,
 					Text:     "invalid case \"debug\" in switch on cmd (mismatched types string and serverConfig)",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/command/delve/server.go",
 					LNum:     37,
 					Col:      0,
 					Text:     "cannot use cfg.flags (type []string) as type string in append",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/command/delve/server.go",
 					LNum:     38,
 					Col:      0,
 					Text:     "invalid case \"connect\" in switch on cmd (mismatched types string and serverConfig)",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "../src/nvim-go/command/delve/server.go",
 					LNum:     40,
 					Col:      0,
@@ -356,31 +356,31 @@ cmd/gaos/versions.go:14: initialization loop:
 				},
 			},
 			want: []*nvim.QuickfixError{
-				&nvim.QuickfixError{
+				{
 					FileName: "versions.go",
 					LNum:     14,
 					Col:      0,
 					Text:     "initialization loop:",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "versions.go",
 					LNum:     14,
 					Col:      0,
 					Text:     "cmdVersions refers to",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "versions.go",
 					LNum:     19,
 					Col:      0,
 					Text:     "runVersions refers to",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "versions.go",
 					LNum:     16,
 					Col:      0,
 					Text:     "versionsPkg refers to",
 				},
-				&nvim.QuickfixError{
+				{
 					FileName: "versions.go",
 					LNum:     14,
 					Col:      0,
