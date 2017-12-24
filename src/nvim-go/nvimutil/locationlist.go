@@ -233,9 +233,6 @@ func ParseError(errs []byte, cwd string, buildContext *buildctx.Build, ignoreDir
 		case "go":
 			var sep string
 			switch {
-			case pathutil.IsExist(pathutil.JoinGoPath(filename)):
-				filename = pathutil.JoinGoPath(filename)
-
 			// filename has not directory path
 			case filepath.Dir(filename) == ".":
 				filename = filepath.Join(cwd, filename)
@@ -249,6 +246,9 @@ func ParseError(errs []byte, cwd string, buildContext *buildctx.Build, ignoreDir
 			case strings.HasPrefix(filename, pathutil.TrimGoPath(cwd)):
 				sep = pathutil.TrimGoPath(cwd) + string(filepath.Separator)
 				filename = strings.TrimPrefix(filename, sep)
+
+			default:
+				filename = pathutil.JoinGoPath(filename)
 			}
 		case "gb":
 			// gb compiler error messages is relative filename path of project root dir
