@@ -27,13 +27,13 @@ import (
 )
 
 const (
-	EnvDebug = "NVIM_GO_DEBUG"
-	EnvPprof = "NVIM_GO_PPROF"
+	envDebug = "NVIM_GO_DEBUG"
+	envPprof = "NVIM_GO_PPROF"
 )
 
 var (
-	debug = os.Getenv(EnvDebug) != ""
-	pprof = os.Getenv(EnvPprof) != ""
+	debug = os.Getenv(envDebug) != ""
+	pprof = os.Getenv(envPprof) != ""
 )
 
 func main() {
