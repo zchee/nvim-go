@@ -89,18 +89,36 @@ test-bench: test ## Run the package test
 .PHONY: test-bench
 
 
-lint:
-	GOPATH=${INTERNAL_GOPATH} golint ${PACKAGES}
-	GOPATH=${INTERNAL_GOPATH} errcheck-ng ${PACKAGES}
-	GOPATH=${INTERNAL_GOPATH} gosimple ${PACKAGES}
-	GOPATH=${INTERNAL_GOPATH} interfacer $(PACKAGES)
-	GOPATH=${INTERNAL_GOPATH} staticcheck ${PACKAGES}
-	GOPATH=${INTERNAL_GOPATH} unparam $(PACKAGES)
-.PHONY: lint
+golint:
+	@GOPATH=${INTERNAL_GOPATH} golint ${PACKAGES}
+.PHONY: golint
+
+errcheck-ng:
+	@GOPATH=${INTERNAL_GOPATH} errcheck-ng ${PACKAGES}
+.PHONY: errcheck-ng
+
+gosimple:
+	@GOPATH=${INTERNAL_GOPATH} gosimple ${PACKAGES}
+.PHONY: gosimple
+
+interfacer:
+	@GOPATH=${INTERNAL_GOPATH} interfacer $(PACKAGES)
+.PHONY: interfacer
+
+staticcheck:
+	@GOPATH=${INTERNAL_GOPATH} staticcheck $(PACKAGES)
+.PHONY: staticcheck
+
+unparam:
+	@GOPATH=${INTERNAL_GOPATH} unparam $(PACKAGES)
+.PHONY: unparam
 
 vet:
 	go vet ${PACKAGES}
 .PHONY: vet
+
+lint: golint errcheck-ng gosimple interfacer staticcheck unparam vet
+.PHONY: lint
 
 
 vendor-install:  # Install vendor packages for gocode completion
