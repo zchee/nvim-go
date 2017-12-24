@@ -154,7 +154,7 @@ vendor-clean:  ## Cleanup vendor packages "*_test" files, testdata and nogo file
 
 
 clean:  ## Clean the {bin,pkg} directory
-	${RM} -r ./bin ./pkg
+	${RM} -r ./bin ./pkg coverage.txt
 .PHONY: clean
 
 
