@@ -22,13 +22,13 @@ func (a *Autocmd) BufEnter(eval *bufEnterEval) error {
 	defer nvimutil.Profile(a.ctx, time.Now(), "BufEnter")
 
 	a.mu.Lock()
-	a.buildctxt.BufNr = eval.BufNr
-	a.buildctxt.WinID = eval.WinID
-	a.buildctxt.Dir = eval.Dir
+	a.buildContext.BufNr = eval.BufNr
+	a.buildContext.WinID = eval.WinID
+	a.buildContext.Dir = eval.Dir
 	a.mu.Unlock()
 
-	if eval.Dir != "" && a.buildctxt.PrevDir != eval.Dir {
-		a.buildctxt.SetContext(eval.Dir)
+	if eval.Dir != "" && a.buildContext.PrevDir != eval.Dir {
+		a.buildContext.SetContext(eval.Dir)
 	}
 	return nil
 }

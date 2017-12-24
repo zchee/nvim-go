@@ -23,9 +23,9 @@ type Autocmd struct {
 	ctx context.Context
 	log *zap.Logger
 
-	Nvim      *nvim.Nvim
-	buildctxt *buildctx.Context
-	cmd       *command.Command
+	Nvim         *nvim.Nvim
+	buildContext *buildctx.Context
+	cmd          *command.Command
 
 	bufWritePostChan chan error
 	bufWritePreChan  chan interface{}
@@ -36,12 +36,12 @@ type Autocmd struct {
 }
 
 // Register register autocmd to nvim.
-func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context, cmd *command.Command) {
+func Register(ctx context.Context, p *plugin.Plugin, buildContext *buildctx.Context, cmd *command.Command) {
 	autocmd := &Autocmd{
 		ctx:              ctx,
 		log:              logger.FromContext(ctx).Named("autocmd"),
 		Nvim:             p.Nvim,
-		buildctxt:        buildctxt,
+		buildContext:     buildContext,
 		cmd:              cmd,
 		bufWritePreChan:  make(chan interface{}),
 		bufWritePostChan: make(chan error),

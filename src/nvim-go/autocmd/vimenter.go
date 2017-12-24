@@ -28,5 +28,5 @@ func (a *Autocmd) VimEnter(cfg *config.Config) {
 	}
 	config.Merge(cfg, cfg2)
 
-	a.buildctxt.SetContext(a.buildctxt.Dir)
+	a.buildContext.SetContext(a.buildContext.Dir)
 }
