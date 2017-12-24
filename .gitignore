@@ -23,6 +23,9 @@ _testmain.go
 *.test
 *.prof
 
+# coverage
+coverage.txt
+
 # neovim go rplugin
 bin/*
 src/nvim-go/testdata/gb/gsftp/bin/*
