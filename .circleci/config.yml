@@ -27,7 +27,7 @@ jobs:
           environment:
             GOPATH: '/go/src/github.com/zchee/nvim-go:/go/src/github.com/zchee/nvim-go/vendor'
           command: |
-            goverage -v -race -covermode=atomic -coverprofile=coverage.txt ./src/nvim-go/...
+            goverage -v -race -covermode=atomic -coverprofile=coverage.out $(gb list ./nvim-go/... | grep -v internal)
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
