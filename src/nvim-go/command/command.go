@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"nvim-go/buildctx"
+	"nvim-go/command/delve"
 	"nvim-go/logger"
 
 	"github.com/neovim/go-client/nvim"
@@ -67,6 +68,8 @@ func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoBuffers"}, c.cmdBuffers)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoWindows"}, c.cmdWindows)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoTabpages"}, c.cmdTabpagas)
+
+	delve.Register(p, buildctxt)
 
 	return c
 }

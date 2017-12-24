@@ -18,7 +18,6 @@ import (
 	"nvim-go/autocmd"
 	"nvim-go/buildctx"
 	"nvim-go/command"
-	"nvim-go/command/delve"
 	"nvim-go/logger"
 
 	"github.com/google/gops/agent"
@@ -47,7 +46,6 @@ func main() {
 
 	registerFn := func(p *plugin.Plugin) error {
 		buildctxt := buildctx.NewContext()
-		delve.Register(p, buildctxt)
 		c := command.Register(ctx, p, buildctxt)
 		autocmd.Register(ctx, p, buildctxt, c)
 
