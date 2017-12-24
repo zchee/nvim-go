@@ -25,12 +25,11 @@ CGO_LDFLAGS ?=
 GB_PROJECT_DIR := $(shell gb env GB_PROJECT_DIR)
 INTERNAL_GOPATH := ${GB_PROJECT_DIR}:${GB_PROJECT_DIR}/vendor
 GO_BUILD_FLAGS ?=
+GO_TEST_PKGS := $(shell gb list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./... | perl -pe 's/^\n//g')
 GO_TEST_FUNCS ?= .
 GO_TEST_FLAGS ?= -race -run=$(GO_TEST_FUNCS)
 GO_BENCH_FUNCS ?= .
 GO_BENCH_FLAGS ?= -run=^$$ -bench=${GO_BENCH_FUNCS} -benchmem
-
-TESTPKGS := $(shell gb list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./... | perl -pe 's/^\n//g')
 
 ifneq ($(NVIM_GO_DEBUG),)
 GO_GCFLAGS+=-gcflags "-N -l -dwarflocationlists=true"  # https://tip.golang.org/doc/diagnostics.html#debugging
@@ -82,7 +81,7 @@ manifest-dump: build ${CURDIR}/plugin/manifest  ## Dump plugin manifest
 
 
 test: std-build-race  ## Run the package test
-	gb test -v ${GO_TEST_FLAGS} ${TESTPKGS}
+	gb test -v ${GO_TEST_FLAGS} ${GO_TEST_PKGS}
 .PHONY: test
 
 test-bench: GO_TEST_FLAGS+=${GO_BENCH_FLAGS}
