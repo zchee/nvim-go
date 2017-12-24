@@ -34,7 +34,7 @@ func (c *Command) cmdIferr(file string) {
 func (c *Command) Iferr(file string) error {
 	defer nvimutil.Profile(c.ctx, time.Now(), "GoIferr")
 
-	b := nvim.Buffer(c.buildctxt.BufNr)
+	b := nvim.Buffer(c.buildContext.BufNr)
 	buflines, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))

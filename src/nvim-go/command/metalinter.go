@@ -37,14 +37,14 @@ func (c *Command) Metalinter(cwd string) error {
 	defer nvimutil.Profile(c.ctx, time.Now(), "GoMetaLinter")
 
 	var loclist []*nvim.QuickfixError
-	w := nvim.Window(c.buildctxt.WinID)
+	w := nvim.Window(c.buildContext.WinID)
 
 	var args []string
-	switch c.buildctxt.Build.Tool {
+	switch c.buildContext.Build.Tool {
 	case "go":
 		args = append(args, cwd+"/...")
 	case "gb":
-		args = append(args, c.buildctxt.Build.ProjectRoot+"/...")
+		args = append(args, c.buildContext.Build.ProjectRoot+"/...")
 	}
 	args = append(args, []string{"--json", "--disable-all", "--deadline", config.MetalinterDeadline}...)
 

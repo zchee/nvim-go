@@ -21,19 +21,19 @@ type Command struct {
 	ctx context.Context
 	log *zap.Logger
 
-	Nvim      *nvim.Nvim
-	buildctxt *buildctx.Context
-	errs      *syncmap.Map
+	Nvim         *nvim.Nvim
+	buildContext *buildctx.Context
+	errs         *syncmap.Map
 }
 
 // NewCommand return the new Command type with initialize some variables.
 func NewCommand(ctx context.Context, v *nvim.Nvim, buildctxt *buildctx.Context) *Command {
 	return &Command{
-		Nvim:      v,
-		ctx:       ctx,
-		log:       logger.FromContext(ctx).Named("command"),
-		buildctxt: buildctxt,
-		errs:      new(syncmap.Map),
+		Nvim:         v,
+		ctx:          ctx,
+		log:          logger.FromContext(ctx).Named("command"),
+		buildContext: buildctxt,
+		errs:         new(syncmap.Map),
 	}
 }
 

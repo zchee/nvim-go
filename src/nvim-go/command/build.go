@@ -65,7 +65,7 @@ func (c *Command) Build(bang bool, eval *CmdBuildEval) interface{} {
 
 	if buildErr := cmd.Run(); buildErr != nil {
 		if buildErr.(*exec.ExitError) != nil {
-			errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.buildctxt.Build, nil)
+			errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.buildContext.Build, nil)
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -74,12 +74,12 @@ func (c *Command) Build(bang bool, eval *CmdBuildEval) interface{} {
 		return errors.WithStack(buildErr)
 	}
 
-	return nvimutil.EchoSuccess(c.Nvim, "GoBuild", fmt.Sprintf("compiler: %s", c.buildctxt.Build.Tool))
+	return nvimutil.EchoSuccess(c.Nvim, "GoBuild", fmt.Sprintf("compiler: %s", c.buildContext.Build.Tool))
 }
 
 // compileCmd returns the *exec.Cmd corresponding to the compile tool.
 func (c *Command) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
-	bin, err := exec.LookPath(c.buildctxt.Build.Tool)
+	bin, err := exec.LookPath(c.buildContext.Build.Tool)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -92,7 +92,7 @@ func (c *Command) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 	cmd := exec.Command(bin, "build")
 	cmd.Dir = dir
 
-	switch c.buildctxt.Build.Tool {
+	switch c.buildContext.Build.Tool {
 	case "go":
 		// Outputs the binary to DevNull if without bang
 		if !bang {
@@ -102,7 +102,7 @@ func (c *Command) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 			cmd.Args[0] = cmd.Args[0] + "app"
 		}
 	case "gb":
-		cmd.Dir = c.buildctxt.Build.ProjectRoot
+		cmd.Dir = c.buildContext.Build.ProjectRoot
 		if config.BuildAppengine {
 			cmd.Args = append([]string{cmd.Args[0], "gae"}, cmd.Args[1:]...)
 			pkgs, err := pathutil.GbPackages(cmd.Dir)

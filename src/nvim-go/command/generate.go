@@ -32,7 +32,7 @@ func (c *Command) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir s
 func (c *Command) GenerateTest(args []string, ranges [2]int, bang bool, dir string) error {
 	defer nvimutil.Profile(c.ctx, time.Now(), "GenerateTest")
 
-	b := nvim.Buffer(c.buildctxt.BufNr)
+	b := nvim.Buffer(c.buildContext.BufNr)
 	if len(args) == 0 {
 		f, err := c.Nvim.BufferName(b)
 		if err != nil {

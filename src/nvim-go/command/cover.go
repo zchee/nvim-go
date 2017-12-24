@@ -71,13 +71,13 @@ func (c *Command) cover(eval *cmdCoverEval) interface{} {
 	cmd.Stdout = &stdout
 
 	if coverErr := cmd.Run(); coverErr != nil && coverErr.(*exec.ExitError) != nil {
-		errlist, err := nvimutil.ParseError(stdout.Bytes(), filepath.Dir(eval.File), &c.buildctxt.Build, nil)
+		errlist, err := nvimutil.ParseError(stdout.Bytes(), filepath.Dir(eval.File), &c.buildContext.Build, nil)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 		return errlist
 	}
-	delete(c.buildctxt.Errlist, "Cover")
+	delete(c.buildContext.Errlist, "Cover")
 
 	profile, err := cover.ParseProfiles(coverFile.Name())
 	if err != nil {

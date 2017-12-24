@@ -28,7 +28,7 @@ type CmdVetEval struct {
 func (c *Command) cmdVet(args []string, eval *CmdVetEval) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		delete(c.buildctxt.Errlist, "Vet") // cleanup
+		delete(c.buildContext.Errlist, "Vet") // cleanup
 		errch <- c.Vet(args, eval)
 	}()
 
@@ -36,8 +36,8 @@ func (c *Command) cmdVet(args []string, eval *CmdVetEval) {
 	case error:
 		nvimutil.ErrorWrap(c.Nvim, e)
 	case []*nvim.QuickfixError:
-		c.buildctxt.Errlist["Vet"] = e
-		nvimutil.ErrorList(c.Nvim, c.buildctxt.Errlist, true)
+		c.buildContext.Errlist["Vet"] = e
+		nvimutil.ErrorList(c.Nvim, c.buildContext.Errlist, true)
 	}
 }
 
@@ -83,7 +83,7 @@ func (c *Command) Vet(args []string, eval *CmdVetEval) interface{} {
 
 	vetErr := vetCmd.Run()
 	if vetErr != nil {
-		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.buildctxt.Build, config.GoVetIgnore)
+		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.buildContext.Build, config.GoVetIgnore)
 		if err != nil {
 			return errors.WithStack(err)
 		}

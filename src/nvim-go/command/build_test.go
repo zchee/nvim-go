@@ -97,7 +97,7 @@ func TestCommand_Build(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
-			c.buildctxt.SetContext(filepath.Dir(tt.args.eval.File))
+			c.buildContext.SetContext(filepath.Dir(tt.args.eval.File))
 
 			err := c.Build(tt.args.bang, tt.args.eval)
 			if e, ok := err.(error); ok {
@@ -126,8 +126,8 @@ func BenchmarkBuildGo(b *testing.B) {
 			Cwd:  astdump,
 			File: astdump,
 		})
-		if len(c.buildctxt.Errlist) != 0 {
-			b.Errorf("BenchmarkBuildGo: %v", c.buildctxt.Errlist)
+		if len(c.buildContext.Errlist) != 0 {
+			b.Errorf("BenchmarkBuildGo: %v", c.buildContext.Errlist)
 		}
 	}
 }
@@ -142,8 +142,8 @@ func BenchmarkBuildGb(b *testing.B) {
 			Cwd:  gsftpRoot,
 			File: gsftpRoot,
 		})
-		if len(c.buildctxt.Errlist) != 0 {
-			b.Errorf("BenchmarkBuildGb: %v", c.buildctxt.Errlist)
+		if len(c.buildContext.Errlist) != 0 {
+			b.Errorf("BenchmarkBuildGb: %v", c.buildContext.Errlist)
 		}
 	}
 }
