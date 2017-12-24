@@ -48,7 +48,7 @@ const (
 // Lint lints a go source file. The argument is a filename or directory path.
 // TODO(zchee): Support go packages.
 func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GoLint")
+	defer nvimutil.Profile(c.ctx, time.Now(), "Lint")
 
 	var errlist []*nvim.QuickfixError
 	var err error
@@ -78,7 +78,6 @@ func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error
 				errlist = append(errlist, errors...)
 			}
 		}
-
 	case 1:
 		path := args[0]
 		if path == "%" {
@@ -89,17 +88,20 @@ func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error
 			errlist, err = c.lintDir(path)
 		case pathutil.IsExist(path):
 			errlist, err = c.lintFiles(path)
-		case !pathutil.IsDir(path) || !pathutil.IsExist(path):
+		default:
 			for _, pkgname := range importPaths(args) {
 				errlist, err = c.lintPackage(pkgname)
 			}
 		}
-
 	default: // more than 2
 		errlist, err = c.lintFiles(args...)
 	}
 
-	return errlist, errors.WithStack(err)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return errlist, nil
 }
 
 // TODO(zchee): Support list of go packages.
