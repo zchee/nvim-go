@@ -16,9 +16,9 @@ import (
 	"syscall"
 
 	"nvim-go/autocmd"
+	"nvim-go/buildctx"
 	"nvim-go/command"
 	"nvim-go/command/delve"
-	"nvim-go/buildctx"
 	"nvim-go/logger"
 
 	"github.com/google/gops/agent"
@@ -27,9 +27,8 @@ import (
 )
 
 const (
-	EnvLogLevel = "NVIM_GO_LOG_LEVEL"
-	EnvDebug    = "NVIM_GO_DEBUG"
-	EnvPprof    = "NVIM_GO_PPROF"
+	EnvDebug = "NVIM_GO_DEBUG"
+	EnvPprof = "NVIM_GO_PPROF"
 )
 
 var (
