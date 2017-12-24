@@ -20,7 +20,7 @@ import (
 var (
 	testCwd, _     = os.Getwd()
 	projectRoot, _ = filepath.Abs(filepath.Join(testCwd, "../../../"))
-	testdata       = filepath.Join(projectRoot, "src", "nvim-go", "testdata")
+	testdata, _    = filepath.Abs(filepath.Join("../testdata"))
 	testGoPath     = filepath.Join(testdata, "go")
 	testGbPath     = filepath.Join(testdata, "gb")
 
