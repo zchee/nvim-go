@@ -1,4 +1,4 @@
-FROM golang:1.8
+FROM golang:1.9-stretch
 MAINTAINER Koichi Shiraishi <zchee.io@gmail.com>
 
 RUN set -ux \
