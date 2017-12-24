@@ -19,7 +19,7 @@ import (
 
 var (
 	testCwd, _     = os.Getwd()
-	projectRoot, _ = filepath.Abs(filepath.Join(testCwd, "../../../../"))
+	projectRoot, _ = filepath.Abs(filepath.Join(testCwd, "../../../"))
 	testdata       = filepath.Join(projectRoot, "src", "nvim-go", "testdata")
 	testGoPath     = filepath.Join(testdata, "go")
 	testGbPath     = filepath.Join(testdata, "gb")
@@ -57,10 +57,10 @@ func TestChdir(t *testing.T) {
 				}
 			}()
 			defer pathutil.Chdir(tt.args.v, tt.args.dir)()
-			var ccwd interface{}
-			tt.args.v.Eval("getcwd()", &ccwd)
-			if ccwd.(string) != tt.wantCwd {
-				t.Errorf("%q. Chdir(%v, %v) = %v, want %v", tt.name, tt.args.v, tt.args.dir, ccwd, tt.wantCwd)
+			var cwd interface{}
+			tt.args.v.Eval("getcwd()", &cwd)
+			if cwd.(string) != tt.wantCwd {
+				t.Errorf("%q. Chdir(%v, %v) = %v, want %v", tt.name, tt.args.v, tt.args.dir, cwd, tt.wantCwd)
 			}
 		})
 	}
