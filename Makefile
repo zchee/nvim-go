@@ -175,7 +175,7 @@ clean:  ## Clean the {bin,pkg} directory
 .PHONY: clean
 
 
-docker: docker-run  ## Run the docker container test on Linux
+docker: docker-test  ## Run the docker container test on Linux
 .PHONY: docker
 
 docker-build:  ## Build the zchee/nvim-go docker container for testing on the Linux
@@ -187,7 +187,7 @@ docker-build-nocache:  ## Build the zchee/nvim-go docker container for testing o
 .PHONY: docker-build-nocache
 
 docker-test: docker-build  ## Run the package test with docker container
-	docker run --rm -it ${USER}/${APP} go test -v -race ${GO_TEST_FLAGS} ${PACKAGES}
+	docker run --rm -it ${USER}/${APP} gb test -v ${GO_TEST_FLAGS} ${PACKAGES}
 .PHONY: docker-test
 
 
