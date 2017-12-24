@@ -53,12 +53,12 @@ func TestCommand_Vet(t *testing.T) {
 					File: filepath.Join(testVetRoot, "method.go"),
 				},
 			},
-			want: []*nvim.QuickfixError{&nvim.QuickfixError{
+			want: []*nvim.QuickfixError{{
 				FileName: "method.go",
 				LNum:     17,
 				Col:      0,
 				Text:     "method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error",
-			}, &nvim.QuickfixError{
+			}, {
 				FileName: "method.go",
 				LNum:     21,
 				Col:      0,
@@ -89,42 +89,42 @@ func TestCommand_Vet(t *testing.T) {
 					File: filepath.Join(testVetRoot, "unused.go"),
 				},
 			},
-			want: []*nvim.QuickfixError{&nvim.QuickfixError{
+			want: []*nvim.QuickfixError{{
 				FileName: "method.go",
 				LNum:     17,
 				Col:      0,
 				Text:     "method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error",
-			}, &nvim.QuickfixError{
+			}, {
 				FileName: "method.go",
 				LNum:     21,
 				Col:      0,
 				Text:     "method ReadByte() byte should have signature ReadByte() (byte, error)",
-			}, &nvim.QuickfixError{
+			}, {
 				FileName: "unused.go",
 				LNum:     16,
 				Col:      0,
 				Text:     "result of fmt.Errorf call not used",
-			}, &nvim.QuickfixError{
+			}, {
 				FileName: "unused.go",
 				LNum:     19,
 				Col:      0,
 				Text:     "result of errors.New call not used",
-			}, &nvim.QuickfixError{
+			}, {
 				FileName: "unused.go",
 				LNum:     22,
 				Col:      0,
 				Text:     "result of (error).Error call not used",
-			}, &nvim.QuickfixError{
+			}, {
 				FileName: "unused.go",
 				LNum:     25,
 				Col:      0,
 				Text:     "result of (bytes.Buffer).String call not used",
-			}, &nvim.QuickfixError{
+			}, {
 				FileName: "unused.go",
 				LNum:     27,
 				Col:      0,
 				Text:     "result of fmt.Sprint call not used",
-			}, &nvim.QuickfixError{
+			}, {
 				FileName: "unused.go",
 				LNum:     28,
 				Col:      0,

@@ -62,12 +62,12 @@ func TestCommand_Lint(t *testing.T) {
 				args: []string{"%"},
 				file: filepath.Join(testLintDir, "time.go"),
 			},
-			want: []*nvim.QuickfixError{&nvim.QuickfixError{
+			want: []*nvim.QuickfixError{{
 				FileName: "time.go",
 				LNum:     11,
 				Col:      5,
 				Text:     "var rpcTimeoutMsec is of type *time.Duration; don't use unit-specific suffix \"Msec\"",
-			}, &nvim.QuickfixError{
+			}, {
 				FileName: "time.go",
 				LNum:     13,
 				Col:      5,

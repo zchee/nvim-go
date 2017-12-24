@@ -34,7 +34,7 @@ func (r *calleesTypesResult) Result(fset *token.FileSet) interface{} {
 		Desc: "static function call",
 	}
 	j.Callees = []*serial.Callee{
-		&serial.Callee{
+		{
 			Name: r.callee.FullName(),
 			Pos:  fset.Position(r.callee.Pos()).String(),
 		},

@@ -159,7 +159,7 @@ func (c *Command) SwitchTest(eval *cmdTestSwitchEval) error {
 				}
 				// currentlly only support "_" or "-"
 				if funcName[0] == '_' || funcName[0] == '-' {
-					funcName = funcName[1:len(funcName)]
+					funcName = funcName[1:]
 				}
 			}
 		}
