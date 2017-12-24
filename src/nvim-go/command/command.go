@@ -7,7 +7,7 @@ package command
 import (
 	"context"
 
-	buildctx "nvim-go/ctx"
+	"nvim-go/buildctx"
 	"nvim-go/logger"
 
 	"github.com/neovim/go-client/nvim"

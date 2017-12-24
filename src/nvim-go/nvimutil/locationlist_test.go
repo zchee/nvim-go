@@ -12,7 +12,7 @@ import (
 	"reflect"
 	"testing"
 
-	buildctx "nvim-go/ctx"
+	"nvim-go/buildctx"
 
 	"github.com/neovim/go-client/nvim"
 )

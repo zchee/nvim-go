@@ -18,7 +18,7 @@ import (
 	"nvim-go/autocmd"
 	"nvim-go/command"
 	"nvim-go/command/delve"
-	buildctx "nvim-go/ctx"
+	"nvim-go/buildctx"
 	"nvim-go/logger"
 
 	"github.com/google/gops/agent"

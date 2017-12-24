@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"nvim-go/command"
-	buildctx "nvim-go/ctx"
+	"nvim-go/buildctx"
 	"nvim-go/logger"
 
 	"github.com/neovim/go-client/nvim"
