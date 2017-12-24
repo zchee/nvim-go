@@ -40,7 +40,8 @@ func JoinGoPath(p string) string {
 // the package ID
 func TrimGoPath(p string) string {
 	// Separate trim work for p equal GOPATH
-	p = strings.TrimPrefix(p, build.Default.GOPATH+string(filepath.Separator))
+	p = strings.TrimPrefix(p, build.Default.GOPATH)
+	p = strings.TrimPrefix(p, string(filepath.Separator))
 
 	if len(p) >= 4 {
 		switch p[:3] {
