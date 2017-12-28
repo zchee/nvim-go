@@ -6,6 +6,7 @@ package delve
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"go/build"
 	"io/ioutil"
@@ -16,6 +17,7 @@ import (
 	"strings"
 
 	"nvim-go/buildctx"
+	"nvim-go/logger"
 	"nvim-go/nvimutil"
 	"nvim-go/pathutil"
 
@@ -24,14 +26,17 @@ import (
 	delverpc2 "github.com/derekparker/delve/service/rpc2"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 const defaultAddr = "localhost:41222" // d:4 l:12 v:22
 
 // Delve represents a delve client.
 type Delve struct {
-	Nvim *nvim.Nvim
+	ctx context.Context
+	log *zap.Logger
 
+	Nvim         *nvim.Nvim
 	buildContext *buildctx.Context
 
 	server     *exec.Cmd
@@ -64,9 +69,11 @@ type SignContext struct {
 }
 
 // NewDelve represents a delve client interface.
-func NewDelve(v *nvim.Nvim, buildContext *buildctx.Context) *Delve {
+func NewDelve(ctx context.Context, n *nvim.Nvim, buildContext *buildctx.Context) *Delve {
 	return &Delve{
-		Nvim:         v,
+		ctx:          ctx,
+		log:          logger.FromContext(ctx).Named("delve"),
+		Nvim:         n,
 		buildContext: buildContext,
 	}
 }

@@ -69,7 +69,7 @@ func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoWindows"}, c.cmdWindows)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoTabpages"}, c.cmdTabpagas)
 
-	delve.Register(p, buildctxt)
+	delve.Register(ctx, p, buildctxt)
 
 	return c
 }

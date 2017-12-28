@@ -5,14 +5,15 @@
 package delve
 
 import (
+	"context"
 	"nvim-go/buildctx"
 
 	"github.com/neovim/go-client/nvim/plugin"
 )
 
 // Register register nvim-go's delve command or function to Neovim over the msgpack-rpc plugin interface.
-func Register(p *plugin.Plugin, buildContext *buildctx.Context) {
-	d := NewDelve(p.Nvim, buildContext)
+func Register(ctx context.Context, p *plugin.Plugin, buildContext *buildctx.Context) {
+	d := NewDelve(ctx, p.Nvim, buildContext)
 
 	// Debug compile and begin debugging program.
 	p.HandleCommand(&plugin.CommandOptions{Name: "DlvDebug", NArgs: "*", Eval: "[getcwd(), expand('%:p:h')]"}, d.cmdDebug)
