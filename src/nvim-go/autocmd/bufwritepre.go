@@ -13,8 +13,8 @@ import (
 )
 
 type bufWritePreEval struct {
-	Cwd  string `msgpack:",array"`
-	File string
+	Cwd  string `eval:getcwd()`
+	File string `eval:"expand('%:p')"`
 }
 
 func (a *Autocmd) bufWritePre(eval *bufWritePreEval) {

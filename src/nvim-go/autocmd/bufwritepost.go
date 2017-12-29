@@ -16,8 +16,8 @@ import (
 )
 
 type bufWritePostEval struct {
-	Cwd  string `msgpack:",array"`
-	File string
+	Cwd  string `eval:getcwd()`
+	File string `eval:"expand('%:p')"`
 }
 
 func (a *Autocmd) bufWritePost(eval *bufWritePostEval) {
