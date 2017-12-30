@@ -1,5 +1,5 @@
 FROM golang:1.9-stretch
-MAINTAINER Koichi Shiraishi <zchee.io@gmail.com>
+LABEL maintainer "Koichi Shiraishi <zchee.io@gmail.com>"
 
 RUN set -ux \
 	&& wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xzf - --strip-components=1 -C "/usr/local" \
@@ -7,7 +7,7 @@ RUN set -ux \
 	\
 	&& go get github.com/constabulary/gb/...
 
-COPY . /nvim-go
-WORKDIR /nvim-go
+COPY . /go/src/github.com/zchee/nvim-go
+WORKDIR /go/src/github.com/zchee/nvim-go
 
-CMD ["gb", "test", "-v", "-race"]
+CMD ["go", "test", "-v", "-race", "./..."]
