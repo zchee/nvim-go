@@ -15,12 +15,12 @@ import (
 	"runtime"
 	"syscall"
 
+	"github.com/google/gops/agent"
+	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/zchee/nvim-go/src/autocmd"
 	"github.com/zchee/nvim-go/src/buildctx"
 	"github.com/zchee/nvim-go/src/command"
 	"github.com/zchee/nvim-go/src/logger"
-	"github.com/google/gops/agent"
-	"github.com/neovim/go-client/nvim/plugin"
 	"go.uber.org/zap"
 )
 
