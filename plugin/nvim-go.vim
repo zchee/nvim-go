@@ -14,7 +14,6 @@ let g:loaded_nvim_go = 1
 " register remote plugin {{{
 let s:plugin_name   = 'nvim-go'
 let s:plugin_root   = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
-let s:plugin_dir    = s:plugin_root . '/rplugin/go/' . s:plugin_name
 
 " wrapper of debug logging script
 if g:go#debug
