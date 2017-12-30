@@ -25,9 +25,8 @@ jobs:
       - run:
           name: "Take a coverage"
           environment:
-            GOPATH: '/go/src/github.com/zchee/nvim-go:/go/src/github.com/zchee/nvim-go/vendor'
           command: |
-            goverage -v -race -covermode=atomic -coverprofile=coverage.out $(gb list ./nvim-go/... | grep -v internal)
+            goverage -v -race -covermode=atomic -coverprofile=coverage.out $(go list ./src/... | grep -v internal)
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
