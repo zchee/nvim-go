@@ -1,7 +1,20 @@
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
-*.o
-*.a
+# nvim-go project generated files to ignore
+#  if you want to ignore files created by your editor/tools,
+#  please consider a global .gitignore https://help.github.com/articles/ignoring-files
+#  please do not open a pull request to add something created by your editor or tools
+#
+# github/gitignore/Go.gitignore
+# Binaries for programs and plugins
+*.exe
+*.dll
 *.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
 
 # Folders
 _obj
@@ -19,23 +32,15 @@ _cgo_export.*
 
 _testmain.go
 
-*.exe
-*.test
-*.prof
-
-# coverage
-coverage.txt
-
-# neovim go rplugin
+# binary
 bin/*
-src/nvim-go/testdata/gb/gsftp/bin/*
-pkg/*
 
-# workaround for github.com/pkg
-!src/nvim-go/command/testdata/gb/gsftp/vendor/src/github.com/pkg/
-
-# manifest write script
+# nvim rpc plugin manifest write command
 plugin/manifest
+
+# workaround for github.com/pkg/gsftp testdata
+src/testdata/gb/gsftp/bin
+src/testdata/gb/gsftp/pkg
 
 # habit
 _*
