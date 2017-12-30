@@ -18,9 +18,9 @@ let s:plugin_dir    = s:plugin_root . '/rplugin/go/' . s:plugin_name
 
 " wrapper of debug logging script
 if g:go#debug
-  let s:plugin_binary = s:plugin_root . '/bin/' . s:plugin_name
-else 
   let s:plugin_binary  = s:plugin_root . '/scripts/debug.sh'
+else
+  let s:plugin_binary = s:plugin_root . '/bin/' . s:plugin_name
 endif
 
 function! s:RequireNvimGo(host) abort
