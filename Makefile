@@ -4,6 +4,7 @@
 # package level setting
 
 APP := $(notdir $(CURDIR))
+PACKAGE_ROOT := $(CURDIR)
 PACKAGES := $(shell gb list ./...)
 
 # ----------------------------------------------------------------------------
@@ -130,29 +131,29 @@ vendor-update:  ## Update the all vendor packages
 	${MAKE} vendor-clean
 .PHONY: vendor-update
 
-vendor-guru:  ## Update the internal guru package
-	${RM} -r $(shell find ${PACKAGE_DIR}/src/nvim-go/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
-	gb vendor -d fetch golang.org/x/tools/cmd/guru
-	mv ${PACKAGE_DIR}/vendor/src/golang.org/x/tools/cmd/guru/*.go ${PACKAGE_DIR}/src/nvim-go/internal/guru
-	${MAKE} vendor-guru-rename
-	gb vendor -d delete golang.org/x/tools/cmd/guru
-	gb vendor -d update golang.org/x/tools/cmd/guru/serial
-	${RM} -r ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru_test.go ${PACKAGE_DIR}/src/nvim-go/internal/guru/unit_test.go ${PACKAGE_DIR}/src/nvim-go/command/testdata
+vendor-guru: vendor-guru-update vendor-guru-rename
 .PHONY: vendor-guru
 
-vendor-guru-rename:
+vendor-guru-update:  ## Update the internal guru package
+	${RM} -r $(shell find ${PACKAGE_ROOT}/src/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
+	cp ${PACKAGE_ROOT}/vendor/golang.org/x/tools/cmd/guru/*.go ${PACKAGE_ROOT}/src/internal/guru
+	sed -i "s|\t// TODO(adonovan): opt: parallelize.|\tbp.GoFiles = append(bp.GoFiles, bp.CgoFiles...)\n\n\0|" src/internal/guru/definition.go
+	# ${RM} -r ${PACKAGE_ROOT}/src/internal/guru/guru_test.go ${PACKAGE_ROOT}/src/internal/guru/unit_test.go
+.PHONY: vendor-guru-update
+
+vendor-guru-rename: vendor-guru-update
 	# Rename main to guru
-	grep "package main" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
+	grep "package main" ${PACKAGE_ROOT}/src/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
 	# Add Result interface
-	sed -i "s|PrintPlain(printf printfFunc)|\0\n\n\tResult(fset *token.FileSet) interface{}|" ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru.go
+	sed -i "s|PrintPlain(printf printfFunc)|\0\n\n\tResult(fset *token.FileSet) interface{}|" ${PACKAGE_ROOT}/src/internal/guru/guru.go
 	# Export functions
-	grep "findPackageMember" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/findPackageMember/FindPackageMember/'
-	grep "packageForQualIdent" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/packageForQualIdent/PackageForQualIdent/'
-	grep "guessImportPath" ${PACKAGE_DIR}/src/nvim-go/internal/guru/*.go -l | xargs sed -i 's/guessImportPath/GuessImportPath/'
+	grep "findPackageMember" ${PACKAGE_ROOT}/src/internal/guru/*.go -l | xargs sed -i 's/findPackageMember/FindPackageMember/'
+	grep "packageForQualIdent" ${PACKAGE_ROOT}/src/internal/guru/*.go -l | xargs sed -i 's/packageForQualIdent/PackageForQualIdent/'
+	grep "guessImportPath" ${PACKAGE_ROOT}/src/internal/guru/*.go -l | xargs sed -i 's/guessImportPath/GuessImportPath/'
 	# ignore build main.go
-	sed -i "s|package guru // import \"golang.org/x/tools/cmd/guru\"|\n// +build ignore\n\n\0|" ${PACKAGE_DIR}/src/nvim-go/internal/guru/main.go
+	sed -i "s|package guru // import \"golang.org/x/tools/cmd/guru\"|\n// +build ignore\n\n\0|" ${PACKAGE_ROOT}/src/internal/guru/main.go
 	# ignore build guru_test.go
-	sed -i "s|package guru_test|// +build ignore\n\n\0|" ${PACKAGE_DIR}/src/nvim-go/internal/guru/guru_test.go
+	sed -i "s|package guru_test|// +build ignore\n\n\0|" ${PACKAGE_ROOT}/src/internal/guru/guru_test.go
 .PHONY: vendor-guru-rename
 
 vendor-clean:  ## Cleanup vendor packages "*_test" files, testdata and nogo files.
