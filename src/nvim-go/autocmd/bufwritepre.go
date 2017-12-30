@@ -13,7 +13,7 @@ import (
 )
 
 type bufWritePreEval struct {
-	Cwd  string `eval:getcwd()`
+	Cwd  string `eval:"getcwd()"`
 	File string `eval:"expand('%:p')"`
 }
 
