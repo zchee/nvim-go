@@ -1,0 +1,36 @@
+version: 1.0.{build}
+
+clone_folder: C:\gopath\src\github.com\zchee\go-xdgbasedir
+shallow_clone: true
+
+environment:
+  GOPATH: C:\gopath
+  GO_VERSION: 1.8.3
+  PATH: C:\go\bin;C:\gopath\bin;%PATH%;%PYTHON%;%PYTHON%\Scripts
+
+install:
+  - rmdir C:\go /s /q
+  - appveyor DownloadFile https://storage.googleapis.com/golang/go%GO_VERSION%.windows-amd64.msi
+  - msiexec /i go%GO_VERSION%.windows-amd64.msi /q
+  - go version
+  - go env
+
+build: false
+
+before_test:
+  - go get -u github.com/golang/lint/golint
+test_script:
+  - go test -v -race -cover -covermode=atomic -coverprofile=coverage.txt.tmp .
+  - cat coverage.txt.tmp > coverage.txt
+  - rm -f coverage.txt.tmp
+  - go test -v -race -cover -covermode=atomic -coverprofile=coverage.txt.tmp ./home
+  - cat coverage.txt.tmp >> coverage.txt
+  - rm -f coverage.txt.tmp
+after_test:
+  - pip install -U codecov
+  - codecov -f coverage.txt
+
+on_success:
+  - gofmt -s -l -w .
+  - golint ./...
+  - go vet ./...
