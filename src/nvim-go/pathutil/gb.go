@@ -27,8 +27,8 @@ func IsGb(dir string) (string, bool) {
 	}
 	// FindGbProjectRoot gets the GOPATH root if go directory structure.
 	// Recheck use vendor directory.
-	vendor := filepath.Join(root, "vendor")
-	if IsNotExist(vendor) {
+	manifest := filepath.Join(root, "vendor", "manifest")
+	if IsNotExist(manifest) {
 		return "", false
 	}
 	return root, true
