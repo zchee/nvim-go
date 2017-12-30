@@ -1,0 +1,48 @@
+sudo: false
+dist: trusty
+
+language: go
+go:
+  - 1.8
+  - tip
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - go: tip
+
+before_install:
+  - uname -a
+  - go version
+  - go env
+install:
+  - true
+
+before_script:
+  - go get -u github.com/golang/lint/golint
+script:
+  - |
+    set -e
+    touch coverage.txt
+    for pkg in $(go list ./... | grep -v vendor); do
+      go test -v -race -cover -covermode=atomic -coverprofile=coverage.txt.tmp "$pkg"
+      if [[ -f coverage.txt.tmp ]]; then
+        cat coverage.txt.tmp >> coverage.txt
+        rm -f coverage.txt.tmp
+      fi
+    done
+after_script:
+  - test -z "$(gofmt -s -l -w . | tee /dev/stderr)"
+  - test -z "$(golint ./...     | tee /dev/stderr)"
+  - go vet ./...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  email: false
+  slack:
+    on_success: never
+    on_failure: always
+    rooms:
+      secure: gUHxPJTw1qapP93Hp0zQNesORAGLq/p6PPIRHOpaIG0lbgpYgcF63JUksjEm6CjPpe4IThKRbrXzMxilQlFUc5Y73P+Cje9tPXWNnjyQmtg3L1djK3CSI7YoR2aCt5DOZgWOU554jojLHekJXqmJG9UwDM22X2Xf7M7cbtPl3zLHbDxYbaR1G1WK3Plpv8piW+tehdUBvXL2RFs6F83lrkrvkJNgdC9XYa2n+PUk9Qec6K6+915eSKuJtTfiiay4ZgZVAZZljgtI/eFXmGWvNQg6nNY5S7rqZZPkgb0cJzwlKpkj4AOZj1+sx8mwAhZqwgiQNDEnHoEzHydhrKxQre5cj01oh5DSDKUvkfuP8Ej+Ti4R1n+TuwbNAj+XPb89h+7T77hCy21VKwFyg1ajuGNPx4wrYdj90FU3PniSPoah8N0jxMCoyB659gJV/ukH/Oz0xJo1+jFitdzt4fEZI8OGrwJpmzW2VOE4SEyJQ8CyuIdELzvyCK3GxBh4iHYZtd7foLBLdzR5wVvykRrhJBy3xi71jhMDsjI/yR7XfJT0ylrFglmz6lPRg6mHKD090x4DsoxiXMiIWmUx64Lx+xHhSIK8dWcJQSciAoDhgDMwKIVIf0ZXNcF6GCQrunnFGZQ5d2Dz0spARbUQZznC9oQ8Hvt5yYbDr0HBG9T2VD0=

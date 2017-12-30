@@ -1,0 +1,46 @@
+required = [
+  "golang.org/x/tools/cmd/guru",
+]
+
+ignored = [
+  "github.com/zchee/nvim-go/plugins",
+]
+
+[metadata]
+  project = "nvim-go"
+
+[[constraint]]
+  name = "github.com/davecgh/go-spew"
+  version = "1.1.0"
+
+[[constraint]]
+  branch = "v2"
+  name = "github.com/go-yaml/yaml"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/golang/lint"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/motemen/go-astmanip"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/neovim/go-client"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/zchee/go-xdgbasedir"
+
+[[constraint]]
+  branch = "master"
+  name = "go.uber.org/zap"
+
+[[constraint]]
+  name = "github.com/derekparker/delve"
+  revision = "92dad944d7e0c1e0affb64d7a45e9ce8c5704fe5"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/tools"

@@ -1,0 +1,52 @@
+---
+machine:
+  xcode:
+    version: "8.2.1" # build 8C1002, OS X 10.11.6 (15G1108)
+  environment:
+    XCODE_SCHEME: go-xdgbasedir  # required for circleci macOS test
+    XCODE_WORKSPACE: go-xdgbasedir.xcworkspace  # required for circleci macOS test
+    HOMEBREW_CACHE: "$HOME/.cache/Homebrew"  # cache for Homebrew
+    HOMEBREW_NO_AUTO_UPDATE: 1  # avoid 'brew update' which is automatically executed by default
+    GOPATH: "$HOME/.go_workspace"
+    PATH: "$HOME/.go_workspace/bin:$PATH"
+    IMPORT_PATH: github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME  # for $GOPATH hack on circleci build environment
+
+general:
+  build_dir: ../.go_workspace/src/$IMPORT_PATH
+
+checkout:
+  post:
+    - |
+      mkdir -p "$GOPATH/src/$IMPORT_PATH";
+      rsync -azC --delete $HOME/$CIRCLE_PROJECT_REPONAME/ $GOPATH/src/$IMPORT_PATH/
+
+dependencies:
+  pre:
+    - uname -a
+    - sw_vers
+    - env | sort
+  override:
+    - mkdir -p $HOMEBREW_CACHE && brew upgrade https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb || true
+    - go get -u github.com/golang/lint/golint
+  post:
+    - go version; go env
+  cache_directories:
+    - '~/.cache/Homebrew'
+
+test:
+  override:
+    - |
+      set -e
+      touch coverage.txt
+      for pkg in $(go list ./... | grep -v vendor); do
+        go test -v -race -cover -covermode=atomic -coverprofile=coverage.txt.tmp "$pkg"
+        if [[ -f coverage.txt.tmp ]]; then
+          cat coverage.txt.tmp >> coverage.txt
+          rm -f coverage.txt.tmp
+        fi
+      done
+  post:
+    - bash <(curl -s https://codecov.io/bash)
+    - test -z "$(gofmt -s -l -w . | tee /dev/stderr)"
+    - test -z "$(golint ./...     | tee /dev/stderr)"
+    - go vet ./...
