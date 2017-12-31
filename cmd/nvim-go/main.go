@@ -37,6 +37,9 @@ func main() {
 	defer undo()
 	ctx = logger.NewContext(ctx, zapLogger)
 
+	eg := new(errgroup.Group)
+	eg, ctx = errgroup.WithContext(ctx)
+
 	registerFn := func(p *plugin.Plugin) error {
 		log := logger.FromContext(ctx)
 
@@ -63,42 +66,42 @@ func main() {
 		return nil
 	}
 
-	childFn := func(ctx context.Context) {
+	childFn := func(ctx context.Context) error {
 		log := logger.FromContext(ctx)
 
-		cs, err := server.NewServer(ctx)
+		s, err := server.NewServer(ctx)
 		if err != nil {
-			log.Error("", zap.Error(err))
+			return err
 		}
-		defer cs.Close()
+		defer s.Close()
 
-		bufs, err := cs.Nvim.Buffers()
+		bufs, err := s.Buffers()
 		if err != nil {
-			log.Error("", zap.Error(err))
+			return err
 		}
 
 		// Get the names using a single atomic call to Nvim.
 		names := make([]string, len(bufs))
-		b := cs.Nvim.NewBatch()
+		b := s.Nvim.NewBatch()
 		for i, buf := range bufs {
 			b.BufferName(buf, &names[i])
 		}
 		if err := b.Execute(); err != nil {
-			log.Error("", zap.Error(err))
+			return err
 		}
 		for _, name := range names {
 			log.Info("", zap.String("name", name))
 		}
+
+		return nil
 	}
 
-	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		plugin.Main(registerFn)
 		return nil
 	})
 	eg.Go(func() error {
-		childFn(ctx)
-		return nil
+		return childFn(ctx)
 	})
 	if err := eg.Wait(); err != nil {
 		zapLogger.Fatal("eg.Wait", zap.Error(err))
@@ -106,7 +109,6 @@ func main() {
 
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
-
 	select {
 	case sig := <-sigc:
 		switch sig {
