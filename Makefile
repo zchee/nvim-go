@@ -6,6 +6,7 @@
 APP := $(notdir $(CURDIR))
 PACKAGE_ROOT := $(CURDIR)
 PACKAGES := $(shell go list ./src/...)
+VENDOR_PACKAGES := $(shell go list -f='{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}{{.ImportPath}}{{end}}' ./vendor/...)
 
 # ----------------------------------------------------------------------------
 # common environment variables
@@ -114,7 +115,7 @@ lint: golint errcheck-ng gosimple interfacer staticcheck unparam vet
 
 
 vendor-install:  # Install vendor packages for gocode completion
-	go install -i -v -x ./vendor/...
+	go install -i -v -x ${VENDOR_PACKAGES}
 .PHONY: vendor-install
 
 vendor-update:  ## Update the all vendor packages
