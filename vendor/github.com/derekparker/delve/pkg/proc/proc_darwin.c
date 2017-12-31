@@ -73,15 +73,15 @@ reset_exception_ports(task_t task, mach_port_t *exception_port, mach_port_t *not
 	kern_return_t kret;
 	mach_port_t prev_not;
 	mach_port_t self = mach_task_self();
-
+	
 	kret = task_set_exception_ports(task, EXC_MASK_BREAKPOINT|EXC_MASK_SOFTWARE, *exception_port,
 			EXCEPTION_DEFAULT, THREAD_STATE_NONE);
 	if (kret != KERN_SUCCESS) return kret;
-
+	
 	kret = mach_port_request_notification(self, task, MACH_NOTIFY_DEAD_NAME, 0, *notification_port,
 			MACH_MSG_TYPE_MAKE_SEND_ONCE, &prev_not);
 	if (kret != KERN_SUCCESS) return kret;
-
+	
 	return KERN_SUCCESS;
 }
 
@@ -159,7 +159,7 @@ mach_port_wait(mach_port_t port_set, task_t *task, int nonblocking) {
 			// 2401 is the exception_raise event, defined in:
 			// http://opensource.apple.com/source/xnu/xnu-2422.1.72/osfmk/mach/exc.defs?txt
 			// compile this file with mig to get the C version of the description
-
+			
 			mach_msg_body_t *bod = (mach_msg_body_t*)(&msg.hdr + 1);
 			mach_msg_port_descriptor_t *desc = (mach_msg_port_descriptor_t *)(bod + 1);
 			thread = desc[0].name;

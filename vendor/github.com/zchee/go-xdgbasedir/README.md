@@ -30,11 +30,11 @@ A package xdgbasedir implements a XDG Base Directory Specification for Go.
 
 ## Note
 
-XDG Base Directory Specification is mainly for GNU/Linux. It does not mention which directory to use with macOS(`darwin`) or `windows`.
+XDG Base Directory Specification is mainly for GNU/Linux. It does not mention which directory to use with macOS(`darwin`) or `windows`.  
 So, We referred to the [qt standard paths document](http://doc.qt.io/qt-5/qstandardpaths.html) for the corresponding directory.
 
-We prepared a `Mode` for users using macOS like Unix. It's `darwin` GOOS specific.
-If it is set to `Unix`, it refers to the same path as linux. If it is set to `Native`, it refers to the [Specification](#specification) path.
+We prepared a `Mode` for users using macOS like Unix. It's `darwin` GOOS specific.  
+If it is set to `Unix`, it refers to the same path as linux. If it is set to `Native`, it refers to the [Specification](#specification) path.  
 By default, `Unix`.
 
 `Unix`:

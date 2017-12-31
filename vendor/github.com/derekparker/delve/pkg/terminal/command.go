@@ -81,7 +81,7 @@ func DebugCommands(client service.Client) *Commands {
 		{aliases: []string{"help", "h"}, cmdFn: c.help, helpMsg: `Prints the help message.
 
 	help [command]
-
+	
 Type "help" followed by the name of a command for more information about it.`},
 		{aliases: []string{"break", "b"}, cmdFn: breakpoint, helpMsg: `Sets a breakpoint.
 
@@ -93,7 +93,7 @@ See also: "help on", "help cond" and "help clear"`},
 		{aliases: []string{"trace", "t"}, cmdFn: tracepoint, helpMsg: `Set tracepoint.
 
 	trace [name] <linespec>
-
+	
 A tracepoint is a breakpoint that does not stop the execution of the program, instead when the tracepoint is hit a notification is displayed. See $GOPATH/src/github.com/derekparker/delve/Documentation/cli/locspec.md for the syntax of linespec.
 
 See also: "help on", "help cond" and "help clear"`},
@@ -113,7 +113,7 @@ See also: "help on", "help cond" and "help clear"`},
 		{aliases: []string{"clearall"}, cmdFn: clearAll, helpMsg: `Deletes multiple breakpoints.
 
 	clearall [<linespec>]
-
+	
 If called with the linespec argument it will delete all the breakpoints matching the linespec. If linespec is omitted all breakpoints are deleted.`},
 		{aliases: []string{"goroutines"}, cmdFn: goroutines, helpMsg: `List program goroutines.
 
@@ -124,7 +124,7 @@ Print out info for every goroutine. The flag controls what information is shown 
 	-u	displays location of topmost stackframe in user code
 	-r	displays location of topmost stackframe (including frames inside private runtime functions)
 	-g	displays location of go instruction that created the goroutine
-
+	
 If no flag is specified the default is -u.`},
 		{aliases: []string{"goroutine"}, allowedPrefixes: onPrefix | scopePrefix, cmdFn: c.goroutine, helpMsg: `Shows or changes current goroutine
 
@@ -179,7 +179,7 @@ If regex is specified only package variables with a name matching it will be ret
 		{aliases: []string{"regs"}, cmdFn: regs, helpMsg: `Print contents of CPU registers.
 
 	regs [-a]
-
+	
 Argument -a shows more registers.`},
 		{aliases: []string{"exit", "quit", "q"}, cmdFn: exitCommand, helpMsg: "Exit the debugger."},
 		{aliases: []string{"list", "ls"}, allowedPrefixes: scopePrefix, cmdFn: listCommand, helpMsg: `Show source code.
@@ -203,18 +203,18 @@ If -full is specified every stackframe will be decorated by the value of its loc
 	[goroutine <n>] [frame <m>] disassemble [-a <start> <end>] [-l <locspec>]
 
 If no argument is specified the function being executed in the selected stack frame will be executed.
-
+	
 	-a <start> <end>	disassembles the specified address range
 	-l <locspec>		disassembles the specified function`},
 		{aliases: []string{"on"}, cmdFn: c.onCmd, helpMsg: `Executes a command when a breakpoint is hit.
 
 	on <breakpoint name or id> <command>.
-
+	
 Supported commands: print, stack and goroutine)`},
 		{aliases: []string{"condition", "cond"}, cmdFn: conditionCmd, helpMsg: `Set breakpoint condition.
 
 	condition <breakpoint name or id> <boolean expression>.
-
+	
 Specifies that the breakpoint or tracepoint should break only if the boolean expression is true.`},
 	}
 

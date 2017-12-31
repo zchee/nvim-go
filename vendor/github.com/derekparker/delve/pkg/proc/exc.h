@@ -12,7 +12,7 @@
 #include <mach/message.h>
 #include <mach/mig_errors.h>
 #include <mach/port.h>
-
+	
 /* BEGIN VOUCHER CODE */
 
 #ifndef KERNEL
@@ -34,7 +34,7 @@ extern "C" {
 #endif // __has_include(<mach/mach_voucher_types.h>)
 #endif // __has_include
 #endif // !KERNEL
-
+	
 /* END VOUCHER CODE */
 
 

@@ -12,7 +12,7 @@ CONSTRAINT GENERATION:
   runtime.{TypeAssertionError,errorString,errorCString}.
 
 OPTIMISATIONS
-- pre-solver:
+- pre-solver: 
   pointer equivalence: extend HVN to HRU
   location equivalence
 - solver: HCD, LCD.
@@ -20,12 +20,14 @@ OPTIMISATIONS
   It may have faster insert.
 
 MISC:
-- Test on all platforms.
+- Test on all platforms.  
   Currently we assume these go/build tags: linux, amd64, !cgo.
 
 MAINTAINABILITY
 - Think about ways to make debugging this code easier.  PTA logs
   routinely exceed a million lines and require training to read.
 
-BUGS:
+BUGS: 
 - There's a crash bug in stdlib_test + reflection, rVCallConstraint.
+
+

@@ -68,7 +68,7 @@ endif
 ifneq "$(shell which lldb-server)" ""
 	@echo
 	@echo 'Testing LLDB backend (proc)'
-	go test $(TEST_FLAGS) $(BUILD_FLAGS) $(PREFIX)/pkg/proc -backend=lldb
+	go test $(TEST_FLAGS) $(BUILD_FLAGS) $(PREFIX)/pkg/proc -backend=lldb 
 	@echo
 	@echo 'Testing LLDB backend (integration)'
 	go test $(TEST_FLAGS) $(BUILD_FLAGS) $(PREFIX)/service/test -backend=lldb
