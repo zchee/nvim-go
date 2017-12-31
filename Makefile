@@ -77,9 +77,9 @@ test:  ## Run the package test
 	go test -v ${GO_TEST_FLAGS} ${GO_TEST_PKGS}
 .PHONY: test
 
-test-bench: GO_TEST_FLAGS+=${GO_BENCH_FLAGS}
-test-bench: test ## Run the package test
-.PHONY: test-bench
+bench: GO_TEST_FLAGS+=${GO_BENCH_FLAGS}
+bench: test ## Take the packages benchmark
+.PHONY: bench
 
 
 golint:
