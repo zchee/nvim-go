@@ -123,6 +123,10 @@ vendor-update:  ## Update the all vendor packages
 	dep prune -v
 .PHONY: vendor-update
 
+vendor-clean:  ## Cleanup unused files in vendor directory
+	dep prune -v
+.PHONY: vendor-clean
+
 vendor-guru: vendor-guru-update vendor-guru-rename
 .PHONY: vendor-guru
 
