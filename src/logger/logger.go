@@ -39,3 +39,10 @@ func NewZapLogger(opts ...zap.Option) *zap.Logger {
 
 	return zapLogger
 }
+
+func NewRedirectZapLogger(opts ...zap.Option) (*zap.Logger, func()) {
+	log := NewZapLogger()
+	undo := zap.RedirectStdLog(log)
+
+	return log, undo
+}
