@@ -17,6 +17,7 @@ import (
 
 	"github.com/google/gops/agent"
 	"github.com/neovim/go-client/nvim/plugin"
+	"github.com/pkg/errors"
 	"github.com/zchee/nvim-go/src/autocmd"
 	"github.com/zchee/nvim-go/src/buildctx"
 	"github.com/zchee/nvim-go/src/command"
@@ -26,10 +27,12 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func main() {
-	debug := os.Getenv("NVIM_GO_DEBUG") != ""
-	pprof := os.Getenv("NVIM_GO_PPROF") != ""
+var (
+	debug = os.Getenv("NVIM_GO_DEBUG") != ""
+	pprof = os.Getenv("NVIM_GO_PPROF") != ""
+)
 
+func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -37,71 +40,18 @@ func main() {
 	defer undo()
 	ctx = logger.NewContext(ctx, zapLogger)
 
-	eg := new(errgroup.Group)
+	var eg = &errgroup.Group{}
 	eg, ctx = errgroup.WithContext(ctx)
 
-	registerFn := func(p *plugin.Plugin) error {
-		log := logger.FromContext(ctx)
-
-		buildctxt := buildctx.NewContext()
-		c := command.Register(ctx, p, buildctxt)
-		autocmd.Register(ctx, p, buildctxt, c)
-
-		if debug {
-			// starts the gops agent
-			if err := agent.Listen(&agent.Options{NoShutdownCleanup: true}); err != nil {
-				return err
-			}
-
-			if pprof {
-				const addr = "localhost:14715" // (n: 14)vim-(g: 7)(o: 15)
-				log.Debug("start the pprof debugging", zap.String("listen at", addr))
-
-				// enable the report of goroutine blocking events
-				runtime.SetBlockProfileRate(1)
-				go logpkg.Println(http.ListenAndServe(addr, nil))
-			}
-		}
-
-		return nil
-	}
-
-	childFn := func(ctx context.Context) error {
-		log := logger.FromContext(ctx)
-
-		s, err := server.NewServer(ctx)
-		if err != nil {
-			return err
-		}
-		defer s.Close()
-
-		bufs, err := s.Buffers()
-		if err != nil {
-			return err
-		}
-
-		// Get the names using a single atomic call to Nvim.
-		names := make([]string, len(bufs))
-		b := s.Nvim.NewBatch()
-		for i, buf := range bufs {
-			b.BufferName(buf, &names[i])
-		}
-		if err := b.Execute(); err != nil {
-			return err
-		}
-		for _, name := range names {
-			log.Info("", zap.String("name", name))
-		}
-
-		return nil
-	}
-
 	eg.Go(func() error {
-		plugin.Main(registerFn)
+		fn := func(p *plugin.Plugin) error {
+			return Main(ctx, p)
+		}
+		plugin.Main(fn)
 		return nil
 	})
 	eg.Go(func() error {
-		return childFn(ctx)
+		return Child(ctx)
 	})
 	if err := eg.Wait(); err != nil {
 		zapLogger.Fatal("eg.Wait", zap.Error(err))
@@ -114,7 +64,65 @@ func main() {
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM:
 			zapLogger.Debug("main", zap.String("interrupted %s signal", sig.String()))
+			cancel() // avoid goroutine leak
 			return
 		}
 	}
+}
+
+func Main(ctx context.Context, p *plugin.Plugin) error {
+	log := logger.FromContext(ctx).Named("main")
+
+	buildctxt := buildctx.NewContext()
+	c := command.Register(ctx, p, buildctxt)
+	autocmd.Register(ctx, p, buildctxt, c)
+
+	if debug {
+		// starts the gops agent
+		if err := agent.Listen(&agent.Options{NoShutdownCleanup: true}); err != nil {
+			return err
+		}
+
+		if pprof {
+			const addr = "localhost:14715" // (n: 14)vim-(g: 7)(o: 15)
+			log.Debug("start the pprof debugging", zap.String("listen at", addr))
+
+			// enable the report of goroutine blocking events
+			runtime.SetBlockProfileRate(1)
+			go logpkg.Println(http.ListenAndServe(addr, nil))
+		}
+	}
+
+	return nil
+}
+
+func Child(ctx context.Context) error {
+	log := logger.FromContext(ctx).Named("child")
+
+	s, err := server.NewServer(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to create NewServer")
+	}
+	defer s.Close()
+
+	bufs, err := s.Buffers()
+	if err != nil {
+		return errors.Wrap(err, "failed to get buffers")
+	}
+	// Get the names using a single atomic call to Nvim.
+	names := make([]string, len(bufs))
+	b := s.NewBatch()
+	for i, buf := range bufs {
+		b.BufferName(buf, &names[i])
+	}
+
+	if err := b.Execute(); err != nil {
+		return errors.Wrap(err, "failed to execute batch")
+	}
+
+	for _, name := range names {
+		log.Info("", zap.String("name", name))
+	}
+
+	return nil
 }
