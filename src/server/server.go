@@ -15,7 +15,7 @@ import (
 )
 
 type Server struct {
-	Nvim *nvim.Nvim
+	*nvim.Nvim
 }
 
 func NewServer(ctx context.Context) (*Server, error) {
@@ -37,8 +37,4 @@ func NewServer(ctx context.Context) (*Server, error) {
 	return &Server{
 		Nvim: n,
 	}, nil
-}
-
-func (s *Server) Close() error {
-	return s.Nvim.Close()
 }
