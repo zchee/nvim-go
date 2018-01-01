@@ -27,11 +27,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-var (
-	debug = os.Getenv("NVIM_GO_DEBUG") != ""
-	pprof = os.Getenv("NVIM_GO_PPROF") != ""
-)
-
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -71,6 +66,9 @@ func main() {
 }
 
 func Main(ctx context.Context, p *plugin.Plugin) error {
+	debug := os.Getenv("NVIM_GO_DEBUG") != ""
+	pprof := os.Getenv("NVIM_GO_PPROF") != ""
+
 	log := logger.FromContext(ctx).Named("main")
 
 	buildctxt := buildctx.NewContext()
