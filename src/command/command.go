@@ -12,14 +12,12 @@ import (
 	"github.com/zchee/nvim-go/src/buildctx"
 	"github.com/zchee/nvim-go/src/command/delve"
 	"github.com/zchee/nvim-go/src/logger"
-	"go.uber.org/zap"
 	"golang.org/x/sync/syncmap"
 )
 
 // Command represents a nvim-go plugins commands.
 type Command struct {
 	ctx context.Context
-	log *zap.Logger
 
 	Nvim         *nvim.Nvim
 	buildContext *buildctx.Context
@@ -27,10 +25,10 @@ type Command struct {
 }
 
 // NewCommand return the new Command type with initialize some variables.
-func NewCommand(ctx context.Context, v *nvim.Nvim, buildctxt *buildctx.Context) *Command {
+func NewCommand(pctx context.Context, v *nvim.Nvim, buildctxt *buildctx.Context) *Command {
+	ctx := logger.NewContext(pctx, logger.FromContext(pctx).Named("command"))
 	return &Command{
 		ctx:          ctx,
-		log:          logger.FromContext(ctx).Named("command"),
 		Nvim:         v,
 		buildContext: buildctxt,
 		errs:         new(syncmap.Map),

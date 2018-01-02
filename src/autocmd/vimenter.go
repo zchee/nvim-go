@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/zchee/nvim-go/src/config"
+	"github.com/zchee/nvim-go/src/logger"
 	"github.com/zchee/nvim-go/src/nvimutil"
 	"go.uber.org/zap"
 )
@@ -19,11 +20,11 @@ func (a *Autocmd) VimEnter(cfg *config.Config) {
 	cfg.Global.ChannelID = a.Nvim.ChannelID()
 
 	config.Get(a.Nvim, cfg)
-	a.log.Debug("VimEnter", zap.Any("cfg", cfg))
+	logger.FromContext(a.ctx).Debug("VimEnter", zap.Any("cfg", cfg))
 
 	cfg2, err := config.Read()
 	if err != nil {
-		a.log.Error("VimEnter", zap.Error(err))
+		logger.FromContext(a.ctx).Error("VimEnter", zap.Error(err))
 	}
 	config.Merge(cfg, cfg2)
 

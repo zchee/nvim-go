@@ -13,7 +13,6 @@ import (
 	"github.com/zchee/nvim-go/src/buildctx"
 	"github.com/zchee/nvim-go/src/command"
 	"github.com/zchee/nvim-go/src/logger"
-	"go.uber.org/zap"
 	"golang.org/x/sync/syncmap"
 )
 
@@ -21,7 +20,6 @@ import (
 type Autocmd struct {
 	ctx    context.Context
 	cancel context.CancelFunc
-	log    *zap.Logger
 
 	Nvim         *nvim.Nvim
 	buildContext *buildctx.Context
@@ -38,13 +36,11 @@ type Autocmd struct {
 // Register registers autocmd to Neovim.
 func Register(pctx context.Context, p *plugin.Plugin, buildContext *buildctx.Context, cmd *command.Command) {
 	ctx, cancel := context.WithCancel(pctx)
-	zapLogger := logger.FromContext(ctx).Named("autocmd")
-	ctx = logger.NewContext(ctx, zapLogger)
+	ctx = logger.NewContext(ctx, logger.FromContext(ctx).Named("autocmd"))
 
 	autocmd := &Autocmd{
 		ctx:              ctx,
 		cancel:           cancel,
-		log:              zapLogger,
 		Nvim:             p.Nvim,
 		buildContext:     buildContext,
 		cmd:              cmd,
@@ -53,7 +49,7 @@ func Register(pctx context.Context, p *plugin.Plugin, buildContext *buildctx.Con
 		errs:             new(syncmap.Map),
 	}
 
-	autocmd.log.Debug("Register")
+	logger.FromContext(ctx).Info("Register")
 
 	// Handle the open the file.
 	// If open the file at first, run the 'BufEnter' -> 'VimEnter'.
