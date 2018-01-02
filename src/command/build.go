@@ -98,7 +98,7 @@ func (c *Command) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 			args = append(args, "-o", os.DevNull)
 		}
 		if config.BuildAppengine {
-			cmd.Args[0] = cmd.Args[0] + "app"
+			cmd.Args[0] += "app"
 		}
 	case "gb":
 		cmd.Dir = c.buildContext.Build.ProjectRoot
