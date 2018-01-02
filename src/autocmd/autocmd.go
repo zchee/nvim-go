@@ -19,8 +19,9 @@ import (
 
 // Autocmd represents a autocmd context.
 type Autocmd struct {
-	ctx context.Context
-	log *zap.Logger
+	ctx    context.Context
+	cancel context.CancelFunc
+	log    *zap.Logger
 
 	Nvim         *nvim.Nvim
 	buildContext *buildctx.Context
@@ -35,9 +36,12 @@ type Autocmd struct {
 }
 
 // Register register autocmd to nvim.
-func Register(ctx context.Context, p *plugin.Plugin, buildContext *buildctx.Context, cmd *command.Command) {
+func Register(pctx context.Context, p *plugin.Plugin, buildContext *buildctx.Context, cmd *command.Command) {
+	ctx, cancel := context.WithCancel(pctx)
+
 	autocmd := &Autocmd{
 		ctx:              ctx,
+		cancel:           cancel,
 		log:              logger.FromContext(ctx).Named("autocmd"),
 		Nvim:             p.Nvim,
 		buildContext:     buildContext,
