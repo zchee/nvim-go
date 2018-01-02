@@ -7,10 +7,95 @@ package logger
 import (
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/fatih/color"
+	prettyjson "github.com/hokaccha/go-prettyjson"
 	"go.uber.org/zap"
+	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
 )
+
+func init() {
+	if err := zap.RegisterEncoder("debug", func(encoderConfig zapcore.EncoderConfig) (zapcore.Encoder, error) {
+		return NewConsoleEncoder(encoderConfig), nil
+	}); err != nil {
+		panic(err)
+	}
+}
+
+type consoleEncoder struct {
+	zapcore.Encoder
+	consoleEncoder zapcore.Encoder
+}
+
+func NewConsoleEncoder(cfg zapcore.EncoderConfig) zapcore.Encoder {
+	color.NoColor = false // Force enabled
+
+	cfg.StacktraceKey = ""
+	cfg2 := cfg
+	cfg2.NameKey = ""
+	cfg2.MessageKey = ""
+	cfg2.LevelKey = ""
+	cfg2.CallerKey = ""
+	cfg2.StacktraceKey = ""
+	cfg2.TimeKey = ""
+	return consoleEncoder{
+		consoleEncoder: zapcore.NewConsoleEncoder(cfg),
+		Encoder:        zapcore.NewJSONEncoder(cfg2),
+	}
+}
+
+func (c consoleEncoder) Clone() zapcore.Encoder {
+	return consoleEncoder{
+		consoleEncoder: c.consoleEncoder.Clone(),
+		Encoder:        c.Encoder.Clone(),
+	}
+}
+
+func (c consoleEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) (*buffer.Buffer, error) {
+	line, err := c.consoleEncoder.EncodeEntry(ent, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	line2, err := c.Encoder.EncodeEntry(ent, fields)
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := prettyjson.Format(line2.Bytes())
+	if err != nil {
+		line.AppendString("errrr")
+	}
+
+	line2.Reset()
+	line2.AppendString(string(s))
+
+	if ent.Stack != "" {
+		line2.AppendByte('\n')
+		line2.AppendString("Caller StackTrace\n")
+		line2.AppendString(ent.Stack)
+	}
+
+	for _, field := range fields {
+		switch field.Key {
+		case "stacktrace":
+			line2.AppendByte('\n')
+			line2.AppendString("Error StackTrace\n")
+			line2.AppendString(fmt.Sprintf("%v\n", field.String))
+		}
+	}
+
+	parts := strings.Split(line2.String(), "\n")
+	for i := range parts {
+		line.AppendString("| ")
+		line.AppendString(parts[i])
+		line.AppendByte('\n')
+	}
+
+	return line, nil
+}
 
 func NewZapLogger(opts ...zap.Option) *zap.Logger {
 	debug := os.Getenv("NVIM_GO_DEBUG") != ""
@@ -19,6 +104,7 @@ func NewZapLogger(opts ...zap.Option) *zap.Logger {
 		cfg = zap.NewProductionConfig()
 	} else {
 		cfg = zap.NewDevelopmentConfig()
+		cfg.Encoding = "debug" // already registered init function
 		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		opts = append(opts, zap.AddCaller())
 	}
