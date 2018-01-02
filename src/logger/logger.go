@@ -29,6 +29,8 @@ func NewZapLogger(opts ...zap.Option) *zap.Logger {
 	var cfg zap.Config
 	if !debug {
 		cfg = zap.NewProductionConfig()
+		cfg.DisableStacktrace = true
+		cfg.Level.SetLevel(zapcore.DPanicLevel) // not show logs normally
 	} else {
 		cfg = zap.NewDevelopmentConfig()
 		cfg.Encoding = "debug" // already registered init function
