@@ -17,7 +17,8 @@ import (
 
 // Command represents a nvim-go plugins commands.
 type Command struct {
-	ctx context.Context
+	ctx    context.Context
+	cancel context.CancelFunc
 
 	Nvim         *nvim.Nvim
 	buildContext *buildctx.Context
@@ -26,9 +27,12 @@ type Command struct {
 
 // NewCommand return the new Command type with initialize some variables.
 func NewCommand(pctx context.Context, v *nvim.Nvim, buildctxt *buildctx.Context) *Command {
-	ctx := logger.NewContext(pctx, logger.FromContext(pctx).Named("command"))
+	ctx, cancel := context.WithCancel(pctx)
+	ctx = logger.NewContext(ctx, logger.FromContext(ctx).Named("command"))
+
 	return &Command{
 		ctx:          ctx,
+		cancel:       cancel,
 		Nvim:         v,
 		buildContext: buildctxt,
 		errs:         new(syncmap.Map),
