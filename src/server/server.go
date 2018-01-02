@@ -7,6 +7,7 @@ package server
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -16,6 +17,7 @@ import (
 
 type Server struct {
 	*nvim.Nvim
+	errc chan error
 }
 
 func NewServer(ctx context.Context) (*Server, error) {
@@ -36,5 +38,26 @@ func NewServer(ctx context.Context) (*Server, error) {
 
 	return &Server{
 		Nvim: n,
+		errc: make(chan error, 1),
 	}, nil
+}
+
+func (s *Server) Serve() {
+	s.errc <- s.Nvim.Serve()
+}
+
+func (s *Server) Close() error {
+	err := s.Nvim.Close()
+
+	var errServe error
+	select {
+	case errServe = <-s.errc:
+	case <-time.After(10 * time.Second):
+		errServe = errors.New("nvim: Serve did not exit")
+	}
+	if err == nil {
+		err = errServe
+	}
+
+	return err
 }
