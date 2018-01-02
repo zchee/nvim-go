@@ -38,11 +38,13 @@ type Autocmd struct {
 // Register registers autocmd to Neovim.
 func Register(pctx context.Context, p *plugin.Plugin, buildContext *buildctx.Context, cmd *command.Command) {
 	ctx, cancel := context.WithCancel(pctx)
+	zapLogger := logger.FromContext(ctx).Named("autocmd")
+	ctx = logger.NewContext(ctx, zapLogger)
 
 	autocmd := &Autocmd{
 		ctx:              ctx,
 		cancel:           cancel,
-		log:              logger.FromContext(ctx).Named("autocmd"),
+		log:              zapLogger,
 		Nvim:             p.Nvim,
 		buildContext:     buildContext,
 		cmd:              cmd,
