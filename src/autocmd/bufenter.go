@@ -30,5 +30,6 @@ func (a *Autocmd) BufEnter(eval *bufEnterEval) error {
 	if eval.Dir != "" && a.buildContext.PrevDir != eval.Dir {
 		a.buildContext.SetContext(eval.Dir)
 	}
+
 	return nil
 }
