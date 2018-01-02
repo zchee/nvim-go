@@ -35,7 +35,7 @@ type Autocmd struct {
 	errs *syncmap.Map
 }
 
-// Register register autocmd to nvim.
+// Register registers autocmd to Neovim.
 func Register(pctx context.Context, p *plugin.Plugin, buildContext *buildctx.Context, cmd *command.Command) {
 	ctx, cancel := context.WithCancel(pctx)
 
