@@ -59,7 +59,7 @@ func main() {
 	case sig := <-sigc:
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM:
-			zapLogger.Debug("main", zap.String("interrupted %s signal", sig.String()))
+			zapLogger.Debug("main", zap.String("interrupted signal", sig.String()))
 			cancel() // avoid goroutine leak
 			return
 		}
