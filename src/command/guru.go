@@ -22,9 +22,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zchee/nvim-go/src/config"
 	"github.com/zchee/nvim-go/src/internal/guru"
-	"github.com/zchee/nvim-go/src/log"
+	"github.com/zchee/nvim-go/src/logger"
 	"github.com/zchee/nvim-go/src/nvimutil"
 	"github.com/zchee/nvim-go/src/pathutil"
+	"go.uber.org/zap"
 	"golang.org/x/tools/cmd/guru/serial"
 	"golang.org/x/tools/go/buildutil"
 )
@@ -146,7 +147,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		defer outputMu.Unlock()
 
 		res := qr.Result(fset)
-		if loclist, err = parseResult(mode, res, eval.Cwd); err != nil {
+		if loclist, err = c.parseResult(mode, res, eval.Cwd); err != nil {
 			err = errors.WithStack(err)
 		}
 	}
@@ -184,10 +185,9 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 
 var errTypeAssertion = errors.New("type assertion error")
 
-func parseResult(mode string, res interface{}, cwd string) ([]*nvim.QuickfixError, error) {
-	if config.DebugEnable {
-		log.Printf("res:\n%+v\n", spew.Sdump(res))
-	}
+func (c *Command) parseResult(mode string, res interface{}, cwd string) ([]*nvim.QuickfixError, error) {
+	logger.FromContext(c.ctx).Debug("parseResult", zap.String("res", spew.Sdump(res)))
+
 	var (
 		loclist []*nvim.QuickfixError
 		fname   string
