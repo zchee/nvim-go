@@ -20,7 +20,7 @@ type Server struct {
 	errc chan error
 }
 
-func NewServer(ctx context.Context) (*Server, error) {
+func NewServer(pctx context.Context) (*Server, error) {
 	const envNvimListenAddress = "NVIM_LISTEN_ADDRESS"
 
 	addr := os.Getenv(envNvimListenAddress)
@@ -29,8 +29,12 @@ func NewServer(ctx context.Context) (*Server, error) {
 	}
 
 	zapLogf := func(format string, a ...interface{}) {
-		logger.FromContext(ctx).Named("server").Info("", zap.Any(format, a))
+		logger.FromContext(pctx).Named("server").Info("", zap.Any(format, a))
 	}
+
+	ctx, cancel := context.WithTimeout(pctx, 5*time.Second)
+	defer cancel()
+
 	n, err := nvim.Dial(addr, nvim.DialContext(ctx), nvim.DialServe(false), nvim.DialLogf(zapLogf))
 	if err != nil {
 		return nil, err
