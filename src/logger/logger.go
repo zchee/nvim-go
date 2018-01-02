@@ -29,15 +29,16 @@ func NewZapLogger(opts ...zap.Option) *zap.Logger {
 	var cfg zap.Config
 	if !debug {
 		cfg = zap.NewProductionConfig()
-		cfg.DisableStacktrace = true
-		cfg.Level.SetLevel(zapcore.DPanicLevel) // not show logs normally
 	} else {
 		cfg = zap.NewDevelopmentConfig()
 		cfg.Encoding = "debug" // already registered init function
 		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		opts = append(opts, zap.AddCaller())
 	}
+
+	cfg.DisableStacktrace = true
 	cfg.EncoderConfig.EncodeTime = nil
+	cfg.Level.SetLevel(zapcore.DPanicLevel) // not show logs normally
 
 	if level := os.Getenv("NVIM_GO_LOG_LEVEL"); level != "" {
 		var lv zapcore.Level
