@@ -11,31 +11,32 @@ endif
 let g:loaded_nvim_go = 1
 
 " -----------------------------------------------------------------------------
-" register remote plugin {{{
+" register remote plugin
+
 let s:plugin_name   = 'nvim-go'
 let s:plugin_root   = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
 
 " wrapper of debug logging script
 if g:go#debug
-  let s:plugin_binary  = s:plugin_root . '/scripts/debug.sh'
+  let s:plugin_cmd  = [s:plugin_root.'/scripts/debug.sh', s:plugin_root]
 else
-  let s:plugin_binary = s:plugin_root . '/bin/' . s:plugin_name
+  let s:plugin_cmd = [s:plugin_root . '/bin/' . s:plugin_name]
 endif
 
-function! s:RequireNvimGo(host) abort
+function! s:JobStart(host) abort
   try
-    return jobstart([s:plugin_binary, s:plugin_root], {'rpc': v:true})
+    return jobstart(s:plugin_cmd, {'rpc': v:true})
   catch
     echomsg v:throwpoint
     echomsg v:exception
   endtry
   throw remote#host#LoadErrorForHost(a:host.orig_name, '$NVIM_GO_LOG_FILE')
 endfunction
-" }}}
 
 " -----------------------------------------------------------------------------
 " plugin manifest
-call remote#host#Register(s:plugin_name, '*', function('s:RequireNvimGo'))
+
+call remote#host#Register(s:plugin_name, '', function('s:JobStart'))
 call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'autocmd', 'name': 'BufEnter', 'sync': 1, 'opts': {'eval': '{''BufNr'': bufnr(''%''), ''WinID'': win_getid(), ''Dir'': expand(''%:p:h'')}', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '{''Cwd'': getcwd(), ''File'': expand(''%:p'')}', 'group': 'nvim-go', 'pattern': '*.go'}},
