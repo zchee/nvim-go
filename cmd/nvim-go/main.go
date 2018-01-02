@@ -71,6 +71,7 @@ func Main(ctx context.Context, p *plugin.Plugin) error {
 	pprof := os.Getenv("NVIM_GO_PPROF") != ""
 
 	log := logger.FromContext(ctx).Named("main")
+	ctx = logger.NewContext(ctx, log)
 
 	buildctxt := buildctx.NewContext()
 	c := command.Register(ctx, p, buildctxt)
@@ -97,6 +98,7 @@ func Main(ctx context.Context, p *plugin.Plugin) error {
 
 func Child(ctx context.Context) error {
 	log := logger.FromContext(ctx).Named("child")
+	ctx = logger.NewContext(ctx, log)
 
 	s, err := server.NewServer(ctx)
 	if err != nil {
