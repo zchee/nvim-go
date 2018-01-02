@@ -41,6 +41,12 @@
   revision = "92dad944d7e0c1e0affb64d7a45e9ce8c5704fe5"
 
 [[projects]]
+  name = "github.com/fatih/color"
+  packages = ["."]
+  revision = "570b54cabe6b8eb0bc2dfce68d964677d63b5260"
+  version = "v1.5.0"
+
+[[projects]]
   branch = "v2"
   name = "github.com/go-yaml/yaml"
   packages = ["."]
@@ -60,6 +66,12 @@
     "signal"
   ]
   revision = "62f833fc9f6c4d3223bdb37bd0c2f8951bed8596"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hokaccha/go-prettyjson"
+  packages = ["."]
+  revision = "e6b9231a2b1cc5798b336fdbf99c16cd8ad1e0c9"
 
 [[projects]]
   name = "github.com/kardianos/osext"
@@ -209,6 +221,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cf922b98d23e59168efb902fdefd83ad9cf24363ddafd811356fa75f1776c9fb"
+  inputs-digest = "1e3716c64a6e45aead155e3651ebbf1c843b9358d9fd49347d4341c2908008df"
   solver-name = "gps-cdcl"
   solver-version = 1
