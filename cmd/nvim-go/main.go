@@ -59,7 +59,7 @@ func main() {
 	case sig := <-sigc:
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM:
-			zapLogger.Debug("main", zap.String("interrupted signal", sig.String()))
+			zapLogger.Info("main", zap.String("interrupted signal", sig.String()))
 			cancel() // avoid goroutine leak
 			return
 		}
@@ -125,7 +125,7 @@ func Child(ctx context.Context) error {
 	}
 
 	for _, name := range names {
-		log.Info("", zap.String("name", name))
+		log.Info("buffer", zap.String("name", name))
 	}
 
 	return nil
