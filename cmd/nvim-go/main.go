@@ -37,7 +37,6 @@ func main() {
 
 	var eg = &errgroup.Group{}
 	eg, ctx = errgroup.WithContext(ctx)
-
 	eg.Go(func() error {
 		fn := func(p *plugin.Plugin) error {
 			return Main(ctx, p)
@@ -101,7 +100,12 @@ func Child(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to create NewServer")
 	}
-	defer s.Close()
+	go s.Serve()
+	defer func() {
+		if err := s.Close(); err != nil {
+			log.Fatal("Close", zap.Error(err))
+		}
+	}()
 
 	bufs, err := s.Buffers()
 	if err != nil {
