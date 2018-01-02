@@ -49,7 +49,7 @@ func main() {
 	})
 	go func() {
 		if err := eg.Wait(); err != nil {
-			zapLogger.Fatal("eg.Wait", zap.Error(err))
+			logger.FromContext(ctx).Fatal("eg.Wait", zap.Error(err))
 		}
 	}()
 
@@ -59,7 +59,7 @@ func main() {
 	case sig := <-sigc:
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM:
-			zapLogger.Info("main", zap.String("interrupted signal", sig.String()))
+			logger.FromContext(ctx).Info("notify signal", zap.String("interrupted signal", sig.String()))
 			cancel() // avoid goroutine leak
 			return
 		}
