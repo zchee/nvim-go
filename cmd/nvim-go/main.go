@@ -47,9 +47,11 @@ func main() {
 	eg.Go(func() error {
 		return Child(ctx)
 	})
-	if err := eg.Wait(); err != nil {
-		zapLogger.Fatal("eg.Wait", zap.Error(err))
-	}
+	go func() {
+		if err := eg.Wait(); err != nil {
+			zapLogger.Fatal("eg.Wait", zap.Error(err))
+		}
+	}()
 
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
