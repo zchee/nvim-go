@@ -24,6 +24,42 @@ func init() {
 	}
 }
 
+func NewZapLogger(opts ...zap.Option) *zap.Logger {
+	debug := os.Getenv("NVIM_GO_DEBUG") != ""
+	var cfg zap.Config
+	if !debug {
+		cfg = zap.NewProductionConfig()
+	} else {
+		cfg = zap.NewDevelopmentConfig()
+		cfg.Encoding = "debug" // already registered init function
+		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		opts = append(opts, zap.AddCaller())
+	}
+	cfg.EncoderConfig.EncodeTime = nil
+
+	if level := os.Getenv("NVIM_GO_LOG_LEVEL"); level != "" {
+		var lv zapcore.Level
+		if err := lv.UnmarshalText([]byte(level)); err != nil {
+			panic(fmt.Sprintf("unknown zap log level: %v", level))
+		}
+		cfg.Level.SetLevel(lv)
+	}
+
+	zapLogger, err := cfg.Build(opts...)
+	if err != nil {
+		panic(err)
+	}
+
+	return zapLogger
+}
+
+func NewRedirectZapLogger(opts ...zap.Option) (*zap.Logger, func()) {
+	log := NewZapLogger()
+	undo := zap.RedirectStdLog(log)
+
+	return log, undo
+}
+
 type consoleEncoder struct {
 	zapcore.Encoder
 	consoleEncoder zapcore.Encoder
@@ -95,40 +131,4 @@ func (c consoleEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) (
 	}
 
 	return line, nil
-}
-
-func NewZapLogger(opts ...zap.Option) *zap.Logger {
-	debug := os.Getenv("NVIM_GO_DEBUG") != ""
-	var cfg zap.Config
-	if !debug {
-		cfg = zap.NewProductionConfig()
-	} else {
-		cfg = zap.NewDevelopmentConfig()
-		cfg.Encoding = "debug" // already registered init function
-		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		opts = append(opts, zap.AddCaller())
-	}
-	cfg.EncoderConfig.EncodeTime = nil
-
-	if level := os.Getenv("NVIM_GO_LOG_LEVEL"); level != "" {
-		var lv zapcore.Level
-		if err := lv.UnmarshalText([]byte(level)); err != nil {
-			panic(fmt.Sprintf("unknown zap log level: %v", level))
-		}
-		cfg.Level.SetLevel(lv)
-	}
-
-	zapLogger, err := cfg.Build(opts...)
-	if err != nil {
-		panic(err)
-	}
-
-	return zapLogger
-}
-
-func NewRedirectZapLogger(opts ...zap.Option) (*zap.Logger, func()) {
-	log := NewZapLogger()
-	undo := zap.RedirectStdLog(log)
-
-	return log, undo
 }
