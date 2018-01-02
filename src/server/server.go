@@ -29,7 +29,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 	zapLogf := func(format string, a ...interface{}) {
 		logger.FromContext(ctx).Named("server").Info("", zap.Any(format, a))
 	}
-	n, err := nvim.Dial(addr, nvim.DialContext(ctx), nvim.DialLogf(zapLogf))
+	n, err := nvim.Dial(addr, nvim.DialContext(ctx), nvim.DialServe(false), nvim.DialLogf(zapLogf))
 	if err != nil {
 		return nil, err
 	}
