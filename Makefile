@@ -52,6 +52,7 @@ init:  # Install dependency tools
 		honnef.co/go/tools/cmd/staticcheck \
 		honnef.co/go/tools/cmd/gosimple \
 		honnef.co/go/tools/cmd/errcheck-ng
+.PHONY: init
 
 build:  ## Build the nvim-go binary
 	go build -o ./bin/nvim-go -v ${GO_BUILD_FLAGS} ${GO_GCFLAGS} ${GO_LDFLAGS} ./cmd/nvim-go
