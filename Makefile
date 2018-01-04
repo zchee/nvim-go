@@ -66,7 +66,7 @@ manifest: build  ## Write plugin manifest for developer
 .PHONY: manifest
 
 manifest-dump: build  ## Dump plugin manifest
-	./bin/${APP} -manifest ${APP}
+	./bin/${APP} -manifest ${APP} 2>/dev/null
 .PHONY: manifest-dump
 
 
