@@ -53,7 +53,6 @@ init:  # Install dependency tools
 		honnef.co/go/tools/cmd/gosimple \
 		honnef.co/go/tools/cmd/errcheck-ng
 
-
 build:  ## Build the nvim-go binary
 	go build -o ./bin/nvim-go -v ${GO_BUILD_FLAGS} ${GO_GCFLAGS} ${GO_LDFLAGS} ./cmd/nvim-go
 .PHONY: build
@@ -61,15 +60,12 @@ build:  ## Build the nvim-go binary
 rebuild: clean build  ## Rebuild the nvim-go binary
 .PHONY: rebuild
 
-${CURDIR}/plugin/manifest: ${CURDIR}/plugin/manifest.go  ## Build the automatic writing neovim manifest utility binary
-	go build -o ${CURDIR}/plugin/manifest ${CURDIR}/plugin/manifest.go
-
-manifest: build ${CURDIR}/plugin/manifest  ## Write plugin manifest for developer
-	${CURDIR}/plugin/manifest -w ${APP}
+manifest: build  ## Write plugin manifest for developer
+	./bin/${APP} -manifest ${APP} -location ./plugin/${APP}.vim > /dev/null 2>&1
 .PHONY: manifest
 
-manifest-dump: build ${CURDIR}/plugin/manifest  ## Dump plugin manifest
-	${CURDIR}/plugin/manifest -manifest ${APP}
+manifest-dump: build  ## Dump plugin manifest
+	./bin/${APP} -manifest ${APP}
 .PHONY: manifest-dump
 
 
