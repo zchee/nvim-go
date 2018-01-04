@@ -100,7 +100,7 @@ func Main(ctx context.Context, p *plugin.Plugin) error {
 		}
 
 		if pprof {
-			const addr = "localhost:14715" // (n: 14)vim-(g: 7)(o: 15)
+			const addr = ":14715" // (n: 14)vim-(g: 7)(o: 15)
 			log.Debug("start the pprof debugging", zap.String("listen at", addr))
 
 			// enable the report of goroutine blocking events
