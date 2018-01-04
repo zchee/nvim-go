@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	logpkg "log"
 	"net/http"
 	_ "net/http/pprof"
@@ -27,7 +28,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var (
+	pluginHost  = flag.String("manifest", "", "Write plugin manifest for `host` to stdout")
+	vimFilePath = flag.String("location", "", "Manifest is automatically written to `.vim file`")
+)
+
 func main() {
+	flag.Parse()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -35,13 +43,21 @@ func main() {
 	defer undo()
 	ctx = logger.NewContext(ctx, zapLogger)
 
+	if *pluginHost != "" {
+		fn := func(p *plugin.Plugin) error {
+			return Main(ctx, p)
+		}
+		Plugin(fn)
+		return
+	}
+
 	var eg = &errgroup.Group{}
 	eg, ctx = errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		fn := func(p *plugin.Plugin) error {
 			return Main(ctx, p)
 		}
-		plugin.Main(fn)
+		Plugin(fn)
 		return nil
 	})
 	eg.Go(func() error {
