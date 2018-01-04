@@ -16,6 +16,9 @@ Requirements
 
 [Getting Started - The Go Programming Language](https://golang.org/doc/install)
 
+#### Version
+nvim-go requires Go `1.10`+ or `devel`.
+
 
 Install
 -------
