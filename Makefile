@@ -83,7 +83,7 @@ bench: test ## Take the packages benchmark
 
 
 golint:
-	golint ${PACKAGES}
+	golint -set_exit_status -min_confidence=0.3 ${PACKAGES}
 .PHONY: golint
 
 errcheck-ng:
