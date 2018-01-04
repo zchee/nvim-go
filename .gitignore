@@ -35,9 +35,6 @@ _testmain.go
 # binary
 bin/*
 
-# nvim rpc plugin manifest write command
-plugin/manifest
-
 # workaround for github.com/pkg/gsftp testdata
 src/testdata/gb/gsftp/bin
 src/testdata/gb/gsftp/pkg
