@@ -172,7 +172,7 @@ docker-test: docker-build  ## Run the package test with docker container
 
 
 todo:  ## Print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
-	@pt -e '(TODO|BUG|XXX|FIXME|NOTE)(\(.+\):|:)' --follow --hidden --ignore=vendor --ignore=internal --ignore=Makefile
+	@pt -e '(TODO|BUG|XXX|FIXME|NOTE)(\(.+\):|:)' --follow --hidden --ignore=.git --ignore=vendor --ignore=internal --ignore=Makefile
 .PHONY: todo
 
 help:  ## Print this help
