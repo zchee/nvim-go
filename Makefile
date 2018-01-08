@@ -112,7 +112,7 @@ lint: golint errcheck-ng gosimple interfacer staticcheck unparam vet
 
 
 vendor-install:  # Install vendor packages for gocode completion
-	go install -i -v -x ${VENDOR_PACKAGES}
+	go install -v -x ${VENDOR_PACKAGES}
 .PHONY: vendor-install
 
 vendor-update:  ## Update the all vendor packages
