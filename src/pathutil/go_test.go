@@ -13,7 +13,12 @@ import (
 )
 
 func TestPackagePath(t *testing.T) {
-	var gopath = filepath.Join("testdata", "go")
+	oldGoPath := build.Default.GOPATH
+	testGoPath := filepath.Join("testdata", "go")
+	build.Default.GOPATH = testGoPath
+	defer func() {
+		build.Default.GOPATH = oldGoPath
+	}()
 
 	type args struct {
 		dir string
@@ -26,32 +31,32 @@ func TestPackagePath(t *testing.T) {
 	}{
 		{
 			name:    "package main (main.go file)",
-			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "testmain")},
-			want:    filepath.Join(gopath, "src", "foo.org", "testmain"),
+			args:    args{dir: filepath.Join(testGoPath, "src", "foo.org", "testmain")},
+			want:    filepath.Join(testGoPath, "src", "foo.org", "testmain"),
 			wantErr: false,
 		},
 		{
 			name:    "package foo (exists go file)",
-			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo")},
-			want:    filepath.Join(gopath, "src", "foo.org", "foo"),
+			args:    args{dir: filepath.Join(testGoPath, "src", "foo.org", "foo")},
+			want:    filepath.Join(testGoPath, "src", "foo.org", "foo"),
 			wantErr: false,
 		},
 		{
 			name:    "not exists go file(use parent dir)",
-			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo", "bar")},
-			want:    filepath.Join(gopath, "src", "foo.org", "foo"),
+			args:    args{dir: filepath.Join(testGoPath, "src", "foo.org", "foo", "bar")},
+			want:    filepath.Join(testGoPath, "src", "foo.org", "foo"),
 			wantErr: false,
 		},
 		{
 			name:    "package baz (parent dir is no go file)",
-			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz")},
-			want:    filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz"),
+			args:    args{dir: filepath.Join(testGoPath, "src", "foo.org", "foo", "bar", "baz")},
+			want:    filepath.Join(testGoPath, "src", "foo.org", "foo", "bar", "baz"),
 			wantErr: false,
 		},
 		{
 			name:    "package qux (parent dir is package)",
-			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz", "qux")},
-			want:    filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz", "qux"),
+			args:    args{dir: filepath.Join(testGoPath, "src", "foo.org", "foo", "bar", "baz", "qux")},
+			want:    filepath.Join(testGoPath, "src", "foo.org", "foo", "bar", "baz", "qux"),
 			wantErr: false,
 		},
 		{
@@ -62,7 +67,7 @@ func TestPackagePath(t *testing.T) {
 		},
 		{
 			name:    "GOPATH directory",
-			args:    args{dir: gopath},
+			args:    args{dir: testGoPath},
 			want:    "",
 			wantErr: true,
 		},
@@ -73,12 +78,12 @@ func TestPackagePath(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
-		build.Default.GOPATH = gopath
 
+	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got, err := pathutil.PackagePath(tt.args.dir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PackagePath(%v) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)
@@ -92,7 +97,12 @@ func TestPackagePath(t *testing.T) {
 }
 
 func TestPackageID(t *testing.T) {
-	var gopath = filepath.Join("testdata", "go")
+	oldGoPath := build.Default.GOPATH
+	testGoPath := filepath.Join("testdata", "go")
+	build.Default.GOPATH = testGoPath
+	defer func() {
+		build.Default.GOPATH = oldGoPath
+	}()
 
 	type args struct {
 		dir string
@@ -105,31 +115,31 @@ func TestPackageID(t *testing.T) {
 	}{
 		{
 			name:    "package main (main.go file)",
-			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "testmain")},
+			args:    args{dir: filepath.Join(testGoPath, "src", "foo.org", "testmain")},
 			want:    filepath.Join("foo.org", "testmain"),
 			wantErr: false,
 		},
 		{
 			name:    "package foo (exists go file)",
-			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo")},
+			args:    args{dir: filepath.Join(testGoPath, "src", "foo.org", "foo")},
 			want:    filepath.Join("foo.org", "foo"),
 			wantErr: false,
 		},
 		{
 			name:    "not exists go file(use parent dir)",
-			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo", "bar")},
+			args:    args{dir: filepath.Join(testGoPath, "src", "foo.org", "foo", "bar")},
 			want:    filepath.Join("foo.org", "foo"),
 			wantErr: false,
 		},
 		{
 			name:    "package baz (parent dir is no go file)",
-			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz")},
+			args:    args{dir: filepath.Join(testGoPath, "src", "foo.org", "foo", "bar", "baz")},
 			want:    filepath.Join("foo.org", "foo", "bar", "baz"),
 			wantErr: false,
 		},
 		{
 			name:    "package qux (parent dir is package)",
-			args:    args{dir: filepath.Join(gopath, "src", "foo.org", "foo", "bar", "baz", "qux")},
+			args:    args{dir: filepath.Join(testGoPath, "src", "foo.org", "foo", "bar", "baz", "qux")},
 			want:    filepath.Join("foo.org", "foo", "bar", "baz", "qux"),
 			wantErr: false,
 		},
@@ -141,7 +151,7 @@ func TestPackageID(t *testing.T) {
 		},
 		{
 			name:    "GOPATH directory",
-			args:    args{dir: gopath},
+			args:    args{dir: testGoPath},
 			want:    "",
 			wantErr: true,
 		},
@@ -152,12 +162,12 @@ func TestPackageID(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
-		build.Default.GOPATH = gopath
 
+	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got, err := pathutil.PackageID(tt.args.dir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PackageID(%v) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)
@@ -172,9 +182,12 @@ func TestPackageID(t *testing.T) {
 
 func TestPackageRoot(t *testing.T) {
 	t.Skip("for now")
-
-	gopath := filepath.Join("testdata", "go", "src")
-	build.Default.GOPATH = gopath
+	oldGoPath := build.Default.GOPATH
+	testGoPath := filepath.Join("testdata", "go", "src")
+	build.Default.GOPATH = testGoPath
+	defer func() {
+		build.Default.GOPATH = oldGoPath
+	}()
 
 	type args struct {
 		path string
@@ -187,7 +200,7 @@ func TestPackageRoot(t *testing.T) {
 	}{
 		{
 			name:    "default",
-			args:    args{filepath.Join(gopath, "foo.org", "foo", "foo.go")},
+			args:    args{filepath.Join(testGoPath, "foo.org", "foo", "foo.go")},
 			want:    nil,
 			wantErr: false,
 		},
@@ -196,6 +209,7 @@ func TestPackageRoot(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got, err := pathutil.PackageRoot(tt.args.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PackageRoot(%v) error = %#v, wantErr %#v", tt.args.path, err, tt.wantErr)

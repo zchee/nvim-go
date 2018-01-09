@@ -20,11 +20,8 @@ var (
 	testCwd, _     = os.Getwd()
 	projectRoot, _ = filepath.Abs(filepath.Join(testCwd, "../../../"))
 	testdata, _    = filepath.Abs(filepath.Join("../testdata"))
-	testGoPath     = filepath.Join(testdata, "go")
+	testGoPath     = filepath.Join("testdata", "go")
 	testGbPath     = filepath.Join(testdata, "gb")
-
-	astdump     = filepath.Join(testGoPath, "src", "astdump")
-	astdumpMain = filepath.Join(astdump, "astdump.go")
 )
 
 func TestChdir(t *testing.T) {
@@ -66,6 +63,13 @@ func TestChdir(t *testing.T) {
 }
 
 func TestTrimGoPath(t *testing.T) {
+	oldGoPath := build.Default.GOPATH
+	testGoPath := filepath.Join("testdata", "go")
+	build.Default.GOPATH = testGoPath
+	defer func() {
+		build.Default.GOPATH = oldGoPath
+	}()
+
 	type args struct {
 		p string
 	}
@@ -96,11 +100,11 @@ func TestTrimGoPath(t *testing.T) {
 		},
 	}
 
-	build.Default.GOPATH = testGoPath
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			if got := pathutil.TrimGoPath(tt.args.p); got != tt.want {
 				t.Errorf("TrimGoPath(%v) = %v, want %v", tt.args.p, got, tt.want)
 			}
@@ -109,6 +113,13 @@ func TestTrimGoPath(t *testing.T) {
 }
 
 func TestJoinGoPath(t *testing.T) {
+	oldGoPath := build.Default.GOPATH
+	testGoPath := filepath.Join("testdata", "go")
+	build.Default.GOPATH = testGoPath
+	defer func() {
+		build.Default.GOPATH = oldGoPath
+	}()
+
 	type args struct {
 		p string
 	}
@@ -124,11 +135,11 @@ func TestJoinGoPath(t *testing.T) {
 		},
 	}
 
-	build.Default.GOPATH = testGoPath
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			if got := pathutil.JoinGoPath(tt.args.p); got != tt.want {
 				t.Errorf("JoinGoPath(%v) = %v, want %v", tt.args.p, got, tt.want)
 			}

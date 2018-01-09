@@ -91,13 +91,18 @@ func TestIsGb(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		switch tt.tool {
-		case "gb":
-			root := filepath.Join("../", "testdata", "gb", "gsftp")
-			build.Default.GOPATH = fmt.Sprintf("%s:%s/vendor", root, root)
-		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
+			switch tt.tool {
+			case "gb":
+				oldGoPath := build.Default.GOPATH
+				root := filepath.Join("../", "testdata", "gb", "gsftp")
+				build.Default.GOPATH = fmt.Sprintf("%s:%s/vendor", root, root)
+				defer func() {
+					build.Default.GOPATH = oldGoPath
+				}()
+			}
 
 			got, got1 := pathutil.IsGb(tt.args.dir)
 			if got != tt.want {
