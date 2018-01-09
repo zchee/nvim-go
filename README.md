@@ -1,12 +1,10 @@
-nvim-go
-=======
+# nvim-go
 
 [![CircleCI][circleci-badge]][circleci] [![codecov.io][codecov-badge]][codecov] [![godoc.org][godoc-badge]][godoc] [![Releases][release-badge]][release] [![GA][ga-badge]][ga]
 
-Go development plugin for Neovim written in pure Go.
+nvim-go is a Go language development plugin for Neovim written in pure Go.
 
-Requirements
-------------
+## Requirements
 
 ### Neovim
 
@@ -20,8 +18,7 @@ Requirements
 nvim-go requires Go `1.10`+ or `devel`.
 
 
-Install
--------
+## Install
 
 nvim-go do not support `go get` install, because Neovim's runtimepath is not under the `$GOPATH`.  
 Currently, depends on the [constabulary/gb](https://github.com/constabulary/gb).
@@ -43,14 +40,12 @@ NeoBundle 'zchee/nvim-go', {'build': {'unix': 'make'}}
 Plug 'zchee/nvim-go', { 'do': 'make'}
 ```
 
-Features
---------
+## Features
 
 - First goal is fully compatible vim-go. See [TODO.md](docs/TODO.md#vim-go-compatible).
 - Delve debugger GUI interface.
 
-Acknowledgement
----------------
+## Acknowledgement
 
 - [fatih/vim-go](https://github.com/fatih/vim-go)
   - nvim-go is largely inspired by vim-go. Thanks [@fatih](https://github.com/fatih) and vim-go's [contributors](https://github.com/fatih/vim-go/graphs/contributors).
@@ -59,13 +54,11 @@ Acknowledgement
 - Authors of vendor packages.
 - The Go Authors.
 
-Donation
---------
+## Donation
 
 Please donate to the location in need of donations in your country. peace.
 
-License
--------
+## License
 
 nvim-go is released under the BSD 3-Clause License.
 
