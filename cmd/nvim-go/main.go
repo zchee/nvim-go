@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// nvim-go is a Go language development plugin for Neovim written in pure Go.
+// nvim-go: a Go language development plugin for Neovim written in pure Go.
 package main
 
 import (
