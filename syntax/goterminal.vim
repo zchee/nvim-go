@@ -12,7 +12,7 @@ endif
 " ----------------------------------------------------------------------------
 " get config variables
 
-let g:go#highlight#terminal#test = get(g:, 'g:go#highlight#terminal#test', 1)
+let g:go#highlight#terminal#test = get(g:, 'go#highlight#terminal#test', 1)
 
 " ----------------------------------------------------------------------------
 " set syntax highlight
