@@ -14,13 +14,13 @@ import (
 )
 
 func TestFindVCSRoot(t *testing.T) {
-	testCwd, err := os.Getwd()
+	cwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("failed to get working directory: %v", err)
 	}
 
 	type args struct {
-		basedir string
+		root string
 	}
 	tests := []struct {
 		name string
@@ -29,17 +29,17 @@ func TestFindVCSRoot(t *testing.T) {
 	}{
 		{
 			name: "go/nvim-go",
-			args: args{basedir: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go")},
+			args: args{root: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go")},
 			want: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go"),
 		},
 		{
 			name: "go/nvim-go/src/command",
-			args: args{basedir: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go", "src", "command")},
+			args: args{root: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go", "src", "command")},
 			want: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go"),
 		},
 		{
-			name: "go/cwd",
-			args: args{basedir: testCwd},
+			name: "go/cwd(pathutil)",
+			args: args{root: cwd},
 			want: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go"),
 		},
 	}
@@ -47,9 +47,8 @@ func TestFindVCSRoot(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-
-			if got := pathutil.FindVCSRoot(tt.args.basedir); got != tt.want {
-				t.Errorf("FindVCSRoot(%v) = %v, want %v", tt.args.basedir, got, tt.want)
+			if got := pathutil.FindVCSRoot(tt.args.root); got != tt.want {
+				t.Errorf("FindVCSRoot(%q): got %v, want %v", tt.args.root, got, tt.want)
 			}
 		})
 	}

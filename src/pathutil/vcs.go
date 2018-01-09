@@ -7,38 +7,36 @@ package pathutil
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-var vcsDirs = []string{".git", ".svn", ".hg"}
-
-// FindVCSRoot find package root path from arg path.
-func FindVCSRoot(basedir string) string {
-	var foundVCSDir bool
-
-	findvcsDirWalkFunc := func(path string, info os.FileInfo, err error) error {
-		if err != nil || info == nil || info.IsDir() == false {
-			return nil
-		}
-
-		for _, d := range vcsDirs {
-			_, err := os.Stat(filepath.Join(path, d))
-			if err == nil {
-				foundVCSDir = true
-				break
-			}
-		}
-
-		return nil
+func FindVCSRoot(root string) string {
+	var vcsDirs = []string{".git", ".svn", ".hg", "_darcs"}
+	if !IsDir(root) {
+		root = filepath.Dir(root)
 	}
 
+	var found bool
 	for {
-		filepath.Walk(basedir, findvcsDirWalkFunc)
-		if !foundVCSDir {
-			basedir = filepath.Dir(basedir)
-			continue
+		filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+			if err != nil || info == nil || info.IsDir() == false {
+				return nil
+			}
+			for _, d := range vcsDirs {
+				_, err := os.Stat(filepath.Join(path, d))
+				if err == nil && strings.Contains(path, root) {
+					found = true
+					root = path
+					break
+				}
+			}
+			return nil
+		})
+		if found {
+			break
 		}
-		break
+		root = filepath.Dir(root)
 	}
 
-	return filepath.Clean(basedir)
+	return filepath.Clean(root)
 }
