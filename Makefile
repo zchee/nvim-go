@@ -33,7 +33,7 @@ GO_BENCH_FUNCS ?= .
 GO_BENCH_FLAGS ?= -run=^$$ -bench=${GO_BENCH_FUNCS} -benchmem
 
 ifneq ($(NVIM_GO_DEBUG),)
-GO_GCFLAGS+=-gcflags "-N -l -dwarflocationlists=true"  # https://tip.golang.org/doc/diagnostics.html#debugging
+GO_GCFLAGS+=-gcflags=all="-N -l -dwarflocationlists=true"  # https://tip.golang.org/doc/diagnostics.html#debugging
 else
 GO_LDFLAGS+=-ldflags "-w -s"
 endif
