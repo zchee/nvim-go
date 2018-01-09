@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"go/build"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/zchee/nvim-go/src/pathutil"
@@ -186,8 +187,43 @@ func TestGbProjectName(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			if got := pathutil.GbProjectName(tt.args.projectRoot); got != tt.want {
 				t.Errorf("GbProjectName(%v) = %v, want %v", tt.args.projectRoot, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGbPackages(t *testing.T) {
+	type args struct {
+		root string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []string
+		wantErr bool
+	}{
+		{
+			name:    "gsftp",
+			args:    args{root: filepath.Join("../", "testdata", "gb", "gsftp")},
+			want:    []string{"cmd"},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := pathutil.GbPackages(tt.args.root)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GbPackages(%v) error = %v, wantErr %v", tt.args.root, err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GbPackages(%v) = %v, want %v", tt.args.root, got, tt.want)
 			}
 		})
 	}
