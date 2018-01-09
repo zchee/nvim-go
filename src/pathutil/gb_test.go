@@ -122,7 +122,7 @@ func TestIsGb(t *testing.T) {
 	}
 }
 
-func TestFindGbProjectRoot(t *testing.T) {
+func TestGbFindProjectRoot(t *testing.T) {
 	type args struct {
 		path string
 	}
@@ -167,13 +167,14 @@ func TestFindGbProjectRoot(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := pathutil.FindGbProjectRoot(tt.args.path)
+
+			got, err := pathutil.GbFindProjectRoot(tt.args.path)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("FindGbProjectRoot(%v) error = %v, wantErr %v", tt.args.path, err, tt.wantErr)
+				t.Errorf("GbFindProjectRoot(%v) error = %v, wantErr %v", tt.args.path, err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("FindGbProjectRoot(%v) = %v, want %v", tt.args.path, got, tt.want)
+				t.Errorf("GbFindProjectRoot(%v) = %v, want %v", tt.args.path, got, tt.want)
 			}
 		})
 	}

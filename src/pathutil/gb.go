@@ -16,7 +16,7 @@ import (
 // IsGb check the current buffer directory whether gb directory structure.
 // Return the gb project root path and boolean, and sets the context.GbProjectDir.
 func IsGb(dir string) (string, bool) {
-	root, err := FindGbProjectRoot(dir)
+	root, err := GbFindProjectRoot(dir)
 	if err != nil {
 		return "", false
 	}
@@ -34,11 +34,11 @@ func IsGb(dir string) (string, bool) {
 	return root, true
 }
 
-// FindGbProjectRoot works upwards from path seaching for the src/ directory
+// GbFindProjectRoot works upwards from path seaching for the src/ directory
 // which identifies the project root.
 // Code taken directly from constabulary/gb.
 //  github.com/constabulary/gb/cmd/path.go
-func FindGbProjectRoot(path string) (string, error) {
+func GbFindProjectRoot(path string) (string, error) {
 	if path == "" {
 		return "", errors.New("project root is blank")
 	}
