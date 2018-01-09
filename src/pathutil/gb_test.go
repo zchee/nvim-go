@@ -7,7 +7,6 @@ package pathutil_test
 import (
 	"fmt"
 	"go/build"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -15,12 +14,6 @@ import (
 )
 
 func TestIsGb(t *testing.T) {
-	var (
-		cwd, _ = os.Getwd()
-		gopath = build.Default.GOROOT
-		gbroot = filepath.Dir(filepath.Dir(filepath.Dir(cwd)))
-	)
-
 	type args struct {
 		dir string
 	}
@@ -32,85 +25,79 @@ func TestIsGb(t *testing.T) {
 		want1 bool
 	}{
 		{
-			name:  "go (On the $GOPATH package)",
+			name:  "go/wrong path",
 			tool:  "go",
-			args:  args{dir: filepath.Join(gopath, "/src/github.com/constabulary/gb")},
+			args:  args{dir: "a/b/c"},
 			want:  "",
 			want1: false,
 		},
 		{
-			name:  "go (On the $GOPATH package with cmd/gb directory)",
-			tool:  "go",
-			args:  args{dir: filepath.Join(gopath, "/src/github.com/constabulary/gb/cmd/gb")},
-			want:  "",
-			want1: false,
-		},
-		{
-			name:  "gb (nvim-go root)",
-			tool:  "gb",
-			args:  args{dir: projectRoot}, // gb procject root directory
-			want:  projectRoot,            // nvim-go/src/nvim-go/ctx
-			want1: true,
-		},
-		{
-			name:  "gb (gb source root directory)",
-			tool:  "gb",
-			args:  args{dir: filepath.Join(projectRoot, "src", "nvim-go")},
-			want:  projectRoot,
-			want1: true,
-		},
-		{
-			name:  "gb (gb vendor directory)",
-			tool:  "gb",
-			args:  args{dir: filepath.Join(projectRoot, "src", "nvim-go", "vendor")},
-			want:  projectRoot,
-			want1: true,
-		},
-		{
-			name:  "gb (On the gb vendor directory)",
-			tool:  "gb",
-			args:  args{dir: filepath.Join(projectRoot, "vendor", "src", "github.com", "neovim", "go-client", "nvim")},
-			want:  projectRoot,
-			want1: true,
-		},
-		{
-			name:  "gb (nvim-go commands directory)",
-			tool:  "gb",
-			args:  args{dir: filepath.Join(projectRoot, "src", "nvim-go", "src", "nvim-go", "command")},
-			want:  gbroot,
-			want1: true,
-		},
-		{
-			name:  "gb (nvim-go internal directory)",
-			tool:  "gb",
-			args:  args{dir: filepath.Join(gbroot, "src", "nvim-go", "src", "nvim-go", "internel", "guru")}, // internal directory
-			want:  gbroot,
-			want1: true,
-		},
-		{
-			name:  "wrong path",
+			name:  "gb/wrong path",
 			tool:  "gb",
 			args:  args{dir: "a/b/c"},
 			want:  "",
 			want1: false,
 		},
 		{
-			name:  "GOROOT",
+			name:  "go/package root",
+			tool:  "go",
+			args:  args{dir: filepath.Join(build.Default.GOPATH, "/src/github.com/constabulary/gb")},
+			want:  "",
+			want1: false,
+		},
+		{
+			name:  "go/cmd directory",
+			tool:  "go",
+			args:  args{dir: filepath.Join(build.Default.GOPATH, "/src/github.com/constabulary/gb/cmd/gb")},
+			want:  "",
+			want1: false,
+		},
+		{
+			name:  "go/build.Default.GOROOT",
 			tool:  "go",
 			args:  args{dir: filepath.Join(build.Default.GOROOT)},
 			want:  "",
 			want1: false,
+		},
+		{
+			name:  "gb/package root",
+			tool:  "gb",
+			args:  args{dir: filepath.Join("../", "testdata", "gb", "gsftp")},
+			want:  filepath.Join("../", "testdata", "gb", "gsftp"),
+			want1: true,
+		},
+		{
+			name:  "gb/src directory",
+			tool:  "gb",
+			args:  args{dir: filepath.Join("../", "testdata", "gb", "gsftp", "src")},
+			want:  filepath.Join("../", "testdata", "gb", "gsftp"),
+			want1: true,
+		},
+		{
+			name:  "gb/vendor directory",
+			tool:  "gb",
+			args:  args{dir: filepath.Join("../", "testdata", "gb", "gsftp", "vendor")},
+			want:  filepath.Join("../", "testdata", "gb", "gsftp"),
+			want1: true,
+		},
+		{
+			name:  "gb/vendor file",
+			tool:  "gb",
+			args:  args{dir: filepath.Join("../", "testdata", "gb", "gsftp", "vendor", "src", "github.com", "kr", "fs")},
+			want:  filepath.Join("../", "testdata", "gb", "gsftp"),
+			want1: true,
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		switch tt.tool {
 		case "gb":
-			build.Default.GOPATH = fmt.Sprintf("%s:%s/vendor", projectRoot, projectRoot)
+			root := filepath.Join("../", "testdata", "gb", "gsftp")
+			build.Default.GOPATH = fmt.Sprintf("%s:%s/vendor", root, root)
 		}
-
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got, got1 := pathutil.IsGb(tt.args.dir)
 			if got != tt.want {
 				t.Errorf("IsGb(%v) got = %v, want %v", tt.args.dir, got, tt.want)
@@ -133,27 +120,27 @@ func TestGbFindProjectRoot(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "nvim-go root",
-			args:    args{path: projectRoot},
-			want:    projectRoot,
+			name:    "gsftp root",
+			args:    args{path: filepath.Join("../", "testdata", "gb", "gsftp")},
+			want:    filepath.Join("../", "testdata", "gb", "gsftp"),
 			wantErr: false,
 		},
 		{
-			name:    "nvim-go with /src/commands",
-			args:    args{path: filepath.Join(projectRoot, "src", "command")},
-			want:    projectRoot,
+			name:    "gsftp/src/cmd",
+			args:    args{path: filepath.Join("../", "testdata", "gb", "gsftp", "src", "cmd")},
+			want:    filepath.Join("../", "testdata", "gb", "gsftp"),
 			wantErr: false,
 		},
 		{
-			name:    "gb vendor directory (return .../vendor)",
-			args:    args{path: filepath.Join(projectRoot, "vendor", "src", "github.com", "neovim", "go-client", "nvim")},
-			want:    filepath.Join(projectRoot, "vendor"),
+			name:    "gsftp/src/cmd/gsftp",
+			args:    args{path: filepath.Join("../", "testdata", "gb", "gsftp", "src", "cmd", "gsftp")},
+			want:    filepath.Join("../", "testdata", "gb", "gsftp"),
 			wantErr: false,
 		},
 		{
-			name:    "gsftp",
-			args:    args{path: filepath.Join(testGbPath, "gsftp", "src", "cmd", "gsftp")},
-			want:    filepath.Join(testGbPath, "gsftp"),
+			name:    "gsftp vendor",
+			args:    args{path: filepath.Join("../", "testdata", "gb", "gsftp", "vendor", "src", "github.com", "kr", "fs")},
+			want:    filepath.Join("../", "testdata", "gb", "gsftp", "vendor"),
 			wantErr: false,
 		},
 		{
@@ -190,13 +177,8 @@ func TestGbProjectName(t *testing.T) {
 		want string
 	}{
 		{
-			name: "nvim-go",
-			args: args{projectRoot: projectRoot},
-			want: "nvim-go",
-		},
-		{
 			name: "gsftp",
-			args: args{projectRoot: filepath.Join(testGbPath, "gsftp")},
+			args: args{projectRoot: filepath.Join("../", "testdata", "gb", "gsftp")},
 			want: "gsftp",
 		},
 	}
