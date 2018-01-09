@@ -11,7 +11,7 @@ import (
 
 var vcsDirs = []string{".git", ".svn", ".hg"}
 
-// FindVCSRoot find package root path from arg path
+// FindVCSRoot find package root path from arg path.
 func FindVCSRoot(basedir string) string {
 	var foundVCSDir bool
 
