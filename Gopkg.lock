@@ -133,6 +133,15 @@
 
 [[projects]]
   branch = "master"
+  name = "go.uber.org/goleak"
+  packages = [
+    ".",
+    "internal/stack"
+  ]
+  revision = "18742541d022941d2ef0db05d30bc68f69e96bd9"
+
+[[projects]]
+  branch = "master"
   name = "go.uber.org/multierr"
   packages = ["."]
   revision = "fb7d312c2c04c34f0ad621048bbb953b168f9ff6"
@@ -221,6 +230,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1e3716c64a6e45aead155e3651ebbf1c843b9358d9fd49347d4341c2908008df"
+  inputs-digest = "be3d5f2c94edd203a1863ccb3b28d833449cf3aa01ce298f31eb5f5e4b99e437"
   solver-name = "gps-cdcl"
   solver-version = 1
