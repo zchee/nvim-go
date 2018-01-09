@@ -24,6 +24,7 @@ CGO_LDFLAGS ?=
 # ----------------------------------------------------------------------------
 # build and test flags
 
+GO_TEST ?= go test
 GO_BUILD_FLAGS ?=
 GO_TEST_PKGS := $(shell go list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./...)
 GO_TEST_FUNCS ?= .
@@ -71,7 +72,7 @@ manifest-dump: build  ## Dump plugin manifest
 
 
 test:  ## Run the package test
-	go test -v ${GO_TEST_FLAGS} ${GO_TEST_PKGS}
+	${GO_TEST} -v ${GO_TEST_FLAGS} ${GO_TEST_PKGS}
 .PHONY: test
 
 bench: GO_TEST_FLAGS+=${GO_BENCH_FLAGS}
