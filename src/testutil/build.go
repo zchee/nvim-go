@@ -12,6 +12,7 @@ import (
 
 var buildContextMu sync.Mutex
 
+// SetBuildContext sets build.Default.GOPATH and return the restore function.
 func SetBuildContext(t *testing.T, gopath string) func() {
 	t.Helper()
 
