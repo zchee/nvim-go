@@ -11,23 +11,23 @@ import (
 )
 
 // FindVCSRoot finds the vcs root directory from path.
-func FindVCSRoot(root string) string {
+func FindVCSRoot(path string) string {
 	var vcsDirs = []string{".git", ".svn", ".hg", "_darcs"}
-	if !IsDir(root) {
-		root = filepath.Dir(root)
+	if !IsDir(path) {
+		path = filepath.Dir(path)
 	}
 
 	var found bool
 	for {
-		filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
 			if err != nil || info == nil || info.IsDir() == false {
 				return nil
 			}
 			for _, d := range vcsDirs {
-				_, err := os.Stat(filepath.Join(path, d))
-				if err == nil && strings.Contains(path, root) {
+				_, err := os.Stat(filepath.Join(p, d))
+				if err == nil && strings.Contains(p, path) {
 					found = true
-					root = path
+					path = p
 					break
 				}
 			}
@@ -36,8 +36,8 @@ func FindVCSRoot(root string) string {
 		if found {
 			break
 		}
-		root = filepath.Dir(root)
+		path = filepath.Dir(path)
 	}
 
-	return filepath.Clean(root)
+	return filepath.Clean(path)
 }

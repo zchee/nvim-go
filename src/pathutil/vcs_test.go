@@ -20,7 +20,7 @@ func TestFindVCSRoot(t *testing.T) {
 	}
 
 	type args struct {
-		root string
+		path string
 	}
 	tests := []struct {
 		name string
@@ -29,17 +29,17 @@ func TestFindVCSRoot(t *testing.T) {
 	}{
 		{
 			name: "go/nvim-go",
-			args: args{root: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go")},
+			args: args{path: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go")},
 			want: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go"),
 		},
 		{
 			name: "go/nvim-go/src/command",
-			args: args{root: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go", "src", "command")},
+			args: args{path: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go", "src", "command")},
 			want: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go"),
 		},
 		{
 			name: "go/cwd(pathutil)",
-			args: args{root: cwd},
+			args: args{path: cwd},
 			want: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go"),
 		},
 	}
@@ -48,8 +48,8 @@ func TestFindVCSRoot(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := pathutil.FindVCSRoot(tt.args.root); got != tt.want {
-				t.Errorf("FindVCSRoot(%q): got %v, want %v", tt.args.root, got, tt.want)
+			if got := pathutil.FindVCSRoot(tt.args.path); got != tt.want {
+				t.Errorf("FindVCSRoot(%q): got %v, want %v", tt.args.path, got, tt.want)
 			}
 		})
 	}
