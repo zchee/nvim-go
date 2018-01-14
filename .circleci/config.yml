@@ -20,6 +20,7 @@ jobs:
           name: "Install go dependencies tools"
           command: |
             go get -u \
+              github.com/constabulary/gb/... \
               github.com/haya14busa/goverage
       - run:
           name: "Take a coverage"
