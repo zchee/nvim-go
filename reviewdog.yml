@@ -1,0 +1,64 @@
+runner:
+
+  golint:
+    cmd: "golint ./src/..."
+    errorformat:
+      - "%f:%l:%c: %m"
+
+  govet:
+    cmd: "go vet ./src/..."
+
+  misspell:
+    cmd: "misspell ./src/..."
+    errorformat:
+      - "%f:%l:%c: %m"
+
+  unused:
+    cmd: "unused ./src/..."
+    errorformat:
+      - "%f:%l:%c: %m"
+
+  gosimple:
+    cmd: "gosimple ./src/..."
+    errorformat:
+      - "%f:%l:%c: %m"
+
+  varcheck:
+    cmd: "varcheck ./src/..."
+    errorformat:
+      - "%f:%l:%c: %m"
+
+  structcheck:
+    cmd: "structcheck ./src/..."
+    errorformat:
+      - "%f:%l:%c: %m"
+
+  staticcheck:
+    cmd: "staticcheck -ignore '*_test.go' ./src/..."
+    errorformat:
+      - "%f:%l:%c: %m"
+
+  errcheck:
+    cmd: "errcheck -ignore 'io:.*,ioutil:.*,net/http:.*' -asserts -ignoretests ./src/..."
+    errorformat:
+      - "%f:%l:%c:%m"
+
+  unconvert:
+    cmd: "unconvert ./src/..."
+    errorformat:
+      - "%f:%l:%c: %m"
+
+  ineffassign:
+    cmd: "gometalinter --vendor --disable-all --enable=ineffassign ./src/..."
+    errorformat:
+      - "%f:%l:%c:%s: %m"
+
+  deadcode:
+    cmd: "gometalinter --vendor --disable-all --enable=deadcode ./src/..."
+    errorformat:
+      - "%f:%l:%c:%s: %m"
+
+  gas:
+    cmd: "gometalinter --vendor --disable-all --enable=gas --exclude='Errors unhandled' ./src/..."
+    errorformat:
+      - "%f:%l::%s: %m,%s,%s"
