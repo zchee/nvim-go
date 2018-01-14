@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/zchee/nvim-go/src/pathutil"
+	"github.com/zchee/nvim-go/src/testutil"
 )
 
 func TestPackagePath(t *testing.T) {
@@ -154,7 +155,7 @@ func TestPackageID(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			defer setBuildContext(t, filepath.Join("testdata", "go"))()
+			defer testutil.SetBuildContext(t, filepath.Join("testdata", "go"))()
 			got, err := pathutil.PackageID(tt.args.dir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PackageID(%v) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)

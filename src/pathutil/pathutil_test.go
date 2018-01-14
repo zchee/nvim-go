@@ -14,6 +14,7 @@ import (
 	"github.com/neovim/go-client/nvim"
 	"github.com/zchee/nvim-go/src/nvimutil"
 	"github.com/zchee/nvim-go/src/pathutil"
+	"github.com/zchee/nvim-go/src/testutil"
 )
 
 func TestChdir(t *testing.T) {
@@ -93,7 +94,7 @@ func TestTrimGoPath(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			defer setBuildContext(t, testGoPath)()
+			defer testutil.SetBuildContext(t, testGoPath)()
 			if got := pathutil.TrimGoPath(tt.args.p); got != tt.want {
 				t.Errorf("TrimGoPath(%v) = %v, want %v", tt.args.p, got, tt.want)
 			}
@@ -120,7 +121,7 @@ func TestJoinGoPath(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			defer setBuildContext(t, testGoPath)()
+			defer testutil.SetBuildContext(t, testGoPath)()
 			if got := pathutil.JoinGoPath(tt.args.p); got != tt.want {
 				t.Errorf("JoinGoPath(%v) = %v, want %v", tt.args.p, got, tt.want)
 			}

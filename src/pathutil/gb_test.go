@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/zchee/nvim-go/src/pathutil"
+	"github.com/zchee/nvim-go/src/testutil"
 )
 
 func TestIsGb(t *testing.T) {
@@ -97,7 +98,7 @@ func TestIsGb(t *testing.T) {
 			switch tt.tool {
 			case "gb":
 				root := filepath.Join("../", "testdata", "gb", "gsftp")
-				defer setBuildContext(t, fmt.Sprintf("%s:%s/vendor", root, root))()
+				defer testutil.SetBuildContext(t, fmt.Sprintf("%s:%s/vendor", root, root))()
 			}
 			got, got1 := pathutil.IsGb(tt.args.dir)
 			if got != tt.want {

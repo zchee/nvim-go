@@ -5,11 +5,9 @@
 package pathutil_test
 
 import (
-	"go/build"
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 )
 
@@ -28,19 +26,4 @@ func TestMain(m *testing.M) {
 	testGoPath = filepath.Join("testdata", "go")
 
 	os.Exit(m.Run())
-}
-
-var buildContextMu sync.Mutex
-
-func setBuildContext(t *testing.T, gopath string) func() {
-	t.Helper()
-
-	buildContextMu.Lock()
-	defaulCtxt := build.Default
-	build.Default.GOPATH = gopath
-
-	return func() {
-		build.Default = defaulCtxt
-		buildContextMu.Unlock()
-	}
 }
