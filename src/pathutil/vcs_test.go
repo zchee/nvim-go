@@ -47,6 +47,7 @@ func TestFindVCSRoot(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			if got := pathutil.FindVCSRoot(tt.args.root); got != tt.want {
 				t.Errorf("FindVCSRoot(%q): got %v, want %v", tt.args.root, got, tt.want)
 			}
