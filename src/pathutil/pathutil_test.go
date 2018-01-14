@@ -16,15 +16,12 @@ import (
 	"github.com/zchee/nvim-go/src/pathutil"
 )
 
-var (
-	testCwd, _     = os.Getwd()
-	projectRoot, _ = filepath.Abs(filepath.Join(testCwd, "../../../"))
-	testdata, _    = filepath.Abs(filepath.Join("../testdata"))
-	testGoPath     = filepath.Join("testdata", "go")
-	testGbPath     = filepath.Join(testdata, "gb")
-)
-
 func TestChdir(t *testing.T) {
+	testCwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	type args struct {
 		v   *nvim.Nvim
 		dir string
@@ -35,12 +32,12 @@ func TestChdir(t *testing.T) {
 		wantCwd string
 	}{
 		{
-			name: "nvim-go (gb)",
+			name: "gb/gsftp",
 			args: args{
-				v:   nvimutil.TestNvim(t, projectRoot),
-				dir: filepath.Join(projectRoot, "src", "nvim-go"),
+				v:   nvimutil.TestNvim(t, testGbRoot),
+				dir: filepath.Join(testGbRoot, "src", "gsftp"),
 			},
-			wantCwd: filepath.Join(projectRoot, "src", "nvim-go"),
+			wantCwd: filepath.Join(testGbRoot, "src", "gsftp"),
 		},
 	}
 	for _, tt := range tests {
@@ -48,14 +45,14 @@ func TestChdir(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			defer func() {
-				if testCwd != filepath.Join(projectRoot, "src/nvim-go/pathutil") || testCwd == tt.args.dir {
+				if testCwd == tt.args.dir {
 					t.Errorf("%q. Chdir(%v, %v) = %v, want %v", tt.name, tt.args.v, tt.args.dir, testCwd, tt.wantCwd)
 				}
 			}()
 			defer pathutil.Chdir(tt.args.v, tt.args.dir)()
 			var cwd interface{}
 			tt.args.v.Eval("getcwd()", &cwd)
-			if cwd.(string) != tt.wantCwd {
+			if cwd.(string) != testCwd {
 				t.Errorf("%q. Chdir(%v, %v) = %v, want %v", tt.name, tt.args.v, tt.args.dir, cwd, tt.wantCwd)
 			}
 		})
@@ -132,6 +129,11 @@ func TestJoinGoPath(t *testing.T) {
 }
 
 func TestShortFilePath(t *testing.T) {
+	testCwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	type args struct {
 		p   string
 		cwd string
@@ -178,6 +180,11 @@ func TestShortFilePath(t *testing.T) {
 }
 
 func TestRel(t *testing.T) {
+	testCwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	type args struct {
 		f   string
 		cwd string
@@ -199,9 +206,9 @@ func TestRel(t *testing.T) {
 			name: "own filepath and project root",
 			args: args{
 				f:   filepath.Join(testCwd, "pathutil_test.go"),
-				cwd: projectRoot,
+				cwd: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go"),
 			},
-			want: "src/nvim-go/pathutil/pathutil_test.go",
+			want: "src/pathutil/pathutil_test.go",
 		},
 		{
 			name: "Use different directory",
@@ -225,7 +232,7 @@ func TestRel(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := pathutil.Rel(tt.args.cwd, tt.args.f); got != tt.want {
-				t.Errorf("Rel(%v, %v) = %v, want %v", tt.args.f, tt.args.cwd, got, tt.want)
+				t.Errorf("Rel(%v, %v) = got %v, want %v", tt.args.f, tt.args.cwd, got, tt.want)
 			}
 		})
 	}
@@ -265,6 +272,11 @@ func TestExpandGoRoot(t *testing.T) {
 }
 
 func TestIsDir(t *testing.T) {
+	testCwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	type args struct {
 		filename string
 	}
