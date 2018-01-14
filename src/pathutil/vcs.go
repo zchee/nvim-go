@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// FindVCSRoot finds the vcs root directory from path.
 func FindVCSRoot(root string) string {
 	var vcsDirs = []string{".git", ".svn", ".hg", "_darcs"}
 	if !IsDir(root) {
