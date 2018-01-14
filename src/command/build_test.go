@@ -26,18 +26,22 @@ func TestCommand_Build(t *testing.T) {
 		eval *CmdBuildEval
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		// want interface{}
+		name    string
+		fields  fields
+		args    args
 		wantErr bool
 	}{
 		{
-			name: "nvim-go File: filepath.Join(projectRoot, \"src/nvim-go/command\")",
+			name: "go/nvim-go",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, "testdata"),
-				buildctxt: buildctx.NewContext(),
+				ctx:  ctx,
+				Nvim: nvimutil.TestNvim(t, "."),
+				buildctxt: &buildctx.Context{
+					Build: buildctx.Build{
+						Tool:        "go",
+						ProjectRoot: "",
+					},
+				},
 			},
 			args: args{
 				eval: &CmdBuildEval{
@@ -50,9 +54,14 @@ func TestCommand_Build(t *testing.T) {
 		{
 			name: "gsftp",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, gsftpRoot),
-				buildctxt: buildctx.NewContext(),
+				ctx:  ctx,
+				Nvim: nvimutil.TestNvim(t, gsftpRoot),
+				buildctxt: &buildctx.Context{
+					Build: buildctx.Build{
+						Tool:        "gb",
+						ProjectRoot: gsftpRoot,
+					},
+				},
 			},
 			args: args{
 				eval: &CmdBuildEval{
@@ -65,9 +74,14 @@ func TestCommand_Build(t *testing.T) {
 		{
 			name: "correct (astdump)",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, filepath.Join(astdump, "astdump.go")), // correct file
-				buildctxt: buildctx.NewContext(),
+				ctx:  ctx,
+				Nvim: nvimutil.TestNvim(t, filepath.Join(astdump, "astdump.go")), // correct file
+				buildctxt: &buildctx.Context{
+					Build: buildctx.Build{
+						Tool:        "go",
+						ProjectRoot: astdump,
+					},
+				},
 			},
 			args: args{
 				eval: &CmdBuildEval{
@@ -80,9 +94,14 @@ func TestCommand_Build(t *testing.T) {
 		{
 			name: "broken (broken)",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, brokenMain), // broken file
-				buildctxt: buildctx.NewContext(),
+				ctx:  ctx,
+				Nvim: nvimutil.TestNvim(t, brokenMain), // broken file
+				buildctxt: &buildctx.Context{
+					Build: buildctx.Build{
+						Tool:        "gb",
+						ProjectRoot: broken,
+					},
+				},
 			},
 			args: args{
 				eval: &CmdBuildEval{
@@ -94,21 +113,20 @@ func TestCommand_Build(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
-			c.buildContext.SetContext(filepath.Dir(tt.args.eval.File))
+			t.Parallel()
 
+			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
 			err := c.Build(tt.args.bang, tt.args.eval)
-			if e, ok := err.(error); ok {
+			switch e := err.(type) {
+			case error:
 				if (err != nil) != tt.wantErr {
 					t.Errorf("err: %v, wantErr %v", e, tt.wantErr)
-					return
 				}
-			}
-			if errlist, ok := err.([]*nvim.QuickfixError); ok {
-				if (len(errlist) != 0) != tt.wantErr {
+			case []*nvim.QuickfixError:
+				if (len(e) != 0) != tt.wantErr {
 					t.Errorf("%q. Commands.Build(%v, %v)", tt.name, tt.args.bang, tt.args.eval)
-					return
 				}
 			}
 		})
