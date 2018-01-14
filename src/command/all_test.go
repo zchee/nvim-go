@@ -23,7 +23,7 @@ var (
 	broken      = filepath.Join(testGoPath, "src", "broken")
 	brokenMain  = filepath.Join(broken, "broken.go")
 	gsftp       = filepath.Join(testGbPath, "gsftp", "src", "cmd", "gsftp")
-	gsftpRoot   = filepath.Join(testCwd, "testdata", "gb", "gsftp")
+	gsftpRoot   = filepath.Join(testdataPath, "gb", "gsftp")
 	gsftpMain   = filepath.Join(gsftpRoot, "src", "cmd", "gsftp", "main.go")
 )
 
