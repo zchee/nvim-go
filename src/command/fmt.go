@@ -7,7 +7,6 @@ package command
 import (
 	"bytes"
 	"go/scanner"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -44,8 +43,6 @@ func (c *Command) cmdFmt(dir string) {
 
 // Fmt format to the current buffer source uses gofmt behavior.
 func (c *Command) Fmt(dir string) interface{} {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GoFmt")
-
 	b := nvim.Buffer(c.buildContext.BufNr)
 	in, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
@@ -86,7 +83,6 @@ func (c *Command) Fmt(dir string) interface{} {
 				})
 			}
 		}
-
 		return errlist
 	}
 

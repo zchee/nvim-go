@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -49,8 +48,6 @@ func (c *Command) cmdBuild(bang bool, eval *CmdBuildEval) {
 // Build builds the current buffers package use compile tool that determined
 // from the package directory structure.
 func (c *Command) Build(bang bool, eval *CmdBuildEval) interface{} {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GoBuild")
-
 	if !bang {
 		bang = config.BuildForce
 	}
