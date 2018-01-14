@@ -112,6 +112,14 @@ lint: golint errcheck-ng gosimple interfacer staticcheck unparam vet
 .PHONY: lint
 
 
+$(shell go env GOPATH)/bin/goverage:
+	go get -u github.com/haya14busa/goverage
+
+cover: $(shell go env GOPATH)/bin/goverage
+	goverage -v -race -covermode=atomic -coverprofile=coverage.out $(GO_TEST_PKGS)
+.PHONY: cover
+
+
 vendor-install:  # Install vendor packages for gocode completion
 	go install -v -x ${VENDOR_PACKAGES}
 .PHONY: vendor-install
