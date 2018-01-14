@@ -10,7 +10,7 @@ import (
 	"github.com/neovim/go-client/nvim"
 )
 
-func TestTerminal_getWindowSize(t *testing.T) {
+func TestTerminal_getSplitWindowSize(t *testing.T) {
 	n := TestNvim(t)
 	type fields struct {
 		Nvim *nvim.Nvim
@@ -69,7 +69,7 @@ func TestTerminal_getWindowSize(t *testing.T) {
 				Nvim: tt.fields.Nvim,
 			}
 			if got := term.getSplitWindowSize(tt.args.cfg, tt.args.f); got != tt.want {
-				t.Errorf("Terminal.getWindowSize(%v, %v) = %v, want %v", tt.args.cfg, tt.args.f, got, tt.want)
+				t.Errorf("getSplitWindowSize(%v) = %v, want %v", tt.args.cfg, got, tt.want)
 			}
 		})
 	}
