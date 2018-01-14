@@ -20,13 +20,12 @@ jobs:
           name: "Install go dependencies tools"
           command: |
             go get -u \
-              github.com/constabulary/gb/... \
               github.com/haya14busa/goverage
       - run:
           name: "Take a coverage"
           environment:
           command: |
-            goverage -v -race -covermode=atomic -coverprofile=coverage.out $(go list ./src/... | grep -v internal)
+            goverage -v -race -covermode=atomic -coverprofile=coverage.out $(go list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./src/...)
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
