@@ -57,7 +57,7 @@ func NewContext() *Context {
 }
 
 // buildContext return the new build context estimated from the path p directory structure.
-func buildContext(dir string, defaultContext build.Context) (string, string, build.Context) {
+func (ctx *Context) buildContext(dir string, defaultContext build.Context) (string, string, build.Context) {
 	// copy context
 	buildContext := defaultContext
 
@@ -100,7 +100,7 @@ func (ctx *Context) SetContext(dir string) {
 	ctx.m.Lock()
 	defer ctx.m.Unlock()
 
-	ctx.Build.Tool, ctx.Build.ProjectRoot, build.Default = buildContext(dir, build.Default)
+	ctx.Build.Tool, ctx.Build.ProjectRoot, build.Default = ctx.buildContext(dir, build.Default)
 	if ctx.Build.Tool == "gb" {
 		build.Default.JoinPath = ctx.Build.GbJoinPath
 	}
