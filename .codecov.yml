@@ -1,0 +1,108 @@
+coverage:
+  precision: 2
+  range: "70...100"
+  round: down
+
+  notify:
+      slack:
+        default:
+          url: "secret:uuYRROmq0cqJANi1HiVpPn91AGO164g6iKxC4m0RPlpvP+x7d7AyWTz03b8NXfM0rrb+nurftbwqNB0MzT84vey8yM3he5dfew92iAoqVRuUsNuM21qmJHDQ6yzP+ER2ur4WoO7gs+u6RKzdyqIF+5UpqAn/DIawRaQGNTrur24="
+          attachments: "header, diff, changes, sunburst, suggestions, tree"
+
+  status:
+    project:
+      default: off
+      cmd:
+        enabled: yes
+        flags: cmd
+        target: auto
+        threshold: 1%
+      autocmd:
+        enabled: yes
+        flags: autocmd
+        target: auto
+        threshold: 1%
+      buildctx:
+        enabled: yes
+        flags: buildctx
+        target: auto
+        threshold: 1%
+      command:
+        enabled: yes
+        flags: command
+        target: auto
+        threshold: 1%
+      config:
+        enabled: yes
+        flags: config
+        target: auto
+        threshold: 1%
+      logger:
+        enabled: yes
+        flags: logger
+        target: auto
+        threshold: 1%
+      nvimutil:
+        enabled: yes
+        flags: nvimutil
+        target: auto
+        threshold: 1%
+      pathutil:
+        enabled: yes
+        flags: pathutil
+        target: auto
+        threshold: 1%
+      server:
+        enabled: yes
+        flags: server
+        target: auto
+        threshold: 1%
+      testutil:
+        enabled: yes
+        flags: testutil
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        enabled: yes
+        only_pulls: true
+        target: auto
+        threshold: 1%
+    changes: no
+  ignore:
+    - "vendor/*"
+
+flags:
+  cmd:
+    paths:
+      - github.com/zchee/nvim-go/cmd/
+  autocmd:
+    paths:
+      - github.com/zchee/nvim-go/src/autocmd/
+  buildctx:
+    paths:
+      - github.com/zchee/nvim-go/src/buildctx/
+  command:
+    paths:
+      - github.com/zchee/nvim-go/src/command/
+  config:
+    paths:
+      - github.com/zchee/nvim-go/src/config/
+  logger:
+    paths:
+      - github.com/zchee/nvim-go/src/logger/
+  nvimutil:
+    paths:
+      - github.com/zchee/nvim-go/src/nvimutil/
+  pathutil:
+    paths:
+      - github.com/zchee/nvim-go/src/pathutil/
+  server:
+    paths:
+      - github.com/zchee/nvim-go/src/server/
+  testutil:
+    paths:
+      - github.com/zchee/nvim-go/src/testutil/
+
+comment:
+  layout: "header, diff, tree, changes, sunburst"
