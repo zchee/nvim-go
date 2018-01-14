@@ -20,7 +20,7 @@ func FindVCSRoot(path string) string {
 	var found bool
 	for {
 		err := filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
-			if err != nil || info == nil || info.IsDir() == false {
+			if err != nil || info == nil || !info.IsDir() {
 				return nil
 			}
 			for _, d := range vcsDirs {
