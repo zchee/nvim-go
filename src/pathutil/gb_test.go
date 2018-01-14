@@ -96,14 +96,9 @@ func TestIsGb(t *testing.T) {
 
 			switch tt.tool {
 			case "gb":
-				oldGoPath := build.Default.GOPATH
 				root := filepath.Join("../", "testdata", "gb", "gsftp")
-				build.Default.GOPATH = fmt.Sprintf("%s:%s/vendor", root, root)
-				defer func() {
-					build.Default.GOPATH = oldGoPath
-				}()
+				defer setBuildContext(t, fmt.Sprintf("%s:%s/vendor", root, root))()
 			}
-
 			got, got1 := pathutil.IsGb(tt.args.dir)
 			if got != tt.want {
 				t.Errorf("IsGb(%v) got = %v, want %v", tt.args.dir, got, tt.want)

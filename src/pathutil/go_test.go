@@ -13,12 +13,7 @@ import (
 )
 
 func TestPackagePath(t *testing.T) {
-	oldGoPath := build.Default.GOPATH
 	testGoPath := filepath.Join("testdata", "go")
-	build.Default.GOPATH = testGoPath
-	defer func() {
-		build.Default.GOPATH = oldGoPath
-	}()
 
 	type args struct {
 		dir string
@@ -67,7 +62,7 @@ func TestPackagePath(t *testing.T) {
 		},
 		{
 			name:    "GOPATH directory",
-			args:    args{dir: testGoPath},
+			args:    args{dir: build.Default.GOPATH},
 			want:    "",
 			wantErr: true,
 		},
@@ -83,7 +78,6 @@ func TestPackagePath(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-
 			got, err := pathutil.PackagePath(tt.args.dir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PackagePath(%v) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)
@@ -97,13 +91,6 @@ func TestPackagePath(t *testing.T) {
 }
 
 func TestPackageID(t *testing.T) {
-	oldGoPath := build.Default.GOPATH
-	testGoPath := filepath.Join("testdata", "go")
-	build.Default.GOPATH = testGoPath
-	defer func() {
-		build.Default.GOPATH = oldGoPath
-	}()
-
 	type args struct {
 		dir string
 	}
@@ -167,7 +154,7 @@ func TestPackageID(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-
+			defer setBuildContext(t, filepath.Join("testdata", "go"))()
 			got, err := pathutil.PackageID(tt.args.dir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PackageID(%v) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)
