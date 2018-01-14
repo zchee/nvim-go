@@ -26,7 +26,7 @@ CGO_LDFLAGS ?=
 
 GO_TEST ?= go test
 GO_BUILD_FLAGS ?=
-GO_TEST_PKGS := $(shell go list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./...)
+GO_TEST_PKGS := $(shell go list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./src/...)
 GO_TEST_FUNCS ?= .
 GO_TEST_FLAGS ?= -race -run=$(GO_TEST_FUNCS)
 GO_BENCH_FUNCS ?= .
