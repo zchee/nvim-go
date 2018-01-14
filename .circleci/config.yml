@@ -2,7 +2,7 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: golang:1.9-stretch
+    - image: golang:1.10beta1-stretch
   working_directory: /go/src/github.com/zchee/nvim-go
 
 jobs:
