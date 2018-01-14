@@ -272,7 +272,7 @@ FATAL: command "build" failed: exit status 2`),
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("%q. ParseError(errors: %v,\ncwd: %v,\nbuildContext: %v) = \n", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext, got, tt.want)
+				t.Errorf("%v. ParseError(errors: %v,\ncwd: %v,\nbuildContext: %v) = \n", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext)
 				for _, got := range got {
 					t.Logf("=====  got =====: %+v", got)
 				}
