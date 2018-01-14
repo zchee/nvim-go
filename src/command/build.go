@@ -63,7 +63,7 @@ func (c *Command) Build(bang bool, eval *CmdBuildEval) interface{} {
 	cmd.Stderr = &stderr
 
 	if buildErr := cmd.Run(); buildErr != nil {
-		if buildErr.(*exec.ExitError) != nil {
+		if err, ok := buildErr.(*exec.ExitError); ok && err != nil {
 			errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.buildContext.Build, nil)
 			if err != nil {
 				return errors.WithStack(err)
