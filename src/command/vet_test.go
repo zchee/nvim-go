@@ -134,9 +134,10 @@ func TestCommand_Vet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		tt.fields.buildctxt.Build.Tool = tt.tool
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
+			tt.fields.buildctxt.Build.Tool = tt.tool
 			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
 			if got := c.Vet(tt.args.args, tt.args.eval); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Command.Vet(%v, %v) = %v, want %v", tt.args.args, tt.args.eval, got, tt.want)
