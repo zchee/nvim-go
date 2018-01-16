@@ -62,10 +62,10 @@ func Register(pctx context.Context, p *plugin.Plugin, buildContext *buildctx.Con
 
 	// Handle the before the read to file.
 	// If create the new file, does not run the 'BufReadPre', Instead of 'BufNewFile'.
-	// p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufReadPre", Group: "nvim-go-autocmd", Pattern: "*.go"}, autocmd.BufReadPre)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufReadPre", Group: "nvim-go-autocmd", Pattern: "*.go", Eval: "*"}, autocmd.BufReadPre)
 
 	// Handle create the new file.
-	// p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufNewFile", Group: "nvim-go-autocmd", Pattern: "*.go"}, autocmd.BufReadPre)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufNewFile", Group: "nvim-go-autocmd", Pattern: "*.go", Eval: "*"}, autocmd.BufReadPre)
 
 	// Handle the before the write to file.
 	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.bufWritePre)
