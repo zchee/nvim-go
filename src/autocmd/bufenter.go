@@ -21,12 +21,7 @@ type bufEnterEval struct {
 func (a *Autocmd) BufEnter(eval *bufEnterEval) error {
 	defer nvimutil.Profile(a.ctx, time.Now(), "BufEnter")
 
-	a.mu.Lock()
-	a.buildContext.BufNr = eval.BufNr
-	a.buildContext.WinID = eval.WinID
-	a.buildContext.Dir = eval.Dir
-	a.mu.Unlock()
-
+	a.getStatus(eval.BufNr, eval.WinID, eval.Dir)
 	if eval.Dir != "" && a.buildContext.PrevDir != eval.Dir {
 		a.buildContext.SetContext(eval.Dir)
 	}
