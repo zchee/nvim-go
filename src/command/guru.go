@@ -137,10 +137,8 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 	}
 	query.Scope = append(query.Scope, scopes...)
 
-	var (
-		outputMu sync.Mutex
-		err      error
-	)
+	var outputMu sync.Mutex
+	var err error
 	output := func(fset *token.FileSet, qr guru.QueryResult) {
 		var err error
 		outputMu.Lock()
