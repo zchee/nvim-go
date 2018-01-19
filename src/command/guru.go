@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"go/build"
 	"go/token"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -57,12 +58,14 @@ func (c *Command) funcGuru(args []string, eval *funcGuruEval) {
 
 // Guru go source analysis and output result to the quickfix or locationlist.
 func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
-	defer nvimutil.Profile(c.ctx, time.Now(), "Guru")
+	now := time.Now()
+	log := logger.FromContext(c.ctx).Named("Guru")
 
 	mode := args[0]
 	if len(args) > 1 {
 		return guruHelp(c.Nvim, mode)
 	}
+	defer nvimutil.Profile(c.ctx, now, "Guru", mode)
 
 	defer func() (err error) {
 		if r := recover(); r != nil {
@@ -108,8 +111,8 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 
 		batch.Command("normal! m'")
 		// TODO(zchee): should change nvimutil.SplitPos behavior
-		f := strings.Split(obj.ObjPos, ":")
-		if f[0] != eval.File {
+		filename := strings.Split(obj.ObjPos, ":")
+		if filename[0] != eval.File {
 			batch.Command(fmt.Sprintf("keepjumps edit %s", pathutil.Rel(eval.Cwd, fname)))
 		}
 		batch.SetWindowCursor(w, [2]int{line, col - 1})
@@ -123,18 +126,26 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 	var scopes []string
 	switch c.buildContext.Build.Tool {
 	case "go":
-		rootDir := pathutil.TrimGoPath(pathutil.FindVCSRoot(eval.File))
-		scopes = []string{pathutil.ToWildcard(rootDir)}
+		root := pathutil.FindVCSRoot(eval.File)
+		scopes = []string{pathutil.ToWildcard(pathutil.TrimGoPath(root))}
+		if vendorDir := filepath.Join(root, "vendor"); pathutil.IsDirExist(vendorDir) {
+			scopes = append(scopes, "-"+pathutil.ToWildcard(pathutil.TrimGoPath(vendorDir)))
+		}
 	case "gb":
+		root := c.buildContext.Build.ProjectRoot
 		var err error
-		scopes, err = pathutil.GbPackages(c.buildContext.Build.ProjectRoot)
+		scopes, err = pathutil.GbPackages(root)
 		if err != nil {
 			return errors.Wrap(err, "could not get gb packages")
 		}
 		for i, pkg := range scopes {
 			scopes[i] = pathutil.ToWildcard(pkg)
 		}
+		if vendorDir := filepath.Join(root, "vendor"); pathutil.IsDirExist(vendorDir) {
+			scopes = append(scopes, "-"+pathutil.ToWildcard(vendorDir))
+		}
 	}
+	log.Info("Guru", zap.Strings("scopes", scopes))
 	query.Scope = append(query.Scope, scopes...)
 
 	var outputMu sync.Mutex
