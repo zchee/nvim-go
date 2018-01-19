@@ -73,7 +73,7 @@ call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'command', 'name': 'Gotest', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'Govet', 'sync': 0, 'opts': {'complete': 'customlist,GoVetCompletion', 'eval': '[getcwd(), expand(''%:p'')]', 'nargs': '*'}},
 \ {'type': 'function', 'name': 'FunctionsCompletion', 'sync': 1, 'opts': {}},
-\ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p''), &modified, line2byte(line(''.'')) + (col(''.'')-2)]'}},
+\ {'type': 'function', 'name': 'GoGuru', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:.''), &modified, line2byte(line(''.'')) + (col(''.'')-2)]'}},
 \ {'type': 'function', 'name': 'GoLintCompletion', 'sync': 1, 'opts': {'eval': 'getcwd()'}},
 \ {'type': 'function', 'name': 'GoVetCompletion', 'sync': 1, 'opts': {'eval': 'getcwd()'}},
 \ ])
