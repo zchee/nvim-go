@@ -42,7 +42,7 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 	}
 
 	if config.BuildAutosave {
-		err := a.cmd.Build(config.BuildForce, &command.CmdBuildEval{
+		err := a.cmd.Build(nil, config.BuildForce, &command.CmdBuildEval{
 			Cwd:  eval.Cwd,
 			File: eval.File,
 		})

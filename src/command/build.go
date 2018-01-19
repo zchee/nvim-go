@@ -14,8 +14,10 @@ import (
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"github.com/zchee/nvim-go/src/config"
+	"github.com/zchee/nvim-go/src/logger"
 	"github.com/zchee/nvim-go/src/nvimutil"
 	"github.com/zchee/nvim-go/src/pathutil"
+	"go.uber.org/zap"
 )
 
 // CmdBuildEval struct type for Eval of GoBuild command.
@@ -24,11 +26,11 @@ type CmdBuildEval struct {
 	File string
 }
 
-func (c *Command) cmdBuild(bang bool, eval *CmdBuildEval) {
+func (c *Command) cmdBuild(args []string, bang bool, eval *CmdBuildEval) {
 	go func() {
 		c.errs.Delete("Build")
 
-		err := c.Build(bang, eval)
+		err := c.Build(args, bang, eval)
 		switch e := err.(type) {
 		case error:
 			nvimutil.ErrorWrap(c.Nvim, e)
@@ -47,12 +49,16 @@ func (c *Command) cmdBuild(bang bool, eval *CmdBuildEval) {
 
 // Build builds the current buffers package use compile tool that determined
 // from the package directory structure.
-func (c *Command) Build(bang bool, eval *CmdBuildEval) interface{} {
+func (c *Command) Build(args []string, bang bool, eval *CmdBuildEval) interface{} {
 	if !bang {
 		bang = config.BuildForce
 	}
+	wd := filepath.Dir(eval.File)
+	if len(args) >= 1 {
+		wd = eval.Cwd
+	}
 
-	cmd, err := c.compileCmd(bang, filepath.Dir(eval.File))
+	cmd, err := c.compileCmd(args, bang, wd)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -74,31 +80,31 @@ func (c *Command) Build(bang bool, eval *CmdBuildEval) interface{} {
 }
 
 // compileCmd returns the *exec.Cmd corresponding to the compile tool.
-func (c *Command) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
+func (c *Command) compileCmd(args []string, bang bool, dir string) (*exec.Cmd, error) {
 	bin, err := exec.LookPath(c.buildContext.Build.Tool)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+	cmd := exec.Command(bin, "build")
 
-	args := []string{}
 	if len(config.BuildFlags) > 0 {
 		args = append(args, config.BuildFlags...)
 	}
-
-	cmd := exec.Command(bin, "build")
-	cmd.Dir = dir
-
 	switch c.buildContext.Build.Tool {
 	case "go":
+		cmd.Dir = dir
+
 		// Outputs the binary to DevNull if without bang
-		if !bang {
+		if !bang || !matchSlice("-o", args) {
 			args = append(args, "-o", os.DevNull)
 		}
+		// add "app" suffix to binary name if enable app-engine build
 		if config.BuildAppengine {
 			cmd.Args[0] += "app"
 		}
 	case "gb":
 		cmd.Dir = c.buildContext.Build.ProjectRoot
+
 		if config.BuildAppengine {
 			cmd.Args = append([]string{cmd.Args[0], "gae"}, cmd.Args[1:]...)
 			pkgs, err := pathutil.GbPackages(cmd.Dir)
@@ -113,6 +119,16 @@ func (c *Command) compileCmd(bang bool, dir string) (*exec.Cmd, error) {
 	}
 
 	cmd.Args = append(cmd.Args, args...)
+	logger.FromContext(c.ctx).Info("compileCmd", zap.Any("cmd", cmd))
 
 	return cmd, nil
+}
+
+func matchSlice(s string, ss []string) bool {
+	for _, str := range ss {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }

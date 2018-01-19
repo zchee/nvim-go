@@ -63,7 +63,7 @@ call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'command', 'name': 'GoSwitchTest', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p''), line2byte(line(''.'')) + (col(''.'')-2)]'}},
 \ {'type': 'command', 'name': 'GoTabpages', 'sync': 1, 'opts': {}},
 \ {'type': 'command', 'name': 'GoWindows', 'sync': 1, 'opts': {}},
-\ {'type': 'command', 'name': 'Gobuild', 'sync': 0, 'opts': {'bang': '', 'eval': '[getcwd(), expand(''%:p'')]'}},
+\ {'type': 'command', 'name': 'Gobuild', 'sync': 0, 'opts': {'bang': '', 'eval': '[getcwd(), expand(''%:p'')]', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'Gofmt', 'sync': 0, 'opts': {'eval': 'expand(''%:p:h'')'}},
 \ {'type': 'command', 'name': 'Golint', 'sync': 0, 'opts': {'complete': 'customlist,GoLintCompletion', 'eval': 'expand(''%:p'')', 'nargs': '?'}},
 \ {'type': 'command', 'name': 'Gometalinter', 'sync': 0, 'opts': {'eval': 'getcwd()'}},

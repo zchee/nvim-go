@@ -45,7 +45,7 @@ func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context
 
 	// Register command and function
 	// CommandOptions order: Name, NArgs, Range, Count, Addr, Bang, Register, Eval, Bar, Complete
-	p.HandleCommand(&plugin.CommandOptions{Name: "Gobuild", Bang: true, Eval: "[getcwd(), expand('%:p')]"}, c.cmdBuild)
+	p.HandleCommand(&plugin.CommandOptions{Name: "Gobuild", NArgs: "*", Bang: true, Eval: "[getcwd(), expand('%:p')]"}, c.cmdBuild)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoCover", Eval: "[getcwd(), expand('%:p')]"}, c.cmdCover)
 	p.HandleCommand(&plugin.CommandOptions{Name: "Gofmt", Eval: "expand('%:p:h')"}, c.cmdFmt)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoGenerateTest", NArgs: "*", Range: "%", Addr: "line", Bang: true, Eval: "expand('%:p:h')", Complete: "file"}, c.cmdGenerateTest)

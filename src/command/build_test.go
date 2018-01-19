@@ -22,6 +22,7 @@ func TestCommand_Build(t *testing.T) {
 		errs      *syncmap.Map
 	}
 	type args struct {
+		args []string
 		bang bool
 		eval *CmdBuildEval
 	}
@@ -44,6 +45,7 @@ func TestCommand_Build(t *testing.T) {
 				},
 			},
 			args: args{
+				args: nil,
 				eval: &CmdBuildEval{
 					Cwd:  testdataPath,
 					File: testdataPath,
@@ -64,6 +66,7 @@ func TestCommand_Build(t *testing.T) {
 				},
 			},
 			args: args{
+				args: nil,
 				eval: &CmdBuildEval{
 					Cwd:  gsftpRoot,
 					File: gsftpRoot,
@@ -84,6 +87,7 @@ func TestCommand_Build(t *testing.T) {
 				},
 			},
 			args: args{
+				args: nil,
 				eval: &CmdBuildEval{
 					Cwd:  astdump,
 					File: filepath.Join(astdump, "astdump.go"),
@@ -104,6 +108,7 @@ func TestCommand_Build(t *testing.T) {
 				},
 			},
 			args: args{
+				args: nil,
 				eval: &CmdBuildEval{
 					Cwd:  broken,
 					File: brokenMain,
@@ -118,7 +123,7 @@ func TestCommand_Build(t *testing.T) {
 			t.Parallel()
 
 			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
-			err := c.Build(tt.args.bang, tt.args.eval)
+			err := c.Build(tt.args.args, tt.args.bang, tt.args.eval)
 			switch e := err.(type) {
 			case error:
 				if (err != nil) != tt.wantErr {
@@ -139,7 +144,7 @@ func BenchmarkBuildGo(b *testing.B) {
 	c := NewCommand(ctx, benchVim(b, astdumpMain), buildctxt)
 
 	for i := 0; i < b.N; i++ {
-		c.Build(false, &CmdBuildEval{
+		c.Build(nil, false, &CmdBuildEval{
 			Cwd:  astdump,
 			File: astdump,
 		})
@@ -155,7 +160,7 @@ func BenchmarkBuildGb(b *testing.B) {
 	c := NewCommand(ctx, benchVim(b, gsftpMain), buildctxt)
 
 	for i := 0; i < b.N; i++ {
-		c.Build(false, &CmdBuildEval{
+		c.Build(nil, false, &CmdBuildEval{
 			Cwd:  gsftpRoot,
 			File: gsftpRoot,
 		})
