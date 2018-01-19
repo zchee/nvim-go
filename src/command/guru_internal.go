@@ -246,8 +246,7 @@ func fastQueryPos(ctxt *build.Context, pos string) (*queryPos, error) {
 	// so that we observe the effects of the -modified flag.
 	fset := token.NewFileSet()
 	fset.AddFile(filename, fset.Base(), startOffset)
-	// cwd, _ := os.Getwd()
-	cwd, _ := filepath.Split(filename)
+	cwd, _ := os.Getwd()
 	f, err := buildutil.ParseFile(fset, ctxt, nil, filepath.Clean(cwd), filename, parser.Mode(0))
 	// ParseFile usually returns a partial file along with an error.
 	// Only fail if there is no file.
