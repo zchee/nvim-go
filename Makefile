@@ -30,7 +30,7 @@ GO_TEST_PKGS := $(shell go list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.Impor
 GO_TEST_FUNCS ?= .
 GO_TEST_FLAGS ?= -race -run=$(GO_TEST_FUNCS)
 GO_BENCH_FUNCS ?= .
-GO_BENCH_FLAGS ?= -run=^$$ -bench=${GO_BENCH_FUNCS} -benchmem
+GO_BENCH_FLAGS ?= -bench=${GO_BENCH_FUNCS} -benchmem
 
 ifneq ($(NVIM_GO_DEBUG),)
 GO_GCFLAGS+=-gcflags=all="-N -l -dwarflocationlists=true"  # https://tip.golang.org/doc/diagnostics.html#debugging
@@ -56,7 +56,7 @@ init:  # Install dependency tools
 .PHONY: init
 
 build:  ## Build the nvim-go binary
-	go build -o ./bin/nvim-go -v ${GO_BUILD_FLAGS} ${GO_GCFLAGS} ${GO_LDFLAGS} ./cmd/nvim-go
+	go build -v -o ./bin/nvim-go $(strip ${GO_BUILD_FLAGS} ${GO_GCFLAGS} ${GO_LDFLAGS}) ./cmd/nvim-go
 .PHONY: build
 
 rebuild: clean build  ## Rebuild the nvim-go binary
@@ -72,9 +72,10 @@ manifest-dump: build  ## Dump plugin manifest
 
 
 test:  ## Run the package test
-	${GO_TEST} -v ${GO_TEST_FLAGS} ${GO_TEST_PKGS}
+	${GO_TEST} -v $(strip ${GO_TEST_FLAGS} ${GO_TEST_PKGS})
 .PHONY: test
 
+bench: GO_TEST_FUNCS=^$$
 bench: GO_TEST_FLAGS+=${GO_BENCH_FLAGS}
 bench: test ## Take the packages benchmark
 .PHONY: bench
