@@ -75,7 +75,7 @@ func main() {
 	case sig := <-sigc:
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM:
-			logger.FromContext(ctx).Info("notify signal", zap.String("interrupted signal", sig.String()))
+			logger.FromContext(ctx).Info("catch signal", zap.String("name", sig.String()))
 			cancel() // avoid goroutine leak
 			return
 		}
