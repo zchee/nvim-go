@@ -6,6 +6,7 @@ package nvimutil
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/zchee/nvim-go/src/logger"
@@ -13,7 +14,15 @@ import (
 )
 
 // Profile measurement of the time it took to any func and output log file.
-// Usage: defer nvim.Profile(time.Now(), "func name")
-func Profile(ctx context.Context, start time.Time, name string) {
-	logger.FromContext(ctx).Named("profile").WithOptions(zap.AddCallerSkip(2)).Info("elapsed", zap.Float64(name, time.Since(start).Seconds()))
+//
+// Usage: defer nvim.Profile(time.Now(), "name", "...")
+func Profile(ctx context.Context, start time.Time, name ...string) {
+	logger.FromContext(ctx).Named("profile").WithOptions(
+		zap.AddCallerSkip(2),
+	).Info(
+		"elapsed",
+		zap.Float64(strings.Join(name, "."),
+			time.Since(start).Seconds(),
+		),
+	)
 }
