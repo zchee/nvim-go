@@ -65,7 +65,7 @@ func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context
 	p.HandleFunction(&plugin.FunctionOptions{Name: "GoVetCompletion", Eval: "getcwd()"}, c.cmdVetComplete)   // flag for go tool vet
 
 	// for debug
-	p.HandleCommand(&plugin.CommandOptions{Name: "GoByteOffset", Range: "%", Eval: "expand('%:p')"}, c.cmdByteOffset)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoByteOffset", Eval: "expand('%:p')"}, c.cmdByteOffset)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoBuffers"}, c.cmdBuffers)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoWindows"}, c.cmdWindows)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoTabpages"}, c.cmdTabpagas)
