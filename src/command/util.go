@@ -7,7 +7,9 @@ package command
 import (
 	"fmt"
 
+	"github.com/zchee/nvim-go/src/logger"
 	"github.com/zchee/nvim-go/src/nvimutil"
+	"go.uber.org/zap"
 )
 
 func (c *Command) cmdBuffers() error {
@@ -49,5 +51,7 @@ func (c *Command) cmdByteOffset() error {
 	}
 
 	offset, _ := nvimutil.ByteOffset(c.Nvim, b, w)
+	logger.FromContext(c.ctx).Info("cmdByteOffset", zap.Int("offset", offset))
+
 	return nvimutil.Echomsg(c.Nvim, offset)
 }
