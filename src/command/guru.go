@@ -14,11 +14,10 @@ import (
 	"go/build"
 	"go/token"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"github.com/zchee/nvim-go/src/config"
@@ -58,19 +57,22 @@ func (c *Command) funcGuru(args []string, eval *funcGuruEval) {
 
 // Guru go source analysis and output result to the quickfix or locationlist.
 func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
-	now := time.Now()
-	log := logger.FromContext(c.ctx).Named("Guru")
+	log := logger.FromContext(c.ctx).Named("Guru").With(zap.Any("funcGuruEval", eval))
 
 	mode := args[0]
 	if len(args) > 1 {
 		return guruHelp(c.Nvim, mode)
 	}
-	defer nvimutil.Profile(c.ctx, now, "Guru", mode)
 
 	defer func() (err error) {
-		if r := recover(); r != nil {
-			err = errors.Errorf("guru internal panic.\nMaybe your set 'g:go#guru#reflection' to 1. Please retry with disable it option.\nOriginal panic message:\n\t%v", r.(error))
+		switch r := recover(); r.(type) {
+		case error:
+			const errGuruPanic = "guru internal panic.\nMaybe your set 'g:go#guru#reflection' to 1. Please retry with disable it option.\nOriginal panic message:\n\t%v"
+			err = errors.Errorf(errGuruPanic, r)
 			return errors.WithStack(err)
+		case runtime.Error:
+			err = errors.Errorf("runtime error: %v", r)
+			panic(err)
 		}
 		return nil
 	}()
@@ -101,6 +103,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		Build:      guruContext,
 		Reflection: config.GuruReflection,
 	}
+	log.Info("", zap.String("query.Pos", query.Pos), zap.Bool("query.Reflection", query.Reflection))
 
 	if mode == "definition" {
 		obj, err := Definition(&query)
@@ -127,6 +130,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 	switch c.buildContext.Build.Tool {
 	case "go":
 		root := pathutil.FindVCSRoot(eval.File)
+		root, _ = filepath.Abs(root)
 		scopes = []string{pathutil.ToWildcard(pathutil.TrimGoPath(root))}
 		if vendorDir := filepath.Join(root, "vendor"); pathutil.IsDirExist(vendorDir) {
 			scopes = append(scopes, "-"+pathutil.ToWildcard(pathutil.TrimGoPath(vendorDir)))
@@ -145,8 +149,12 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 			scopes = append(scopes, "-"+pathutil.ToWildcard(vendorDir))
 		}
 	}
-	log.Info("Guru", zap.Strings("scopes", scopes))
 	query.Scope = append(query.Scope, scopes...)
+	log.Info("",
+		zap.Strings("scopes", scopes),
+		zap.String("query.Pos", query.Pos),
+		zap.Bool("query.Reflection", query.Reflection),
+		zap.Strings("query.Scope", query.Scope))
 
 	var outputMu sync.Mutex
 	var err error
