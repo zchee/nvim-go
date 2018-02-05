@@ -7,11 +7,12 @@ package autocmd
 import (
 	"time"
 
-	"github.com/zchee/nvim-go/src/config"
 	"github.com/zchee/nvim-go/src/nvimutil"
 )
 
+type bufReadPreEval struct {}
+
 // BufReadPre gets user config variables and assign to global variable when autocmd BufReadPre.
-func (a *Autocmd) BufReadPre(cfg *config.Config) {
+func (a *Autocmd) BufReadPre(eval *bufReadPreEval) {
 	defer nvimutil.Profile(a.ctx, time.Now(), "BufReadPre")
 }
