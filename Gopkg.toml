@@ -2,12 +2,13 @@ required = [
   "golang.org/x/tools/cmd/guru",
 ]
 
-ignored = [
-  "github.com/zchee/nvim-go/plugins",
-]
-
 [metadata]
   project = "nvim-go"
+
+[prune]
+  unused-packages = true
+  non-go = true
+  go-tests = true
 
 [[constraint]]
   name = "github.com/davecgh/go-spew"
