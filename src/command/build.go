@@ -50,20 +50,19 @@ func (c *Command) cmdBuild(args []string, bang bool, eval *CmdBuildEval) {
 // Build builds the current buffers package use compile tool that determined
 // from the package directory structure.
 func (c *Command) Build(args []string, bang bool, eval *CmdBuildEval) interface{} {
+	log := logger.FromContext(c.ctx).With(zap.Strings("args", args), zap.Bool("bang", bang), zap.Any("CmdBuildEval", eval))
 	if !bang {
 		bang = config.BuildForce
 	}
-	wd := filepath.Dir(eval.File)
-	if len(args) >= 1 {
-		wd = eval.Cwd
-	}
 
-	cmd, err := c.compileCmd(args, bang, wd)
+	cmd, err := c.compileCmd(args, bang, eval.Cwd)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
+
+	log.Info("", zap.Any("cmd", cmd))
 
 	if buildErr := cmd.Run(); buildErr != nil {
 		if err, ok := buildErr.(*exec.ExitError); ok && err != nil {
@@ -118,6 +117,7 @@ func (c *Command) compileCmd(args []string, bang bool, dir string) (*exec.Cmd, e
 		}
 	}
 
+	args = append(args, "./...")
 	cmd.Args = append(cmd.Args, args...)
 	logger.FromContext(c.ctx).Info("compileCmd", zap.Any("cmd", cmd))
 
