@@ -52,7 +52,3 @@ ignored = [
 [[constraint]]
   branch = "master"
   name = "github.com/hokaccha/go-prettyjson"
-
-[[constraint]]
-  branch = "master"
-  name = "go.uber.org/goleak"
