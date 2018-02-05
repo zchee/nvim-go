@@ -195,25 +195,20 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 var errTypeAssertion = errors.New("type assertion error")
 
 func (c *Command) parseResult(mode string, res interface{}, cwd string) ([]*nvim.QuickfixError, error) {
-	logger.FromContext(c.ctx).Debug("parseResult", zap.String("res", spew.Sdump(res)))
+	log := logger.FromContext(c.ctx).With(zap.String("mode", mode), zap.String("cwd", cwd))
+	log.Info("", zap.Any("res", res))
 
-	var (
-		loclist []*nvim.QuickfixError
-		fname   string
-		line    int
-		col     int
-		text    string
-	)
+	var loclist []*nvim.QuickfixError
 
 	switch mode {
 	case "callees":
-		value, ok := res.(*serial.Callees)
+		v, ok := res.(*serial.Callees)
 		if !ok {
 			return loclist, errTypeAssertion
 		}
-		for _, v := range value.Callees {
-			fname, line, col = nvimutil.SplitPos(v.Pos, cwd)
-			text = value.Desc + ": " + v.Name
+		for _, cle := range v.Callees {
+			fname, line, col := nvimutil.SplitPos(cle.Pos, cwd)
+			text := v.Desc + ": " + cle.Name
 			loclist = append(loclist, &nvim.QuickfixError{
 				FileName: fname,
 				LNum:     line,
@@ -223,13 +218,13 @@ func (c *Command) parseResult(mode string, res interface{}, cwd string) ([]*nvim
 		}
 
 	case "callers":
-		value, ok := res.([]serial.Caller)
+		v, ok := res.([]serial.Caller)
 		if !ok {
 			return loclist, errTypeAssertion
 		}
-		for _, v := range value {
-			fname, line, col = nvimutil.SplitPos(v.Pos, cwd)
-			text = v.Desc + ": " + v.Caller
+		for _, clr := range v {
+			fname, line, col := nvimutil.SplitPos(clr.Pos, cwd)
+			text := clr.Desc + ": " + clr.Caller
 			loclist = append(loclist, &nvim.QuickfixError{
 				FileName: fname,
 				LNum:     line,
@@ -239,13 +234,13 @@ func (c *Command) parseResult(mode string, res interface{}, cwd string) ([]*nvim
 		}
 
 	case "callstack":
-		value, ok := res.(*serial.CallStack)
+		v, ok := res.(*serial.CallStack)
 		if !ok {
 			return loclist, errTypeAssertion
 		}
-		for _, v := range value.Callers {
-			fname, line, col = nvimutil.SplitPos(v.Pos, cwd)
-			text = v.Desc + " " + value.Target
+		for _, clr := range v.Callers {
+			fname, line, col := nvimutil.SplitPos(clr.Pos, cwd)
+			text := clr.Desc + " " + v.Target
 			loclist = append(loclist, &nvim.QuickfixError{
 				FileName: fname,
 				LNum:     line,
@@ -255,27 +250,47 @@ func (c *Command) parseResult(mode string, res interface{}, cwd string) ([]*nvim
 		}
 
 	case "describe":
-		value, ok := res.(serial.Describe)
+		v, ok := res.(*serial.Describe)
 		if !ok {
 			return loclist, errTypeAssertion
 		}
-		fname, line, col = nvimutil.SplitPos(value.Value.ObjPos, cwd)
-		text = value.Desc + " " + value.Value.Type
-		loclist = append(loclist, &nvim.QuickfixError{
-			FileName: fname,
-			LNum:     line,
-			Col:      col,
-			Text:     text,
-		})
+		switch {
+		case v.Package != nil:
+			log.Info("value.Package")
+		case v.Type != nil:
+			log.Info("value.Type")
+			for _, method := range v.Type.Methods {
+				fname, line, col := nvimutil.SplitPos(method.Pos, cwd)
+				text := method.Name
+				log.Info("", zap.String("fname", fname), zap.Int("line", line), zap.Int("col", col), zap.String("text", text))
+				loclist = append(loclist, &nvim.QuickfixError{
+					FileName: fname,
+					LNum:     line,
+					Col:      col,
+					Text:     text,
+				})
+			}
+		case v.Value != nil:
+			log.Info("value.Value")
+			fname, line, col := nvimutil.SplitPos(v.Value.ObjPos, cwd)
+			text := v.Desc + " " + v.Value.Type
+			log.Info("", zap.String("fname", fname), zap.Int("line", line), zap.Int("col", col), zap.String("text", text))
+			loclist = append(loclist, &nvim.QuickfixError{
+				FileName: fname,
+				LNum:     line,
+				Col:      col,
+				Text:     text,
+			})
+		}
 
 	case "freevars":
-		value, ok := res.([]serial.FreeVar)
+		v, ok := res.([]serial.FreeVar)
 		if !ok {
 			return loclist, errTypeAssertion
 		}
-		for _, v := range value {
-			fname, line, col = nvimutil.SplitPos(v.Pos, cwd)
-			text = v.Kind + " " + v.Type + " " + v.Ref
+		for _, fv := range v {
+			fname, line, col := nvimutil.SplitPos(fv.Pos, cwd)
+			text := fv.Kind + " " + fv.Type + " " + fv.Ref
 			loclist = append(loclist, &nvim.QuickfixError{
 				FileName: fname,
 				LNum:     line,
@@ -285,14 +300,14 @@ func (c *Command) parseResult(mode string, res interface{}, cwd string) ([]*nvim
 		}
 
 	case "implements":
-		value, ok := res.(*serial.Implements)
+		v, ok := res.(*serial.Implements)
 		if !ok {
 			return loclist, errTypeAssertion
 		}
-		for _, values := range [][]serial.ImplementsType{value.AssignableTo, value.AssignableFromPtr, value.AssignableFrom} {
-			for _, value := range values {
-				fname, line, col := nvimutil.SplitPos(value.Pos, cwd)
-				text = value.Kind + " " + value.Name
+		for _, tt := range [][]serial.ImplementsType{v.AssignableTo, v.AssignableFromPtr, v.AssignableFrom} {
+			for _, t := range tt {
+				fname, line, col := nvimutil.SplitPos(t.Pos, cwd)
+				text := t.Kind + " " + t.Name
 				loclist = append(loclist, &nvim.QuickfixError{
 					FileName: fname,
 					LNum:     line,
@@ -303,52 +318,33 @@ func (c *Command) parseResult(mode string, res interface{}, cwd string) ([]*nvim
 		}
 
 	case "peers":
-		value, ok := res.(*serial.Peers)
+		vp, ok := res.(*serial.Peers)
 		if !ok {
 			return loclist, errTypeAssertion
 		}
-		fname, line, col := nvimutil.SplitPos(value.Pos, cwd)
+		fname, line, col := nvimutil.SplitPos(vp.Pos, cwd)
 		loclist = append(loclist, &nvim.QuickfixError{
 			FileName: fname,
 			LNum:     line,
 			Col:      col,
 			Text:     "Base: selected channel op (<-)",
 		})
-		for _, v := range value.Allocs {
-			fname, line, col := nvimutil.SplitPos(v, cwd)
-			loclist = append(loclist, &nvim.QuickfixError{
-				FileName: fname,
-				LNum:     line,
-				Col:      col,
-				Text:     "Allocs: make(chan) ops",
-			})
+		peertext := []string{
+			"Allocs: make(chan) ops",
+			"Sends: ch<-x ops",
+			"Receives: <-ch ops",
+			"Closes: close(ch) ops",
 		}
-		for _, v := range value.Sends {
-			fname, line, col := nvimutil.SplitPos(v, cwd)
-			loclist = append(loclist, &nvim.QuickfixError{
-				FileName: fname,
-				LNum:     line,
-				Col:      col,
-				Text:     "Sends: ch<-x ops",
-			})
-		}
-		for _, v := range value.Receives {
-			fname, line, col := nvimutil.SplitPos(v, cwd)
-			loclist = append(loclist, &nvim.QuickfixError{
-				FileName: fname,
-				LNum:     line,
-				Col:      col,
-				Text:     "Receives: <-ch ops",
-			})
-		}
-		for _, v := range value.Closes {
-			fname, line, col := nvimutil.SplitPos(v, cwd)
-			loclist = append(loclist, &nvim.QuickfixError{
-				FileName: fname,
-				LNum:     line,
-				Col:      col,
-				Text:     "Closes: close(ch) ops",
-			})
+		for i, vv := range [][]string{vp.Allocs, vp.Sends, vp.Receives, vp.Closes} {
+			for _, v := range vv {
+				fname, line, col := nvimutil.SplitPos(v, cwd)
+				loclist = append(loclist, &nvim.QuickfixError{
+					FileName: fname,
+					LNum:     line,
+					Col:      col,
+					Text:     peertext[i],
+				})
+			}
 		}
 
 	case "pointsto":
