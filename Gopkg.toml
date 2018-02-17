@@ -50,6 +50,10 @@ required = [
   branch = "master"
   name = "golang.org/x/sync"
 
+[[override]]
+  name = "golang.org/x/arch"
+  revision = "58ea1a195b1a354bcd572b7ef6bbbd264dc63732"
+
 [[constraint]]
   branch = "master"
   name = "github.com/hokaccha/go-prettyjson"

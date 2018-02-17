@@ -86,9 +86,10 @@ const (
 	AttrDescription    Attr = 0x5A
 
 	// Go-specific attributes.
-	AttrGoKind Attr = 0x2900
-	AttrGoKey  Attr = 0x2901
-	AttrGoElem Attr = 0x2902
+	AttrGoKind          Attr = 0x2900
+	AttrGoKey           Attr = 0x2901
+	AttrGoElem          Attr = 0x2902
+	AttrGoEmbeddedField Attr = 0x2903
 )
 
 var attrNames = [...]string{
@@ -180,6 +181,8 @@ func (a Attr) String() string {
 		return "GoKey"
 	case AttrGoElem:
 		return "GoElem"
+	case AttrGoEmbeddedField:
+		return "GoEmbeddedField"
 	}
 	return strconv.Itoa(int(a))
 }

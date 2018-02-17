@@ -121,3 +121,18 @@ func testTypedefs(t *testing.T, d *Data, kind string) {
 		}
 	}
 }
+
+func TestTypeForNonTypeEntry(t *testing.T) {
+	d := elfData(t, "testdata/typedef.elf")
+
+	// The returned entry will be a Subprogram.
+	ent, err := d.LookupFunction("main")
+	if err != nil {
+		t.Fatal("d.LookupFunction:", err)
+	}
+
+	_, err = d.Type(ent.Offset)
+	if err == nil {
+		t.Fatal("nil error for unreadable entry")
+	}
+}

@@ -158,6 +158,7 @@ type StructField struct {
 	ByteSize   int64
 	BitOffset  int64 // within the ByteSize bytes at ByteOffset
 	BitSize    int64 // zero if not a bit field
+	Embedded   bool
 }
 
 func (t *StructType) String() string {
@@ -646,6 +647,7 @@ func (d *Data) readType(name string, r typeReader, off Offset, typeCache map[Off
 				f.ByteSize, _ = kid.Val(AttrByteSize).(int64)
 				f.BitOffset, haveBitOffset = kid.Val(AttrBitOffset).(int64)
 				f.BitSize, _ = kid.Val(AttrBitSize).(int64)
+				f.Embedded, _ = kid.Val(AttrGoEmbeddedField).(bool)
 				t.Field = append(t.Field, f)
 
 				bito := f.BitOffset
@@ -813,6 +815,9 @@ func (d *Data) readType(name string, r typeReader, off Offset, typeCache map[Off
 		typ = t
 		typeCache[off] = t
 		t.Name, _ = e.Val(AttrName).(string)
+
+	default:
+		err = DecodeError{name, off, "unsupported type tag"}
 	}
 
 	if err != nil {

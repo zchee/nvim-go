@@ -152,19 +152,12 @@ func testableFuncs(funcs []*models.Function, only, excl *regexp.Regexp, exp bool
 	sort.Strings(testFuncs)
 	var fs []*models.Function
 	for _, f := range funcs {
-		if isTestFunction(f, testFuncs) || isExcluded(f, excl) || isUnexported(f, exp) || !isIncluded(f, only) || isInvalid(f) {
+		if isTestFunction(f, testFuncs) || isExcluded(f, excl) || isUnexported(f, exp) || !isIncluded(f, only) {
 			continue
 		}
 		fs = append(fs, f)
 	}
 	return fs
-}
-
-func isInvalid(f *models.Function) bool {
-	if f.Name == "init" && f.IsNaked() {
-		return true
-	}
-	return false
 }
 
 func isTestFunction(f *models.Function, testFuncs []string) bool {

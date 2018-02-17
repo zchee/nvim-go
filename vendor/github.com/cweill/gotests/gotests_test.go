@@ -66,22 +66,10 @@ func TestGenerateTests(t *testing.T) {
 		}, {
 			name: "Target test file",
 			args: args{
-				srcPath:  `testdata/test103_test.go`,
-				only:     regexp.MustCompile("wrapToString"),
-				subtests: true,
+				srcPath: `testdata/test100_test.go`,
 			},
-			wantNoTests: false,
-			wantErr:     false,
-			want:        mustReadFile(t, `testdata/goldens/target_test_file.go`),
-		}, {
-			name: "Target test file without only flag",
-			args: args{
-				srcPath:  `testdata/test103_test.go`,
-				subtests: true,
-			},
-			wantNoTests: false,
-			wantErr:     false,
-			want:        mustReadFile(t, `testdata/goldens/target_test_file.go`),
+			wantNoTests: true,
+			wantErr:     true,
 		}, {
 			name: "No funcs",
 			args: args{
@@ -514,27 +502,6 @@ func TestGenerateTests(t *testing.T) {
 				subtests: true,
 			},
 			want: mustReadFile(t, "testdata/goldens/subtest_edition_-_functions_and_receivers_with_same_names_except_exporting.go"),
-		},
-		{
-			name: "Init function",
-			args: args{
-				srcPath: `testdata/init_func.go`,
-			},
-			want: mustReadFile(t, "testdata/goldens/no_init_funcs.go"),
-		},
-		{
-			name: "Existing test file with package level comments",
-			args: args{
-				srcPath: `testdata/test_existing_test_file_with_comments.go`,
-			},
-			want: mustReadFile(t, "testdata/goldens/existing_test_file_with_package_level_comments.go"),
-		},
-		{
-			name: "Existing test file with package level comments with newline",
-			args: args{
-				srcPath: `testdata/test_existing_test_file_with_comments.go`,
-			},
-			want: mustReadFile(t, "testdata/goldens/existing_test_file_with_package_level_comments.go"),
 		},
 	}
 	tmp, err := ioutil.TempDir("", "gotests_test")

@@ -13,7 +13,8 @@
     "internal/render",
     "internal/render/bindata"
   ]
-  revision = "3ba09dc73ae80f33b61c8a1e7f5ab3ca803d3320"
+  revision = "a3c1a1257668d18c210c0a63299466e301f67c27"
+  version = "v1.5.2"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -43,20 +44,20 @@
 [[projects]]
   name = "github.com/fatih/color"
   packages = ["."]
-  revision = "570b54cabe6b8eb0bc2dfce68d964677d63b5260"
-  version = "v1.5.0"
+  revision = "507f6050b8568533fb3f5504de8e5205fa62a114"
+  version = "v1.6.0"
 
 [[projects]]
   branch = "v2"
   name = "github.com/go-yaml/yaml"
   packages = ["."]
-  revision = "25c4ec802a7d637f88d584ab26798e94ad14c13b"
+  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [[projects]]
   branch = "master"
   name = "github.com/golang/lint"
   packages = ["."]
-  revision = "f635bddafc7154957bd70209ee858a4b97e64a9b"
+  revision = "e14d9b0f1d332b1420c1ffa32562ad2dc84d645d"
 
 [[projects]]
   name = "github.com/google/gops"
@@ -65,7 +66,8 @@
     "internal",
     "signal"
   ]
-  revision = "62f833fc9f6c4d3223bdb37bd0c2f8951bed8596"
+  revision = "57e77c5c37da1f4e1af49f9d1fe760f146c1579e"
+  version = "v0.3.2"
 
 [[projects]]
   branch = "master"
@@ -74,14 +76,16 @@
   revision = "e6b9231a2b1cc5798b336fdbf99c16cd8ad1e0c9"
 
 [[projects]]
+  branch = "master"
   name = "github.com/kardianos/osext"
   packages = ["."]
-  revision = "9d302b58e975387d0b4d9be876622c86cefe64be"
+  revision = "ae77be60afb1dcacde03767a8c37337fad28ac14"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
   packages = ["."]
-  revision = "ded68f7a9561c023e790de24279db7ebf473ea80"
+  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
+  version = "v0.0.9"
 
 [[projects]]
   name = "github.com/mattn/go-isatty"
@@ -107,14 +111,16 @@
   revision = "1c2696a88048c01a46c9c6be486ee0ded23beb91"
 
 [[projects]]
+  branch = "master"
   name = "github.com/peterh/liner"
   packages = ["."]
-  revision = "88609521dc4b6c858fd4c98b628147da928ce4ac"
+  revision = "3681c2a912330352991ecdd642f257efe5b85518"
 
 [[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
-  revision = "ff09b135c25aae272398c51a07235b90a75aa4f0"
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   branch = "master"
@@ -132,10 +138,10 @@
   version = "v1.3.1"
 
 [[projects]]
-  branch = "master"
   name = "go.uber.org/multierr"
   packages = ["."]
-  revision = "fb7d312c2c04c34f0ad621048bbb953b168f9ff6"
+  revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
+  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
@@ -156,19 +162,20 @@
   revision = "58ea1a195b1a354bcd572b7ef6bbbd264dc63732"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/debug"
   packages = [
     "dwarf",
     "elf",
     "macho"
   ]
-  revision = "fb508927b491eca48a708e9d000fdb7afa53c32b"
+  revision = "95515998a8a4bd7448134b2cb5971dbeb12e0b77"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
+  revision = "136a25c244d3019482a795d728110278d6ba09a4"
 
 [[projects]]
   branch = "master"
@@ -180,12 +187,13 @@
   revision = "fd80eb99c8f653c847d294a001bdf2a3a6f768f5"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows"
   ]
-  revision = "f3918c30c5c2cb527c0b071a27c35120a6c0719a"
+  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
 
 [[projects]]
   branch = "master"
@@ -210,17 +218,17 @@
     "refactor/rename",
     "refactor/satisfy"
   ]
-  revision = "f271d7a0f8cf389f3ee4f6bf8d68e716a60ea571"
+  revision = "ce871d178848e3eea1e8795e5cfb74053dde4bb9"
 
 [[projects]]
   branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
+  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1e3716c64a6e45aead155e3651ebbf1c843b9358d9fd49347d4341c2908008df"
+  inputs-digest = "587b0abc7f80eb171fa5e764aa20372c95f0c4d4b928c3045feddd3cbfacca2b"
   solver-name = "gps-cdcl"
   solver-version = 1
