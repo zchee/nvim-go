@@ -11,9 +11,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-yaml/yaml"
 	"github.com/pkg/errors"
 	xdgbasedir "github.com/zchee/go-xdgbasedir"
+	yaml "gopkg.in/yaml.v2"
 )
 
 var (

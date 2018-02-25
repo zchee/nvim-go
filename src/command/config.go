@@ -11,12 +11,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/go-yaml/yaml"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	xdgbasedir "github.com/zchee/go-xdgbasedir"
 	"github.com/zchee/nvim-go/src/nvimutil"
 	"github.com/zchee/nvim-go/src/pathutil"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // CmdConfigEval represents for the eval of GoConfig command.
