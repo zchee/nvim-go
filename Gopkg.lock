@@ -48,12 +48,6 @@
   version = "v1.6.0"
 
 [[projects]]
-  branch = "v2"
-  name = "github.com/go-yaml/yaml"
-  packages = ["."]
-  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
-
-[[projects]]
   branch = "master"
   name = "github.com/golang/lint"
   packages = ["."]
@@ -229,6 +223,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "587b0abc7f80eb171fa5e764aa20372c95f0c4d4b928c3045feddd3cbfacca2b"
+  inputs-digest = "e18b75ea9b0b58dbc1b3d93ec243d264656cc91602282844b7f628078ce90c8c"
   solver-name = "gps-cdcl"
   solver-version = 1
