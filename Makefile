@@ -6,7 +6,7 @@
 APP := $(notdir $(CURDIR))
 PACKAGE_ROOT := $(CURDIR)
 PACKAGES := $(shell go list ./src/...)
-VENDOR_PACKAGES := $(shell go list -f='{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}{{.ImportPath}}{{end}}' ./vendor/...)
+VENDOR_PACKAGES := $(shell go list -deps ./src/...)
 
 # ----------------------------------------------------------------------------
 # common environment variables
@@ -26,7 +26,6 @@ CGO_LDFLAGS ?=
 
 GO_TEST ?= go test
 GO_BUILD_FLAGS ?=
-GO_TEST_PKGS := $(shell go list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./src/...)
 GO_TEST_FUNCS ?= .
 GO_TEST_FLAGS ?= -race -run=$(GO_TEST_FUNCS)
 GO_BENCH_FUNCS ?= .
@@ -38,113 +37,121 @@ else
 GO_LDFLAGS+=-ldflags "-w -s"
 endif
 
-ifneq ($(NVIM_GO_RACE),)
-GO_BUILD_FLAGS+=-race
-build: clean
-manifest: APP=${APP}-race
-endif
-
 # ----------------------------------------------------------------------------
 # targets
 
-init:  # Install dependency tools
-	go get -u -v \
-		github.com/golang/lint/golint \
-		honnef.co/go/tools/cmd/staticcheck \
-		honnef.co/go/tools/cmd/gosimple \
-		honnef.co/go/tools/cmd/errcheck-ng
 .PHONY: init
+init:  ## Install dependency tools
+	go get -u -v \
+		github.com/golang/dep/cmd/dep \
+		\
+		github.com/kisielk/errcheck \
+		github.com/mdempsky/unconvert \
+		golang.org/x/lint/golint \
+		honnef.co/go/tools/cmd/gosimple \
+		honnef.co/go/tools/cmd/staticcheck \
+		honnef.co/go/tools/cmd/unused \
+		\
+		github.com/rakyll/gotest
 
+.PHONY: build
 build:  ## Build the nvim-go binary
 	go build -v -o ./bin/nvim-go $(strip ${GO_BUILD_FLAGS} ${GO_GCFLAGS} ${GO_LDFLAGS}) ./cmd/nvim-go
-.PHONY: build
 
-rebuild: clean build  ## Rebuild the nvim-go binary
-.PHONY: rebuild
+.PHONY: build.race
+build.race: GO_BUILD_FLAGS+=-race
+build.race: clean build ## Build the nvim-go binary with race
 
+.PHONY: build.rebuild
+build.rebuild: clean build  ## Rebuild the nvim-go binary
+
+.PHONY: manifest
 manifest: build  ## Write plugin manifest for developer
 	./bin/${APP} -manifest ${APP} -location ./plugin/${APP}.vim > /dev/null 2>&1
-.PHONY: manifest
 
-manifest-dump: build  ## Dump plugin manifest
+.PHONY: manifest.race
+manifest.race: APP=${APP}-race
+manifest.race: build.race  ## Write plugin manifest for developer
+	./bin/${APP} -manifest ${APP} -location ./plugin/${APP}.vim > /dev/null 2>&1
+
+.PHONY: manifest.dump
+manifest.dump: build  ## Dump plugin manifest
 	./bin/${APP} -manifest ${APP} 2>/dev/null
-.PHONY: manifest-dump
 
 
-test:  ## Run the package test
-	${GO_TEST} -v $(strip ${GO_TEST_FLAGS} ${GO_TEST_PKGS})
 .PHONY: test
+test:  ## Run the package test
+	${GO_TEST} -v $(strip ${GO_TEST_FLAGS} ${PACKAGES})
 
+.PHONY: bench
 bench: GO_TEST_FUNCS=^$$
 bench: GO_TEST_FLAGS+=${GO_BENCH_FLAGS}
 bench: test ## Take the packages benchmark
-.PHONY: bench
 
 
-golint:
-	golint -set_exit_status -min_confidence=0.3 ${PACKAGES}
-.PHONY: golint
-
-errcheck-ng:
-	errcheck-ng ${PACKAGES}
-.PHONY: errcheck-ng
-
-gosimple:
-	gosimple ${PACKAGES}
-.PHONY: gosimple
-
-interfacer:
-	interfacer $(PACKAGES)
-.PHONY: interfacer
-
-staticcheck:
-	staticcheck $(PACKAGES)
-.PHONY: staticcheck
-
-unparam:
-	unparam $(PACKAGES)
-.PHONY: unparam
-
-vet:
-	go vet ${PACKAGES}
-.PHONY: vet
-
-lint: golint errcheck-ng gosimple interfacer staticcheck unparam vet
 .PHONY: lint
+lint: lint.golint lint.errcheck lint.gosimple lint.staticcheck lint.unparam lint.vet  ## Run lint use all tools
+
+.PHONY: lint.golint
+lint.golint:  ## Run golint
+	@echo "+ $@"
+	@golint -set_exit_status -min_confidence=0.6 ${PACKAGES}
+
+.PHONY: lint.errcheck
+lint.errcheck:  ## Run errcheck
+	@echo "+ $@"
+	@errcheck ${PACKAGES}
+
+.PHONY: lint.gosimple
+lint.gosimple:  ## Run gosimple
+	@echo "+ $@"
+	@gosimple ${PACKAGES}
+
+.PHONY: lint.staticcheck
+lint.staticcheck:  ## Run staticcheck
+	@echo "+ $@"
+	@staticcheck $(PACKAGES)
+
+.PHONY: lint.unparam
+lint.unused:  ## Run unused
+	@echo "+ $@"
+	@unused $(PACKAGES)
+
+.PHONY: lint.vet
+lint.vet:  ## Run go vet
+	@echo "+ $@"
+	@go vet -all -shadow ${PACKAGES}
+
+.PHONY: lint.unconvert
+lint.unconvert:  ## Run unconvert
+	@echo "+ $@"
+	@unconvert -v ${PACKAGES}
+
+.PHONY: coverage
+coverage:  # take test coverage
+	${GO_TEST} -v -race -covermode=atomic -coverprofile=$@.out -coverpkg=./src/... $(PACKAGES)
 
 
-$(shell go env GOPATH)/bin/goverage:
-	go get -u github.com/haya14busa/goverage
-
-cover: $(shell go env GOPATH)/bin/goverage
-	goverage -v -race -covermode=atomic -coverprofile=coverage.out $(GO_TEST_PKGS)
-.PHONY: cover
-
-
-vendor-install:  # Install vendor packages for gocode completion
-	go install -v -x ${VENDOR_PACKAGES}
-.PHONY: vendor-install
-
-vendor-update:  ## Update the all vendor packages
+.PHONY: vendor.update
+vendor.update:  ## Update the all vendor packages
 	dep ensure -v -update
-	dep prune -v
-.PHONY: vendor-update
 
-vendor-clean:  ## Cleanup unused files in vendor directory
-	dep prune -v
-.PHONY: vendor-clean
+.PHONY: vendor.install
+vendor.install:  # Install vendor packages for gocode completion
+	go install -v -x ${VENDOR_PACKAGES}
 
-vendor-guru: vendor-guru-update vendor-guru-rename
-.PHONY: vendor-guru
+.PHONY: vendor.guru
+vendor.guru: vendor-guru-update vendor-guru-rename
 
-vendor-guru-update:  ## Update the internal guru package
+.PHONY: vendor.guru-update
+vendor.guru-update:  ## Update the internal guru package
 	${RM} -r $(shell find ${PACKAGE_ROOT}/src/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
 	cp ${PACKAGE_ROOT}/vendor/golang.org/x/tools/cmd/guru/*.go ${PACKAGE_ROOT}/src/internal/guru
 	sed -i "s|\t// TODO(adonovan): opt: parallelize.|\tbp.GoFiles = append(bp.GoFiles, bp.CgoFiles...)\n\n\0|" src/internal/guru/definition.go
 	# ${RM} -r ${PACKAGE_ROOT}/src/internal/guru/guru_test.go ${PACKAGE_ROOT}/src/internal/guru/unit_test.go
-.PHONY: vendor-guru-update
 
-vendor-guru-rename: vendor-guru-update
+.PHONY: vendor.guru-rename
+vendor.guru-rename: vendor-guru-update
 	# Rename main to guru
 	grep "package main" ${PACKAGE_ROOT}/src/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
 	# Add Result interface
@@ -157,34 +164,33 @@ vendor-guru-rename: vendor-guru-update
 	sed -i "s|package guru // import \"golang.org/x/tools/cmd/guru\"|\n// +build ignore\n\n\0|" ${PACKAGE_ROOT}/src/internal/guru/main.go
 	# ignore build guru_test.go
 	sed -i "s|package guru_test|// +build ignore\n\n\0|" ${PACKAGE_ROOT}/src/internal/guru/guru_test.go
-.PHONY: vendor-guru-rename
 
 
+.PHONY: clean
 clean:  ## Clean the {bin,pkg} directory
 	${RM} -r ./bin *.out *.prof
-.PHONY: clean
 
 
-docker: docker-test  ## Run the docker container test on Linux
 .PHONY: docker
+docker: docker.test  ## Run the docker container test on Linux
 
-docker-build:  ## Build the zchee/nvim-go docker container for testing on the Linux
+.PHONY: docker.build
+docker.build:  ## Build the zchee/nvim-go docker container for testing on the Linux
 	docker build --rm -t ${USER}/${APP} .
-.PHONY: docker-build
 
-docker-build-nocache:  ## Build the zchee/nvim-go docker container for testing on the Linux without cache
+.PHONY: docker.build-nocache
+docker.build-nocache:  ## Build the zchee/nvim-go docker container for testing on the Linux without cache
 	docker build --rm --no-cache -t ${USER}/${APP} .
-.PHONY: docker-build-nocache
 
-docker-test: docker-build  ## Run the package test with docker container
-	docker run --rm -it ${USER}/${APP} go test -v ${GO_TEST_FLAGS} ${GO_TEST_PKGS}
-.PHONY: docker-test
+.PHONY: docker.test
+docker.test: docker-build  ## Run the package test with docker container
+	docker run --rm -it ${USER}/${APP} go test -v ${GO_TEST_FLAGS} ${PACKAGES}
 
 
-todo:  ## Print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
-	@pt -e '(TODO|BUG|XXX|FIXME|NOTE)(\(.+\):|:)' --follow --hidden --ignore=.git --ignore=vendor --ignore=internal --ignore=Makefile
 .PHONY: todo
+todo:  ## Print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
+	@pt -e '(TODO|BUG|XXX|FIXME|NOTE)(\(.+\):|:)' --follow --hidden --ignore=.git --ignore=vendor --ignore=internal --ignore=Makefile --ignore=snippets --ignore=indent
 
-help:  ## Print this help
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 .PHONY: help
+help:  ## Print this help
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z./_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
