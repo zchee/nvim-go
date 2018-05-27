@@ -408,7 +408,7 @@ func (d *Delve) restart(v *nvim.Nvim) error {
 	buf.WriteString(fmt.Sprintf("Process restarted with PID %d\n", d.processPid))
 
 	for i := range discarded {
-		buf.WriteString(fmt.Sprintf("Discarded %s at %s: %v\n", discarded[i].Breakpoint, discarded[i].Breakpoint, discarded[i].Reason))
+		buf.WriteString(fmt.Sprintf("Discarded %v at %v: %v\n", discarded[i].Breakpoint, discarded[i].Breakpoint, discarded[i].Reason))
 	}
 
 	return d.printTerminal("restart", buf.Bytes())
