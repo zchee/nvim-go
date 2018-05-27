@@ -1,4 +1,4 @@
-FROM golang:1.9-stretch
+FROM golang:1.10.2-stretch
 LABEL maintainer "Koichi Shiraishi <zchee.io@gmail.com>"
 
 RUN set -ux \
