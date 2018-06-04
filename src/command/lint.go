@@ -15,12 +15,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/lint"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"github.com/zchee/nvim-go/src/config"
 	"github.com/zchee/nvim-go/src/nvimutil"
 	"github.com/zchee/nvim-go/src/pathutil"
+	"golang.org/x/lint"
 )
 
 func (c *Command) cmdLint(v *nvim.Nvim, args []string, file string) {
