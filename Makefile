@@ -141,30 +141,31 @@ vendor.install:  # Install vendor packages for gocode completion
 	go install -v -x ${VENDOR_PACKAGES}
 
 .PHONY: vendor.guru
-vendor.guru: vendor-guru-update vendor-guru-rename
+vendor.guru: vendor.guru-update vendor.guru-rename
 
 .PHONY: vendor.guru-update
 vendor.guru-update:  ## Update the internal guru package
+	sed -i 's|unused-packages = true|# unused-packages = true|' Gopkg.toml
+	dep ensure -v -vendor-only
+	sed -i 's|# unused-packages = true|unused-packages = true|' Gopkg.toml
 	${RM} -r $(shell find ${PACKAGE_ROOT}/src/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
 	cp ${PACKAGE_ROOT}/vendor/golang.org/x/tools/cmd/guru/*.go ${PACKAGE_ROOT}/src/internal/guru
 	sed -i "s|\t// TODO(adonovan): opt: parallelize.|\tbp.GoFiles = append(bp.GoFiles, bp.CgoFiles...)\n\n\0|" src/internal/guru/definition.go
 	sed -i 's| // import "golang.org/x/tools/cmd/guru"||' ./src/internal/guru/main.go
-	# ${RM} -r ${PACKAGE_ROOT}/src/internal/guru/guru_test.go ${PACKAGE_ROOT}/src/internal/guru/unit_test.go
+	dep ensure -v -vendor-only
 
 .PHONY: vendor.guru-rename
-vendor.guru-rename: vendor-guru-update
-	# Rename main to guru
+vendor.guru-rename: vendor.guru-update
+	@echo "[INFO] Rename main to guru"
 	grep "package main" ${PACKAGE_ROOT}/src/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
-	# Add Result interface
+	@echo "[INFO] Add Result interface"
 	sed -i "s|PrintPlain(printf printfFunc)|\0\n\n\tResult(fset *token.FileSet) interface{}|" ${PACKAGE_ROOT}/src/internal/guru/guru.go
-	# Export functions
+	@echo "[INFO] Export functions"
 	grep "findPackageMember" ${PACKAGE_ROOT}/src/internal/guru/*.go -l | xargs sed -i 's/findPackageMember/FindPackageMember/'
 	grep "packageForQualIdent" ${PACKAGE_ROOT}/src/internal/guru/*.go -l | xargs sed -i 's/packageForQualIdent/PackageForQualIdent/'
 	grep "guessImportPath" ${PACKAGE_ROOT}/src/internal/guru/*.go -l | xargs sed -i 's/guessImportPath/GuessImportPath/'
-	# ignore build main.go
-	sed -i "s|package guru // import \"golang.org/x/tools/cmd/guru\"|\n// +build ignore\n\n\0|" ${PACKAGE_ROOT}/src/internal/guru/main.go
-	# ignore build guru_test.go
-	sed -i "s|package guru_test|// +build ignore\n\n\0|" ${PACKAGE_ROOT}/src/internal/guru/guru_test.go
+	@echo "[INFO] remove canonical custom import path from main.go"
+	sed -i "s|package guru|\n// +build ignore\n\n\0|" ${PACKAGE_ROOT}/src/internal/guru/main.go
 
 
 .PHONY: clean
