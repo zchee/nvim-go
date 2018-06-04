@@ -95,7 +95,7 @@ func Main(ctx context.Context, p *plugin.Plugin) error {
 
 	if debug {
 		// starts the gops agent
-		if err := agent.Listen(&agent.Options{NoShutdownCleanup: true}); err != nil {
+		if err := agent.Listen(agent.Options{ShutdownCleanup: true}); err != nil {
 			return err
 		}
 
