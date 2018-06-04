@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	home "github.com/zchee/go-xdgbasedir/home"
+	"github.com/zchee/go-xdgbasedir/home"
 )
 
 var (

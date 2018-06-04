@@ -8,6 +8,7 @@ package home
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -16,19 +17,26 @@ import (
 // Dir detects and returns the user home directory.
 func Dir() string {
 	// At first, Check the $HOME environment variable
-	usrHome := os.Getenv("HOME")
-	if usrHome != "" {
+	if usrHome := os.Getenv("HOME"); usrHome != "" {
 		return usrHome
 	}
 
-	// Fallback with sh pwd commmand
-	var stdout bytes.Buffer
-	cmd := exec.Command("sh", "-c", "eval echo ~$USER")
-	cmd.Stdout = &stdout
+	// Fallback if not set $HOME
+	// gets the canonical username
+	cmdWhoami := exec.Command("whoami")
+	usrName, err := cmdWhoami.Output()
+	if err != nil {
+		return ""
+	}
+
+	// gets the home directory path use 'eval echo ~$USER' magic
+	stdout := new(bytes.Buffer)
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("eval echo ~%s", usrName))
+	fmt.Printf("cmd: %T = %v\n", cmd, cmd)
+	cmd.Stdout = stdout
 	if err := cmd.Run(); err != nil {
 		return ""
 	}
-	usrHome = strings.TrimSpace(stdout.String())
 
-	return usrHome
+	return strings.TrimSpace(stdout.String())
 }
