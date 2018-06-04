@@ -2,6 +2,7 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/cweill/gotests"
   packages = [
     ".",
@@ -13,14 +14,13 @@
     "internal/render",
     "internal/render/bindata"
   ]
-  revision = "a3c1a1257668d18c210c0a63299466e301f67c27"
-  version = "v1.5.2"
+  revision = "97d0977c0970fc63c7b864f3b50f2e37083dbf66"
 
 [[projects]]
+  branch = "master"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
 
 [[projects]]
   name = "github.com/derekparker/delve"
@@ -42,32 +42,26 @@
   revision = "92dad944d7e0c1e0affb64d7a45e9ce8c5704fe5"
 
 [[projects]]
+  branch = "master"
   name = "github.com/fatih/color"
   packages = ["."]
-  revision = "507f6050b8568533fb3f5504de8e5205fa62a114"
-  version = "v1.6.0"
+  revision = "2d684516a8861da43017284349b7e303e809ac21"
 
 [[projects]]
   branch = "master"
-  name = "github.com/golang/lint"
-  packages = ["."]
-  revision = "e14d9b0f1d332b1420c1ffa32562ad2dc84d645d"
-
-[[projects]]
   name = "github.com/google/gops"
   packages = [
     "agent",
     "internal",
     "signal"
   ]
-  revision = "57e77c5c37da1f4e1af49f9d1fe760f146c1579e"
-  version = "v0.3.2"
+  revision = "62b4d222669dc214b631ef9750d7eeaf197ef7a5"
 
 [[projects]]
   branch = "master"
   name = "github.com/hokaccha/go-prettyjson"
   packages = ["."]
-  revision = "e6b9231a2b1cc5798b336fdbf99c16cd8ad1e0c9"
+  revision = "d229c224a219dcf41e9d2af4684b9782f33f5eb7"
 
 [[projects]]
   branch = "master"
@@ -88,6 +82,12 @@
   version = "v0.0.3"
 
 [[projects]]
+  name = "github.com/mattn/go-runewidth"
+  packages = ["."]
+  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
+  version = "v0.0.2"
+
+[[projects]]
   branch = "master"
   name = "github.com/motemen/go-astmanip"
   packages = ["."]
@@ -102,40 +102,40 @@
     "nvim",
     "nvim/plugin"
   ]
-  revision = "1c2696a88048c01a46c9c6be486ee0ded23beb91"
+  revision = "9ff6dbd3a83f86119a14095c3635eb77ffa7bc90"
 
 [[projects]]
   branch = "master"
   name = "github.com/peterh/liner"
   packages = ["."]
-  revision = "3681c2a912330352991ecdd642f257efe5b85518"
-
-[[projects]]
-  name = "github.com/pkg/errors"
-  packages = ["."]
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
+  revision = "80ce870644db1b043e8dc2cf836bde5c347e2701"
 
 [[projects]]
   branch = "master"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "816c9085562cd7ee03e7f8188a1cfd942858cded"
+
+[[projects]]
   name = "github.com/zchee/go-xdgbasedir"
   packages = [
     ".",
     "home"
   ]
-  revision = "e894686011046080875db61fdaaa3ef31163df72"
+  revision = "24046010031d4b4dbff2c099f24091f67487b205"
+  version = "v1.0.2"
 
 [[projects]]
   name = "go.uber.org/atomic"
   packages = ["."]
-  revision = "8474b86a5a6f79c443ce4b2992817ff32cf208b8"
-  version = "v1.3.1"
+  revision = "1ea20fb1cbb1cc08cbd0d913a96dead89aa18289"
+  version = "v1.3.2"
 
 [[projects]]
+  branch = "master"
   name = "go.uber.org/multierr"
   packages = ["."]
-  revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
-  version = "v1.1.0"
+  revision = "ddea229ff1dff9e6fe8a6c0344ac73b09e81fce5"
 
 [[projects]]
   branch = "master"
@@ -148,7 +148,7 @@
     "internal/exit",
     "zapcore"
   ]
-  revision = "f85c78b1dd998214c5f2138155b320a4a43fbe36"
+  revision = "88c71ae3d702167d7f8be42c0e0b68bfa4d1707e"
 
 [[projects]]
   name = "golang.org/x/arch"
@@ -163,13 +163,19 @@
     "elf",
     "macho"
   ]
-  revision = "95515998a8a4bd7448134b2cb5971dbeb12e0b77"
+  revision = "cb5e6d581c5b9d2e229187cecb199106564df20e"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/lint"
+  packages = ["."]
+  revision = "470b6b0bb3005eda157f0275e2e4895055396a81"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "136a25c244d3019482a795d728110278d6ba09a4"
+  revision = "1e491301e022f8f977054da4c2d852decd59571f"
 
 [[projects]]
   branch = "master"
@@ -178,7 +184,7 @@
     "errgroup",
     "syncmap"
   ]
-  revision = "fd80eb99c8f653c847d294a001bdf2a3a6f768f5"
+  revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
 
 [[projects]]
   branch = "master"
@@ -187,13 +193,12 @@
     "unix",
     "windows"
   ]
-  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
+  revision = "c11f84a56e43e20a78cee75a7c034031ecf57d1f"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/tools"
   packages = [
-    "cmd/guru",
     "cmd/guru/serial",
     "container/intsets",
     "go/ast/astutil",
@@ -201,28 +206,29 @@
     "go/callgraph",
     "go/callgraph/static",
     "go/gcexportdata",
-    "go/gcimporter15",
+    "go/internal/gcimporter",
     "go/loader",
     "go/pointer",
     "go/ssa",
     "go/ssa/ssautil",
     "go/types/typeutil",
     "imports",
+    "internal/fastwalk",
     "refactor/importgraph",
     "refactor/rename",
     "refactor/satisfy"
   ]
-  revision = "ce871d178848e3eea1e8795e5cfb74053dde4bb9"
+  revision = "a5b4c53f6e8bdcafa95a94671bf2d1203365858b"
 
 [[projects]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e18b75ea9b0b58dbc1b3d93ec243d264656cc91602282844b7f628078ce90c8c"
+  inputs-digest = "7a18fa67514ee188844069677d15148d34f02dc5be61aac66706d49d2a72bd69"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,55 +1,78 @@
-required = [
-  "golang.org/x/tools/cmd/guru",
-]
-
 [metadata]
-  project = "nvim-go"
+  project = "github.com/zchee/nvim-go"
+
+required = []
+ignored = ["golang.org/x/tools/cmd/guru"]
 
 [prune]
+  go-tests = true
   unused-packages = true
   non-go = true
-  go-tests = true
+
+# constraint
+[[constraint]]
+  name = "github.com/zchee/go-xdgbasedir"
+  version = "1.0.2"
+
+# constraint:master
+[[constraint]]
+  name = "github.com/fatih/color"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/cweill/gotests"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/davecgh/go-spew"
-  version = "1.1.0"
+  branch = "master"
 
 [[constraint]]
+  name = "golang.org/x/lint"
   branch = "master"
-  name = "github.com/golang/lint"
 
 [[constraint]]
+  name = "github.com/google/gops"
   branch = "master"
+
+[[constraint]]
+  name = "github.com/hokaccha/go-prettyjson"
+  branch = "master"
+
+[[constraint]]
   name = "github.com/motemen/go-astmanip"
+  branch = "master"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/neovim/go-client"
+  branch = "master"
 
 [[constraint]]
+  name = "github.com/pkg/errors"
   branch = "master"
-  name = "github.com/zchee/go-xdgbasedir"
 
 [[constraint]]
-  branch = "master"
   name = "go.uber.org/zap"
+  branch = "master"
 
+[[constraint]]
+  name = "golang.org/x/sync"
+  branch = "master"
+
+[[constraint]]
+  name = "golang.org/x/tools"
+  branch = "master"
+
+# override
+[[override]]
+  name = "go.uber.org/multierr"
+  branch = "master"
+
+# derekparker/delve dependencies
 [[constraint]]
   name = "github.com/derekparker/delve"
   revision = "92dad944d7e0c1e0affb64d7a45e9ce8c5704fe5"
 
-[[constraint]]
-  branch = "master"
-  name = "golang.org/x/tools"
-
-[[constraint]]
-  branch = "master"
-  name = "golang.org/x/sync"
-
 [[override]]
   name = "golang.org/x/arch"
   revision = "58ea1a195b1a354bcd572b7ef6bbbd264dc63732"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/hokaccha/go-prettyjson"
