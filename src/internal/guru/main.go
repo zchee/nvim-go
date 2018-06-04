@@ -11,7 +11,7 @@
 
 // +build ignore
 
-package guru // import "golang.org/x/tools/cmd/guru"
+package guru
 
 import (
 	"bufio"
