@@ -29,11 +29,11 @@ jobs:
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
-            bash <(curl -s https://codecov.io/bash)
+            bash <(curl -s https://codecov.io/bash) -P ${CIRCLE_PULL_REQUEST##*/}
 
   build-macos:
     macos:
-      xcode: "9.2.0"
+      xcode: "9.4.0"
     environment:
       PATH: /Users/distiller/go/bin:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
       GOPATH: /Users/distiller/go
@@ -69,17 +69,19 @@ jobs:
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
-            bash <(curl -s https://codecov.io/bash)
+            bash <(curl -s https://codecov.io/bash) -P ${CIRCLE_PULL_REQUEST##*/}
 
   reviewdog:
     docker:
-      - image: zchee/reviewdog
+      - image: golang:1.10.2-stretch
     <<: *defaults
     steps:
       - checkout
       - run:
-          name: reviewdog
-          command: reviewdog -ci='circle-ci'
+          name: Run reviewdog
+          command: |
+            go get -u github.com/haya14busa/reviewdog/cmd/reviewdog
+            reviewdog -reporter="github-pr-review"
 
 workflows:
   version: 2
@@ -87,11 +89,11 @@ workflows:
     jobs:
       - build-linux:
           filters:
-            tags:
+            branches:
               only: /.*/
       - build-macos:
           filters:
-            tags:
+            branches:
               only: /.*/
       - reviewdog:
           context: org-global
