@@ -28,7 +28,7 @@ func NewZapLogger(opts ...zap.Option) *zap.Logger {
 	debug := os.Getenv("NVIM_GO_DEBUG") != ""
 	var cfg zap.Config
 	if !debug {
-		cfg = zap.NewProductionConfig()
+		return zap.NewNop()
 	} else {
 		cfg = zap.NewDevelopmentConfig()
 		cfg.Encoding = "debug" // already registered init function
