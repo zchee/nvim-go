@@ -575,6 +575,22 @@ func (b *Batch) Call(fname string, result interface{}, args ...interface{}) {
 	b.call("nvim_call_function", result, fname, args)
 }
 
+// CallDict calls a vimscript Distionary function.
+func (v *Nvim) CallDict(dict []interface{}, fname string, result interface{}, args ...interface{}) error {
+	if args == nil {
+		args = []interface{}{}
+	}
+	return v.call("nvim_call_dict_function", result, fname, dict, args)
+}
+
+// CallDict calls a vimscript Distionary function.
+func (b *Batch) CallDict(dict []interface{}, fname string, result interface{}, args ...interface{}) {
+	if args == nil {
+		args = []interface{}{}
+	}
+	b.call("nvim_call_dict_function", result, fname, dict, args)
+}
+
 // ExecuteLua executes a Lua block.
 func (v *Nvim) ExecuteLua(code string, result interface{}, args ...interface{}) error {
 	if args == nil {
@@ -678,4 +694,13 @@ type Mapping struct {
 
 	// Mode specifies modes for which the mapping is defined.
 	Mode string `msgpack:"string"`
+}
+
+type Channel struct {
+	ID     int           `msgpack:"id,omitempty"`
+	Stream string        `msgpack:"stream,omitempty"`
+	Mode   string        `msgpack:"mode,omitempty"`
+	Pty    string        `msgpack:"pty,omitempty"`
+	Buffer string        `msgpack:"buffer,omitempty"`
+	Client []interface{} `msgpack:"client,omitempty"`
 }

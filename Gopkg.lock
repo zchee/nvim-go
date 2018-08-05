@@ -3,6 +3,7 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:4a4624852105a9a69d9bd61b3cebb9f2b7eabd4f664badec7d3ff6bddedacbbb"
   name = "github.com/cweill/gotests"
   packages = [
     ".",
@@ -12,17 +13,21 @@
     "internal/models",
     "internal/output",
     "internal/render",
-    "internal/render/bindata"
+    "internal/render/bindata",
   ]
+  pruneopts = "NUT"
   revision = "97d0977c0970fc63c7b864f3b50f2e37083dbf66"
 
 [[projects]]
   branch = "master"
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = "NUT"
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
 
 [[projects]]
+  digest = "1:1cad4cc6d25237c4d3d9b160dc9355f96b568ca346869f346b88554ad1be3c8b"
   name = "github.com/derekparker/delve"
   packages = [
     "pkg/config",
@@ -37,108 +42,139 @@
     "service",
     "service/api",
     "service/debugger",
-    "service/rpc2"
+    "service/rpc2",
   ]
+  pruneopts = "NUT"
   revision = "92dad944d7e0c1e0affb64d7a45e9ce8c5704fe5"
 
 [[projects]]
   branch = "master"
+  digest = "1:ade392a843b2035effb4b4a2efa2c3bab3eb29b992e98bacf9c898b0ecb54e45"
   name = "github.com/fatih/color"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "2d684516a8861da43017284349b7e303e809ac21"
 
 [[projects]]
   branch = "master"
+  digest = "1:aebccac5eae98c77bbdf314428fb06ec1c1b4bee91589c3624d7facba176b8a6"
   name = "github.com/google/gops"
   packages = [
     "agent",
     "internal",
-    "signal"
+    "signal",
   ]
+  pruneopts = "NUT"
   revision = "62b4d222669dc214b631ef9750d7eeaf197ef7a5"
 
 [[projects]]
   branch = "master"
+  digest = "1:0cc574c7fdeb16ee618413506062830eb63fbe3e28728c09293ee29cd72e16a7"
   name = "github.com/hokaccha/go-prettyjson"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "d229c224a219dcf41e9d2af4684b9782f33f5eb7"
 
 [[projects]]
   branch = "master"
+  digest = "1:263f9b0a0bcbfff9d5e7d9f2aa11f53995d98214fe0fb97e429e7a5f4534a0f9"
   name = "github.com/kardianos/osext"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "ae77be60afb1dcacde03767a8c37337fad28ac14"
 
 [[projects]]
+  digest = "1:08c231ec84231a7e23d67e4b58f975e1423695a32467a362ee55a803f9de8061"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
   version = "v0.0.9"
 
 [[projects]]
+  digest = "1:bc4f7eec3b7be8c6cb1f0af6c1e3333d5bb71072951aaaae2f05067b0803f287"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
 
 [[projects]]
+  digest = "1:cb591533458f6eb6e2c1065ff3eac6b50263d7847deb23fc9f79b25bc608970e"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
   version = "v0.0.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:4fd7047833579800a9afc018b9ee880db6bca159e515946a535664200c307e7c"
   name = "github.com/motemen/go-astmanip"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "d6ad31f02153082f74e488284fdae6730e055a44"
 
 [[projects]]
-  branch = "master"
+  branch = "api/a225374"
+  digest = "1:3c0748e8b43fcb0c887a5e6d271974e3045584a0f256169b41211ff1d7fd1c85"
   name = "github.com/neovim/go-client"
   packages = [
     "msgpack",
     "msgpack/rpc",
     "nvim",
-    "nvim/plugin"
+    "nvim/plugin",
   ]
-  revision = "9ff6dbd3a83f86119a14095c3635eb77ffa7bc90"
+  pruneopts = "NUT"
+  revision = "a5bfde8ee42ea803fb2800d5efdf8c99a355bb60"
+  source = "github.com/zchee/go-client"
 
 [[projects]]
   branch = "master"
+  digest = "1:331474a657768b5417fa961a48aea6671c10bacced0858cd3e265eebca2b3cde"
   name = "github.com/peterh/liner"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "80ce870644db1b043e8dc2cf836bde5c347e2701"
 
 [[projects]]
   branch = "master"
+  digest = "1:89fa4c7ac713710640c83ec0461b78fc21c2eda6deca064fe461eef1b8bca303"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "816c9085562cd7ee03e7f8188a1cfd942858cded"
 
 [[projects]]
+  digest = "1:ea40f234f97ce0221c712c7d92e918ea00468b4ebd415765828871751be889b3"
   name = "github.com/zchee/go-xdgbasedir"
   packages = [
     ".",
-    "home"
+    "home",
   ]
+  pruneopts = "NUT"
   revision = "24046010031d4b4dbff2c099f24091f67487b205"
   version = "v1.0.2"
 
 [[projects]]
+  digest = "1:22f696cee54865fb8e9ff91df7b633f6b8f22037a8015253c6b6a71ca82219c7"
   name = "go.uber.org/atomic"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "1ea20fb1cbb1cc08cbd0d913a96dead89aa18289"
   version = "v1.3.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:64e40bae99ad9825b13ed5f294ee921669bb5353e0a429dd5b24cd28af1ae5f2"
   name = "go.uber.org/multierr"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "ddea229ff1dff9e6fe8a6c0344ac73b09e81fce5"
 
 [[projects]]
   branch = "master"
+  digest = "1:303a34c014ac390344b9a0f2382a4d916f053ddab0b1276d4ccfe828d2697129"
   name = "go.uber.org/zap"
   packages = [
     ".",
@@ -146,57 +182,71 @@
     "internal/bufferpool",
     "internal/color",
     "internal/exit",
-    "zapcore"
+    "zapcore",
   ]
+  pruneopts = "NUT"
   revision = "88c71ae3d702167d7f8be42c0e0b68bfa4d1707e"
 
 [[projects]]
+  digest = "1:a1d8f6eaf9da2260f5acafc73c6ca46e3d93012c9a6498034f60f99c7ccecfe9"
   name = "golang.org/x/arch"
   packages = ["x86/x86asm"]
+  pruneopts = "NUT"
   revision = "58ea1a195b1a354bcd572b7ef6bbbd264dc63732"
 
 [[projects]]
   branch = "master"
+  digest = "1:cb35778f0aa14dc182334122dbd6ac9fd3e5e6a300904ee18c1b157024ffacf0"
   name = "golang.org/x/debug"
   packages = [
     "dwarf",
     "elf",
-    "macho"
+    "macho",
   ]
+  pruneopts = "NUT"
   revision = "cb5e6d581c5b9d2e229187cecb199106564df20e"
 
 [[projects]]
   branch = "master"
+  digest = "1:e560ae4a227f691fafb7989d7ca2d768c85db681f29f664f635e95a8c50dced4"
   name = "golang.org/x/lint"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "470b6b0bb3005eda157f0275e2e4895055396a81"
 
 [[projects]]
   branch = "master"
+  digest = "1:76ee51c3f468493aff39dbacc401e8831fbb765104cbf613b89bef01cf4bad70"
   name = "golang.org/x/net"
   packages = ["context"]
+  pruneopts = "NUT"
   revision = "1e491301e022f8f977054da4c2d852decd59571f"
 
 [[projects]]
   branch = "master"
+  digest = "1:39485a034b89a9f2892b9c0cc24e2330e1c9981794c35281c2febfcc55b90a34"
   name = "golang.org/x/sync"
   packages = [
     "errgroup",
-    "syncmap"
+    "syncmap",
   ]
+  pruneopts = "NUT"
   revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
 
 [[projects]]
   branch = "master"
+  digest = "1:0dbe2a3199cde81dd841ea2de1386165f953d227ddb2b5c2c4b591209bf37746"
   name = "golang.org/x/sys"
   packages = [
     "unix",
-    "windows"
+    "windows",
   ]
+  pruneopts = "NUT"
   revision = "c11f84a56e43e20a78cee75a7c034031ecf57d1f"
 
 [[projects]]
   branch = "master"
+  digest = "1:b3a542acac69e21f6b1f73f18fd0bcae2d77aa78746b9deabf0f503689a0985c"
   name = "golang.org/x/tools"
   packages = [
     "cmd/guru/serial",
@@ -216,19 +266,56 @@
     "internal/fastwalk",
     "refactor/importgraph",
     "refactor/rename",
-    "refactor/satisfy"
+    "refactor/satisfy",
   ]
+  pruneopts = "NUT"
   revision = "a5b4c53f6e8bdcafa95a94671bf2d1203365858b"
 
 [[projects]]
+  digest = "1:7c95b35057a0ff2e19f707173cc1a947fa43a6eb5c4d300d196ece0334046082"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
   version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7a18fa67514ee188844069677d15148d34f02dc5be61aac66706d49d2a72bd69"
+  input-imports = [
+    "github.com/cweill/gotests/gotests/process",
+    "github.com/davecgh/go-spew/spew",
+    "github.com/derekparker/delve/pkg/terminal",
+    "github.com/derekparker/delve/service/api",
+    "github.com/derekparker/delve/service/rpc2",
+    "github.com/fatih/color",
+    "github.com/google/gops/agent",
+    "github.com/hokaccha/go-prettyjson",
+    "github.com/motemen/go-astmanip",
+    "github.com/neovim/go-client/nvim",
+    "github.com/neovim/go-client/nvim/plugin",
+    "github.com/pkg/errors",
+    "github.com/zchee/go-xdgbasedir",
+    "go.uber.org/zap",
+    "go.uber.org/zap/buffer",
+    "go.uber.org/zap/zapcore",
+    "golang.org/x/lint",
+    "golang.org/x/sync/errgroup",
+    "golang.org/x/sync/syncmap",
+    "golang.org/x/tools/cmd/guru/serial",
+    "golang.org/x/tools/go/ast/astutil",
+    "golang.org/x/tools/go/buildutil",
+    "golang.org/x/tools/go/callgraph",
+    "golang.org/x/tools/go/callgraph/static",
+    "golang.org/x/tools/go/loader",
+    "golang.org/x/tools/go/pointer",
+    "golang.org/x/tools/go/ssa",
+    "golang.org/x/tools/go/ssa/ssautil",
+    "golang.org/x/tools/go/types/typeutil",
+    "golang.org/x/tools/imports",
+    "golang.org/x/tools/refactor/importgraph",
+    "golang.org/x/tools/refactor/rename",
+    "gopkg.in/yaml.v2",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
