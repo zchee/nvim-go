@@ -246,7 +246,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b3a542acac69e21f6b1f73f18fd0bcae2d77aa78746b9deabf0f503689a0985c"
+  digest = "1:e6587969eb39988748962fa87e645a4a84f95ca60958eda8741f08ffebb5db4f"
   name = "golang.org/x/tools"
   packages = [
     "cmd/guru/serial",
@@ -256,6 +256,7 @@
     "go/callgraph",
     "go/callgraph/static",
     "go/gcexportdata",
+    "go/internal/cgo",
     "go/internal/gcimporter",
     "go/loader",
     "go/pointer",
@@ -269,7 +270,7 @@
     "refactor/satisfy",
   ]
   pruneopts = "NUT"
-  revision = "a5b4c53f6e8bdcafa95a94671bf2d1203365858b"
+  revision = "3c07937fe18c27668fd78bbaed3d6b8b39e202ea"
 
 [[projects]]
   digest = "1:7c95b35057a0ff2e19f707173cc1a947fa43a6eb5c4d300d196ece0334046082"
