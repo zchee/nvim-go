@@ -85,6 +85,7 @@ func (c *Command) compileCmd(args []string, bang bool, dir string) (*exec.Cmd, e
 		return nil, errors.WithStack(err)
 	}
 	cmd := exec.Command(bin, "build")
+	cmd.Env = os.Environ()
 
 	if len(config.BuildFlags) > 0 {
 		args = append(args, config.BuildFlags...)
