@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4a4624852105a9a69d9bd61b3cebb9f2b7eabd4f664badec7d3ff6bddedacbbb"
+  digest = "1:eaa5f82b0cdb82f393c6725a82326909cb1c54502eb2816ffe05a7aa1a92bc42"
   name = "github.com/cweill/gotests"
   packages = [
     ".",
@@ -16,7 +16,7 @@
     "internal/render/bindata",
   ]
   pruneopts = "NUT"
-  revision = "97d0977c0970fc63c7b864f3b50f2e37083dbf66"
+  revision = "c51312f508e7040f06d1eb174da68364155b1fc0"
 
 [[projects]]
   branch = "master"
@@ -65,7 +65,7 @@
     "signal",
   ]
   pruneopts = "NUT"
-  revision = "62b4d222669dc214b631ef9750d7eeaf197ef7a5"
+  revision = "89672dbe3c4ba97d53af7e839e8097e1ccbb4977"
 
 [[projects]]
   branch = "master"
@@ -131,11 +131,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:331474a657768b5417fa961a48aea6671c10bacced0858cd3e265eebca2b3cde"
+  digest = "1:657ac55eff70ffd654b39f04bc3731105a3135a8f5529a7de5963ba03df5ef4f"
   name = "github.com/peterh/liner"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "80ce870644db1b043e8dc2cf836bde5c347e2701"
+  revision = "8c1271fcf47f341a9e6771872262870e1ad7650c"
 
 [[projects]]
   branch = "master"
@@ -174,7 +174,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:303a34c014ac390344b9a0f2382a4d916f053ddab0b1276d4ccfe828d2697129"
+  digest = "1:85674ac609b704fd4e9f463553b6ffc3a3527a993ae0ba550eb56beaabdfe094"
   name = "go.uber.org/zap"
   packages = [
     ".",
@@ -185,7 +185,7 @@
     "zapcore",
   ]
   pruneopts = "NUT"
-  revision = "88c71ae3d702167d7f8be42c0e0b68bfa4d1707e"
+  revision = "1f8c4cad1e0417712b7d9f130a17b11eba6c8317"
 
 [[projects]]
   digest = "1:a1d8f6eaf9da2260f5acafc73c6ca46e3d93012c9a6498034f60f99c7ccecfe9"
@@ -211,7 +211,7 @@
   name = "golang.org/x/lint"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "470b6b0bb3005eda157f0275e2e4895055396a81"
+  revision = "06c8688daad7faa9da5a0c2f163a3d14aac986ca"
 
 [[projects]]
   branch = "master"
@@ -219,7 +219,7 @@
   name = "golang.org/x/net"
   packages = ["context"]
   pruneopts = "NUT"
-  revision = "1e491301e022f8f977054da4c2d852decd59571f"
+  revision = "f4c29de78a2a91c00474a2e689954305c350adf9"
 
 [[projects]]
   branch = "master"
@@ -244,7 +244,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b3a542acac69e21f6b1f73f18fd0bcae2d77aa78746b9deabf0f503689a0985c"
+  digest = "1:e6587969eb39988748962fa87e645a4a84f95ca60958eda8741f08ffebb5db4f"
   name = "golang.org/x/tools"
   packages = [
     "cmd/guru/serial",
@@ -254,6 +254,7 @@
     "go/callgraph",
     "go/callgraph/static",
     "go/gcexportdata",
+    "go/internal/cgo",
     "go/internal/gcimporter",
     "go/loader",
     "go/pointer",
@@ -267,7 +268,7 @@
     "refactor/satisfy",
   ]
   pruneopts = "NUT"
-  revision = "a5b4c53f6e8bdcafa95a94671bf2d1203365858b"
+  revision = "3c07937fe18c27668fd78bbaed3d6b8b39e202ea"
 
 [[projects]]
   digest = "1:7c95b35057a0ff2e19f707173cc1a947fa43a6eb5c4d300d196ece0334046082"
