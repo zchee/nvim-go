@@ -10,7 +10,7 @@ import (
 	"github.com/zchee/nvim-go/src/nvimutil"
 )
 
-type bufReadPreEval struct {}
+type bufReadPreEval struct{}
 
 // BufReadPre gets user config variables and assign to global variable when autocmd BufReadPre.
 func (a *Autocmd) BufReadPre(eval *bufReadPreEval) {
