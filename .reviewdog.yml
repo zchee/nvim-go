@@ -1,64 +1,64 @@
 runner:
 
   golint:
-    cmd: "golint ./src/..."
+    cmd: "golint ./pkg/..."
     errorformat:
       - "%f:%l:%c: %m"
 
   govet:
-    cmd: "go vet ./src/..."
+    cmd: "go vet ./pkg/..."
 
   misspell:
-    cmd: "misspell ./src/..."
+    cmd: "misspell ./pkg/..."
     errorformat:
       - "%f:%l:%c: %m"
 
   unused:
-    cmd: "unused ./src/..."
+    cmd: "unused ./pkg/..."
     errorformat:
       - "%f:%l:%c: %m"
 
   gosimple:
-    cmd: "gosimple ./src/..."
+    cmd: "gosimple ./pkg/..."
     errorformat:
       - "%f:%l:%c: %m"
 
   varcheck:
-    cmd: "varcheck ./src/..."
+    cmd: "varcheck ./pkg/..."
     errorformat:
       - "%f:%l:%c: %m"
 
   structcheck:
-    cmd: "structcheck ./src/..."
+    cmd: "structcheck ./pkg/..."
     errorformat:
       - "%f:%l:%c: %m"
 
   staticcheck:
-    cmd: "staticcheck -ignore '*_test.go' ./src/..."
+    cmd: "staticcheck -ignore '*_test.go' ./pkg/..."
     errorformat:
       - "%f:%l:%c: %m"
 
   errcheck:
-    cmd: "errcheck -ignore 'io:.*,ioutil:.*,net/http:.*' -asserts -ignoretests ./src/..."
+    cmd: "errcheck -ignore 'io:.*,ioutil:.*,net/http:.*' -asserts -ignoretests ./pkg/..."
     errorformat:
       - "%f:%l:%c:%m"
 
   unconvert:
-    cmd: "unconvert ./src/..."
+    cmd: "unconvert ./pkg/..."
     errorformat:
       - "%f:%l:%c: %m"
 
   ineffassign:
-    cmd: "gometalinter --vendor --disable-all --enable=ineffassign ./src/..."
+    cmd: "gometalinter --vendor --disable-all --enable=ineffassign ./pkg/..."
     errorformat:
       - "%f:%l:%c:%s: %m"
 
   deadcode:
-    cmd: "gometalinter --vendor --disable-all --enable=deadcode ./src/..."
+    cmd: "gometalinter --vendor --disable-all --enable=deadcode ./pkg/..."
     errorformat:
       - "%f:%l:%c:%s: %m"
 
   gas:
-    cmd: "gometalinter --vendor --disable-all --enable=gas --exclude='Errors unhandled' ./src/..."
+    cmd: "gometalinter --vendor --disable-all --enable=gas --exclude='Errors unhandled' ./pkg/..."
     errorformat:
       - "%f:%l::%s: %m,%s,%s"

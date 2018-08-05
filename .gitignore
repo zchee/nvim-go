@@ -36,8 +36,8 @@ _testmain.go
 bin/*
 
 # workaround for github.com/pkg/gsftp testdata
-src/testdata/gb/gsftp/bin
-src/testdata/gb/gsftp/pkg
+pkg/testdata/gb/gsftp/bin
+pkg/testdata/gb/gsftp/pkg
 
 # habit
 _*
