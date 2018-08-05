@@ -90,5 +90,5 @@ const (
 	// FiletypeTerminal represents a terminal filetype.
 	FiletypeTerminal = "terminal"
 	// FiletypeGoTerminal represents a go-terminal filetype.
-	FiletypeGoTerminal = "go-terminal"
+	FiletypeGoTerminal = "goterminal"
 )

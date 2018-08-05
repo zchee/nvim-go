@@ -56,6 +56,7 @@ func (t *Terminal) Create() (err error) {
 	}
 
 	t.Buffer = NewBuffer(t.Nvim)
+	t.Buffer.Filetype = FiletypeGoTerminal
 
 	switch {
 	case t.mode == "split":
