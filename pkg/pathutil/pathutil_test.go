@@ -209,7 +209,7 @@ func TestRel(t *testing.T) {
 				f:   filepath.Join(testCwd, "pathutil_test.go"),
 				cwd: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go"),
 			},
-			want: "src/pathutil/pathutil_test.go",
+			want: "pkg/pathutil/pathutil_test.go",
 		},
 		{
 			name: "Use different directory",
