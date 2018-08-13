@@ -575,7 +575,7 @@ func (b *Batch) Call(fname string, result interface{}, args ...interface{}) {
 	b.call("nvim_call_function", result, fname, args)
 }
 
-// CallDict calls a vimscript Distionary function.
+// CallDict calls a vimscript Dictionary function.
 func (v *Nvim) CallDict(dict []interface{}, fname string, result interface{}, args ...interface{}) error {
 	if args == nil {
 		args = []interface{}{}
@@ -583,7 +583,7 @@ func (v *Nvim) CallDict(dict []interface{}, fname string, result interface{}, ar
 	return v.call("nvim_call_dict_function", result, fname, dict, args)
 }
 
-// CallDict calls a vimscript Distionary function.
+// CallDict calls a vimscript Dictionary function.
 func (b *Batch) CallDict(dict []interface{}, fname string, result interface{}, args ...interface{}) {
 	if args == nil {
 		args = []interface{}{}
@@ -703,4 +703,33 @@ type Channel struct {
 	Pty    string        `msgpack:"pty,omitempty"`
 	Buffer string        `msgpack:"buffer,omitempty"`
 	Client []interface{} `msgpack:"client,omitempty"`
+}
+
+type Process struct {
+	Name string `msgpack:"name,omitempty"`
+	PID  int    `msgpack:"pid,omitempty"`
+	PPID int    `msgpack:"ppid,omitempty"`
+}
+
+type UI struct {
+	// Height requested height of the UI
+	Height int `msgpack:"height,omitempty"`
+	// Width requested width of the UI
+	Width int `msgpack:"width,omitempty"`
+	// RGB whether the UI uses rgb colors (false implies cterm colors)
+	RGB bool `msgpack:"rgb,omitempty"`
+	// ExtPopupmenu externalize the popupmenu.
+	ExtPopupmenu bool `msgpack:"ext_popupmenu,omitempty"`
+	// ExtTabline externalize the tabline.
+	ExtTabline bool `msgpack:"ext_tabline,omitempty"`
+	// ExtCmdline externalize the cmdline.
+	ExtCmdline bool `msgpack:"ext_cmdline,omitempty"`
+	// ExtWildmenu externalize the wildmenu.
+	ExtWildmenu bool `msgpack:"ext_wildmenu,omitempty"`
+	// ExtNewgrid use new revision of the grid events.
+	ExtNewgrid bool `msgpack:"ext_newgrid,omitempty"`
+	// ExtHlstate use detailed highlight state.
+	ExtHlstate bool `msgpack:"ext_hlstate,omitempty"`
+	// ChannelID channel id of remote UI (not present for TUI)
+	ChannelID int `msgpack:"chan,omitempty"`
 }

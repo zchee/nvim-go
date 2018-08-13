@@ -499,8 +499,8 @@ func ChannelInfo(channel int) Channel {
 	name(nvim_get_chan_info)
 }
 
-// ListChannels get information about all open channels.
-func ListChannels() []Channel {
+// Channels get information about all open channels.
+func Channels() []*Channel {
 	name(nvim_list_chans)
 }
 
@@ -509,18 +509,18 @@ func ParseExpression(expr string, flags string, highlight bool) map[string]inter
 	name(nvim_parse_expression)
 }
 
-// ListUIs gets a list of dictionaries representing attached UIs.
-func ListUIs() []interface{} {
+// UIs gets a list of dictionaries representing attached UIs.
+func UIs() []*UI {
 	name(nvim_list_uis)
 }
 
 // ProcChildren gets the immediate children of process `pid`.
-func ProcChildren(pid int) []interface{} {
+func ProcChildren(pid int) []*Process {
 	name(nvim_get_proc_children)
 }
 
 // Proc gets info describing process `pid`.
-func Proc(pid int) interface{} {
+func Proc(pid int) Process {
 	name(nvim_get_proc)
 }
 
