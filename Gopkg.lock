@@ -57,6 +57,19 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:454e3619fafbc175dec90d254b9ddabafc6a42d3fd634e3f5f202756137fae10"
+  name = "github.com/google/go-cmp"
+  packages = [
+    "cmp",
+    "cmp/internal/diff",
+    "cmp/internal/function",
+    "cmp/internal/value",
+  ]
+  pruneopts = "NUT"
+  revision = "5411ab924f9ffa6566244a9e504bc347edacffd3"
+
+[[projects]]
+  branch = "master"
   digest = "1:aebccac5eae98c77bbdf314428fb06ec1c1b4bee91589c3624d7facba176b8a6"
   name = "github.com/google/gops"
   packages = [
@@ -288,6 +301,7 @@
     "github.com/derekparker/delve/service/api",
     "github.com/derekparker/delve/service/rpc2",
     "github.com/fatih/color",
+    "github.com/google/go-cmp/cmp",
     "github.com/google/gops/agent",
     "github.com/hokaccha/go-prettyjson",
     "github.com/motemen/go-astmanip",

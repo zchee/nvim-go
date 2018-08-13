@@ -64,6 +64,10 @@ ignored = ["golang.org/x/tools/cmd/guru"]
   name = "golang.org/x/tools"
   branch = "master"
 
+[[constraint]]
+  name = "github.com/google/go-cmp"
+  branch = "master"
+
 # override
 [[override]]
   name = "go.uber.org/multierr"
