@@ -19,13 +19,14 @@ import (
 	"github.com/google/gops/agent"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/zchee/nvim-go/pkg/autocmd"
 	"github.com/zchee/nvim-go/pkg/buildctx"
 	"github.com/zchee/nvim-go/pkg/command"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/server"
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 )
 
 var (
