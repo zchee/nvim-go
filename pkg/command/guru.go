@@ -20,14 +20,15 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"golang.org/x/tools/cmd/guru/serial"
+	"golang.org/x/tools/go/buildutil"
+
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/internal/guru"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/pathutil"
-	"go.uber.org/zap"
-	"golang.org/x/tools/cmd/guru/serial"
-	"golang.org/x/tools/go/buildutil"
 )
 
 type funcGuruEval struct {

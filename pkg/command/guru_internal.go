@@ -17,11 +17,12 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/zchee/nvim-go/pkg/internal/guru"
 	"golang.org/x/tools/cmd/guru/serial"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
+
+	"github.com/zchee/nvim-go/pkg/internal/guru"
 )
 
 // Definition parse definition from the current cursor.

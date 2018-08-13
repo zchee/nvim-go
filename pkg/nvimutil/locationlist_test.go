@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/neovim/go-client/nvim"
+
 	"github.com/zchee/nvim-go/pkg/buildctx"
 )
 

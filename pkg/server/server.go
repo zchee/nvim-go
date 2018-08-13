@@ -11,8 +11,9 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
-	"github.com/zchee/nvim-go/pkg/logger"
 	"go.uber.org/zap"
+
+	"github.com/zchee/nvim-go/pkg/logger"
 )
 
 type Server struct {

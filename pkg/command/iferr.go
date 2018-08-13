@@ -20,9 +20,10 @@ import (
 	astmanip "github.com/motemen/go-astmanip"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
-	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/loader"
+
+	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
 func (c *Command) cmdIferr(file string) {

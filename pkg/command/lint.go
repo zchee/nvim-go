@@ -17,10 +17,11 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"golang.org/x/lint"
+
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/pathutil"
-	"golang.org/x/lint"
 )
 
 func (c *Command) cmdLint(v *nvim.Nvim, args []string, file string) {

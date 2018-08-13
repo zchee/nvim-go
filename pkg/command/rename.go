@@ -13,9 +13,10 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"golang.org/x/tools/refactor/rename"
+
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"golang.org/x/tools/refactor/rename"
 )
 
 const pkgRename = "GoRename"

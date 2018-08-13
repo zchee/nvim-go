@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zchee/nvim-go/pkg/logger"
 	"go.uber.org/zap"
+
+	"github.com/zchee/nvim-go/pkg/logger"
 )
 
 // Profile measurement of the time it took to any func and output log file.

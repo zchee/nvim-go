@@ -10,10 +10,11 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
+	"golang.org/x/sync/syncmap"
+
 	"github.com/zchee/nvim-go/pkg/buildctx"
 	"github.com/zchee/nvim-go/pkg/command"
 	"github.com/zchee/nvim-go/pkg/logger"
-	"golang.org/x/sync/syncmap"
 )
 
 // Autocmd represents a autocmd context.

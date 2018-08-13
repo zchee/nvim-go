@@ -18,6 +18,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/internal/cover"
 	"github.com/zchee/nvim-go/pkg/nvimutil"

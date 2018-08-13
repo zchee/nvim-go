@@ -11,6 +11,7 @@ import (
 	"regexp"
 
 	"github.com/neovim/go-client/nvim"
+
 	"github.com/zchee/nvim-go/pkg/config"
 )
 

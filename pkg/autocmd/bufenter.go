@@ -8,10 +8,11 @@ import (
 	"sync"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"go.uber.org/zap"
 )
 
 // bufEnterEval represents the current buffer number, windows ID and buffer files directory.

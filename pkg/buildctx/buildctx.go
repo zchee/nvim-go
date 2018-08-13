@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/neovim/go-client/nvim"
+
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/pathutil"
 )

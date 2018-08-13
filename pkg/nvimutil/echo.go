@@ -10,6 +10,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+
 	"github.com/zchee/nvim-go/pkg/config"
 )
 

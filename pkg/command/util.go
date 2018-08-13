@@ -7,9 +7,10 @@ package command
 import (
 	"fmt"
 
+	"go.uber.org/zap"
+
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"go.uber.org/zap"
 )
 
 func (c *Command) cmdBuffers() error {

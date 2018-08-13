@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/neovim/go-client/nvim"
+
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/pathutil"
 	"github.com/zchee/nvim-go/pkg/testutil"
