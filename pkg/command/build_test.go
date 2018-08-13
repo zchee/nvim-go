@@ -5,11 +5,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/neovim/go-client/nvim"
+	"golang.org/x/sync/syncmap"
+
 	"github.com/zchee/nvim-go/pkg/buildctx"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/testutil"
-	"golang.org/x/sync/syncmap"
 )
 
 func TestCommand_Build(t *testing.T) {
@@ -47,8 +49,8 @@ func TestCommand_Build(t *testing.T) {
 			args: args{
 				args: nil,
 				eval: &CmdBuildEval{
-					Cwd:  testdataPath,
-					File: testdataPath,
+					Cwd:  ".",
+					File: ".",
 				},
 			},
 			wantErr: false,
@@ -131,7 +133,7 @@ func TestCommand_Build(t *testing.T) {
 				}
 			case []*nvim.QuickfixError:
 				if (len(e) != 0) != tt.wantErr {
-					t.Errorf("%q. Commands.Build(%v, %v)", tt.name, tt.args.bang, tt.args.eval)
+					t.Errorf("%q. Commands.Build(%v, %v), err: %v", tt.name, tt.args.bang, tt.args.eval, spew.Sdump(e))
 				}
 			}
 		})
