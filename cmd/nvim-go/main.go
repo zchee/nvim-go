@@ -16,7 +16,6 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/google/gops/agent"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -85,7 +84,6 @@ func main() {
 
 func Main(ctx context.Context, p *plugin.Plugin) error {
 	debug := os.Getenv("NVIM_GO_DEBUG") != ""
-	pprof := os.Getenv("NVIM_GO_PPROF") != ""
 
 	log := logger.FromContext(ctx).Named("main")
 	ctx = logger.NewContext(ctx, log)
@@ -95,19 +93,12 @@ func Main(ctx context.Context, p *plugin.Plugin) error {
 	autocmd.Register(ctx, p, buildctxt, c)
 
 	if debug {
-		// starts the gops agent
-		if err := agent.Listen(agent.Options{ShutdownCleanup: true}); err != nil {
-			return err
-		}
+		const addr = ":14715" // (n: 14)vim-(g: 7)(o: 15)
+		log.Debug("start the pprof debugging", zap.String("listen at", addr))
 
-		if pprof {
-			const addr = ":14715" // (n: 14)vim-(g: 7)(o: 15)
-			log.Debug("start the pprof debugging", zap.String("listen at", addr))
-
-			// enable the report of goroutine blocking events
-			runtime.SetBlockProfileRate(1)
-			go logpkg.Println(http.ListenAndServe(addr, nil))
-		}
+		// enable the report of goroutine blocking events
+		runtime.SetBlockProfileRate(1)
+		go logpkg.Println(http.ListenAndServe(addr, nil))
 	}
 
 	return nil
