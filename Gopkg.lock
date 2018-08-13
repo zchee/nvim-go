@@ -70,31 +70,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:aebccac5eae98c77bbdf314428fb06ec1c1b4bee91589c3624d7facba176b8a6"
-  name = "github.com/google/gops"
-  packages = [
-    "agent",
-    "internal",
-    "signal",
-  ]
-  pruneopts = "NUT"
-  revision = "89672dbe3c4ba97d53af7e839e8097e1ccbb4977"
-
-[[projects]]
-  branch = "master"
   digest = "1:0cc574c7fdeb16ee618413506062830eb63fbe3e28728c09293ee29cd72e16a7"
   name = "github.com/hokaccha/go-prettyjson"
   packages = ["."]
   pruneopts = "NUT"
   revision = "d229c224a219dcf41e9d2af4684b9782f33f5eb7"
-
-[[projects]]
-  branch = "master"
-  digest = "1:263f9b0a0bcbfff9d5e7d9f2aa11f53995d98214fe0fb97e429e7a5f4534a0f9"
-  name = "github.com/kardianos/osext"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "ae77be60afb1dcacde03767a8c37337fad28ac14"
 
 [[projects]]
   digest = "1:08c231ec84231a7e23d67e4b58f975e1423695a32467a362ee55a803f9de8061"
@@ -302,7 +282,6 @@
     "github.com/derekparker/delve/service/rpc2",
     "github.com/fatih/color",
     "github.com/google/go-cmp/cmp",
-    "github.com/google/gops/agent",
     "github.com/hokaccha/go-prettyjson",
     "github.com/motemen/go-astmanip",
     "github.com/neovim/go-client/nvim",

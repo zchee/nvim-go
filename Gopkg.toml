@@ -32,10 +32,6 @@ ignored = ["golang.org/x/tools/cmd/guru"]
   branch = "master"
 
 [[constraint]]
-  name = "github.com/google/gops"
-  branch = "master"
-
-[[constraint]]
   name = "github.com/hokaccha/go-prettyjson"
   branch = "master"
 
