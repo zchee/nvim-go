@@ -8,9 +8,10 @@ import (
 	"go/build"
 	"os"
 	"path/filepath"
-	"reflect"
+	"sync"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/neovim/go-client/nvim"
 	"github.com/zchee/nvim-go/pkg/buildctx"
 )
@@ -70,9 +71,9 @@ func TestSplitPos(t *testing.T) {
 
 func TestParseError(t *testing.T) {
 	var (
-		cwd, _       = os.Getwd()
-		gbProjectDir = filepath.Dir(cwd)
-		gopath       = build.Default.GOPATH
+		cwd, _         = os.Getwd()
+		gbProjectDir   = filepath.Dir(cwd)
+		testdataGoPath = filepath.Join(cwd, "testdata")
 	)
 
 	type args struct {
@@ -81,13 +82,14 @@ func TestParseError(t *testing.T) {
 		buildContext *buildctx.Build
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    []*nvim.QuickfixError
-		wantErr bool
+		name        string
+		args        args
+		packContext PackContext
+		want        []*nvim.QuickfixError
+		wantErr     bool
 	}{
 		{
-			name: "gb build",
+			name: "gb 1",
 			args: args{
 				errors: []byte(`# nvim-go/nvim
 echo.go:79: syntax error: non-declaration statement outside function body`),
@@ -106,7 +108,7 @@ echo.go:79: syntax error: non-declaration statement outside function body`),
 			wantErr: false,
 		},
 		{
-			name: "gb build 2",
+			name: "gb 2",
 			args: args{
 				errors: []byte(`# nvim-go/nvim/quickfix
 locationlist.go:152: syntax error: unexpected case, expecting }
@@ -134,7 +136,7 @@ locationlist.go:160: syntax error: non-declaration statement outside function bo
 			wantErr: false,
 		},
 		{
-			name: "gb build 3",
+			name: "gb 3",
 			args: args{
 				errors: []byte(`# nvim-go/nvim/quickfix
 locationlist.go:199: ParseError redeclared in this block
@@ -151,27 +153,6 @@ locationlist.go:199: ParseError redeclared in this block
 					LNum:     199,
 					Col:      0,
 					Text:     "ParseError redeclared in this block",
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "gb (relative path)",
-			args: args{
-				errors: []byte(`# nvim-go/pathutil
-package_test.go:36: undeclared name: FindAll`),
-				cwd: "/Users/zchee/go/src/github.com/zchee/nvim-go/pkg/nvim-go/command",
-				buildContext: &buildctx.Build{
-					Tool:        "gb",
-					ProjectRoot: "/Users/zchee/go/src/github.com/zchee/nvim-go",
-				},
-			},
-			want: []*nvim.QuickfixError{
-				{
-					FileName: "../pathutil/package_test.go",
-					LNum:     36,
-					Col:      0,
-					Text:     "undeclared name: FindAll",
 				},
 			},
 			wantErr: false,
@@ -258,28 +239,84 @@ FATAL: command "build" failed: exit status 2`),
 			},
 			wantErr: false,
 		},
+		{
+			name: "GoRelativePath",
+			args: args{
+				errors: []byte(`# relative/cmd/relative
+cmd/relative/main.go:10:14: undefined: relative.B`),
+				cwd: filepath.Join(cwd, "testdata", "src", "relative"),
+				buildContext: &buildctx.Build{
+					Tool:        "go",
+					ProjectRoot: filepath.Join(cwd, "testdata", "src", "relative"),
+				},
+			},
+			packContext: PackContext{
+				GOPATH: testdataGoPath,
+			},
+			want: []*nvim.QuickfixError{
+				{
+					FileName: "cmd/relative/main.go",
+					LNum:     10,
+					Col:      14,
+					Text:     "undefined: relative.B",
+				},
+			},
+			wantErr: false,
+		},
 	}
 
-	build.Default.GOPATH = gopath
-
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			bctx, fn := FakeBuildContext(tt.packContext)
+			build.Default = *bctx
+			defer fn()
+
 			got, err := ParseError(tt.args.errors, tt.args.cwd, tt.args.buildContext, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%q. ParseError(%v, %v, %v) error = %v, wantErr %v", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext, err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("%v. ParseError(errors: %v,\ncwd: %v,\nbuildContext: %v) = \n", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext)
-				for _, got := range got {
-					t.Logf("=====  got =====: %+v", got)
-				}
-				for _, want := range tt.want {
-					t.Logf("===== want =====: %+v", want)
-				}
+			if diff := cmp.Diff(got, tt.want); diff != "" {
+				t.Fatalf("(-got, +want)\n%s\n", diff)
 			}
 		})
 	}
+}
+
+var buildDefaultLock sync.Mutex
+
+func FakeBuildContext(pcxt PackContext) (*build.Context, func()) {
+	buildDefaultLock.Lock()
+	defer buildDefaultLock.Unlock()
+
+	origctxt := build.Default
+	fn := func() { build.Default = origctxt }
+
+	ctxt := &build.Default
+	ctxt.GOARCH = pcxt.GOARCH
+	ctxt.GOOS = pcxt.GOOS
+	ctxt.GOROOT = pcxt.GOROOT
+	ctxt.GOPATH = pcxt.GOPATH
+	ctxt.CgoEnabled = pcxt.CgoEnabled
+	ctxt.UseAllFiles = pcxt.UseAllFiles
+	ctxt.Compiler = pcxt.Compiler
+	ctxt.BuildTags = pcxt.BuildTags
+	ctxt.ReleaseTags = pcxt.ReleaseTags
+	ctxt.InstallSuffix = pcxt.InstallSuffix
+
+	return ctxt, fn
+}
+
+// PackContext is a copy of build.Context without the func fields.
+type PackContext struct {
+	GOARCH        string
+	GOOS          string
+	GOROOT        string
+	GOPATH        string
+	CgoEnabled    bool
+	UseAllFiles   bool
+	Compiler      string
+	BuildTags     []string
+	ReleaseTags   []string
+	InstallSuffix string
 }
