@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:eaa5f82b0cdb82f393c6725a82326909cb1c54502eb2816ffe05a7aa1a92bc42"
+  digest = "1:235e113dd312c414da7ecd032a01275f1d883e1ed865fedbfa46acc2b16635c8"
   name = "github.com/cweill/gotests"
   packages = [
     ".",
@@ -15,7 +15,7 @@
     "internal/render",
     "internal/render/bindata",
   ]
-  pruneopts = "NUT"
+  pruneopts = "N"
   revision = "c51312f508e7040f06d1eb174da68364155b1fc0"
 
 [[projects]]
@@ -57,7 +57,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:454e3619fafbc175dec90d254b9ddabafc6a42d3fd634e3f5f202756137fae10"
+  digest = "1:502918a51b4b160feb960ea02720ae7c4541a06705038c99cdd7e70f42809bde"
   name = "github.com/google/go-cmp"
   packages = [
     "cmp",
@@ -65,7 +65,7 @@
     "cmp/internal/function",
     "cmp/internal/value",
   ]
-  pruneopts = "NUT"
+  pruneopts = "N"
   revision = "5411ab924f9ffa6566244a9e504bc347edacffd3"
 
 [[projects]]
@@ -110,7 +110,7 @@
 
 [[projects]]
   branch = "api/a225374"
-  digest = "1:a899a5369f90f35b1268171493e24bc532b1a6bc49c216f7de89d6d493251996"
+  digest = "1:74f57f57bb70f5000a1136a0edf7a1e424804cf1ae81762428916f5d941f8353"
   name = "github.com/neovim/go-client"
   packages = [
     "msgpack",
@@ -118,7 +118,7 @@
     "nvim",
     "nvim/plugin",
   ]
-  pruneopts = "NUT"
+  pruneopts = "N"
   revision = "197756549c460d18b18ba92e6b42ffcda0172918"
   source = "github.com/zchee/go-client"
 
@@ -132,10 +132,10 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:89fa4c7ac713710640c83ec0461b78fc21c2eda6deca064fe461eef1b8bca303"
+  digest = "1:a6842214aa40d0449203b364462ad51f1ca7f09e737c1f46978020a4d6a823e3"
   name = "github.com/pkg/errors"
   packages = ["."]
-  pruneopts = "NUT"
+  pruneopts = "N"
   revision = "816c9085562cd7ee03e7f8188a1cfd942858cded"
 
 [[projects]]
@@ -159,15 +159,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:64e40bae99ad9825b13ed5f294ee921669bb5353e0a429dd5b24cd28af1ae5f2"
+  digest = "1:97dc1462cb13f730f82f7364bb12b36e9750d2d3a188c7720f5249a4867df5fd"
   name = "go.uber.org/multierr"
   packages = ["."]
-  pruneopts = "NUT"
+  pruneopts = "N"
   revision = "ddea229ff1dff9e6fe8a6c0344ac73b09e81fce5"
 
 [[projects]]
   branch = "master"
-  digest = "1:85674ac609b704fd4e9f463553b6ffc3a3527a993ae0ba550eb56beaabdfe094"
+  digest = "1:6be96e5111c25dfd3bdff995d8f98c36fa739509a4f6c4ab0cc86e21cca91992"
   name = "go.uber.org/zap"
   packages = [
     ".",
@@ -177,7 +177,7 @@
     "internal/exit",
     "zapcore",
   ]
-  pruneopts = "NUT"
+  pruneopts = "N"
   revision = "1f8c4cad1e0417712b7d9f130a17b11eba6c8317"
 
 [[projects]]
@@ -200,10 +200,10 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e560ae4a227f691fafb7989d7ca2d768c85db681f29f664f635e95a8c50dced4"
+  digest = "1:86586d67c1664029f60fea4bff2d7c7e9f0533d5321875c5dbe26434e6033b56"
   name = "golang.org/x/lint"
   packages = ["."]
-  pruneopts = "NUT"
+  pruneopts = "N"
   revision = "06c8688daad7faa9da5a0c2f163a3d14aac986ca"
 
 [[projects]]
@@ -216,13 +216,13 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:39485a034b89a9f2892b9c0cc24e2330e1c9981794c35281c2febfcc55b90a34"
+  digest = "1:821a489dd925d3141e6079a5495f24854dbda11287e345687b51cf62c54d77e0"
   name = "golang.org/x/sync"
   packages = [
     "errgroup",
     "syncmap",
   ]
-  pruneopts = "NUT"
+  pruneopts = "N"
   revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
 
 [[projects]]
