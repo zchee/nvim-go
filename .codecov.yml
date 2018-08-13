@@ -6,16 +6,14 @@ coverage:
   status:
     project:
       default:
-        enabled: yes
         target: auto
-        threshold: 1%
+        threshold: 5%
     patch:
       default:
-        enabled: yes
         only_pulls: true
-        target: auto
-        threshold: 1%
-    changes: no
+        target: 50%
+        threshold: 5%
+    changes: false
   ignore:
     - "vendor/*"
 
