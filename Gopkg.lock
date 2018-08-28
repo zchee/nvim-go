@@ -110,7 +110,7 @@
 
 [[projects]]
   branch = "api/a225374"
-  digest = "1:74f57f57bb70f5000a1136a0edf7a1e424804cf1ae81762428916f5d941f8353"
+  digest = "1:19b90030049d051263a14a40972c7a60573ea85fec2ffb8e8adfe40066035f0f"
   name = "github.com/neovim/go-client"
   packages = [
     "msgpack",
@@ -119,7 +119,7 @@
     "nvim/plugin",
   ]
   pruneopts = "N"
-  revision = "197756549c460d18b18ba92e6b42ffcda0172918"
+  revision = "8c82896d6ea3964f1f7eb23f885ecef4e3330e94"
   source = "github.com/zchee/go-client"
 
 [[projects]]
