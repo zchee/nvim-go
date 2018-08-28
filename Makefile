@@ -79,6 +79,56 @@ manifest.dump: build  ## Dump plugin manifest
 	./bin/${APP} -manifest ${APP} 2>/dev/null
 
 
+.PHONY: vendor.push
+vendor.push:
+	sed -i 's|# unused-packages|unused-packages|' Gopkg.toml
+	dep ensure -v
+	git add Gopkg* vendor
+	sed -i 's|unused-packages|# unused-packages|' Gopkg.toml
+	dep ensure -v
+
+.PHONY: vendor.update
+vendor.update:  ## Update the all vendor packages
+	dep ensure -v -update
+
+.PHONY: vendor.install
+vendor.install:  # Install vendor packages for gocode completion
+	go install -v -x ${VENDOR_PACKAGES}
+
+
+.PHONY: vendor.guru
+vendor.guru: vendor.guru-update vendor.guru-rename
+
+.PHONY: vendor.guru-update
+vendor.guru-update:  ## Update the internal guru package
+	sed -i 's|unused-packages|# unused-packages|' Gopkg.toml
+	dep ensure -v -update golang.org/x/tools
+	${RM} -r $(shell find ${PACKAGE_ROOT}/pkg/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
+	cp ${PACKAGE_ROOT}/vendor/golang.org/x/tools/cmd/guru/*.go ${PACKAGE_ROOT}/pkg/internal/guru
+	sed -i "s|\t// TODO(adonovan): opt: parallelize.|\tbp.GoFiles = append(bp.GoFiles, bp.CgoFiles...)\n\n\0|" pkg/internal/guru/definition.go
+	sed -i 's| // import "golang.org/x/tools/cmd/guru"||' ./pkg/internal/guru/main.go
+	sed -i 's|# unused-packages|unused-packages|' Gopkg.toml
+	export DEP_REVISION=$(dep status -detail -f='{{range $$i, $$p := .Projects}}{{if eq $$p.ProjectRoot "golang.org/x/tools"}}{{$$p.Locked.Revision}}{{end}}{{end}}')
+	perl -i -0pe 's|  name = "golang.org/x/tools"\n  branch = "master"\n|  name = "golang.org/x/tools"\n  revision = "${DEP_REVISION}"\n|m' Gopkg.toml
+	dep ensure -v -vendor-only
+	perl -i -0pe 's|  name = "golang.org/x/tools"\n  revision = "${DEP_REVISION}"\n|  name = "golang.org/x/tools"\n  branch = "master"\n|m' Gopkg.toml
+	dep ensure -v -no-vendor
+	unset DEP_REVISION
+
+.PHONY: vendor.guru-rename
+vendor.guru-rename: vendor.guru-update
+	@echo -e "[INFO] Rename main to guru\\n"
+	grep "package main" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
+	@echo -e "[INFO] Add Result interface\\n"
+	sed -i "s|PrintPlain(printf printfFunc)|\0\n\n\tResult(fset *token.FileSet) interface{}|" ${PACKAGE_ROOT}/pkg/internal/guru/guru.go
+	@echo -e "[INFO] Export functions\\n"
+	grep "findPackageMember" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/findPackageMember/FindPackageMember/'
+	grep "packageForQualIdent" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/packageForQualIdent/PackageForQualIdent/'
+	grep "guessImportPath" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/guessImportPath/GuessImportPath/'
+	@echo -e "[INFO] remove canonical custom import path from main.go\\n"
+	sed -i "s|package guru|\n// +build ignore\n\n\0|" ${PACKAGE_ROOT}/pkg/internal/guru/main.go
+
+
 .PHONY: test
 test:  ## Run the package test
 	${GO_TEST} -v $(strip ${GO_TEST_FLAGS} ${PACKAGES})
@@ -130,47 +180,6 @@ lint.unconvert:  ## Run unconvert
 .PHONY: coverage
 coverage:  # take test coverage
 	${GO_TEST} -v -race -covermode=atomic -coverprofile=$@.out -coverpkg=./pkg/... $(PACKAGES)
-
-
-.PHONY: vendor.update
-vendor.update:  ## Update the all vendor packages
-	dep ensure -v -update
-
-.PHONY: vendor.install
-vendor.install:  # Install vendor packages for gocode completion
-	go install -v -x ${VENDOR_PACKAGES}
-
-.PHONY: vendor.guru
-vendor.guru: vendor.guru-update vendor.guru-rename
-
-.PHONY: vendor.guru-update
-vendor.guru-update:  ## Update the internal guru package
-	sed -i 's|unused-packages|# unused-packages|' Gopkg.toml
-	dep ensure -v -update golang.org/x/tools
-	${RM} -r $(shell find ${PACKAGE_ROOT}/pkg/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
-	cp ${PACKAGE_ROOT}/vendor/golang.org/x/tools/cmd/guru/*.go ${PACKAGE_ROOT}/pkg/internal/guru
-	sed -i "s|\t// TODO(adonovan): opt: parallelize.|\tbp.GoFiles = append(bp.GoFiles, bp.CgoFiles...)\n\n\0|" pkg/internal/guru/definition.go
-	sed -i 's| // import "golang.org/x/tools/cmd/guru"||' ./pkg/internal/guru/main.go
-	sed -i 's|# unused-packages|unused-packages|' Gopkg.toml
-	export DEP_REVISION=$(dep status -detail -f='{{range $$i, $$p := .Projects}}{{if eq $$p.ProjectRoot "golang.org/x/tools"}}{{$$p.Locked.Revision}}{{end}}{{end}}')
-	perl -i -0pe 's|  name = "golang.org/x/tools"\n  branch = "master"\n|  name = "golang.org/x/tools"\n  revision = "${DEP_REVISION}"\n|m' Gopkg.toml
-	dep ensure -v -vendor-only
-	perl -i -0pe 's|  name = "golang.org/x/tools"\n  revision = "${DEP_REVISION}"\n|  name = "golang.org/x/tools"\n  branch = "master"\n|m' Gopkg.toml
-	dep ensure -v -no-vendor
-	unset DEP_REVISION
-
-.PHONY: vendor.guru-rename
-vendor.guru-rename: vendor.guru-update
-	@echo -e "[INFO] Rename main to guru\\n"
-	grep "package main" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
-	@echo -e "[INFO] Add Result interface\\n"
-	sed -i "s|PrintPlain(printf printfFunc)|\0\n\n\tResult(fset *token.FileSet) interface{}|" ${PACKAGE_ROOT}/pkg/internal/guru/guru.go
-	@echo -e "[INFO] Export functions\\n"
-	grep "findPackageMember" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/findPackageMember/FindPackageMember/'
-	grep "packageForQualIdent" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/packageForQualIdent/PackageForQualIdent/'
-	grep "guessImportPath" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/guessImportPath/GuessImportPath/'
-	@echo -e "[INFO] remove canonical custom import path from main.go\\n"
-	sed -i "s|package guru|\n// +build ignore\n\n\0|" ${PACKAGE_ROOT}/pkg/internal/guru/main.go
 
 
 .PHONY: clean
