@@ -46,11 +46,7 @@ jobs:
           name: install latest go and neovim formula
           command: |
             brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb
-            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/lua.rb
-            brew unlink lua
-            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/lua@5.1.rb
-            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/luarocks.rb --ignore-dependencies
-            luarocks --lua-dir=/usr/local/opt/lua@5.1 install say  # switch lua runtime version to 5.1
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/luarocks.rb || brew link --overwrite luarocks
             brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/neovim.rb --HEAD
       - run:
           name: show versions
