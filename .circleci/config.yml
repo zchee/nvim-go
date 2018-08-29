@@ -33,7 +33,7 @@ jobs:
 
   build-macos:
     macos:
-      xcode: "9.4.0"
+      xcode: "10.0.0"
     environment:
       PATH: /Users/distiller/go/bin:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
       GOPATH: /Users/distiller/go
