@@ -47,7 +47,8 @@ jobs:
           command: |
             brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb
             brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/lua@5.1.rb
-            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/luarocks.rb
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/luarocks.rb --ignore-dependencies
+            luarocks --lua-dir=/usr/local/opt/lua@5.1 install say  # switch lua runtime version to 5.1
             brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/neovim.rb
       - run:
           name: show versions
