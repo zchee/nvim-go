@@ -46,6 +46,8 @@ jobs:
           name: install latest go and neovim formula
           command: |
             brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/lua@5.1.rb
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/luarocks.rb
             brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/neovim.rb
       - run:
           name: show versions
