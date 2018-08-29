@@ -29,7 +29,7 @@ jobs:
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
-            bash <(curl -s https://codecov.io/bash) -P ${CIRCLE_PULL_REQUEST##*/}
+            bash <(curl -s https://codecov.io/bash) -Z
 
   build-macos:
     macos:
@@ -74,7 +74,7 @@ jobs:
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
-            bash <(curl -s https://codecov.io/bash) -P ${CIRCLE_PULL_REQUEST##*/}
+            bash <(curl -s https://codecov.io/bash) -Z
 
   reviewdog:
     docker:
