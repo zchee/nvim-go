@@ -15,9 +15,7 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
-	"time"
 
-	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -110,56 +108,13 @@ func Main(ctx context.Context, p *plugin.Plugin) error {
 	c := command.Register(ctx, p, buildctxt)
 	autocmd.Register(ctx, p, buildctxt, c)
 
-	n, err := dial(ctx)
+	n, err := server.Dial(ctx)
 	if err != nil {
 		return err
 	}
 	p.Nvim = n
 
 	return nil
-}
-
-func dial(pctx context.Context) (*nvim.Nvim, error) {
-	log := logger.FromContext(pctx).Named("dial")
-
-	const envNvimListenAddress = "NVIM_LISTEN_ADDRESS"
-	addr := os.Getenv(envNvimListenAddress)
-	if addr == "" {
-		return nil, errors.Errorf("%s not set", envNvimListenAddress)
-	}
-
-	zapLogf := func(format string, a ...interface{}) {
-		log.Info("", zap.Any(format, a))
-	}
-
-	ctx, cancel := context.WithTimeout(pctx, 1*time.Second)
-	defer cancel()
-
-	var n *nvim.Nvim
-	var tempDelay time.Duration
-	for {
-		var err error
-		n, err = nvim.Dial(addr, nvim.DialContext(ctx), nvim.DialServe(false), nvim.DialLogf(zapLogf))
-		if err != nil {
-			if tempDelay == 0 {
-				tempDelay = 5 * time.Millisecond
-			} else {
-				tempDelay *= 2
-			}
-			if max := 1 * time.Second; tempDelay > max {
-				tempDelay = max
-			}
-			log.Error("Dial error", zap.Error(err), zap.Duration("retrying in", tempDelay))
-			timer := time.NewTimer(tempDelay)
-			select {
-			case <-timer.C:
-			}
-			continue
-		}
-		tempDelay = 0
-
-		return n, nil
-	}
 }
 
 func Child(ctx context.Context) error {
