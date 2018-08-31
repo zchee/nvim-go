@@ -50,8 +50,6 @@ func Register(pctx context.Context, p *plugin.Plugin, buildContext *buildctx.Con
 		errs:             new(syncmap.Map),
 	}
 
-	logger.FromContext(ctx).Info("Register")
-
 	// Handle the initial start Neovim process.
 	// Note that does not run the 'VimEnter' handler if open the *not* go file. Because 'VimEnter' handler already run the other file or directory.
 	// TODO(zchee): consider Pattern to '*' instead of '*.go' with get '&filetype' and early return
