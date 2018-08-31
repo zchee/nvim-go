@@ -15,7 +15,9 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
 
+	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -33,9 +35,11 @@ var (
 	vimFilePath = flag.String("location", "", "Manifest is automatically written to `.vim file`")
 )
 
-func main() {
+func init() {
 	flag.Parse()
+}
 
+func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -44,25 +48,42 @@ func main() {
 	ctx = logger.NewContext(ctx, zapLogger)
 
 	if *pluginHost != "" {
+		os.Unsetenv("NVIM_GO_DEBUG")
 		fn := func(p *plugin.Plugin) error {
-			return Main(ctx, p)
+			return func(ctx context.Context, p *plugin.Plugin) error {
+				buildctxt := buildctx.NewContext()
+				c := command.Register(ctx, p, buildctxt)
+				autocmd.Register(ctx, p, buildctxt, c)
+				return nil
+			}(ctx, p)
 		}
-		Plugin(fn)
+		if err := Plugin(fn); err != nil {
+			logpkg.Fatal(err)
+		}
 		return
 	}
 
-	var eg = &errgroup.Group{}
+	eg := new(errgroup.Group)
 	eg, ctx = errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		fn := func(p *plugin.Plugin) error {
 			return Main(ctx, p)
 		}
-		Plugin(fn)
-		return nil
+		return Plugin(fn)
 	})
 	eg.Go(func() error {
 		return Child(ctx)
 	})
+
+	if os.Getenv("NVIM_GO_DEBUG") != "" {
+		const addr = ":14715" // (n: 14)vim-(g: 7)(o: 15)
+		zapLogger.Debug("start the pprof debugging", zap.String("listen at", addr))
+
+		// enable the report of goroutine blocking events
+		runtime.SetBlockProfileRate(1)
+		go logpkg.Println(http.ListenAndServe(addr, nil))
+	}
+
 	go func() {
 		if err := eg.Wait(); err != nil {
 			logger.FromContext(ctx).Fatal("eg.Wait", zap.Error(err))
@@ -83,25 +104,62 @@ func main() {
 }
 
 func Main(ctx context.Context, p *plugin.Plugin) error {
-	debug := os.Getenv("NVIM_GO_DEBUG") != ""
-
-	log := logger.FromContext(ctx).Named("main")
-	ctx = logger.NewContext(ctx, log)
+	ctx = logger.NewContext(ctx, logger.FromContext(ctx).Named("main"))
 
 	buildctxt := buildctx.NewContext()
 	c := command.Register(ctx, p, buildctxt)
 	autocmd.Register(ctx, p, buildctxt, c)
 
-	if debug {
-		const addr = ":14715" // (n: 14)vim-(g: 7)(o: 15)
-		log.Debug("start the pprof debugging", zap.String("listen at", addr))
-
-		// enable the report of goroutine blocking events
-		runtime.SetBlockProfileRate(1)
-		go logpkg.Println(http.ListenAndServe(addr, nil))
+	n, err := dial(ctx)
+	if err != nil {
+		return err
 	}
+	p.Nvim = n
 
 	return nil
+}
+
+func dial(pctx context.Context) (*nvim.Nvim, error) {
+	log := logger.FromContext(pctx).Named("dial")
+
+	const envNvimListenAddress = "NVIM_LISTEN_ADDRESS"
+	addr := os.Getenv(envNvimListenAddress)
+	if addr == "" {
+		return nil, errors.Errorf("%s not set", envNvimListenAddress)
+	}
+
+	zapLogf := func(format string, a ...interface{}) {
+		log.Info("", zap.Any(format, a))
+	}
+
+	ctx, cancel := context.WithTimeout(pctx, 1*time.Second)
+	defer cancel()
+
+	var n *nvim.Nvim
+	var tempDelay time.Duration
+	for {
+		var err error
+		n, err = nvim.Dial(addr, nvim.DialContext(ctx), nvim.DialServe(false), nvim.DialLogf(zapLogf))
+		if err != nil {
+			if tempDelay == 0 {
+				tempDelay = 5 * time.Millisecond
+			} else {
+				tempDelay *= 2
+			}
+			if max := 1 * time.Second; tempDelay > max {
+				tempDelay = max
+			}
+			log.Error("Dial error", zap.Error(err), zap.Duration("retrying in", tempDelay))
+			timer := time.NewTimer(tempDelay)
+			select {
+			case <-timer.C:
+			}
+			continue
+		}
+		tempDelay = 0
+
+		return n, nil
+	}
 }
 
 func Child(ctx context.Context) error {
@@ -123,6 +181,7 @@ func Child(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get buffers")
 	}
+
 	// Get the names using a single atomic call to Nvim.
 	names := make([]string, len(bufs))
 	b := s.NewBatch()
