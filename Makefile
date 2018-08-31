@@ -56,27 +56,26 @@ init:  ## Install dependency tools
 
 .PHONY: build
 build:  ## Build the nvim-go binary
-	go build -v -o ./bin/nvim-go $(strip ${GO_BUILD_FLAGS} ${GO_GCFLAGS} ${GO_LDFLAGS}) ./cmd/nvim-go
+	go build -v -o ./bin/${APP} $(strip ${GO_BUILD_FLAGS} ${GO_GCFLAGS} ${GO_LDFLAGS}) ./cmd/nvim-go
 
 .PHONY: build.race
 build.race: GO_BUILD_FLAGS+=-race
-build.race: clean build ## Build the nvim-go binary with race
+build.race: clean build  ## Build the nvim-go binary with race
 
 .PHONY: build.rebuild
 build.rebuild: clean build  ## Rebuild the nvim-go binary
 
 .PHONY: manifest
 manifest: build  ## Write plugin manifest for developer
-	./bin/${APP} -manifest ${APP} -location ./plugin/${APP}.vim > /dev/null 2>&1
+	./bin/${APP} -manifest ${APP} -location ./plugin/nvim-go.vim
 
 .PHONY: manifest.race
-manifest.race: APP=${APP}-race
-manifest.race: build.race  ## Write plugin manifest for developer
-	./bin/${APP} -manifest ${APP} -location ./plugin/${APP}.vim > /dev/null 2>&1
+manifest.race: APP=nvim-race
+manifest.race: build.race manifest  ## Write plugin manifest for developer
 
 .PHONY: manifest.dump
 manifest.dump: build  ## Dump plugin manifest
-	./bin/${APP} -manifest ${APP} 2>/dev/null
+	./bin/${APP} -manifest ${APP}
 
 
 .PHONY: vendor.push
