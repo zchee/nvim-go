@@ -33,7 +33,7 @@ func (a *Autocmd) BufEnter(eval *bufEnterEval) {
 	configOnce.Do(func() {
 		eval.Cfg.Global.ChannelID = a.Nvim.ChannelID()
 		config.Get(a.Nvim, eval.Cfg)
-		logger.FromContext(a.ctx).Debug("VimEnter", zap.Any("eval.Config", eval.Cfg))
+		logger.FromContext(a.ctx).Debug("BufEnter", zap.Any("eval.Config", eval.Cfg))
 	})
 
 	a.getStatus(eval.BufNr, eval.WinID, eval.Dir)
