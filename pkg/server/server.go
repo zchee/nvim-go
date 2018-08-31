@@ -18,7 +18,6 @@ import (
 
 type Server struct {
 	*nvim.Nvim
-	errc chan error
 }
 
 func NewServer(pctx context.Context) (*Server, error) {
@@ -60,29 +59,59 @@ func NewServer(pctx context.Context) (*Server, error) {
 		}
 		tempDelay = 0
 
-		return &Server{
-			Nvim: n,
-			errc: make(chan error, 1),
-		}, nil
+		return &Server{Nvim: n}, nil
+	}
+}
+
+func Dial(pctx context.Context) (*nvim.Nvim, error) {
+	const envNvimListenAddress = "NVIM_LISTEN_ADDRESS"
+	addr := os.Getenv(envNvimListenAddress) // NVIM_LISTEN_ADDRESS env can get if launched nvim process
+	if addr == "" {
+		return nil, errors.Errorf("failed get %s", envNvimListenAddress)
+	}
+
+	ctx, cancel := context.WithTimeout(pctx, 1*time.Second)
+	defer cancel()
+
+	n := &nvim.Nvim{}
+	dialOpts := []nvim.DialOption{
+		nvim.DialContext(ctx),
+		nvim.DialServe(false),
+		nvim.DialLogf(func(format string, a ...interface{}) {
+			logger.FromContext(ctx).Info("", zap.Any(format, a))
+		}),
+	}
+
+	var tempDelay time.Duration // how long to sleep on accept failure
+	var err error
+	for {
+		n, err = nvim.Dial(addr, dialOpts...)
+		if err != nil {
+			if tempDelay == 0 {
+				tempDelay = 5 * time.Millisecond
+			} else {
+				tempDelay *= 2
+			}
+			if max := 1 * time.Second; tempDelay > max {
+				tempDelay = max
+			}
+			logger.FromContext(ctx).Error("Dial error", zap.Error(err), zap.Duration("retrying in", tempDelay))
+			timer := time.NewTimer(tempDelay)
+			select {
+			case <-timer.C:
+			}
+			continue
+		}
+		tempDelay = 0
+
+		return n, nil
 	}
 }
 
 func (s *Server) Serve() {
-	s.errc <- s.Nvim.Serve()
+	go s.Nvim.Serve()
 }
 
 func (s *Server) Close() error {
-	err := s.Nvim.Close()
-
-	var errServe error
-	select {
-	case errServe = <-s.errc:
-	case <-time.After(10 * time.Second):
-		errServe = errors.New("nvim: Serve did not exit")
-	}
-	if err == nil {
-		err = errServe
-	}
-
-	return err
+	return s.Nvim.Close()
 }
