@@ -44,22 +44,22 @@ import (
 // plugin manifest to stdout insead of running the application as a plugin.
 // If the --location=vimfile command line flag is specified, then plugin
 // manifest will be automatically written to .vim file.
-func Plugin(registerHandlers func(p *plugin.Plugin) error) {
+func Plugin(registerHandlers func(p *plugin.Plugin) error) error {
 	if *pluginHost != "" {
 		log.SetFlags(0)
 		p := plugin.New(nil)
 		if err := registerHandlers(p); err != nil {
-			log.Fatal(err)
+			return err
 		}
 		manifest := p.Manifest(*pluginHost)
 		if *vimFilePath != "" {
 			if err := overwriteManifest(*vimFilePath, *pluginHost, manifest); err != nil {
-				log.Fatal(err)
+				return err
 			}
 		} else {
 			os.Stdout.Write(manifest)
 		}
-		return
+		return nil
 	}
 
 	stdout := os.Stdout
@@ -68,15 +68,15 @@ func Plugin(registerHandlers func(p *plugin.Plugin) error) {
 
 	v, err := nvim.New(os.Stdin, stdout, stdout, log.Printf)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
 	p := plugin.New(v)
 	if err := registerHandlers(p); err != nil {
-		log.Fatal(err)
+		return err
 	}
-	if err := v.Serve(); err != nil {
-		log.Fatal(err)
-	}
+
+	return v.Serve()
 }
 
 func overwriteManifest(path, host string, manifest []byte) error {
