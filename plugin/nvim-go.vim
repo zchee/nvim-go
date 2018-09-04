@@ -17,7 +17,7 @@ let s:plugin_name   = 'nvim-go'
 let s:plugin_root   = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
 
 " wrapper of debug logging script
-if g:go#debug
+if get(g:, 'go#debug', 0)
   let s:plugin_cmd  = [s:plugin_root.'/scripts/debug.sh', s:plugin_root]
 else
   let s:plugin_cmd = [s:plugin_root . '/bin/' . s:plugin_name]
