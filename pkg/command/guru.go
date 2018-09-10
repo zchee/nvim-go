@@ -28,10 +28,10 @@ import (
 	"golang.org/x/tools/go/buildutil"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/internal/guru"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/pathutil"
 )
 
 type funcGuruEval struct {
@@ -138,7 +138,7 @@ func (c *Command) Guru(ctx context.Context, args []string, eval *funcGuruEval) i
 		// TODO(zchee): should change nvimutil.SplitPos behavior
 		filename := strings.Split(obj.ObjPos, ":")
 		if filename[0] != eval.File {
-			batch.Command(fmt.Sprintf("keepjumps edit %s", pathutil.Rel(eval.Cwd, fname)))
+			batch.Command(fmt.Sprintf("keepjumps edit %s", fs.Rel(eval.Cwd, fname)))
 		}
 		batch.SetWindowCursor(w, [2]int{line, col - 1})
 		if err := batch.Execute(); err != nil {
@@ -152,25 +152,25 @@ func (c *Command) Guru(ctx context.Context, args []string, eval *funcGuruEval) i
 	var scopes []string
 	switch c.buildContext.Build.Tool {
 	case "go":
-		root := pathutil.FindVCSRoot(eval.File)
+		root := fs.FindVCSRoot(eval.File)
 		root, _ = filepath.Abs(root)
-		scopes = []string{pathutil.ToWildcard(pathutil.TrimGoPath(root))}
-		if vendorDir := filepath.Join(root, "vendor"); pathutil.IsDirExist(vendorDir) {
-			scopes = append(scopes, "-"+pathutil.ToWildcard(pathutil.TrimGoPath(vendorDir)))
+		scopes = []string{fs.ToWildcard(fs.TrimGoPath(root))}
+		if vendorDir := filepath.Join(root, "vendor"); fs.IsDirExist(vendorDir) {
+			scopes = append(scopes, "-"+fs.ToWildcard(fs.TrimGoPath(vendorDir)))
 		}
 	case "gb":
 		root := c.buildContext.Build.ProjectRoot
 		var err error
-		scopes, err = pathutil.GbPackages(root)
+		scopes, err = fs.GbPackages(root)
 		if err != nil {
 			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.Wrap(err, "could not get gb packages")
 		}
 		for i, pkg := range scopes {
-			scopes[i] = pathutil.ToWildcard(pkg)
+			scopes[i] = fs.ToWildcard(pkg)
 		}
-		if vendorDir := filepath.Join(root, "vendor"); pathutil.IsDirExist(vendorDir) {
-			scopes = append(scopes, "-"+pathutil.ToWildcard(vendorDir))
+		if vendorDir := filepath.Join(root, "vendor"); fs.IsDirExist(vendorDir) {
+			scopes = append(scopes, "-"+fs.ToWildcard(vendorDir))
 		}
 	}
 	query.Scope = append(query.Scope, scopes...)

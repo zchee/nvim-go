@@ -14,8 +14,8 @@ import (
 	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/pathutil"
 )
 
 var (
@@ -101,7 +101,7 @@ func (c *Command) Run(ctx context.Context, args []string, file string) error {
 	if runTerm == nil {
 		runTerm = nvimutil.NewTerminal(c.Nvim, "__GO_RUN__", cmd, config.TerminalMode)
 	}
-	runTerm.Dir = pathutil.FindVCSRoot(filepath.Dir(file))
+	runTerm.Dir = fs.FindVCSRoot(filepath.Dir(file))
 
 	if err := runTerm.Run(cmd); err != nil {
 		return errors.WithStack(err)

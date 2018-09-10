@@ -12,7 +12,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 
-	"github.com/zchee/nvim-go/pkg/pathutil"
+	"github.com/zchee/nvim-go/pkg/fs"
 )
 
 // CompleteFiles provides a "-complete=file" completion exclude the non go files.
@@ -20,7 +20,7 @@ func CompleteFiles(v *nvim.Nvim, a *nvim.CommandCompletionArgs, dir string) (fil
 	switch {
 	case len(a.ArgLead) > 0:
 		a.ArgLead = filepath.Clean(a.ArgLead)
-		if pathutil.IsDir(a.ArgLead) { // abs or rel directory path
+		if fs.IsDir(a.ArgLead) { // abs or rel directory path
 			files, err := ioutil.ReadDir(a.ArgLead)
 			if err != nil {
 				return nil, err

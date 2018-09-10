@@ -17,8 +17,8 @@ import (
 	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/pathutil"
 )
 
 func (c *Command) cmdMetalinter(cwd string) {
@@ -93,7 +93,7 @@ func (c *Command) Metalinter(ctx context.Context, cwd string) error {
 
 	for _, r := range result {
 		loclist = append(loclist, &nvim.QuickfixError{
-			FileName: pathutil.Rel(r.Path, cwd),
+			FileName: fs.Rel(r.Path, cwd),
 			LNum:     r.Line,
 			Col:      r.Col,
 			Text:     r.Linter + ": " + r.Message,

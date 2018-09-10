@@ -22,8 +22,8 @@ import (
 	"golang.org/x/lint"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/pathutil"
 )
 
 func (c *Command) cmdLint(v *nvim.Nvim, args []string, file string) {
@@ -81,7 +81,7 @@ func (c *Command) Lint(ctx context.Context, args []string, file string) interfac
 			var rootDir string
 			switch c.buildContext.Build.Tool {
 			case "go":
-				root, err := pathutil.PackageID(c.buildContext.Build.ProjectRoot)
+				root, err := fs.PackageID(c.buildContext.Build.ProjectRoot)
 				if err != nil {
 					return errors.WithStack(err)
 				}
@@ -103,9 +103,9 @@ func (c *Command) Lint(ctx context.Context, args []string, file string) interfac
 			path = file
 		}
 		switch {
-		case pathutil.IsDir(path):
+		case fs.IsDir(path):
 			errlist, err = c.lintDir(path)
-		case pathutil.IsExist(path):
+		case fs.IsExist(path):
 			errlist, err = c.lintFiles(path)
 		default:
 			for _, pkgname := range importPaths(args) {

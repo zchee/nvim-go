@@ -14,8 +14,8 @@ import (
 	delveapi "github.com/derekparker/delve/service/api"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/pathutil"
 )
 
 // printTerminal prints the message to terminal buffer with cmd prefix.
@@ -128,7 +128,7 @@ func (d *Delve) printStacktrace(cwd string, currentFunc *delveapi.Function, goro
 				stacksMsg = append(stacksMsg, []byte(
 					fmt.Sprintf("\t\t\t%s()\t%s:%d\n",
 						s.Function.Name,
-						pathutil.ShortFilePath(s.File, cwd),
+						fs.ShortFilePath(s.File, cwd),
 						s.Line))...)
 				locals = append(locals, s.Locals...)
 			}

@@ -22,9 +22,9 @@ import (
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"github.com/zchee/nvim-go/pkg/buildctx"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/pathutil"
 	"go.uber.org/zap"
 )
 
@@ -164,7 +164,7 @@ func (d *Delve) cmdConnect(v *nvim.Nvim, args []string, eval *delveEval) {
 // debug
 
 func (d *Delve) findRootDir(dir string) string {
-	rootDir := pathutil.FindVCSRoot(dir)
+	rootDir := fs.FindVCSRoot(dir)
 	srcPath := filepath.Join(build.Default.GOPATH, "src") + string(filepath.Separator)
 	return filepath.Clean(strings.TrimPrefix(rootDir, srcPath))
 }
@@ -249,7 +249,7 @@ func (d *Delve) breakpoint(v *nvim.Nvim, args []string, eval *breakpointEval) er
 	}
 	d.bpSign[bp.ID].Place(v, bp.ID, bp.Line, bp.File, false)
 
-	filename := pathutil.ShortFilePath(bp.File, filepath.Dir(eval.File))
+	filename := fs.ShortFilePath(bp.File, filepath.Dir(eval.File))
 	msg := fmt.Sprintf("Breakpoint %d set at %#v for %s() %s:%d", bp.ID, bp.Addr, bp.FunctionName, filename, bp.Line)
 	if err := d.printTerminal("break "+bp.FunctionName, nvimutil.StrToByteSlice(msg)); err != nil {
 		return nvimutil.ErrorWrap(v, errors.WithStack(err))
@@ -312,7 +312,7 @@ func (d *Delve) cont(v *nvim.Nvim, args []string, eval *continueEval) error {
 		msg = []byte(
 			fmt.Sprintf("> %s() %s:%d (hits goroutine(%d):%d total:%d) (PC: %#v)",
 				cThread.Function.Name,
-				pathutil.ShortFilePath(cThread.File, eval.Dir),
+				fs.ShortFilePath(cThread.File, eval.Dir),
 				cThread.Line,
 				cThread.GoroutineID,
 				hitCount,
@@ -322,7 +322,7 @@ func (d *Delve) cont(v *nvim.Nvim, args []string, eval *continueEval) error {
 		msg = []byte(
 			fmt.Sprintf("> %s() %s:%d (hits total:%d) (PC: %#v)",
 				cThread.Function.Name,
-				pathutil.ShortFilePath(cThread.File, eval.Dir),
+				fs.ShortFilePath(cThread.File, eval.Dir),
 				cThread.Line,
 				cThread.Breakpoint.TotalHitCount,
 				cThread.PC))
@@ -382,7 +382,7 @@ func (d *Delve) next(v *nvim.Nvim, eval *nextEval) error {
 	msg := []byte(
 		fmt.Sprintf("> %s() %s:%d goroutine(%d) (PC: %d)",
 			cThread.Function.Name,
-			pathutil.ShortFilePath(cThread.File, eval.Dir),
+			fs.ShortFilePath(cThread.File, eval.Dir),
 			cThread.Line,
 			cThread.GoroutineID,
 			cThread.PC))

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package pathutil_test
+package fs_test
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/zchee/nvim-go/pkg/pathutil"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/testutil"
 )
 
@@ -100,7 +100,7 @@ func TestIsGb(t *testing.T) {
 				root := filepath.Join("../", "testdata", "gb", "gsftp")
 				defer testutil.SetBuildContext(t, fmt.Sprintf("%s:%s/vendor", root, root))()
 			}
-			got, got1 := pathutil.IsGb(tt.args.dir)
+			got, got1 := fs.IsGb(tt.args.dir)
 			if got != tt.want {
 				t.Errorf("IsGb(%v) got = %v, want %v", tt.args.dir, got, tt.want)
 			}
@@ -157,7 +157,7 @@ func TestGbFindProjectRoot(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := pathutil.GbFindProjectRoot(tt.args.path)
+			got, err := fs.GbFindProjectRoot(tt.args.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GbFindProjectRoot(%v) error = %v, wantErr %v", tt.args.path, err, tt.wantErr)
 				return
@@ -189,7 +189,7 @@ func TestGbProjectName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := pathutil.GbProjectName(tt.args.projectRoot); got != tt.want {
+			if got := fs.GbProjectName(tt.args.projectRoot); got != tt.want {
 				t.Errorf("GbProjectName(%v) = %v, want %v", tt.args.projectRoot, got, tt.want)
 			}
 		})
@@ -218,7 +218,7 @@ func TestGbPackages(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := pathutil.GbPackages(tt.args.root)
+			got, err := fs.GbPackages(tt.args.root)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GbPackages(%v) error = %v, wantErr %v", tt.args.root, err, tt.wantErr)
 				return

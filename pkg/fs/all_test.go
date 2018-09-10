@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package pathutil_test
+package fs_test
 
 import (
 	"log"
@@ -20,7 +20,7 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 	if testdataPath, err = filepath.Abs(filepath.Join("../testdata")); err != nil {
-		log.Fatalf("pathutil_test: failed to get testdata directory: %v", err)
+		log.Fatalf("fs_test: failed to get testdata directory: %v", err)
 	}
 	testGbRoot = filepath.Join(testdataPath, "gb")
 	testGoPath = filepath.Join("testdata", "go")

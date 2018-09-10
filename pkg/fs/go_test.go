@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package pathutil_test
+package fs_test
 
 import (
 	"go/build"
 	"path/filepath"
 	"testing"
 
-	"github.com/zchee/nvim-go/pkg/pathutil"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/testutil"
 )
 
@@ -79,7 +79,7 @@ func TestPackagePath(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := pathutil.PackagePath(tt.args.dir)
+			got, err := fs.PackagePath(tt.args.dir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PackagePath(%v) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)
 				return
@@ -156,7 +156,7 @@ func TestPackageID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			defer testutil.SetBuildContext(t, filepath.Join("testdata", "go"))()
-			got, err := pathutil.PackageID(tt.args.dir)
+			got, err := fs.PackageID(tt.args.dir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PackageID(%v) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)
 				return

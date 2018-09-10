@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/zchee/nvim-go/pkg/config"
-	"github.com/zchee/nvim-go/pkg/pathutil"
+	"github.com/zchee/nvim-go/pkg/fs"
 )
 
 var terminalBufferName = "__GO_TERMINAL__"
@@ -95,7 +95,7 @@ func (t *Terminal) Create() (err error) {
 // Run runs the command in the terminal buffer.
 func (t *Terminal) Run(cmd []string) error {
 	if t.Dir != "" {
-		defer pathutil.Chdir(t.Nvim, t.Dir)()
+		defer fs.Chdir(t.Nvim, t.Dir)()
 	}
 
 	if t.Buffer != nil && IsBufferValid(t.Nvim, t.buffer) {

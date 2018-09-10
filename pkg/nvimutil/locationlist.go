@@ -19,7 +19,7 @@ import (
 
 	"github.com/zchee/nvim-go/pkg/buildctx"
 	"github.com/zchee/nvim-go/pkg/config"
-	"github.com/zchee/nvim-go/pkg/pathutil"
+	"github.com/zchee/nvim-go/pkg/fs"
 )
 
 // SetLoclist set the error results data to current buffer's locationlist.
@@ -243,12 +243,12 @@ func ParseError(errs []byte, cwd string, buildContext *buildctx.Build, ignoreDir
 				filename = strings.TrimPrefix(filename, sep+string(filepath.Separator))
 
 			// filename is like "github.com/foo/bar.go"
-			case strings.HasPrefix(filename, pathutil.TrimGoPath(cwd)):
-				sep = pathutil.TrimGoPath(cwd) + string(filepath.Separator)
+			case strings.HasPrefix(filename, fs.TrimGoPath(cwd)):
+				sep = fs.TrimGoPath(cwd) + string(filepath.Separator)
 				filename = strings.TrimPrefix(filename, sep)
 
 			default:
-				filename = pathutil.JoinGoPath(filename)
+				filename = fs.JoinGoPath(filename)
 			}
 		case "gb":
 			// gb compiler error messages is relative filename path of project root dir
@@ -260,7 +260,7 @@ func ParseError(errs []byte, cwd string, buildContext *buildctx.Build, ignoreDir
 		}
 
 		// Finally, try to convert the relative path from cwd
-		filename = pathutil.Rel(cwd, filename)
+		filename = fs.Rel(cwd, filename)
 		if ignoreDirs != nil {
 			if contains(filename, ignoreDirs) {
 				continue

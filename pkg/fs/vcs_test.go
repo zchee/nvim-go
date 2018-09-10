@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package pathutil_test
+package fs_test
 
 import (
 	"go/build"
@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/zchee/nvim-go/pkg/pathutil"
+	"github.com/zchee/nvim-go/pkg/fs"
 )
 
 func TestFindVCSRoot(t *testing.T) {
@@ -38,7 +38,7 @@ func TestFindVCSRoot(t *testing.T) {
 			want: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go"),
 		},
 		{
-			name: "go/cwd(pathutil)",
+			name: "go/cwd(fs)",
 			args: args{path: cwd},
 			want: filepath.Join(build.Default.GOPATH, "src", "github.com", "zchee", "nvim-go"),
 		},
@@ -48,7 +48,7 @@ func TestFindVCSRoot(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := pathutil.FindVCSRoot(tt.args.path); got != tt.want {
+			if got := fs.FindVCSRoot(tt.args.path); got != tt.want {
 				t.Errorf("FindVCSRoot(%q): got %v, want %v", tt.args.path, got, tt.want)
 			}
 		})

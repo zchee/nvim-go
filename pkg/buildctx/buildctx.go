@@ -15,7 +15,7 @@ import (
 	"github.com/neovim/go-client/nvim"
 
 	"github.com/zchee/nvim-go/pkg/config"
-	"github.com/zchee/nvim-go/pkg/pathutil"
+	"github.com/zchee/nvim-go/pkg/fs"
 )
 
 // Context represents a current nvim instances context.
@@ -65,15 +65,15 @@ func (ctx *Context) buildContext(dir string, defaultContext build.Context) (stri
 	// Default is go context
 	tool := "go"
 	// Assign package directory full path from dir
-	projectRoot, _ := pathutil.PackagePath(dir)
+	projectRoot, _ := fs.PackagePath(dir)
 
 	if config.BuildIsNotGb {
-		return tool, pathutil.FindVCSRoot(projectRoot), buildContext
+		return tool, fs.FindVCSRoot(projectRoot), buildContext
 	}
 
 	// Check whether the dir is Gb directory structure.
 	// If ok, append gb root and vendor path to the goPath lists.
-	if gbpath, ok := pathutil.IsGb(filepath.Clean(dir)); ok {
+	if gbpath, ok := fs.IsGb(filepath.Clean(dir)); ok {
 		tool = "gb"
 		projectRoot = gbpath
 		buildContext.GOPATH = gbpath + string(filepath.ListSeparator) + filepath.Join(gbpath, "vendor")

@@ -19,9 +19,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/pathutil"
 )
 
 // CmdBuildEval struct type for Eval of GoBuild command.
@@ -129,7 +129,7 @@ func (c *Command) compileCmd(ctx context.Context, args []string, bang bool, dir 
 
 		if config.BuildAppengine {
 			cmd.Args = append([]string{cmd.Args[0], "gae"}, cmd.Args[1:]...)
-			pkgs, err := pathutil.GbPackages(cmd.Dir)
+			pkgs, err := fs.GbPackages(cmd.Dir)
 			if err != nil {
 				return nil, err
 			}

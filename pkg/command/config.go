@@ -16,8 +16,8 @@ import (
 	xdgbasedir "github.com/zchee/go-xdgbasedir"
 	yaml "gopkg.in/yaml.v2"
 
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/pathutil"
 )
 
 // CmdConfigEval represents for the eval of GoConfig command.
@@ -32,11 +32,11 @@ var (
 )
 
 func (c *Command) cmdConfig(args []string, eval *CmdConfigEval) {
-	if err := pathutil.Mkdir(configDir, 0700); err != nil {
+	if err := fs.Mkdir(configDir, 0700); err != nil {
 		nvimutil.Echoerr(c.Nvim, "%v", err)
 		return
 	}
-	if err := pathutil.Create(configFile); err != nil {
+	if err := fs.Create(configFile); err != nil {
 		nvimutil.Echoerr(c.Nvim, "%v", err)
 		return
 	}
@@ -154,7 +154,7 @@ func writeConfig(pjcfg ProjectConfig) error {
 	defer fi.Close()
 
 	cfg := make(map[string]ProjectConfig)
-	cfg[pathutil.FindVCSRoot(pjcfg.dir)] = pjcfg
+	cfg[fs.FindVCSRoot(pjcfg.dir)] = pjcfg
 	buf, err := yaml.Marshal(cfg)
 	if err != nil {
 		return errors.Wrap(err, "could not marshal to yaml")

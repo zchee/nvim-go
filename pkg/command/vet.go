@@ -17,8 +17,8 @@ import (
 	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/pathutil"
 )
 
 // CmdVetEval struct type for Eval of GoBuild command.
@@ -72,10 +72,10 @@ func (c *Command) Vet(ctx context.Context, args []string, eval *CmdVetEval) inte
 			switch path := filepath.Join(eval.Cwd, lastArg); {
 			case args[0] == ".":
 				vetCmd.Args = append(vetCmd.Args, ".")
-			case pathutil.IsDir(path):
+			case fs.IsDir(path):
 				eval.Cwd = path
 				vetCmd.Args = append(vetCmd.Args, args[:len(args)-1]...)
-			case pathutil.IsExist(path) && pathutil.IsGoFile(path):
+			case fs.IsExist(path) && fs.IsGoFile(path):
 				vetCmd.Args = append(vetCmd.Args, path)
 			case filepath.Base(path) == "%":
 				path = eval.File

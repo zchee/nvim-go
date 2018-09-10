@@ -22,8 +22,8 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/pathutil"
 )
 
 // ----------------------------------------------------------------------------
@@ -77,19 +77,19 @@ func (c *Command) Test(ctx context.Context, args []string, dir string) error {
 	if config.TestAll {
 		switch c.buildContext.Build.Tool {
 		case "go":
-			pkgs, err := pathutil.FindAllPackage(dir, build.Default, nil, pathutil.ModeExcludeVendor)
+			pkgs, err := fs.FindAllPackage(dir, build.Default, nil, fs.ModeExcludeVendor)
 			if err != nil {
 				span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 				return errors.WithStack(err)
 			}
 			for _, p := range pkgs {
-				testPkgs = append(testPkgs, pathutil.TrimGoPath(p.Dir))
+				testPkgs = append(testPkgs, fs.TrimGoPath(p.Dir))
 			}
 		case "gb":
 			// nothing to do
 		}
 	} else {
-		pkgs, err := pathutil.PackageID(dir)
+		pkgs, err := fs.PackageID(dir)
 		if err != nil {
 			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)
@@ -101,7 +101,7 @@ func (c *Command) Test(ctx context.Context, args []string, dir string) error {
 
 	if testTerm == nil {
 		testTerm = nvimutil.NewTerminal(c.Nvim, "__GO_TEST__", cmd, config.TerminalMode)
-		testTerm.Dir = pathutil.FindVCSRoot(dir)
+		testTerm.Dir = fs.FindVCSRoot(dir)
 	}
 
 	if err := testTerm.Run(cmd); err != nil {
@@ -157,7 +157,7 @@ func (c *Command) SwitchTest(eval *cmdTestSwitchEval) error {
 	}
 
 	// Check exists of switch destination file
-	if !pathutil.IsExist(switchFile) {
+	if !fs.IsExist(switchFile) {
 		return errors.New("Does not exist the switching destination file")
 	}
 
