@@ -9,39 +9,6 @@ ignored = ["golang.org/x/tools/cmd/guru"]
   go-tests = true
   unused-packages = true
 
-  [[prune.project]]
-    name = "github.com/neovim/go-client"
-    go-tests = false
-    unused-packages = false
-  [[prune.project]]
-    name = "github.com/cweill/gotests"
-    go-tests = false
-    unused-packages = false
-  [[prune.project]]
-    name = "golang.org/x/lint"
-    go-tests = false
-    unused-packages = false
-  [[prune.project]]
-    name = "github.com/pkg/errors"
-    go-tests = false
-    unused-packages = false
-  [[prune.project]]
-    name = "go.uber.org/zap"
-    go-tests = false
-    unused-packages = false
-  [[prune.project]]
-    name = "golang.org/x/sync"
-    go-tests = false
-    unused-packages = false
-  [[prune.project]]
-    name = "github.com/google/go-cmp"
-    go-tests = false
-    unused-packages = false
-  [[prune.project]]
-    name = "go.uber.org/multierr"
-    go-tests = false
-    unused-packages = false
-
 # constraint
 [[constraint]]
   name = "github.com/zchee/go-xdgbasedir"
