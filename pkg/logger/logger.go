@@ -24,7 +24,7 @@ func init() {
 	}
 }
 
-func NewZapLogger(opts ...zap.Option) *zap.Logger {
+func NewZapLogger(l zapcore.Level, opts ...zap.Option) *zap.Logger {
 	debug := os.Getenv("NVIM_GO_DEBUG") != ""
 	var cfg zap.Config
 	if !debug {
@@ -56,8 +56,8 @@ func NewZapLogger(opts ...zap.Option) *zap.Logger {
 	return zapLogger
 }
 
-func NewRedirectZapLogger(opts ...zap.Option) (*zap.Logger, func()) {
-	log := NewZapLogger()
+func NewRedirectZapLogger(lv zapcore.Level, opts ...zap.Option) (*zap.Logger, func()) {
+	log := NewZapLogger(lv)
 	undo := zap.RedirectStdLog(log)
 
 	return log, undo

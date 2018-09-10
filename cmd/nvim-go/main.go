@@ -22,6 +22,7 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zchee/nvim-go/pkg/autocmd"
@@ -60,7 +61,12 @@ func main() {
 	}
 
 	ctx := context.Background()
-	zapLogger, undo := logger.NewRedirectZapLogger()
+
+	var lv zapcore.Level
+	if err := lv.UnmarshalText([]byte(env.LogLevel)); err != nil {
+		logpkg.Fatalf("failed to parse log level: %s, err: %v", env.LogLevel, err)
+	}
+	zapLogger, undo := logger.NewRedirectZapLogger(lv)
 	defer undo()
 	ctx = logger.NewContext(ctx, zapLogger)
 

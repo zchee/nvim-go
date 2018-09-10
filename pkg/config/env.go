@@ -18,11 +18,13 @@ var e env
 type env struct {
 	GCPProjectID string `envconfig:"GCP_PROJECT_ID"`
 	Debug        bool   `envconfig:"DEBUG"`
+	LogLevel     string `envconfig:"LOG_LEVEL"`
 }
 
 func (e env) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("gcp_project_id", e.GCPProjectID)
 	enc.AddBool("debug", e.Debug)
+	enc.AddString("log_level", e.LogLevel)
 
 	return nil
 }
