@@ -6,6 +6,7 @@ package command
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -18,6 +19,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/internal/cover"
@@ -31,9 +33,15 @@ type cmdCoverEval struct {
 }
 
 func (c *Command) cmdCover(eval *cmdCoverEval) {
+	errch := make(chan interface{}, 1)
 	go func() {
-		err := c.cover(eval)
+		errch <- c.cover(c.ctx, eval)
+	}()
 
+	select {
+	case <-c.ctx.Done():
+		return
+	case err := <-errch:
 		switch e := err.(type) {
 		case error:
 			nvimutil.ErrorWrap(c.Nvim, e)
@@ -46,22 +54,28 @@ func (c *Command) cmdCover(eval *cmdCoverEval) {
 				return true
 			})
 			nvimutil.ErrorList(c.Nvim, errlist, true)
+		case nil:
+			// nothing to do
 		}
-	}()
+	}
 }
 
 // cover run the go tool cover command and highlight current buffer based cover
 // profile result.
-func (c *Command) cover(eval *cmdCoverEval) interface{} {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GoCover")
+func (c *Command) cover(ctx context.Context, eval *cmdCoverEval) interface{} {
+	defer nvimutil.Profile(ctx, time.Now(), "Cover")
+
+	ctx, span := trace.StartSpan(ctx, "Cover")
+	defer span.End()
 
 	coverFile, err := ioutil.TempFile(os.TempDir(), "nvim-go-cover")
 	if err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return errors.WithStack(err)
 	}
 	defer os.Remove(coverFile.Name())
 
-	cmd := exec.Command("go", strings.Fields(fmt.Sprintf("test -cover -covermode=%s -coverprofile=%s .", config.CoverMode, coverFile.Name()))...)
+	cmd := exec.CommandContext(ctx, "go", strings.Fields(fmt.Sprintf("test -cover -covermode=%s -coverprofile=%s .", config.CoverMode, coverFile.Name()))...)
 	if len(config.CoverFlags) > 0 {
 		cmd.Args = append(cmd.Args, config.CoverFlags...)
 	}
@@ -73,6 +87,7 @@ func (c *Command) cover(eval *cmdCoverEval) interface{} {
 	if coverErr := cmd.Run(); coverErr != nil && coverErr.(*exec.ExitError) != nil {
 		errlist, err := nvimutil.ParseError(stdout.Bytes(), filepath.Dir(eval.File), &c.buildContext.Build, nil)
 		if err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)
 		}
 		return errlist
@@ -81,15 +96,18 @@ func (c *Command) cover(eval *cmdCoverEval) interface{} {
 
 	profile, err := cover.ParseProfiles(coverFile.Name())
 	if err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return errors.WithStack(err)
 	}
 
 	b, err := c.Nvim.CurrentBuffer()
 	if err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return errors.WithStack(err)
 	}
 	buf, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return errors.WithStack(err)
 	}
 
@@ -128,5 +146,14 @@ func (c *Command) cover(eval *cmdCoverEval) interface{} {
 		}
 	}
 
-	return errors.WithStack(batch.Execute())
+	if err := batch.Execute(); err != nil {
+		batchErr, ok := err.(*nvim.BatchError)
+		if ok {
+			err = batchErr.Err
+		}
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
+		return errors.WithStack(err)
+	}
+
+	return nil
 }

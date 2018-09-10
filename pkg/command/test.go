@@ -5,12 +5,12 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"go/ast"
 	"go/build"
 	"go/parser"
 	"go/token"
-	"log"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -18,6 +18,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 	"golang.org/x/tools/go/ast/astutil"
 
 	"github.com/zchee/nvim-go/pkg/config"
@@ -29,7 +30,31 @@ import (
 // GoTest
 
 func (c *Command) cmdTest(args []string, dir string) {
-	go c.Test(args, dir)
+	errch := make(chan interface{}, 1)
+	go func() {
+		errch <- c.Test(c.ctx, args, dir)
+	}()
+
+	select {
+	case <-c.ctx.Done():
+		return
+	case err := <-errch:
+		switch e := err.(type) {
+		case error:
+			nvimutil.ErrorWrap(c.Nvim, e)
+		case []*nvim.QuickfixError:
+			c.errs.Store("Test", e)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			c.errs.Range(func(ki, vi interface{}) bool {
+				k, v := ki.(string), vi.([]*nvim.QuickfixError)
+				errlist[k] = append(errlist[k], v...)
+				return true
+			})
+			nvimutil.ErrorList(c.Nvim, errlist, true)
+		case nil:
+			// nothing to do
+		}
+	}
 }
 
 // testTerm cache nvimutil.Terminal use global variable.
@@ -37,8 +62,11 @@ var testTerm *nvimutil.Terminal
 
 // Test run the package test command use compile tool that determined from
 // the directory structure.
-func (c *Command) Test(args []string, dir string) error {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GoTest")
+func (c *Command) Test(ctx context.Context, args []string, dir string) error {
+	defer nvimutil.Profile(ctx, time.Now(), "Test")
+
+	ctx, span := trace.StartSpan(ctx, "Test")
+	defer span.End()
 
 	cmd := []string{c.buildContext.Build.Tool, "test", strings.Join(config.TestFlags, " ")}
 	if len(args) > 0 {
@@ -51,6 +79,7 @@ func (c *Command) Test(args []string, dir string) error {
 		case "go":
 			pkgs, err := pathutil.FindAllPackage(dir, build.Default, nil, pathutil.ModeExcludeVendor)
 			if err != nil {
+				span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 				return errors.WithStack(err)
 			}
 			for _, p := range pkgs {
@@ -62,13 +91,13 @@ func (c *Command) Test(args []string, dir string) error {
 	} else {
 		pkgs, err := pathutil.PackageID(dir)
 		if err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)
 		}
 		testPkgs = append(testPkgs, pkgs)
 	}
 
 	cmd = append(cmd, testPkgs...)
-	log.Println(cmd)
 
 	if testTerm == nil {
 		testTerm = nvimutil.NewTerminal(c.Nvim, "__GO_TEST__", cmd, config.TerminalMode)
@@ -76,6 +105,7 @@ func (c *Command) Test(args []string, dir string) error {
 	}
 
 	if err := testTerm.Run(cmd); err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 

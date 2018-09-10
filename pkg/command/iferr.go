@@ -6,6 +6,7 @@ package command
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"go/ast"
 	"go/build"
@@ -20,6 +21,7 @@ import (
 	astmanip "github.com/motemen/go-astmanip"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/loader"
 
@@ -27,16 +29,44 @@ import (
 )
 
 func (c *Command) cmdIferr(file string) {
-	go c.Iferr(file)
+	errch := make(chan interface{}, 1)
+	go func() {
+		errch <- c.Iferr(c.ctx, file)
+	}()
+
+	select {
+	case <-c.ctx.Done():
+		return
+	case err := <-errch:
+		switch e := err.(type) {
+		case error:
+			nvimutil.ErrorWrap(c.Nvim, e)
+		case []*nvim.QuickfixError:
+			c.errs.Store("Iferr", e)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			c.errs.Range(func(ki, vi interface{}) bool {
+				k, v := ki.(string), vi.([]*nvim.QuickfixError)
+				errlist[k] = append(errlist[k], v...)
+				return true
+			})
+			nvimutil.ErrorList(c.Nvim, errlist, true)
+		case nil:
+			// nothing to do
+		}
+	}
 }
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
-func (c *Command) Iferr(file string) error {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GoIferr")
+func (c *Command) Iferr(ctx context.Context, file string) error {
+	defer nvimutil.Profile(ctx, time.Now(), "Iferr")
+
+	ctx, span := trace.StartSpan(ctx, "Iferr")
+	defer span.End()
 
 	b := nvim.Buffer(c.buildContext.BufNr)
 	buflines, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
@@ -53,12 +83,14 @@ func (c *Command) Iferr(file string) error {
 
 	f, err := conf.ParseFile(file, src.Bytes())
 	if err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 
 	conf.CreateFromFiles(file, f)
 	prog, err := conf.Load()
 	if err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 

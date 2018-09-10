@@ -6,6 +6,7 @@ package command
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,6 +17,7 @@ import (
 	"github.com/cweill/gotests/gotests/process"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
@@ -24,13 +26,31 @@ import (
 var generateFuncRe = regexp.MustCompile(`(?m)^func\s(?:\(\w\s[[:graph:]]+\)\s)?([\w]+)\(`)
 
 func (c *Command) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir string) {
-	go c.GenerateTest(args, ranges, bang, dir)
+	errch := make(chan error, 1)
+	go func() {
+		errch <- c.GenerateTest(c.ctx, args, ranges, bang, dir)
+	}()
+
+	select {
+	case <-c.ctx.Done():
+		return
+	case err := <-errch:
+		switch e := err.(type) {
+		case error:
+			nvimutil.ErrorWrap(c.Nvim, e)
+		case nil:
+			// nothing to do
+		}
+	}
 }
 
 // GenerateTest generates the test files based by current buffer or args files
 // functions.
-func (c *Command) GenerateTest(args []string, ranges [2]int, bang bool, dir string) error {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GenerateTest")
+func (c *Command) GenerateTest(ctx context.Context, args []string, ranges [2]int, bang bool, dir string) error {
+	defer nvimutil.Profile(ctx, time.Now(), "GenerateTest")
+
+	ctx, span := trace.StartSpan(ctx, "GoGenerateTest")
+	defer span.End()
 
 	b := nvim.Buffer(c.buildContext.BufNr)
 	if len(args) == 0 {
@@ -56,6 +76,7 @@ func (c *Command) GenerateTest(args []string, ranges [2]int, bang bool, dir stri
 		// Re-check range[1] is not buffer line count
 		lines, err := c.Nvim.BufferLineCount(b)
 		if err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 
@@ -65,6 +86,7 @@ func (c *Command) GenerateTest(args []string, ranges [2]int, bang bool, dir stri
 			// Neovim range value is based 1
 			blines, err := c.Nvim.BufferLines(b, start-1, end, true)
 			if err != nil {
+				span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 				return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 			}
 			// Convert to 1D byte slice
@@ -113,6 +135,7 @@ func (c *Command) GenerateTest(args []string, ranges [2]int, bang bool, dir stri
 		ask := fmt.Sprintf("%s\nGoGenerateTest: Generated %s\nGoGenerateTest: Open it? (y, n): ", genFuncs, ftestsRel)
 		var answer interface{}
 		if err := c.Nvim.Call("input", &answer, ask); err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 		}
 		// TODO(zchee): Support open the ftests[0] file only.

@@ -5,6 +5,7 @@
 package command
 
 import (
+	"context"
 	"encoding/json"
 	"os/exec"
 	"sort"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
@@ -20,7 +22,22 @@ import (
 )
 
 func (c *Command) cmdMetalinter(cwd string) {
-	go c.Metalinter(cwd)
+	errch := make(chan interface{}, 1)
+	go func() {
+		errch <- c.Metalinter(c.ctx, cwd)
+	}()
+
+	select {
+	case <-c.ctx.Done():
+		return
+	case err := <-errch:
+		switch e := err.(type) {
+		case error:
+			nvimutil.ErrorWrap(c.Nvim, e)
+		case nil:
+			// nothing to do
+		}
+	}
 }
 
 type metalinterResult struct {
@@ -33,8 +50,11 @@ type metalinterResult struct {
 }
 
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
-func (c *Command) Metalinter(cwd string) error {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GoMetaLinter")
+func (c *Command) Metalinter(ctx context.Context, cwd string) error {
+	defer nvimutil.Profile(ctx, time.Now(), "MetaLinter")
+
+	ctx, span := trace.StartSpan(ctx, "MetaLinter")
+	defer span.End()
 
 	var loclist []*nvim.QuickfixError
 	w := nvim.Window(c.buildContext.WinID)
@@ -64,6 +84,7 @@ func (c *Command) Metalinter(cwd string) error {
 	var result = []metalinterResult{}
 	if err != nil {
 		if err := json.Unmarshal(stdout, &result); err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)
 		}
 	}
@@ -81,6 +102,7 @@ func (c *Command) Metalinter(cwd string) error {
 	}
 
 	if err := nvimutil.SetLoclist(c.Nvim, loclist); err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return nvimutil.ErrorWrap(c.Nvim, errors.WithStack(err))
 	}
 	return nvimutil.OpenLoclist(c.Nvim, w, loclist, true)

@@ -10,6 +10,7 @@ package command
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"go/build"
 	"go/token"
@@ -17,9 +18,11 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 	"golang.org/x/tools/cmd/guru/serial"
 	"golang.org/x/tools/go/buildutil"
@@ -39,25 +42,40 @@ type funcGuruEval struct {
 }
 
 func (c *Command) funcGuru(args []string, eval *funcGuruEval) {
-	err := c.Guru(args, eval)
+	errch := make(chan interface{}, 1)
+	go func() {
+		errch <- c.Guru(c.ctx, args, eval)
+	}()
 
-	switch e := err.(type) {
-	case error:
-		nvimutil.ErrorWrap(c.Nvim, e)
-	case []*nvim.QuickfixError:
-		c.errs.Store("Guru", e)
-		errlist := make(map[string][]*nvim.QuickfixError)
-		c.errs.Range(func(ki, vi interface{}) bool {
-			k, v := ki.(string), vi.([]*nvim.QuickfixError)
-			errlist[k] = append(errlist[k], v...)
-			return true
-		})
-		nvimutil.ErrorList(c.Nvim, errlist, true)
+	select {
+	case <-c.ctx.Done():
+		return
+	case err := <-errch:
+		switch e := err.(type) {
+		case error:
+			nvimutil.ErrorWrap(c.Nvim, e)
+		case []*nvim.QuickfixError:
+			c.errs.Store("Guru", e)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			c.errs.Range(func(ki, vi interface{}) bool {
+				k, v := ki.(string), vi.([]*nvim.QuickfixError)
+				errlist[k] = append(errlist[k], v...)
+				return true
+			})
+			nvimutil.ErrorList(c.Nvim, errlist, true)
+		case nil:
+			// nothing to do
+		}
 	}
 }
 
 // Guru go source analysis and output result to the quickfix or locationlist.
-func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
+func (c *Command) Guru(ctx context.Context, args []string, eval *funcGuruEval) interface{} {
+	defer nvimutil.Profile(ctx, time.Now(), "Guru")
+
+	ctx, span := trace.StartSpan(ctx, "Guru")
+	defer span.End()
+
 	log := logger.FromContext(c.ctx).Named("Guru").With(zap.Any("funcGuruEval", eval))
 
 	mode := args[0]
@@ -70,6 +88,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		case error:
 			const errGuruPanic = "guru internal panic.\nMaybe your set 'g:go#guru#reflection' to 1. Please retry with disable it option.\nOriginal panic message:\n\t%v"
 			err = errors.Errorf(errGuruPanic, r)
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)
 		case runtime.Error:
 			err = errors.Errorf("runtime error: %v", r)
@@ -91,6 +110,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 
 		batch.BufferLines(b, 0, -1, true, &buf)
 		if err := batch.Execute(); err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)
 		}
 
@@ -109,6 +129,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 	if mode == "definition" {
 		obj, err := Definition(&query)
 		if err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)
 		}
 		fname, line, col := nvimutil.SplitPos(obj.ObjPos, eval.Cwd)
@@ -121,6 +142,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		}
 		batch.SetWindowCursor(w, [2]int{line, col - 1})
 		if err := batch.Execute(); err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)
 		}
 
@@ -141,6 +163,7 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		var err error
 		scopes, err = pathutil.GbPackages(root)
 		if err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.Wrap(err, "could not get gb packages")
 		}
 		for i, pkg := range scopes {
@@ -165,25 +188,31 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 		defer outputMu.Unlock()
 
 		res := qr.Result(fset)
-		if loclist, err = c.parseResult(mode, res, eval.Cwd); err != nil {
+		if loclist, err = c.parseResult(ctx, mode, res, eval.Cwd); err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			err = errors.WithStack(err)
 		}
 	}
 	if err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return errors.WithStack(err)
 	}
 	query.Output = output
 
 	nvimutil.EchoProgress(c.Nvim, "Guru", fmt.Sprintf("analysing %s", mode))
 	if err := guru.Run(mode, &query); err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return errors.WithStack(err)
 	}
 	if len(loclist) == 0 {
-		return errors.Errorf("%s not found", mode)
+		err := errors.Errorf("%s not found", mode)
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
+		return err
 	}
 
 	defer nvimutil.ClearMsg(c.Nvim)
 	if err := nvimutil.SetLoclist(c.Nvim, loclist); err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return errors.WithStack(err)
 	}
 
@@ -203,8 +232,8 @@ func (c *Command) Guru(args []string, eval *funcGuruEval) interface{} {
 
 var errTypeAssertion = errors.New("type assertion error")
 
-func (c *Command) parseResult(mode string, res interface{}, cwd string) ([]*nvim.QuickfixError, error) {
-	log := logger.FromContext(c.ctx).With(zap.String("mode", mode), zap.String("cwd", cwd))
+func (c *Command) parseResult(ctx context.Context, mode string, res interface{}, cwd string) ([]*nvim.QuickfixError, error) {
+	log := logger.FromContext(ctx).With(zap.String("mode", mode), zap.String("cwd", cwd))
 	log.Info("", zap.Any("res", res))
 
 	var loclist []*nvim.QuickfixError

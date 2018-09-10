@@ -6,12 +6,15 @@ package command
 
 import (
 	"bytes"
+	"context"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
@@ -27,22 +30,39 @@ type CmdVetEval struct {
 func (c *Command) cmdVet(args []string, eval *CmdVetEval) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		delete(c.buildContext.Errlist, "Vet") // cleanup
-		errch <- c.Vet(args, eval)
+		errch <- c.Vet(c.ctx, args, eval)
 	}()
 
-	switch err := <-errch; e := err.(type) {
-	case error:
-		nvimutil.ErrorWrap(c.Nvim, e)
-	case []*nvim.QuickfixError:
-		c.buildContext.Errlist["Vet"] = e
-		nvimutil.ErrorList(c.Nvim, c.buildContext.Errlist, true)
+	select {
+	case <-c.ctx.Done():
+		return
+	case err := <-errch:
+		switch e := err.(type) {
+		case error:
+			nvimutil.ErrorWrap(c.Nvim, e)
+		case []*nvim.QuickfixError:
+			c.errs.Store("Vet", e)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			c.errs.Range(func(ki, vi interface{}) bool {
+				k, v := ki.(string), vi.([]*nvim.QuickfixError)
+				errlist[k] = append(errlist[k], v...)
+				return true
+			})
+			nvimutil.ErrorList(c.Nvim, errlist, true)
+		case nil:
+			// nothing to do
+		}
 	}
 }
 
 // Vet is a simple checker for static errors in Go source code use go tool vet command.
-func (c *Command) Vet(args []string, eval *CmdVetEval) interface{} {
-	vetCmd := exec.Command("go", "tool", "vet")
+func (c *Command) Vet(ctx context.Context, args []string, eval *CmdVetEval) interface{} {
+	defer nvimutil.Profile(ctx, time.Now(), "Vet")
+
+	ctx, span := trace.StartSpan(ctx, "Vet")
+	defer span.End()
+
+	vetCmd := exec.CommandContext(ctx, "go", "tool", "vet")
 	vetCmd.Dir = eval.Cwd
 
 	switch {
@@ -62,6 +82,7 @@ func (c *Command) Vet(args []string, eval *CmdVetEval) interface{} {
 				vetCmd.Args = append(vetCmd.Args, path)
 			default:
 				err := errors.New("Invalid directory path")
+				span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 				return errors.WithStack(err)
 			}
 		} else {
@@ -82,6 +103,7 @@ func (c *Command) Vet(args []string, eval *CmdVetEval) interface{} {
 	if vetErr != nil {
 		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.buildContext.Build, config.GoVetIgnore)
 		if err != nil {
+			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)
 		}
 		return errlist

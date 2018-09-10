@@ -6,10 +6,13 @@ package command
 
 import (
 	"bytes"
+	"context"
 	"go/scanner"
+	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 	"golang.org/x/tools/imports"
 
 	"github.com/zchee/nvim-go/pkg/config"
@@ -24,26 +27,40 @@ var importsOptions = imports.Options{
 }
 
 func (c *Command) cmdFmt(dir string) {
-	delete(c.buildContext.Errlist, "Fmt")
-	err := c.Fmt(dir)
+	errch := make(chan interface{}, 1)
+	go func() {
+		errch <- c.Fmt(c.ctx, dir)
+	}()
 
-	switch e := err.(type) {
-	case error:
-		nvimutil.ErrorWrap(c.Nvim, e)
-	case []*nvim.QuickfixError:
-		c.errs.Store("Fmt", e)
-		errlist := make(map[string][]*nvim.QuickfixError)
-		c.errs.Range(func(ki, vi interface{}) bool {
-			k, v := ki.(string), vi.([]*nvim.QuickfixError)
-			errlist[k] = append(errlist[k], v...)
-			return true
-		})
-		nvimutil.ErrorList(c.Nvim, errlist, true)
+	select {
+	case <-c.ctx.Done():
+		return
+	case err := <-errch:
+		switch e := err.(type) {
+		case error:
+			nvimutil.ErrorWrap(c.Nvim, e)
+		case []*nvim.QuickfixError:
+			c.errs.Store("Fmt", e)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			c.errs.Range(func(ki, vi interface{}) bool {
+				k, v := ki.(string), vi.([]*nvim.QuickfixError)
+				errlist[k] = append(errlist[k], v...)
+				return true
+			})
+			nvimutil.ErrorList(c.Nvim, errlist, true)
+		case nil:
+			// nothing to do
+		}
 	}
 }
 
 // Fmt format to the current buffer source uses gofmt behavior.
-func (c *Command) Fmt(dir string) interface{} {
+func (c *Command) Fmt(ctx context.Context, dir string) interface{} {
+	defer nvimutil.Profile(ctx, time.Now(), "Fmt")
+
+	ctx, span := trace.StartSpan(ctx, "Fmt")
+	defer span.End()
+
 	b := nvim.Buffer(c.buildContext.BufNr)
 	in, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
@@ -88,7 +105,7 @@ func (c *Command) Fmt(dir string) interface{} {
 	}
 
 	out := nvimutil.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
-	minUpdate(c.Nvim, b, in, out)
+	minUpdate(ctx, c.Nvim, b, in, out)
 
 	// TODO(zchee): When executed Fmt(itself) function at autocmd BufWritePre, vim "write"
 	// command will starting before the finish of the Fmt function because that function called
@@ -101,7 +118,10 @@ func (c *Command) Fmt(dir string) interface{} {
 	return c.Nvim.Command("noautocmd write")
 }
 
-func minUpdate(v *nvim.Nvim, b nvim.Buffer, in [][]byte, out [][]byte) error {
+func minUpdate(ctx context.Context, v *nvim.Nvim, b nvim.Buffer, in [][]byte, out [][]byte) error {
+	ctx, span := trace.StartSpan(ctx, "minUpdate")
+	defer span.End()
+
 	// Find matching head lines.
 	n := len(out)
 	if len(in) < len(out) {

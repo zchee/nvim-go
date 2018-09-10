@@ -5,6 +5,7 @@
 package command
 
 import (
+	"context"
 	"go/build"
 	"io/ioutil"
 	"os"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 	"golang.org/x/lint"
 
 	"github.com/zchee/nvim-go/pkg/config"
@@ -25,17 +27,31 @@ import (
 )
 
 func (c *Command) cmdLint(v *nvim.Nvim, args []string, file string) {
-	// Cleanup error list
-	delete(c.buildContext.Errlist, "Lint")
-
+	errch := make(chan interface{}, 1)
 	go func() {
-		errlist, err := c.Lint(args, file)
-		if err != nil {
-			nvimutil.ErrorWrap(c.Nvim, err)
-		}
-		c.buildContext.Errlist["Lint"] = errlist
-		nvimutil.ErrorList(c.Nvim, c.buildContext.Errlist, true)
+		errch <- c.Lint(c.ctx, args, file)
 	}()
+
+	select {
+	case <-c.ctx.Done():
+		return
+	case err := <-errch:
+		switch e := err.(type) {
+		case error:
+			nvimutil.ErrorWrap(c.Nvim, e)
+		case []*nvim.QuickfixError:
+			c.errs.Store("Lint", e)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			c.errs.Range(func(ki, vi interface{}) bool {
+				k, v := ki.(string), vi.([]*nvim.QuickfixError)
+				errlist[k] = append(errlist[k], v...)
+				return true
+			})
+			nvimutil.ErrorList(c.Nvim, errlist, true)
+		case nil:
+			// nothing to do
+		}
+	}
 }
 
 type lintMode string
@@ -47,8 +63,11 @@ const (
 
 // Lint lints a go source file. The argument is a filename or directory path.
 // TODO(zchee): Support go packages.
-func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error) {
-	defer nvimutil.Profile(c.ctx, time.Now(), "Lint")
+func (c *Command) Lint(ctx context.Context, args []string, file string) interface{} {
+	defer nvimutil.Profile(ctx, time.Now(), "Lint")
+
+	ctx, span := trace.StartSpan(ctx, "Lint")
+	defer span.End()
 
 	var errlist []*nvim.QuickfixError
 	var err error
@@ -64,7 +83,7 @@ func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error
 			case "go":
 				root, err := pathutil.PackageID(c.buildContext.Build.ProjectRoot)
 				if err != nil {
-					return nil, errors.WithStack(err)
+					return errors.WithStack(err)
 				}
 				rootDir = root
 			case "gb":
@@ -73,7 +92,7 @@ func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error
 			for _, pkgname := range importPaths([]string{rootDir + "/..."}) {
 				errors, err := c.lintPackage(pkgname)
 				if err != nil {
-					return nil, err
+					return err
 				}
 				errlist = append(errlist, errors...)
 			}
@@ -98,10 +117,11 @@ func (c *Command) Lint(args []string, file string) ([]*nvim.QuickfixError, error
 	}
 
 	if err != nil {
-		return nil, errors.WithStack(err)
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
+		return errors.WithStack(err)
 	}
 
-	return errlist, nil
+	return errlist
 }
 
 // TODO(zchee): Support list of go packages.

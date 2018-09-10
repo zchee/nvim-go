@@ -5,6 +5,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"go/build"
 	"io/ioutil"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 	"golang.org/x/tools/refactor/rename"
 
 	"github.com/zchee/nvim-go/pkg/config"
@@ -28,22 +30,39 @@ type cmdRenameEval struct {
 }
 
 func (c *Command) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
+	errch := make(chan interface{}, 1)
 	go func() {
-		err := c.Rename(args, bang, eval)
+		errch <- c.Rename(c.ctx, args, bang, eval)
+	}()
 
+	select {
+	case <-c.ctx.Done():
+		return
+	case err := <-errch:
 		switch e := err.(type) {
 		case error:
 			nvimutil.ErrorWrap(c.Nvim, e)
 		case []*nvim.QuickfixError:
-			c.buildContext.Errlist["Rename"] = e
-			nvimutil.ErrorList(c.Nvim, c.buildContext.Errlist, true)
+			c.errs.Store("Rename", e)
+			errlist := make(map[string][]*nvim.QuickfixError)
+			c.errs.Range(func(ki, vi interface{}) bool {
+				k, v := ki.(string), vi.([]*nvim.QuickfixError)
+				errlist[k] = append(errlist[k], v...)
+				return true
+			})
+			nvimutil.ErrorList(c.Nvim, errlist, true)
+		case nil:
+			// nothing to do
 		}
-	}()
+	}
 }
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
-func (c *Command) Rename(args []string, bang bool, eval *cmdRenameEval) interface{} {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GoRename")
+func (c *Command) Rename(ctx context.Context, args []string, bang bool, eval *cmdRenameEval) interface{} {
+	defer nvimutil.Profile(ctx, time.Now(), "Rename")
+
+	ctx, span := trace.StartSpan(ctx, "Build")
+	defer span.End()
 
 	b := nvim.Buffer(c.buildContext.BufNr)
 	w := nvim.Window(c.buildContext.WinID)
