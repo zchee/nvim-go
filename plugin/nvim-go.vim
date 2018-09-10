@@ -42,6 +42,7 @@ call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'autocmd', 'name': 'BufNewFile,BufReadPre', 'sync': 0, 'opts': {'eval': '{}', 'group': 'nvim-go-autocmd', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'BufWritePost', 'sync': 0, 'opts': {'eval': '{''Cwd'': getcwd(), ''File'': expand(''%:p'')}', 'group': 'nvim-go', 'pattern': '*.go'}},
 \ {'type': 'autocmd', 'name': 'BufWritePre', 'sync': 0, 'opts': {'eval': '{''Cwd'': getcwd(), ''File'': expand(''%:p'')}', 'group': 'nvim-go', 'pattern': '*.go'}},
+\ {'type': 'autocmd', 'name': 'VimLeavePre', 'sync': 0, 'opts': {'group': 'nvim-go', 'pattern': '*'}},
 \ {'type': 'autocmd', 'name': 'VimLeavePre', 'sync': 0, 'opts': {'group': 'nvim-go', 'pattern': '*.go,terminal,context,thread'}},
 \ {'type': 'command', 'name': 'DlvBreakpoint', 'sync': 0, 'opts': {'complete': 'customlist,FunctionsCompletion', 'eval': '[expand(''%:p'')]', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'DlvConnect', 'sync': 0, 'opts': {'eval': '[getcwd(), expand(''%:p:h'')]', 'nargs': '*'}},
