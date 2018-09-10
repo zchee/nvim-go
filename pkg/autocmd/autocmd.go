@@ -71,4 +71,11 @@ func Register(pctx context.Context, p *plugin.Plugin, buildContext *buildctx.Con
 
 	// Handle the after the write to file.
 	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.bufWritePost)
+
+func (a *Autocmd) getStatus(bufnr, winID int, dir string) {
+	a.mu.Lock()
+	a.buildContext.BufNr = bufnr
+	a.buildContext.WinID = winID
+	a.buildContext.Dir = dir
+	a.mu.Unlock()
 }
