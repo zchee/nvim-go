@@ -20,9 +20,9 @@ import (
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
+	"golang.org/x/tools/cover"
 
 	"github.com/zchee/nvim-go/pkg/config"
-	"github.com/zchee/nvim-go/pkg/internal/cover"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 

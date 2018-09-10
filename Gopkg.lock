@@ -446,11 +446,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e6587969eb39988748962fa87e645a4a84f95ca60958eda8741f08ffebb5db4f"
+  digest = "1:23955bdc87faff32e67931e70aabb030b1c55c9624b578a04a797bd01119b174"
   name = "golang.org/x/tools"
   packages = [
     "cmd/guru/serial",
     "container/intsets",
+    "cover",
     "go/ast/astutil",
     "go/buildutil",
     "go/callgraph",
@@ -605,6 +606,7 @@
     "golang.org/x/sync/errgroup",
     "golang.org/x/sync/syncmap",
     "golang.org/x/tools/cmd/guru/serial",
+    "golang.org/x/tools/cover",
     "golang.org/x/tools/go/ast/astutil",
     "golang.org/x/tools/go/buildutil",
     "golang.org/x/tools/go/callgraph",
