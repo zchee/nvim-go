@@ -50,25 +50,13 @@ func init() {
 }
 
 func main() {
-	env, err := config.Process()
-	if err != nil {
-		logpkg.Fatalf("env.Process: %+v", err)
-	}
-
 	if *fVersion {
 		fmt.Printf("%s:\n  version: %s\n", appName, version)
 		return
 	}
 
-	ctx := context.Background()
-
-	var lv zapcore.Level
-	if err := lv.UnmarshalText([]byte(env.LogLevel)); err != nil {
-		logpkg.Fatalf("failed to parse log level: %s, err: %v", env.LogLevel, err)
-	}
-	zapLogger, undo := logger.NewRedirectZapLogger(lv)
-	defer undo()
-	ctx = logger.NewContext(ctx, zapLogger)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	if *pluginHost != "" {
 		os.Unsetenv("NVIM_GO_DEBUG")
@@ -87,6 +75,19 @@ func main() {
 		}
 		return
 	}
+
+	env, err := config.Process()
+	if err != nil {
+		logpkg.Fatalf("env.Process: %+v", err)
+	}
+
+	var lv zapcore.Level
+	if err := lv.UnmarshalText([]byte(env.LogLevel)); err != nil {
+		logpkg.Fatalf("failed to parse log level: %s, err: %v", env.LogLevel, err)
+	}
+	zapLogger, undo := logger.NewRedirectZapLogger(lv)
+	defer undo()
+	ctx = logger.NewContext(ctx, zapLogger)
 
 	if gcpProjectID := env.GCPProjectID; gcpProjectID != "" {
 		// Stackdriver Profiler
