@@ -12,7 +12,7 @@ ignored = ["golang.org/x/tools/cmd/guru"]
 # constraint
 [[constraint]]
   name = "github.com/zchee/go-xdgbasedir"
-  version = "1.0.2"
+  version = "1.0.3"
 
 [[constraint]]
   name = "github.com/neovim/go-client"

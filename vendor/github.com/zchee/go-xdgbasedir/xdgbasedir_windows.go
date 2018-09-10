@@ -14,11 +14,12 @@ import (
 )
 
 var (
+	appData           = filepath.FromSlash(os.Getenv("APPDATA"))
 	localAppData      = filepath.FromSlash(os.Getenv("LOCALAPPDATA"))
-	defaultDataHome   = localAppData
-	defaultConfigHome = localAppData
-	defaultDataDirs   = localAppData
-	defaultConfigDirs = localAppData
+	defaultDataHome   = appData
+	defaultConfigHome = appData
+	defaultDataDirs   = appData
+	defaultConfigDirs = appData
 	defaultCacheHome  = filepath.Join(localAppData, "cache")
 	defaultRuntimeDir = home.Dir()
 )

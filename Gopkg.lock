@@ -172,7 +172,7 @@
   name = "github.com/google/pprof"
   packages = ["profile"]
   pruneopts = "NUT"
-  revision = "d723c7237b64c7871a69e4c411acb04245bcd23d"
+  revision = "84b7d314e22c8d12334e52726f68517973b6027b"
 
 [[projects]]
   digest = "1:fe852c57b4fc4d11e6ef79bce1e930ee2f2f7d148b370afef8f8d012a80960ea"
@@ -279,15 +279,15 @@
   revision = "816c9085562cd7ee03e7f8188a1cfd942858cded"
 
 [[projects]]
-  digest = "1:ea40f234f97ce0221c712c7d92e918ea00468b4ebd415765828871751be889b3"
+  digest = "1:37a83c5cc07c55375a3cf488a2c9b513536302531b3156cd7c89fa6abaaeab9c"
   name = "github.com/zchee/go-xdgbasedir"
   packages = [
     ".",
     "home",
   ]
   pruneopts = "NUT"
-  revision = "24046010031d4b4dbff2c099f24091f67487b205"
-  version = "v1.0.2"
+  revision = "b7e1ead582417dcef9ee9e572e9bec94284a7709"
+  version = "v1.0.3"
 
 [[projects]]
   digest = "1:d5873df99f8cd0510440f202f92578caee8404fd835eb17d7cd3534cd1b6c982"

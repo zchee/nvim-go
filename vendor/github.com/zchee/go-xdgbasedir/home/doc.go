@@ -3,4 +3,4 @@
 // license that can be found in the LICENSE file.
 
 // Package home implements a detecting the user home directory.
-package home
+package home // import "github.com/zchee/go-xdgbasedir/home"

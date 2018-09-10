@@ -32,7 +32,6 @@ func Dir() string {
 	// gets the home directory path use 'eval echo ~$USER' magic
 	stdout := new(bytes.Buffer)
 	cmd := exec.Command("sh", "-c", fmt.Sprintf("eval echo ~%s", usrName))
-	fmt.Printf("cmd: %T = %v\n", cmd, cmd)
 	cmd.Stdout = stdout
 	if err := cmd.Run(); err != nil {
 		return ""
