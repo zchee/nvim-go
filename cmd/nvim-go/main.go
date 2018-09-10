@@ -19,6 +19,7 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
+	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -111,6 +112,7 @@ func main() {
 		trace.ApplyConfig(trace.Config{
 			DefaultSampler: trace.AlwaysSample(),
 		})
+		view.RegisterExporter(sd)
 
 		// Stackdriver Error Reporting
 		errReportCfg := errorreporting.Config{
