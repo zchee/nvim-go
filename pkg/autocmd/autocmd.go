@@ -10,6 +10,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
+	"go.opencensus.io/trace"
 	"golang.org/x/sync/syncmap"
 
 	"github.com/zchee/nvim-go/pkg/buildctx"
@@ -75,6 +76,10 @@ func Register(pctx context.Context, cancel func(), p *plugin.Plugin, buildContex
 }
 
 func (a *Autocmd) getStatus(bufnr, winID int, dir string) {
+	span := new(trace.Span)
+	a.ctx, span = trace.StartSpan(a.ctx, "getStatus")
+	defer span.End()
+
 	a.mu.Lock()
 	a.buildContext.BufNr = bufnr
 	a.buildContext.WinID = winID

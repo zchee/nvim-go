@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"go.opencensus.io/trace"
+
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
@@ -24,6 +26,10 @@ func (a *Autocmd) bufWritePre(eval *bufWritePreEval) {
 // BufWritePre run the commands on BufWritePre autocmd.
 func (a *Autocmd) BufWritePre(eval *bufWritePreEval) {
 	defer nvimutil.Profile(a.ctx, time.Now(), "BufWritePre")
+
+	span := new(trace.Span)
+	a.ctx, span = trace.StartSpan(a.ctx, "BufWritePre")
+	defer span.End()
 
 	select {
 	case <-a.ctx.Done():

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/neovim/go-client/nvim"
+	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/command"
 	"github.com/zchee/nvim-go/pkg/config"
@@ -27,6 +28,10 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) {
 // BufWritePost run the 'autosave' commands on BufWritePost autocmd.
 func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 	defer nvimutil.Profile(a.ctx, time.Now(), "BufWritePost")
+
+	span := new(trace.Span)
+	a.ctx, span = trace.StartSpan(a.ctx, "BufWritePost")
+	defer span.End()
 
 	dir := filepath.Dir(eval.File)
 

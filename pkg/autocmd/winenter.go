@@ -7,6 +7,8 @@ package autocmd
 import (
 	"time"
 
+	"go.opencensus.io/trace"
+
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -19,6 +21,10 @@ type winEnterEval struct {
 
 func (a *Autocmd) WinEnter(eval *winEnterEval) error {
 	defer nvimutil.Profile(a.ctx, time.Now(), "WinEnter")
+
+	span := new(trace.Span)
+	a.ctx, span = trace.StartSpan(a.ctx, "WinEnter")
+	defer span.End()
 
 	a.getStatus(eval.BufNr, eval.WinID, eval.Dir)
 	if eval.Dir != "" && a.buildContext.PrevDir != eval.Dir {

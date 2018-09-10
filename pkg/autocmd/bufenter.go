@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 
 	"github.com/zchee/nvim-go/pkg/config"
@@ -30,6 +31,10 @@ var configOnce sync.Once
 func (a *Autocmd) BufEnter(eval *bufEnterEval) {
 	defer nvimutil.Profile(a.ctx, time.Now(), "BufEnter")
 
+	span := new(trace.Span)
+	a.ctx, span = trace.StartSpan(a.ctx, "BufEnter")
+	defer span.End()
+
 	configOnce.Do(func() {
 		eval.Cfg.Global.ChannelID = a.Nvim.ChannelID()
 		config.Get(a.Nvim, eval.Cfg)
@@ -40,4 +45,12 @@ func (a *Autocmd) BufEnter(eval *bufEnterEval) {
 	if eval.Dir != "" && a.buildContext.PrevDir != eval.Dir {
 		a.buildContext.SetContext(eval.Dir)
 	}
+
+	// log := logger.FromContext(a.ctx).Named("BufEnter")
+	// a.Nvim.RegisterHandler("nvim_buf_lines_event", func(updates ...interface{}) {
+	// 	log.Info("nvim_buf_lines_event", zap.Any("updates", updates))
+	// })
+	// if ok, err := a.Nvim.AttachBuffer(nvim.Buffer(eval.BufNr), true, make(map[string]interface{})); err != nil || !ok {
+	// 	log.Error("", zap.Error(errors.Wrap(err, "failed to attach buffer")))
+	// }
 }
