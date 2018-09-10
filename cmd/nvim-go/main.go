@@ -8,16 +8,19 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	logpkg "log"
-	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
-	"runtime"
 	"syscall"
 
+	"cloud.google.com/go/errorreporting"
+	"cloud.google.com/go/profiler"
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
@@ -28,7 +31,17 @@ import (
 	"github.com/zchee/nvim-go/pkg/server"
 )
 
+const (
+	appName = "nvim-go"
+)
+
 var (
+	gcpProjectID = os.Getenv("NVIM_GO_GCP_PROJECT_ID")
+)
+
+// flags
+var (
+	fVersion    = flag.Bool("version", false, "Show the version information.")
 	pluginHost  = flag.String("manifest", "", "Write plugin manifest for `host` to stdout")
 	vimFilePath = flag.String("location", "", "Manifest is automatically written to `.vim file`")
 )
@@ -38,8 +51,12 @@ func init() {
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	if *fVersion {
+		fmt.Printf("%s:\n  version: %s", appName, version)
+		return
+	}
+
+	ctx := context.Background()
 
 	zapLogger, undo := logger.NewRedirectZapLogger()
 	defer undo()
@@ -49,9 +66,11 @@ func main() {
 		os.Unsetenv("NVIM_GO_DEBUG")
 		fn := func(p *plugin.Plugin) error {
 			return func(ctx context.Context, p *plugin.Plugin) error {
+				ctx, cancel := context.WithCancel(ctx)
+				defer cancel()
 				buildctxt := buildctx.NewContext()
 				c := command.Register(ctx, p, buildctxt)
-				autocmd.Register(ctx, p, buildctxt, c)
+				autocmd.Register(ctx, cancel, p, buildctxt, c)
 				return nil
 			}(ctx, p)
 		}
@@ -59,6 +78,53 @@ func main() {
 			logpkg.Fatal(err)
 		}
 		return
+	}
+
+	if gcpProjectID != "" {
+		// Stackdriver Profiler
+		profCfg := profiler.Config{
+			Service:        appName,
+			ServiceVersion: tag,
+			DebugLogging:   true,
+			MutexProfiling: true,
+			ProjectID:      gcpProjectID,
+		}
+		if err := profiler.Start(profCfg); err != nil {
+			logpkg.Fatalf("failed to start stackdriver profiler: %v", err)
+		}
+
+		// OpenCensus tracing
+		sdOpts := stackdriver.Options{
+			ProjectID: gcpProjectID,
+			OnError: func(err error) {
+				zapLogger.Error("stackdriver.Exporter", zap.Error(fmt.Errorf("could not log error: %v", err)))
+			},
+			Context: ctx,
+		}
+		sd, err := stackdriver.NewExporter(sdOpts)
+		if err != nil {
+			logpkg.Fatalf("failed to create stackdriver exporter: %v", err)
+		}
+		defer sd.Flush()
+		trace.RegisterExporter(sd)
+		trace.ApplyConfig(trace.Config{
+			DefaultSampler: trace.AlwaysSample(),
+		})
+
+		// Stackdriver Error Reporting
+		errReportCfg := errorreporting.Config{
+			ServiceName:    appName,
+			ServiceVersion: tag,
+			OnError: func(err error) {
+				zapLogger.Error("errorreporting", zap.Error(fmt.Errorf("could not log error: %v", err)))
+			},
+		}
+		errClient, err := errorreporting.NewClient(ctx, gcpProjectID, errReportCfg)
+		if err != nil {
+			logpkg.Fatalf("failed to create errorreporting client: %v", err)
+		}
+		defer errClient.Close()
+		ctx = context.WithValue(ctx, &errorreporting.Client{}, errClient)
 	}
 
 	eg := new(errgroup.Group)
@@ -73,46 +139,38 @@ func main() {
 		return Child(ctx)
 	})
 
-	if os.Getenv("NVIM_GO_DEBUG") != "" {
-		const addr = ":14715" // (n: 14)vim-(g: 7)(o: 15)
-		zapLogger.Debug("start the pprof debugging", zap.String("listen at", addr))
-
-		// enable the report of goroutine blocking events
-		runtime.SetBlockProfileRate(1)
-		go logpkg.Println(http.ListenAndServe(addr, nil))
-	}
-
 	go func() {
 		if err := eg.Wait(); err != nil {
-			logger.FromContext(ctx).Fatal("eg.Wait", zap.Error(err))
+			zapLogger.Fatal("eg.Wait", zap.Error(err))
 		}
 	}()
 
 	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 	select {
+	case <-ctx.Done():
+		zapLogger.Error("ctx.Done()", zap.Error(ctx.Err()))
+		return
 	case sig := <-sigc:
 		switch sig {
-		case syscall.SIGINT, syscall.SIGTERM:
-			logger.FromContext(ctx).Info("catch signal", zap.String("name", sig.String()))
-			cancel() // avoid goroutine leak
+		case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM:
+			zapLogger.Info("catch signal", zap.String("name", sig.String()))
 			return
 		}
 	}
 }
 
 func Main(ctx context.Context, p *plugin.Plugin) error {
+	ctx, cancel := context.WithCancel(ctx)
 	ctx = logger.NewContext(ctx, logger.FromContext(ctx).Named("main"))
 
 	buildctxt := buildctx.NewContext()
-	c := command.Register(ctx, p, buildctxt)
-	autocmd.Register(ctx, p, buildctxt, c)
+	autocmd.Register(ctx, cancel, p, buildctxt, command.Register(ctx, p, buildctxt))
 
-	n, err := server.Dial(ctx)
-	if err != nil {
-		return err
+	// switch to unix socket rpc-connection
+	if n, err := server.Dial(ctx); err == nil {
+		p.Nvim = n
 	}
-	p.Nvim = n
 
 	return nil
 }
