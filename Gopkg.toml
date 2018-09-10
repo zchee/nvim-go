@@ -14,6 +14,15 @@ ignored = ["golang.org/x/tools/cmd/guru"]
   name = "github.com/zchee/go-xdgbasedir"
   version = "1.0.2"
 
+[[constraint]]
+  name = "github.com/neovim/go-client"
+  source = "github.com/zchee/go-client"
+  branch = "api/a225374"
+
+[[constraint]]
+  name = "go.opencensus.io"
+  version = "0.15.0"
+
 # constraint:master
 [[constraint]]
   name = "github.com/fatih/color"
@@ -40,11 +49,6 @@ ignored = ["golang.org/x/tools/cmd/guru"]
   branch = "master"
 
 [[constraint]]
-  name = "github.com/neovim/go-client"
-  source = "github.com/zchee/go-client"
-  branch = "api/a225374"
-
-[[constraint]]
   name = "github.com/pkg/errors"
   branch = "master"
 
@@ -63,10 +67,6 @@ ignored = ["golang.org/x/tools/cmd/guru"]
 [[constraint]]
   name = "github.com/google/go-cmp"
   branch = "master"
-
-[[constraint]]
-  name = "go.opencensus.io"
-  version = "0.15.0"
 
 [[constraint]]
   name = "contrib.go.opencensus.io/exporter/stackdriver"
