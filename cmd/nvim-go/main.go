@@ -27,16 +27,13 @@ import (
 	"github.com/zchee/nvim-go/pkg/autocmd"
 	"github.com/zchee/nvim-go/pkg/buildctx"
 	"github.com/zchee/nvim-go/pkg/command"
+	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/server"
 )
 
 const (
 	appName = "nvim-go"
-)
-
-var (
-	gcpProjectID = os.Getenv("NVIM_GO_GCP_PROJECT_ID")
 )
 
 // flags
@@ -48,16 +45,21 @@ var (
 
 func init() {
 	flag.Parse()
+	logpkg.SetPrefix("nvim-go: ")
 }
 
 func main() {
+	env, err := config.Process()
+	if err != nil {
+		logpkg.Fatalf("env.Process: %+v", err)
+	}
+
 	if *fVersion {
-		fmt.Printf("%s:\n  version: %s", appName, version)
+		fmt.Printf("%s:\n  version: %s\n", appName, version)
 		return
 	}
 
 	ctx := context.Background()
-
 	zapLogger, undo := logger.NewRedirectZapLogger()
 	defer undo()
 	ctx = logger.NewContext(ctx, zapLogger)
@@ -80,12 +82,11 @@ func main() {
 		return
 	}
 
-	if gcpProjectID != "" {
+	if gcpProjectID := env.GCPProjectID; gcpProjectID != "" {
 		// Stackdriver Profiler
 		profCfg := profiler.Config{
 			Service:        appName,
 			ServiceVersion: tag,
-			DebugLogging:   true,
 			MutexProfiling: true,
 			ProjectID:      gcpProjectID,
 		}
@@ -99,7 +100,8 @@ func main() {
 			OnError: func(err error) {
 				zapLogger.Error("stackdriver.Exporter", zap.Error(fmt.Errorf("could not log error: %v", err)))
 			},
-			Context: ctx,
+			MetricPrefix: appName,
+			Context:      ctx,
 		}
 		sd, err := stackdriver.NewExporter(sdOpts)
 		if err != nil {
@@ -126,6 +128,8 @@ func main() {
 		defer errClient.Close()
 		ctx = context.WithValue(ctx, &errorreporting.Client{}, errClient)
 	}
+
+	zapLogger.Info("starting "+appName+" server", zap.Object("env", env))
 
 	eg := new(errgroup.Group)
 	eg, ctx = errgroup.WithContext(ctx)
