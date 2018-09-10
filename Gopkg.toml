@@ -72,6 +72,10 @@ ignored = ["golang.org/x/tools/cmd/guru"]
   name = "contrib.go.opencensus.io/exporter/stackdriver"
   branch = "master"
 
+[[constraint]]
+  name = "github.com/lestrrat-go/config"
+  branch = "master"
+
 # override
 [[override]]
   name = "go.uber.org/multierr"

@@ -112,6 +112,14 @@
   revision = "92dad944d7e0c1e0affb64d7a45e9ce8c5704fe5"
 
 [[projects]]
+  digest = "1:fcd865894ce87bcf6499e5d2db3526679e3ab1ae454f48070ebaf983efd20665"
+  name = "github.com/fatih/camelcase"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "44e46d280b43ec1531bb25252440e34f1b800b65"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   digest = "1:ade392a843b2035effb4b4a2efa2c3bab3eb29b992e98bacf9c898b0ecb54e45"
   name = "github.com/fatih/color"
@@ -188,6 +196,25 @@
   packages = ["."]
   pruneopts = "NUT"
   revision = "0b12d6b5"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f1c9e12ea8f23a1c67bdbf2d75f8660ad79ef76ac5339c2dfc18d2d4ac955228"
+  name = "github.com/lestrrat-go/config"
+  packages = [
+    "env",
+    "env/internal/structtag",
+  ]
+  pruneopts = "NUT"
+  revision = "356432950c1424cc75098192e334615987b44bec"
+
+[[projects]]
+  branch = "master"
+  digest = "1:b9c8c629d0a86a2a1e59620e4e85d1e1f6e5ffe1deb3b140c7bafcfea3b62ce5"
+  name = "github.com/lestrrat-go/pdebug"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "39f9a71bcabe9432cbdfe4d3d33f41988acd2ce6"
 
 [[projects]]
   digest = "1:08c231ec84231a7e23d67e4b58f975e1423695a32467a362ee55a803f9de8061"
@@ -563,11 +590,13 @@
     "github.com/fatih/color",
     "github.com/google/go-cmp/cmp",
     "github.com/hokaccha/go-prettyjson",
+    "github.com/lestrrat-go/config/env",
     "github.com/motemen/go-astmanip",
     "github.com/neovim/go-client/nvim",
     "github.com/neovim/go-client/nvim/plugin",
     "github.com/pkg/errors",
     "github.com/zchee/go-xdgbasedir",
+    "go.opencensus.io/stats/view",
     "go.opencensus.io/trace",
     "go.uber.org/zap",
     "go.uber.org/zap/buffer",
