@@ -15,7 +15,7 @@ import (
 )
 
 func TestCommand_Build(t *testing.T) {
-	ctx := testutil.TestContext(context.Background())
+	ctx := testutil.TestContext(t, context.Background())
 
 	type fields struct {
 		ctx       context.Context
@@ -143,7 +143,7 @@ func TestCommand_Build(t *testing.T) {
 }
 
 func BenchmarkBuildGo(b *testing.B) {
-	ctx := testutil.TestContext(context.Background())
+	ctx := testutil.TestContext(b, context.Background())
 	buildctxt := buildctx.NewContext()
 	c := NewCommand(ctx, benchVim(b, astdumpMain), buildctxt)
 
@@ -159,7 +159,7 @@ func BenchmarkBuildGo(b *testing.B) {
 }
 
 func BenchmarkBuildGb(b *testing.B) {
-	ctx := testutil.TestContext(context.Background())
+	ctx := testutil.TestContext(b, context.Background())
 	buildctxt := buildctx.NewContext()
 	c := NewCommand(ctx, benchVim(b, gsftpMain), buildctxt)
 

@@ -19,7 +19,7 @@ import (
 
 func TestCommand_Vet(t *testing.T) {
 	testVetRoot := filepath.Join(testGoPath, "src", "vet")
-	ctx := testutil.TestContext(context.Background())
+	ctx := testutil.TestContext(t, context.Background())
 
 	type fields struct {
 		ctx       context.Context

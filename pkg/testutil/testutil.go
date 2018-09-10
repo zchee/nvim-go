@@ -6,10 +6,15 @@ package testutil
 
 import (
 	"context"
+	"testing"
+
+	"go.uber.org/zap"
 
 	"github.com/zchee/nvim-go/pkg/logger"
 )
 
-func TestContext(ctx context.Context) context.Context {
-	return logger.NewContext(ctx, logger.NewZapLogger())
+func TestContext(tb testing.TB, ctx context.Context) context.Context {
+	tb.Helper()
+
+	return logger.NewContext(ctx, zap.NewNop())
 }

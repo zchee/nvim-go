@@ -20,7 +20,7 @@ import (
 
 func TestCommand_Fmt(t *testing.T) {
 	config.FmtMode = "goimports"
-	ctx := testutil.TestContext(context.Background())
+	ctx := testutil.TestContext(t, context.Background())
 
 	type fields struct {
 		ctx       context.Context
@@ -138,7 +138,7 @@ var minUpdateTests = []struct {
 }
 
 func TestMinUpdate(t *testing.T) {
-	ctx := testutil.TestContext(context.Background())
+	ctx := testutil.TestContext(t, context.Background())
 	v := nvimutil.TestNvim(t)
 
 	b, err := v.CurrentBuffer()
