@@ -8,13 +8,16 @@ PACKAGE_ROOT := $(CURDIR)
 PACKAGES := $(shell go list ./pkg/...)
 VENDOR_PACKAGES := $(shell go list -deps ./pkg/...)
 
+GIT_TAG := $(shell git describe --tags --abbrev=0)
+GIT_COMMIT := $(shell git rev-parse --short HEAD)
+
 # ----------------------------------------------------------------------------
 # common environment variables
 
 SHELL := /usr/bin/env bash
 CC := clang  # need compile cgo for delve
 CXX := clang++
-GO_LDFLAGS ?=
+GO_LDFLAGS ?= -X=main.tag=$(GIT_TAG) -X=main.gitCommit=$(GIT_COMMIT)
 GO_GCFLAGS ?=
 CGO_CFLAGS ?=
 CGO_CPPFLAGS ?=
@@ -32,9 +35,9 @@ GO_BENCH_FUNCS ?= .
 GO_BENCH_FLAGS ?= -bench=${GO_BENCH_FUNCS} -benchmem
 
 ifneq ($(NVIM_GO_DEBUG),)
-GO_GCFLAGS+=-gcflags=all="-N -l -dwarflocationlists=true"  # https://tip.golang.org/doc/diagnostics.html#debugging
+GO_GCFLAGS+=all="-N -l -dwarflocationlists=true"  # https://tip.golang.org/doc/diagnostics.html#debugging
 else
-GO_LDFLAGS+=-ldflags "-w -s"
+GO_LDFLAGS+=-w -s
 endif
 
 # ----------------------------------------------------------------------------
@@ -56,7 +59,7 @@ init:  ## Install dependency tools
 
 .PHONY: build
 build:  ## Build the nvim-go binary
-	go build -v -o ./bin/${APP} $(strip ${GO_BUILD_FLAGS} ${GO_GCFLAGS} ${GO_LDFLAGS}) ./cmd/nvim-go
+	go build -v -o ./bin/${APP} $(strip ${GO_BUILD_FLAGS}) -gcflags=$(strip ${GO_GCFLAGS}) -ldflags="$(strip ${GO_LDFLAGS})" ./cmd/nvim-go
 
 .PHONY: build.race
 build.race: GO_BUILD_FLAGS+=-race
