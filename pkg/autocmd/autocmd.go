@@ -35,9 +35,8 @@ type Autocmd struct {
 }
 
 // Register registers autocmd to Neovim.
-func Register(pctx context.Context, p *plugin.Plugin, buildContext *buildctx.Context, cmd *command.Command) {
-	ctx, cancel := context.WithCancel(pctx)
-	ctx = logger.NewContext(ctx, logger.FromContext(ctx).Named("autocmd"))
+func Register(pctx context.Context, cancel func(), p *plugin.Plugin, buildContext *buildctx.Context, cmd *command.Command) {
+	ctx := logger.NewContext(pctx, logger.FromContext(pctx).Named("autocmd"))
 
 	autocmd := &Autocmd{
 		ctx:              ctx,
@@ -67,10 +66,13 @@ func Register(pctx context.Context, p *plugin.Plugin, buildContext *buildctx.Con
 	// p.HandleAutocmd(&plugin.AutocmdOptions{Event: "WinEnter", Group: "nvim-go-autocmd", Pattern: "*.go", Eval: "*"}, autocmd.WinEnter)
 
 	// Handle the before the write to file.
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.bufWritePre)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.BufWritePre)
 
 	// Handle the after the write to file.
 	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.bufWritePost)
+
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimLeavePre", Pattern: "*", Group: "nvim-go"}, autocmd.VimLeavePre)
+}
 
 func (a *Autocmd) getStatus(bufnr, winID int, dir string) {
 	a.mu.Lock()

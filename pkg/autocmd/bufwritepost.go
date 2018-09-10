@@ -43,7 +43,7 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 	}
 
 	if config.BuildAutosave {
-		err := a.cmd.Build(nil, config.BuildForce, &command.CmdBuildEval{
+		err := a.cmd.Build(a.ctx, nil, config.BuildForce, &command.CmdBuildEval{
 			Cwd:  eval.Cwd,
 			File: eval.File,
 		})
@@ -63,12 +63,15 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 			defer a.wg.Done()
 
 			a.errs.Delete("Lint")
-			errlist, err := a.cmd.Lint(nil, eval.File)
-			if err != nil {
-				nvimutil.ErrorWrap(a.Nvim, err)
-				return
+			err := a.cmd.Lint(a.ctx, nil, eval.File)
+			switch e := err.(type) {
+			case error:
+				nvimutil.ErrorWrap(a.Nvim, e)
+			case []*nvim.QuickfixError:
+				errlist := make(map[string][]*nvim.QuickfixError)
+				errlist["Lint"] = e
+				nvimutil.ErrorList(a.Nvim, errlist, true)
 			}
-			a.errs.Store("Lint", errlist)
 		}()
 	}
 
@@ -82,7 +85,7 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 			}()
 
 			a.errs.Delete("Vet")
-			err := a.cmd.Vet(nil, &command.CmdVetEval{
+			err := a.cmd.Vet(a.ctx, nil, &command.CmdVetEval{
 				Cwd:  eval.Cwd,
 				File: eval.File,
 			})
@@ -99,7 +102,14 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			a.cmd.Metalinter(eval.Cwd)
+
+			a.errs.Delete("MetaLinter")
+			err := a.cmd.Metalinter(a.ctx, eval.Cwd)
+			switch e := err.(type) {
+			case error:
+				nvimutil.ErrorWrap(a.Nvim, e)
+			case nil:
+			}
 		}()
 	}
 
@@ -107,7 +117,14 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 		a.wg.Add(1)
 		go func() {
 			defer a.wg.Done()
-			a.cmd.Test(nil, dir)
+
+			a.errs.Delete("Test")
+			err := a.cmd.Test(a.ctx, nil, dir)
+			switch e := err.(type) {
+			case error:
+				nvimutil.ErrorWrap(a.Nvim, e)
+			case nil:
+			}
 		}()
 	}
 
