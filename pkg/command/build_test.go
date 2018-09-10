@@ -124,8 +124,10 @@ func TestCommand_Build(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
-			err := c.Build(tt.args.args, tt.args.bang, tt.args.eval)
+			ctx := tt.fields.ctx
+
+			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
+			err := c.Build(ctx, tt.args.args, tt.args.bang, tt.args.eval)
 			switch e := err.(type) {
 			case error:
 				if (err != nil) != tt.wantErr {
@@ -146,7 +148,7 @@ func BenchmarkBuildGo(b *testing.B) {
 	c := NewCommand(ctx, benchVim(b, astdumpMain), buildctxt)
 
 	for i := 0; i < b.N; i++ {
-		c.Build(nil, false, &CmdBuildEval{
+		c.Build(ctx, nil, false, &CmdBuildEval{
 			Cwd:  astdump,
 			File: astdump,
 		})
@@ -162,7 +164,7 @@ func BenchmarkBuildGb(b *testing.B) {
 	c := NewCommand(ctx, benchVim(b, gsftpMain), buildctxt)
 
 	for i := 0; i < b.N; i++ {
-		c.Build(nil, false, &CmdBuildEval{
+		c.Build(ctx, nil, false, &CmdBuildEval{
 			Cwd:  gsftpRoot,
 			File: gsftpRoot,
 		})

@@ -93,8 +93,10 @@ func TestCommand_Fmt(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
-			err := c.Fmt(tt.args.dir)
+			ctx := tt.fields.ctx
+
+			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
+			err := c.Fmt(ctx, tt.args.dir)
 			switch e := err.(type) {
 			case error:
 				t.Errorf("%v. Commands.Fmt(%v), err %v wantErr %v", tt.name, tt.args.dir, e, tt.wantErr)
@@ -136,6 +138,7 @@ var minUpdateTests = []struct {
 }
 
 func TestMinUpdate(t *testing.T) {
+	ctx := testutil.TestContext(context.Background())
 	v := nvimutil.TestNvim(t)
 
 	b, err := v.CurrentBuffer()
@@ -151,7 +154,7 @@ func TestMinUpdate(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := minUpdate(v, b, in, out); err != nil {
+		if err := minUpdate(ctx, v, b, in, out); err != nil {
 			t.Errorf("%q -> %q returned %v", tt.in, tt.out, err)
 			continue
 		}

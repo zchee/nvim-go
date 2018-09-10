@@ -82,16 +82,14 @@ func TestCommand_Lint(t *testing.T) {
 			// TODO(zchee): fix lint behaiviour
 			t.Skipf("TODO(zchee): fix lint behaiviour")
 			t.Parallel()
-			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
+
+			ctx := tt.fields.ctx
+			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
 			c.Nvim.SetCurrentDirectory(filepath.Dir(tt.args.file))
 
-			got, err := c.Lint(tt.args.args, tt.args.file)
+			err := c.Lint(ctx, tt.args.args, tt.args.file)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Command.Lint(%v, %v) error = %v, wantErr %v", tt.args.args, tt.args.file, err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Command.Lint(%v, %v) = %v, want %v", tt.args.args, tt.args.file, got, tt.want)
 			}
 		})
 	}
@@ -176,8 +174,8 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
 
+			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.buildctxt)
 			gotFilelist, err := c.cmdLintComplete(tt.args.a, tt.args.cwd)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%q. Commands.cmdLintComplete(%v, %v) error = %v, wantErr %v", tt.name, tt.args.a, tt.args.cwd, err, tt.wantErr)
