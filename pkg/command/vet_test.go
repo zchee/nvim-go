@@ -22,9 +22,9 @@ func TestCommand_Vet(t *testing.T) {
 	ctx := testutil.TestContext(t, context.Background())
 
 	type fields struct {
-		ctx       context.Context
-		Nvim      *nvim.Nvim
-		buildctxt *buildctxt.Context
+		ctx   context.Context
+		Nvim  *nvim.Nvim
+		bctxt *buildctxt.Context
 	}
 	type args struct {
 		args []string
@@ -42,9 +42,9 @@ func TestCommand_Vet(t *testing.T) {
 		{
 			name: "method.go (2 suggest)",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, filepath.Join(testVetRoot, "method.go")),
-				buildctxt: buildctxt.NewContext(),
+				ctx:   ctx,
+				Nvim:  nvimutil.TestNvim(t, filepath.Join(testVetRoot, "method.go")),
+				bctxt: buildctxt.NewContext(),
 			},
 			args: args{
 				args: []string{"method.go"},
@@ -78,9 +78,9 @@ func TestCommand_Vet(t *testing.T) {
 		{
 			name: "method.go and unused.go(8 suggest)",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, filepath.Join(testVetRoot, "unused.go")),
-				buildctxt: buildctxt.NewContext(),
+				ctx:   ctx,
+				Nvim:  nvimutil.TestNvim(t, filepath.Join(testVetRoot, "unused.go")),
+				bctxt: buildctxt.NewContext(),
 			},
 			args: args{
 				args: []string{"."},
@@ -139,8 +139,8 @@ func TestCommand_Vet(t *testing.T) {
 			t.Parallel()
 
 			ctx := tt.fields.ctx
-			tt.fields.buildctxt.Build.Tool = tt.tool
-			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
+			tt.fields.bctxt.Build.Tool = tt.tool
+			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.bctxt)
 			if got := c.Vet(ctx, tt.args.args, tt.args.eval); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Command.Vet(%v, %v) = %v, want %v", tt.args.args, tt.args.eval, got, tt.want)
 			}

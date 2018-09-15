@@ -23,9 +23,9 @@ func TestCommand_Fmt(t *testing.T) {
 	ctx := testutil.TestContext(t, context.Background())
 
 	type fields struct {
-		ctx       context.Context
-		Nvim      *nvim.Nvim
-		buildctxt *buildctxt.Context
+		ctx   context.Context
+		Nvim  *nvim.Nvim
+		bctxt *buildctxt.Context
 	}
 	type args struct {
 		dir string
@@ -41,7 +41,7 @@ func TestCommand_Fmt(t *testing.T) {
 			fields: fields{
 				ctx:  ctx,
 				Nvim: nvimutil.TestNvim(t, astdumpMain), // correct file
-				buildctxt: &buildctxt.Context{
+				bctxt: &buildctxt.Context{
 					Build: buildctxt.Build{
 						Tool:        "go",
 						ProjectRoot: astdump,
@@ -58,7 +58,7 @@ func TestCommand_Fmt(t *testing.T) {
 			fields: fields{
 				ctx:  ctx,
 				Nvim: nvimutil.TestNvim(t, brokenMain), // broken file
-				buildctxt: &buildctxt.Context{
+				bctxt: &buildctxt.Context{
 					Build: buildctxt.Build{
 						Tool:        "go",
 						ProjectRoot: broken,
@@ -75,7 +75,7 @@ func TestCommand_Fmt(t *testing.T) {
 			fields: fields{
 				ctx:  ctx,
 				Nvim: nvimutil.TestNvim(t, gsftpMain), // correct file
-				buildctxt: &buildctxt.Context{
+				bctxt: &buildctxt.Context{
 					Build: buildctxt.Build{
 						Tool:        "gb",
 						ProjectRoot: gsftpRoot,
@@ -95,7 +95,7 @@ func TestCommand_Fmt(t *testing.T) {
 
 			ctx := tt.fields.ctx
 
-			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
+			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.bctxt)
 			err := c.Fmt(ctx, tt.args.dir)
 			switch e := err.(type) {
 			case error:

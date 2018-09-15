@@ -18,10 +18,10 @@ func TestCommand_Build(t *testing.T) {
 	ctx := testutil.TestContext(t, context.Background())
 
 	type fields struct {
-		ctx       context.Context
-		Nvim      *nvim.Nvim
-		buildctxt *buildctx.Context
-		errs      *syncmap.Map
+		ctx   context.Context
+		Nvim  *nvim.Nvim
+		bctxt *buildctxt.Context
+		errs  *syncmap.Map
 	}
 	type args struct {
 		args []string
@@ -39,8 +39,8 @@ func TestCommand_Build(t *testing.T) {
 			fields: fields{
 				ctx:  ctx,
 				Nvim: nvimutil.TestNvim(t, "."),
-				buildctxt: &buildctx.Context{
-					Build: buildctx.Build{
+				bctxt: &buildctxt.Context{
+					Build: buildctxt.Build{
 						Tool:        "go",
 						ProjectRoot: "",
 					},
@@ -60,8 +60,8 @@ func TestCommand_Build(t *testing.T) {
 			fields: fields{
 				ctx:  ctx,
 				Nvim: nvimutil.TestNvim(t, gsftpRoot),
-				buildctxt: &buildctx.Context{
-					Build: buildctx.Build{
+				bctxt: &buildctxt.Context{
+					Build: buildctxt.Build{
 						Tool:        "gb",
 						ProjectRoot: gsftpRoot,
 					},
@@ -81,8 +81,8 @@ func TestCommand_Build(t *testing.T) {
 			fields: fields{
 				ctx:  ctx,
 				Nvim: nvimutil.TestNvim(t, filepath.Join(astdump, "astdump.go")), // correct file
-				buildctxt: &buildctx.Context{
-					Build: buildctx.Build{
+				bctxt: &buildctxt.Context{
+					Build: buildctxt.Build{
 						Tool:        "go",
 						ProjectRoot: astdump,
 					},
@@ -102,8 +102,8 @@ func TestCommand_Build(t *testing.T) {
 			fields: fields{
 				ctx:  ctx,
 				Nvim: nvimutil.TestNvim(t, brokenMain), // broken file
-				buildctxt: &buildctx.Context{
-					Build: buildctx.Build{
+				bctxt: &buildctxt.Context{
+					Build: buildctxt.Build{
 						Tool:        "gb",
 						ProjectRoot: broken,
 					},
@@ -126,7 +126,7 @@ func TestCommand_Build(t *testing.T) {
 
 			ctx := tt.fields.ctx
 
-			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.buildctxt)
+			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.bctxt)
 			err := c.Build(ctx, tt.args.args, tt.args.bang, tt.args.eval)
 			switch e := err.(type) {
 			case error:
@@ -144,8 +144,8 @@ func TestCommand_Build(t *testing.T) {
 
 func BenchmarkBuildGo(b *testing.B) {
 	ctx := testutil.TestContext(b, context.Background())
-	buildctxt := buildctx.NewContext()
-	c := NewCommand(ctx, benchVim(b, astdumpMain), buildctxt)
+	bctxt := buildctxt.NewContext()
+	c := NewCommand(ctx, benchVim(b, astdumpMain), bctxt)
 
 	for i := 0; i < b.N; i++ {
 		c.Build(ctx, nil, false, &CmdBuildEval{
@@ -160,8 +160,8 @@ func BenchmarkBuildGo(b *testing.B) {
 
 func BenchmarkBuildGb(b *testing.B) {
 	ctx := testutil.TestContext(b, context.Background())
-	buildctxt := buildctx.NewContext()
-	c := NewCommand(ctx, benchVim(b, gsftpMain), buildctxt)
+	bctxt := buildctxt.NewContext()
+	c := NewCommand(ctx, benchVim(b, gsftpMain), bctxt)
 
 	for i := 0; i < b.N; i++ {
 		c.Build(ctx, nil, false, &CmdBuildEval{
