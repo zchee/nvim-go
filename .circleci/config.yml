@@ -23,7 +23,6 @@ jobs:
               github.com/constabulary/gb/cmd/...
       - run:
           name: "Take a coverage"
-          environment:
           command: |
             make coverage
       - run:
@@ -37,7 +36,6 @@ jobs:
     environment:
       PATH: /Users/distiller/go/bin:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
       GOPATH: /Users/distiller/go
-      HOMEBREW_NO_AUTO_UPDATE: 1
     working_directory: ~/go/src/github.com/zchee/nvim-go
     shell: /bin/bash --login -eux -o pipefail
     steps:
@@ -64,7 +62,6 @@ jobs:
               github.com/constabulary/gb/cmd/...
       - run:
           name: "Take a coverage"
-          environment:
           command: |
             make coverage
       - run:
