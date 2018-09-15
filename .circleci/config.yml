@@ -11,22 +11,22 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Install nvim binary"
+          name: Install nvim binary
           command: |
             set -eux
             wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xzf - --strip-components=1 -C "/usr/local"
             nvim --version
       - run:
-          name: "Install go dependencies tools"
+          name: Install go dependencies tools
           command: |
             go get -u \
               github.com/constabulary/gb/cmd/...
       - run:
-          name: "Take a coverage"
+          name: Take a coverage
           command: |
             make coverage
       - run:
-          name: "Send coverage reports to codecov.io"
+          name: Send coverage reports to codecov.io
           command: |
             bash <(curl -s https://codecov.io/bash) -Z
 
@@ -34,18 +34,32 @@ jobs:
     macos:
       xcode: "10.0.0"
     environment:
-      PATH: /Users/distiller/go/bin:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
-      GOPATH: /Users/distiller/go
+      PATH: "/Users/distiller/go/bin:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      GOPATH: "/Users/distiller/go"
+      HOMEBREW_NO_AUTO_UPDATE: "1"
     working_directory: ~/go/src/github.com/zchee/nvim-go
     shell: /bin/bash --login -eux -o pipefail
     steps:
       - checkout
       - run:
-          name: install latest go and neovim formula
+          name: install latest go and neovim depends formula
           command: |
-            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb
-            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/luarocks.rb || brew link --overwrite luarocks
-            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/neovim.rb --HEAD
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb || true
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/automake.rb
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/cmake.rb
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/gettext.rb
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/libtool.rb
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/ninja.rb
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/pkg-config.rb
+      - run:
+          name: build neovim from source
+          working_directory: ~/src
+          command: |
+            git clone --depth 1 --branch master --single-branch https://github.com/neovim/neovim.git
+            cd neovim
+            make deps
+            make
+            make install
       - run:
           name: show versions
           command: |
@@ -71,7 +85,7 @@ jobs:
 
   reviewdog:
     docker:
-      - image: golang:1.10.3-stretch
+      - image: golang:1.11.0-stretch
     <<: *defaults
     steps:
       - checkout
@@ -86,13 +100,9 @@ workflows:
   build-workflow:
     jobs:
       - build-linux:
-          filters:
-            branches:
-              only: /.*/
+          context: org-global
       - build-macos:
-          filters:
-            branches:
-              only: /.*/
+          context: org-global
       - reviewdog:
           context: org-global
           filters:
