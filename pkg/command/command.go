@@ -11,7 +11,7 @@ import (
 	"github.com/neovim/go-client/nvim/plugin"
 	"golang.org/x/sync/syncmap"
 
-	"github.com/zchee/nvim-go/pkg/buildctx"
+	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/command/delve"
 	"github.com/zchee/nvim-go/pkg/logger"
 )
@@ -22,12 +22,12 @@ type Command struct {
 	cancel context.CancelFunc
 
 	Nvim         *nvim.Nvim
-	buildContext *buildctx.Context
+	buildContext *buildctxt.Context
 	errs         *syncmap.Map
 }
 
 // NewCommand return the new Command type with initialize some variables.
-func NewCommand(pctx context.Context, v *nvim.Nvim, buildctxt *buildctx.Context) *Command {
+func NewCommand(pctx context.Context, v *nvim.Nvim, bctxt *buildctxt.Context) *Command {
 	ctx, cancel := context.WithCancel(pctx)
 	ctx = logger.NewContext(ctx, logger.FromContext(ctx).Named("command"))
 
@@ -35,14 +35,14 @@ func NewCommand(pctx context.Context, v *nvim.Nvim, buildctxt *buildctx.Context)
 		ctx:          ctx,
 		cancel:       cancel,
 		Nvim:         v,
-		buildContext: buildctxt,
+		buildContext: bctxt,
 		errs:         new(syncmap.Map),
 	}
 }
 
 // Register register nvim-go command or function to Neovim over the msgpack-rpc plugin interface.
-func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context) *Command {
-	c := NewCommand(ctx, p.Nvim, buildctxt)
+func Register(ctx context.Context, p *plugin.Plugin, bctxt *buildctxt.Context) *Command {
+	c := NewCommand(ctx, p.Nvim, bctxt)
 
 	// Register command and function
 	// CommandOptions order: Name, NArgs, Range, Count, Addr, Bang, Register, Eval, Bar, Complete
@@ -71,7 +71,7 @@ func Register(ctx context.Context, p *plugin.Plugin, buildctxt *buildctx.Context
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoWindows"}, c.cmdWindows)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoTabpages"}, c.cmdTabpagas)
 
-	delve.Register(ctx, p, buildctxt)
+	delve.Register(ctx, p, bctxt)
 
 	return c
 }

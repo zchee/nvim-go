@@ -13,7 +13,7 @@ import (
 	"go.opencensus.io/trace"
 	"golang.org/x/sync/syncmap"
 
-	"github.com/zchee/nvim-go/pkg/buildctx"
+	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/command"
 	"github.com/zchee/nvim-go/pkg/logger"
 )
@@ -24,7 +24,7 @@ type Autocmd struct {
 	cancel context.CancelFunc
 
 	Nvim         *nvim.Nvim
-	buildContext *buildctx.Context
+	buildContext *buildctxt.Context
 	cmd          *command.Command
 
 	bufWritePostChan chan error
@@ -36,7 +36,7 @@ type Autocmd struct {
 }
 
 // Register registers autocmd to Neovim.
-func Register(pctx context.Context, cancel func(), p *plugin.Plugin, buildContext *buildctx.Context, cmd *command.Command) {
+func Register(pctx context.Context, cancel func(), p *plugin.Plugin, buildContext *buildctxt.Context, cmd *command.Command) {
 	ctx := logger.NewContext(pctx, logger.FromContext(pctx).Named("autocmd"))
 
 	autocmd := &Autocmd{

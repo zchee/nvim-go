@@ -14,7 +14,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/neovim/go-client/nvim"
 
-	"github.com/zchee/nvim-go/pkg/buildctx"
+	"github.com/zchee/nvim-go/pkg/buildctxt"
 )
 
 func TestSplitPos(t *testing.T) {
@@ -80,7 +80,7 @@ func TestParseError(t *testing.T) {
 	type args struct {
 		errors       []byte
 		cwd          string
-		buildContext *buildctx.Build
+		buildContext *buildctxt.Build
 	}
 	tests := []struct {
 		name        string
@@ -95,7 +95,7 @@ func TestParseError(t *testing.T) {
 				errors: []byte(`# nvim-go/nvim
 echo.go:79: syntax error: non-declaration statement outside function body`),
 				cwd: cwd,
-				buildContext: &buildctx.Build{
+				buildContext: &buildctxt.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -115,7 +115,7 @@ echo.go:79: syntax error: non-declaration statement outside function body`),
 locationlist.go:152: syntax error: unexpected case, expecting }
 locationlist.go:160: syntax error: non-declaration statement outside function body`),
 				cwd: cwd,
-				buildContext: &buildctx.Build{
+				buildContext: &buildctxt.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -143,7 +143,7 @@ locationlist.go:160: syntax error: non-declaration statement outside function bo
 locationlist.go:199: ParseError redeclared in this block
         previous declaration at locationlist.go:149`),
 				cwd: cwd,
-				buildContext: &buildctx.Build{
+				buildContext: &buildctxt.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -177,7 +177,7 @@ server.go:38: invalid case "connect" in switch on cmd (mismatched types string a
 server.go:40: cannot use cfg.flags (type []string) as type string in append
 FATAL: command "build" failed: exit status 2`),
 				cwd: cwd,
-				buildContext: &buildctx.Build{
+				buildContext: &buildctxt.Build{
 					Tool:        "gb",
 					ProjectRoot: gbProjectDir,
 				},
@@ -246,7 +246,7 @@ FATAL: command "build" failed: exit status 2`),
 				errors: []byte(`# relative/cmd/relative
 cmd/relative/main.go:10:14: undefined: relative.B`),
 				cwd: filepath.Join(cwd, "testdata", "src", "relative"),
-				buildContext: &buildctx.Build{
+				buildContext: &buildctxt.Build{
 					Tool:        "go",
 					ProjectRoot: filepath.Join(cwd, "testdata", "src", "relative"),
 				},

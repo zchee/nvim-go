@@ -12,7 +12,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 
-	"github.com/zchee/nvim-go/pkg/buildctx"
+	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/testutil"
@@ -25,7 +25,7 @@ func TestCommand_Fmt(t *testing.T) {
 	type fields struct {
 		ctx       context.Context
 		Nvim      *nvim.Nvim
-		buildctxt *buildctx.Context
+		buildctxt *buildctxt.Context
 	}
 	type args struct {
 		dir string
@@ -41,8 +41,8 @@ func TestCommand_Fmt(t *testing.T) {
 			fields: fields{
 				ctx:  ctx,
 				Nvim: nvimutil.TestNvim(t, astdumpMain), // correct file
-				buildctxt: &buildctx.Context{
-					Build: buildctx.Build{
+				buildctxt: &buildctxt.Context{
+					Build: buildctxt.Build{
 						Tool:        "go",
 						ProjectRoot: astdump,
 					},
@@ -58,8 +58,8 @@ func TestCommand_Fmt(t *testing.T) {
 			fields: fields{
 				ctx:  ctx,
 				Nvim: nvimutil.TestNvim(t, brokenMain), // broken file
-				buildctxt: &buildctx.Context{
-					Build: buildctx.Build{
+				buildctxt: &buildctxt.Context{
+					Build: buildctxt.Build{
 						Tool:        "go",
 						ProjectRoot: broken,
 					},
@@ -75,8 +75,8 @@ func TestCommand_Fmt(t *testing.T) {
 			fields: fields{
 				ctx:  ctx,
 				Nvim: nvimutil.TestNvim(t, gsftpMain), // correct file
-				buildctxt: &buildctx.Context{
-					Build: buildctx.Build{
+				buildctxt: &buildctxt.Context{
+					Build: buildctxt.Build{
 						Tool:        "gb",
 						ProjectRoot: gsftpRoot,
 					},

@@ -12,7 +12,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 
-	"github.com/zchee/nvim-go/pkg/buildctx"
+	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/testutil"
 )
@@ -24,7 +24,7 @@ func TestCommand_Lint(t *testing.T) {
 	type fields struct {
 		ctx       context.Context
 		Nvim      *nvim.Nvim
-		buildctxt *buildctx.Context
+		buildctxt *buildctxt.Context
 	}
 	type args struct {
 		args []string
@@ -42,7 +42,7 @@ func TestCommand_Lint(t *testing.T) {
 			fields: fields{
 				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "blank-import-main.go")),
-				buildctxt: buildctx.NewContext(),
+				buildctxt: buildctxt.NewContext(),
 			},
 			args: args{
 				file: filepath.Join(testLintDir, "blank-import-main.go"),
@@ -55,7 +55,7 @@ func TestCommand_Lint(t *testing.T) {
 			fields: fields{
 				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "time.go")),
-				buildctxt: buildctx.NewContext(),
+				buildctxt: buildctxt.NewContext(),
 			},
 			args: args{
 				args: []string{"%"},
@@ -102,7 +102,7 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 	type fields struct {
 		ctx       context.Context
 		Nvim      *nvim.Nvim
-		buildctxt *buildctx.Context
+		buildctxt *buildctxt.Context
 	}
 	type args struct {
 		a   *nvim.CommandCompletionArgs
@@ -120,7 +120,7 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 			fields: fields{
 				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "make.go")),
-				buildctxt: buildctx.NewContext(),
+				buildctxt: buildctxt.NewContext(),
 			},
 			args: args{
 				a:   new(nvim.CommandCompletionArgs),
@@ -133,7 +133,7 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 			fields: fields{
 				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "make.go")),
-				buildctxt: buildctx.NewContext(),
+				buildctxt: buildctxt.NewContext(),
 			},
 			args: args{
 				a: &nvim.CommandCompletionArgs{
@@ -148,7 +148,7 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 			fields: fields{
 				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, astdumpMain),
-				buildctxt: buildctx.NewContext(),
+				buildctxt: buildctxt.NewContext(),
 			},
 			args: args{
 				a:   new(nvim.CommandCompletionArgs),
@@ -161,7 +161,7 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 			fields: fields{
 				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, gsftpMain),
-				buildctxt: buildctx.NewContext(),
+				buildctxt: buildctxt.NewContext(),
 			},
 			args: args{
 				a:   new(nvim.CommandCompletionArgs),

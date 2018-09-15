@@ -9,7 +9,7 @@ import (
 	"github.com/neovim/go-client/nvim"
 	"golang.org/x/sync/syncmap"
 
-	"github.com/zchee/nvim-go/pkg/buildctx"
+	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/testutil"
 )

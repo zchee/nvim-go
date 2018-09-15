@@ -12,7 +12,7 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 
-	"github.com/zchee/nvim-go/pkg/buildctx"
+	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/testutil"
 )
@@ -24,7 +24,7 @@ func TestCommand_Vet(t *testing.T) {
 	type fields struct {
 		ctx       context.Context
 		Nvim      *nvim.Nvim
-		buildctxt *buildctx.Context
+		buildctxt *buildctxt.Context
 	}
 	type args struct {
 		args []string
@@ -44,7 +44,7 @@ func TestCommand_Vet(t *testing.T) {
 			fields: fields{
 				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(testVetRoot, "method.go")),
-				buildctxt: buildctx.NewContext(),
+				buildctxt: buildctxt.NewContext(),
 			},
 			args: args{
 				args: []string{"method.go"},
@@ -80,7 +80,7 @@ func TestCommand_Vet(t *testing.T) {
 			fields: fields{
 				ctx:       ctx,
 				Nvim:      nvimutil.TestNvim(t, filepath.Join(testVetRoot, "unused.go")),
-				buildctxt: buildctx.NewContext(),
+				buildctxt: buildctxt.NewContext(),
 			},
 			args: args{
 				args: []string{"."},

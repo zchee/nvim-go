@@ -26,7 +26,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zchee/nvim-go/pkg/autocmd"
-	"github.com/zchee/nvim-go/pkg/buildctx"
+	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/command"
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/logger"
@@ -64,9 +64,9 @@ func main() {
 			return func(ctx context.Context, p *plugin.Plugin) error {
 				ctx, cancel := context.WithCancel(ctx)
 				defer cancel()
-				buildctxt := buildctx.NewContext()
-				c := command.Register(ctx, p, buildctxt)
-				autocmd.Register(ctx, cancel, p, buildctxt, c)
+				bctxt := buildctxt.NewContext()
+				c := command.Register(ctx, p, bctxt)
+				autocmd.Register(ctx, cancel, p, bctxt, c)
 				return nil
 			}(ctx, p)
 		}
@@ -176,8 +176,8 @@ func Main(ctx context.Context, p *plugin.Plugin) error {
 	ctx, cancel := context.WithCancel(ctx)
 	ctx = logger.NewContext(ctx, logger.FromContext(ctx).Named("main"))
 
-	buildctxt := buildctx.NewContext()
-	autocmd.Register(ctx, cancel, p, buildctxt, command.Register(ctx, p, buildctxt))
+	bctxt := buildctxt.NewContext()
+	autocmd.Register(ctx, cancel, p, bctxt, command.Register(ctx, p, bctxt))
 
 	// switch to unix socket rpc-connection
 	if n, err := server.Dial(ctx); err == nil {

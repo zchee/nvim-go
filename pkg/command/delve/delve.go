@@ -21,7 +21,7 @@ import (
 	delverpc2 "github.com/derekparker/delve/service/rpc2"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
-	"github.com/zchee/nvim-go/pkg/buildctx"
+	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
@@ -36,7 +36,7 @@ type Delve struct {
 	log *zap.Logger
 
 	Nvim         *nvim.Nvim
-	buildContext *buildctx.Context
+	buildContext *buildctxt.Context
 
 	server     *exec.Cmd
 	client     *delverpc2.RPCClient
@@ -68,7 +68,7 @@ type SignContext struct {
 }
 
 // NewDelve represents a delve client interface.
-func NewDelve(ctx context.Context, n *nvim.Nvim, buildContext *buildctx.Context) *Delve {
+func NewDelve(ctx context.Context, n *nvim.Nvim, buildContext *buildctxt.Context) *Delve {
 	return &Delve{
 		ctx:          ctx,
 		log:          logger.FromContext(ctx).Named("delve"),
