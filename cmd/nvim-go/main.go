@@ -15,7 +15,6 @@ import (
 	"syscall"
 
 	"cloud.google.com/go/errorreporting"
-	"cloud.google.com/go/profiler"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
@@ -91,15 +90,15 @@ func main() {
 
 	if gcpProjectID := env.GCPProjectID; gcpProjectID != "" {
 		// Stackdriver Profiler
-		profCfg := profiler.Config{
-			Service:        appName,
-			ServiceVersion: tag,
-			MutexProfiling: true,
-			ProjectID:      gcpProjectID,
-		}
-		if err := profiler.Start(profCfg); err != nil {
-			logpkg.Fatalf("failed to start stackdriver profiler: %v", err)
-		}
+		// profCfg := profiler.Config{
+		// 	Service:        appName,
+		// 	ServiceVersion: tag,
+		// 	MutexProfiling: true,
+		// 	ProjectID:      gcpProjectID,
+		// }
+		// if err := profiler.Start(profCfg); err != nil {
+		// 	logpkg.Fatalf("failed to start stackdriver profiler: %v", err)
+		// }
 
 		// OpenCensus tracing
 		sdOpts := stackdriver.Options{
