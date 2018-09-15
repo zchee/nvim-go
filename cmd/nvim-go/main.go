@@ -58,7 +58,9 @@ func main() {
 	defer cancel()
 
 	if *pluginHost != "" {
-		os.Unsetenv("NVIM_GO_DEBUG")
+		os.Unsetenv("NVIM_GO_DEBUG")               // disable zap output
+		ctx = logger.NewContext(ctx, zap.NewNop()) // avoid nil panic on logger.FromContext
+
 		fn := func(p *plugin.Plugin) error {
 			return func(ctx context.Context, p *plugin.Plugin) error {
 				ctx, cancel := context.WithCancel(ctx)
