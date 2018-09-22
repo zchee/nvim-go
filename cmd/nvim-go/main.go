@@ -89,6 +89,7 @@ func main() {
 	zapLogger, undo := logger.NewRedirectZapLogger(lv)
 	defer undo()
 	ctx = logger.NewContext(ctx, zapLogger)
+	ctx = trace.NewContext(ctx, &trace.Span{}) // add empty span context
 
 	if gcpProjectID := env.GCPProjectID; gcpProjectID != "" {
 		// Stackdriver Profiler
@@ -121,6 +122,9 @@ func main() {
 			DefaultSampler: trace.AlwaysSample(),
 		})
 		view.RegisterExporter(sd)
+
+		ctx, span := trace.StartSpan(ctx, "main") // start root span
+		defer span.End()
 
 		// Stackdriver Error Reporting
 		errReportCfg := errorreporting.Config{
