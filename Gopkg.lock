@@ -175,6 +175,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:8c247514444ae0d10babf805093a3eb97cd5d859acf22e1b9118a7470199dc2e"
+  name = "github.com/haya14busa/errorformat"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "689b7d67b7a82a9cae3d8bfcfa0f6f4b5790b88a"
+
+[[projects]]
+  branch = "master"
   digest = "1:cf2c287654d68f9682cec66d8130148ff32c1a6a404ceed4dfbe166100f13740"
   name = "github.com/hokaccha/go-prettyjson"
   packages = ["."]
@@ -585,6 +593,7 @@
     "github.com/derekparker/delve/service/rpc2",
     "github.com/fatih/color",
     "github.com/google/go-cmp/cmp",
+    "github.com/haya14busa/errorformat",
     "github.com/hokaccha/go-prettyjson",
     "github.com/lestrrat-go/config/env",
     "github.com/motemen/go-astmanip",

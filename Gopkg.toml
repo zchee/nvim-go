@@ -97,3 +97,7 @@ ignored = ["golang.org/x/tools/cmd/guru"]
 [[override]]
   name = "golang.org/x/sys"
   revision = "f3918c30c5c2cb527c0b071a27c35120a6c0719a"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/haya14busa/errorformat"
