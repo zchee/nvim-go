@@ -5,7 +5,7 @@
 
 APP := $(notdir $(CURDIR))
 PACKAGE_ROOT := $(CURDIR)
-PACKAGES := $(shell go list ./pkg/...)
+PACKAGES := $(shell go list ./pkg/... | grep -v -e 'pkg/internal/go' -e 'pkg/internal/gotool')
 VENDOR_PACKAGES := $(shell go list -deps ./pkg/...)
 
 GIT_TAG := $(shell git describe --tags --abbrev=0)
@@ -43,6 +43,10 @@ endif
 # ----------------------------------------------------------------------------
 # targets
 
+define target
+	@printf "+ \\033[32m$(shell printf $@ | cut -d '.' -f2)\\033[0m\\n"
+endef
+
 .PHONY: init
 init:  ## Install dependency tools
 	go get -u -v \
@@ -59,30 +63,37 @@ init:  ## Install dependency tools
 
 .PHONY: build
 build:  ## Build the nvim-go binary
+	$(call target)
 	go build -v -o ./bin/${APP} $(strip ${GO_BUILD_FLAGS}) -gcflags=$(strip ${GO_GCFLAGS}) -ldflags="$(strip ${GO_LDFLAGS})" ./cmd/nvim-go
 
 .PHONY: build.race
 build.race: GO_BUILD_FLAGS+=-race
 build.race: clean build  ## Build the nvim-go binary with race
+	$(call target)
 
 .PHONY: build.rebuild
 build.rebuild: clean build  ## Rebuild the nvim-go binary
+	$(call target)
 
 .PHONY: manifest
 manifest: build  ## Write plugin manifest for developer
+	$(call target)
 	./bin/${APP} -manifest ${APP} -location ./plugin/nvim-go.vim
 
 .PHONY: manifest.race
 manifest.race: APP=nvim-race
 manifest.race: build.race manifest  ## Write plugin manifest for developer
+	$(call target)
 
 .PHONY: manifest.dump
 manifest.dump: build  ## Dump plugin manifest
+	$(call target)
 	./bin/${APP} -manifest ${APP}
 
 
 .PHONY: vendor.push
 vendor.push:
+	$(call target)
 	sed -i 's|# unused-packages|unused-packages|' Gopkg.toml
 	dep ensure -v
 	git add Gopkg* vendor
@@ -91,18 +102,22 @@ vendor.push:
 
 .PHONY: vendor.update
 vendor.update:  ## Update the all vendor packages
+	$(call target)
 	dep ensure -v -update
 
 .PHONY: vendor.install
 vendor.install:  # Install vendor packages for gocode completion
+	$(call target)
 	go install -v -x ${VENDOR_PACKAGES}
 
 
 .PHONY: vendor.guru
 vendor.guru: vendor.guru-update vendor.guru-rename
+	$(call target)
 
 .PHONY: vendor.guru-update
 vendor.guru-update:  ## Update the internal guru package
+	$(call target)
 	sed -i 's|unused-packages|# unused-packages|' Gopkg.toml
 	dep ensure -v -update golang.org/x/tools
 	${RM} -r $(shell find ${PACKAGE_ROOT}/pkg/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
@@ -119,6 +134,7 @@ vendor.guru-update:  ## Update the internal guru package
 
 .PHONY: vendor.guru-rename
 vendor.guru-rename: vendor.guru-update
+	$(call target)
 	@echo -e "[INFO] Rename main to guru\\n"
 	grep "package main" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
 	@echo -e "[INFO] Add Result interface\\n"
@@ -133,75 +149,73 @@ vendor.guru-rename: vendor.guru-update
 
 .PHONY: test
 test:  ## Run the package test
+	$(call target)
 	${GO_TEST} -v $(strip ${GO_TEST_FLAGS} ${PACKAGES})
 
 .PHONY: bench
 bench: GO_TEST_FUNCS=^$$
 bench: GO_TEST_FLAGS+=${GO_BENCH_FLAGS}
 bench: test ## Take the packages benchmark
+	$(call target)
 
 
 .PHONY: lint
-lint: lint.golint lint.errcheck lint.gosimple lint.staticcheck lint.unparam lint.vet  ## Run lint use all tools
+lint: lint.golint lint.errcheck lint.megacheck lint.vet lint.unconvert  ## Run lint use all tools
 
 .PHONY: lint.golint
 lint.golint:  ## Run golint
-	@echo "+ $@"
-	@golint -set_exit_status -min_confidence=0.6 ${PACKAGES}
+	$(call target)
+	golint -set_exit_status -min_confidence=0.6 ${PACKAGES}
 
 .PHONY: lint.errcheck
 lint.errcheck:  ## Run errcheck
-	@echo "+ $@"
-	@errcheck ${PACKAGES}
+	$(call target)
+	errcheck ${PACKAGES}
 
-.PHONY: lint.gosimple
-lint.gosimple:  ## Run gosimple
-	@echo "+ $@"
-	@gosimple ${PACKAGES}
-
-.PHONY: lint.staticcheck
-lint.staticcheck:  ## Run staticcheck
-	@echo "+ $@"
-	@staticcheck $(PACKAGES)
-
-.PHONY: lint.unparam
-lint.unused:  ## Run unused
-	@echo "+ $@"
-	@unused $(PACKAGES)
+.PHONY: lint.megacheck
+lint.megacheck:  ## Run megacheck
+	$(call target)
+	megacheck $(PACKAGES)
 
 .PHONY: lint.vet
 lint.vet:  ## Run go vet
-	@echo "+ $@"
-	@go vet -all -shadow ${PACKAGES}
+	$(call target)
+	go vet -all ${PACKAGES}
 
 .PHONY: lint.unconvert
 lint.unconvert:  ## Run unconvert
-	@echo "+ $@"
-	@unconvert -v ${PACKAGES}
+	$(call target)
+	unconvert -v ${PACKAGES}
 
 .PHONY: coverage
 coverage:  # take test coverage
+	$(call target)
 	${GO_TEST} -v -race -covermode=atomic -coverprofile=$@.out -coverpkg=./pkg/... $(PACKAGES)
 
 
 .PHONY: clean
 clean:  ## Clean the {bin,pkg} directory
+	$(call target)
 	${RM} -r ./bin *.out *.prof
 
 
 .PHONY: docker
 docker: docker.test  ## Run the docker container test on Linux
+	$(call target)
 
 .PHONY: docker.build
 docker.build:  ## Build the zchee/nvim-go docker container for testing on the Linux
+	$(call target)
 	docker build --rm -t ${USER}/${APP} .
 
 .PHONY: docker.build-nocache
 docker.build-nocache:  ## Build the zchee/nvim-go docker container for testing on the Linux without cache
+	$(call target)
 	docker build --rm --no-cache -t ${USER}/${APP} .
 
 .PHONY: docker.test
 docker.test: docker-build  ## Run the package test with docker container
+	$(call target)
 	docker run --rm -it ${USER}/${APP} go test -v ${GO_TEST_FLAGS} ${PACKAGES}
 
 
