@@ -88,7 +88,7 @@ ignored = ["golang.org/x/tools/cmd/guru"]
 
 [[override]]
   name = "golang.org/x/arch"
-  revision = "58ea1a195b1a354bcd572b7ef6bbbd264dc63732"
+  revision = "f40095975f84d35d3958310c8247b9fb5a17fcb5"
 
 [[override]]
   name = "golang.org/x/debug"

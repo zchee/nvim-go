@@ -343,11 +343,16 @@
   revision = "1f8c4cad1e0417712b7d9f130a17b11eba6c8317"
 
 [[projects]]
-  digest = "1:a1d8f6eaf9da2260f5acafc73c6ca46e3d93012c9a6498034f60f99c7ccecfe9"
+  digest = "1:4d1e3eab30fdedeacb12be02b07b6cbe982e76df328a17f9f075307c5e48c0a9"
   name = "golang.org/x/arch"
-  packages = ["x86/x86asm"]
+  packages = [
+    "arm/armasm",
+    "arm64/arm64asm",
+    "ppc64/ppc64asm",
+    "x86/x86asm",
+  ]
   pruneopts = "NUT"
-  revision = "58ea1a195b1a354bcd572b7ef6bbbd264dc63732"
+  revision = "f40095975f84d35d3958310c8247b9fb5a17fcb5"
 
 [[projects]]
   digest = "1:05a5df914fa7a9866697148189df34417bb06734b435bf6d315a1f50c9a901de"
