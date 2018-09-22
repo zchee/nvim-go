@@ -83,7 +83,7 @@ func (c *Command) Build(ctx context.Context, args []string, bang bool, eval *Cmd
 
 	if buildErr := cmd.Run(); buildErr != nil {
 		if err, ok := buildErr.(*exec.ExitError); ok && err != nil {
-			errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.buildContext.Build, nil)
+			errlist, err := nvimutil.ParseError(ctx, stderr.Bytes(), eval.Cwd, &c.buildContext.Build, nil)
 			if err != nil {
 				span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 				return errors.WithStack(err)

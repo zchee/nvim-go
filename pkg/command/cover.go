@@ -85,7 +85,7 @@ func (c *Command) cover(ctx context.Context, eval *cmdCoverEval) interface{} {
 	cmd.Stdout = &stdout
 
 	if coverErr := cmd.Run(); coverErr != nil && coverErr.(*exec.ExitError) != nil {
-		errlist, err := nvimutil.ParseError(stdout.Bytes(), filepath.Dir(eval.File), &c.buildContext.Build, nil)
+		errlist, err := nvimutil.ParseError(ctx, stdout.Bytes(), filepath.Dir(eval.File), &c.buildContext.Build, nil)
 		if err != nil {
 			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)

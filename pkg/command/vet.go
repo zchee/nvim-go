@@ -101,7 +101,7 @@ func (c *Command) Vet(ctx context.Context, args []string, eval *CmdVetEval) inte
 
 	vetErr := vetCmd.Run()
 	if vetErr != nil {
-		errlist, err := nvimutil.ParseError(stderr.Bytes(), eval.Cwd, &c.buildContext.Build, config.GoVetIgnore)
+		errlist, err := nvimutil.ParseError(ctx, stderr.Bytes(), eval.Cwd, &c.buildContext.Build, config.GoVetIgnore)
 		if err != nil {
 			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 			return errors.WithStack(err)

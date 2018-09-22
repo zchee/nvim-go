@@ -122,7 +122,7 @@ func (c *Command) Rename(ctx context.Context, args []string, bang bool, eval *cm
 			return errors.WithStack(err)
 		}
 
-		loclist, _ := nvimutil.ParseError(renameErr, eval.Cwd, &c.buildContext.Build, nil)
+		loclist, _ := nvimutil.ParseError(ctx, renameErr, eval.Cwd, &c.buildContext.Build, nil)
 		nvimutil.SetLoclist(c.Nvim, loclist)
 		nvimutil.OpenLoclist(c.Nvim, w, loclist, true)
 
