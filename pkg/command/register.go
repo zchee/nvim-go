@@ -17,22 +17,22 @@ import (
 func Register(ctx context.Context, p *plugin.Plugin, bctxt *buildctxt.Context) *Command {
 	c := NewCommand(ctx, p.Nvim, bctxt)
 
-	// Register command and function
-	// CommandOptions order: Name, NArgs, Range, Count, Addr, Bang, Register, Eval, Bar, Complete
-	p.HandleCommand(&plugin.CommandOptions{Name: "Gobuild", NArgs: "*", Bang: true, Eval: "[getcwd(), expand('%:p')]"}, c.cmdBuild)
+	// CommandOptions order:
+	//  Name, NArgs, Range, Count, Addr, Bang, Register, Eval, Bar, Complete
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoBuild", NArgs: "*", Bang: true, Eval: "[getcwd(), expand('%:p')]"}, c.cmdBuild)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoCover", Eval: "[getcwd(), expand('%:p')]"}, c.cmdCover)
-	p.HandleCommand(&plugin.CommandOptions{Name: "Gofmt", Eval: "expand('%:p:h')"}, c.cmdFmt)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoFmt", Eval: "expand('%:p:h')"}, c.cmdFmt)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoGenerateTest", NArgs: "*", Range: "%", Addr: "line", Bang: true, Eval: "expand('%:p:h')", Complete: "file"}, c.cmdGenerateTest)
 	p.HandleFunction(&plugin.FunctionOptions{Name: "GoGuru", Eval: "[getcwd(), expand('%:p'), &modified, line2byte(line('.')) + (col('.')-2)]"}, c.funcGuru)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoIferr", Eval: "expand('%:p')"}, c.cmdIferr)
-	p.HandleCommand(&plugin.CommandOptions{Name: "Golint", NArgs: "?", Eval: "expand('%:p')", Complete: "customlist,GoLintCompletion"}, c.cmdLint)
-	p.HandleCommand(&plugin.CommandOptions{Name: "Gometalinter", Eval: "getcwd()"}, c.cmdMetalinter)
-	p.HandleCommand(&plugin.CommandOptions{Name: "Gorename", NArgs: "?", Bang: true, Eval: "[getcwd(), expand('%:p'), expand('<cword>')]"}, c.cmdRename)
-	p.HandleCommand(&plugin.CommandOptions{Name: "Gorun", NArgs: "*", Eval: "expand('%:p')"}, c.cmdRun)
-	p.HandleCommand(&plugin.CommandOptions{Name: "GorunLast", Eval: "expand('%:p')"}, c.cmdRunLast)
-	p.HandleCommand(&plugin.CommandOptions{Name: "Gotest", NArgs: "*", Eval: "expand('%:p:h')"}, c.cmdTest)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoLint", NArgs: "?", Eval: "expand('%:p')", Complete: "customlist,GoLintCompletion"}, c.cmdLint)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoMetalinter", Eval: "getcwd()"}, c.cmdMetalinter)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoRename", NArgs: "?", Bang: true, Eval: "[getcwd(), expand('%:p'), expand('<cword>')]"}, c.cmdRename)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoRun", NArgs: "*", Eval: "expand('%:p')"}, c.cmdRun)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoRunLast", Eval: "expand('%:p')"}, c.cmdRunLast)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoTest", NArgs: "*", Eval: "expand('%:p:h')"}, c.cmdTest)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoSwitchTest", Eval: "[getcwd(), expand('%:p'), line2byte(line('.')) + (col('.')-2)]"}, c.cmdSwitchTest)
-	p.HandleCommand(&plugin.CommandOptions{Name: "Govet", NArgs: "*", Eval: "[getcwd(), expand('%:p')]", Complete: "customlist,GoVetCompletion"}, c.cmdVet)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoVet", NArgs: "*", Eval: "[getcwd(), expand('%:p')]", Complete: "customlist,GoVetCompletion"}, c.cmdVet)
 
 	// Commnad completion
 	p.HandleFunction(&plugin.FunctionOptions{Name: "GoLintCompletion", Eval: "getcwd()"}, c.cmdLintComplete) // list the file, directory and go packages

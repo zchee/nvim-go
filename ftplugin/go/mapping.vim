@@ -2,7 +2,7 @@
 nnoremap <silent><Plug>(nvim-go-analyzeview)  :<C-u>GoAnalyzeView<CR>
 
 " GoBuild
-nnoremap <silent><Plug>(nvim-go-build)  :<C-u>Gobuild<CR>
+nnoremap <silent><Plug>(nvim-go-build)  :<C-u>GoBuild<CR>
 
 " GoGenerate
 nnoremap <silent><Plug>(nvim-go-generatetest)   :<C-u>GoGenerateTest<CR>
@@ -24,24 +24,24 @@ nnoremap <silent><Plug>(nvim-go-whicherrs)     :<C-u>call GoGuru('whicherrs')<CR
 nnoremap <silent><Plug>(nvim-go-iferr)  :<C-u>GoIferr<CR>
 
 " GoLint
-nnoremap <silent><Plug>(nvim-go-lint)  :<C-u>Golint<CR>
+nnoremap <silent><Plug>(nvim-go-lint)  :<C-u>GoLint<CR>
 
 " GoMetaLinker
-nnoremap <silent><Plug>(nvim-go-metalinter)  :<C-u>Gometalinter<CR>
+nnoremap <silent><Plug>(nvim-go-metalinter)  :<C-u>GoMetalinter<CR>
 
 " GoTest
-nnoremap <silent><Plug>(nvim-go-test)         :<C-u>Gotest<CR>
+nnoremap <silent><Plug>(nvim-go-test)         :<C-u>GoTest<CR>
 nnoremap <silent><Plug>(nvim-go-switch-test)  :<C-u>GoSwitchTest<CR>
 
 " GoRename
-nnoremap <silent><Plug>(nvim-go-rename)  :<C-u>Gorename<CR>
+nnoremap <silent><Plug>(nvim-go-rename)  :<C-u>GoRename<CR>
 
 " GoRun
-nnoremap <silent><Plug>(nvim-go-run)      :<C-u>Gorun<CR>
-nnoremap <silent><Plug>(nvim-go-runlast)  :<C-u>GorunLast<CR>
+nnoremap <silent><Plug>(nvim-go-run)      :<C-u>GoRun<CR>
+nnoremap <silent><Plug>(nvim-go-runlast)  :<C-u>GoRunLast<CR>
 
 " GoVet
-nnoremap <silent><Plug>(nvim-go-vet)  :<C-u>Govet<CR>
+nnoremap <silent><Plug>(nvim-go-vet)  :<C-u>GoVet<CR>
 
 
 " Dlv
