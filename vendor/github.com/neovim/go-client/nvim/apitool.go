@@ -305,6 +305,7 @@ var nvimTypes = map[string]string{
 	"int":           "Integer",
 	"interface{}":   "Object",
 	"string":        "String",
+	"Process":       "Object",
 
 	"map[string]interface{}": "Dictionary",
 	"map[string]int":         "Dictionary",
@@ -321,6 +322,8 @@ var nvimTypes = map[string]string{
 	"*Channel":   "Dictionary",
 	"[]*Channel": "Array",
 	"[]*Mapping": "ArrayOf(Dictionary)",
+	"[]*Process": "Array",
+	"[]*UI":      "Array",
 }
 
 func convertToNvimTypes(f *Function) *Function {

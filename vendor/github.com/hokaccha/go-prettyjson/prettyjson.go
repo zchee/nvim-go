@@ -2,6 +2,7 @@
 package prettyjson
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -28,7 +29,8 @@ type Formatter struct {
 	// JSON null value color. Default is `color.New(color.FgBlack, color.Bold)`.
 	NullColor *color.Color
 
-	// Max length of JSON string value. When the value is 1 and over, string is truncated to length of the value. Default is 0 (not truncated).
+	// Max length of JSON string value. When the value is 1 and over, string is truncated to length of the value.
+	// Default is 0 (not truncated).
 	StringMaxLength int
 
 	// Boolean to disable color. Default is false.
@@ -36,6 +38,9 @@ type Formatter struct {
 
 	// Indent space number. Default is 2.
 	Indent int
+
+	// Newline string. To print without new lines set it to empty string. Default is \n.
+	Newline string
 }
 
 // NewFormatter returns a new formatter with following default values.
@@ -49,13 +54,13 @@ func NewFormatter() *Formatter {
 		StringMaxLength: 0,
 		DisabledColor:   false,
 		Indent:          2,
+		Newline:         "\n",
 	}
 }
 
-// Marshals and formats JSON data.
+// Marshal marshals and formats JSON data.
 func (f *Formatter) Marshal(v interface{}) ([]byte, error) {
 	data, err := json.Marshal(v)
-
 	if err != nil {
 		return nil, err
 	}
@@ -63,34 +68,28 @@ func (f *Formatter) Marshal(v interface{}) ([]byte, error) {
 	return f.Format(data)
 }
 
-// Formats JSON string.
+// Format formats JSON string.
 func (f *Formatter) Format(data []byte) ([]byte, error) {
 	var v interface{}
-	err := json.Unmarshal(data, &v)
-
-	if err != nil {
+	if err := json.Unmarshal(data, &v); err != nil {
 		return nil, err
 	}
 
-	s := f.pretty(v, 1)
-
-	return []byte(s), nil
+	return []byte(f.pretty(v, 1)), nil
 }
 
 func (f *Formatter) sprintfColor(c *color.Color, format string, args ...interface{}) string {
 	if f.DisabledColor || c == nil {
 		return fmt.Sprintf(format, args...)
-	} else {
-		return c.SprintfFunc()(format, args...)
 	}
+	return c.SprintfFunc()(format, args...)
 }
 
 func (f *Formatter) sprintColor(c *color.Color, s string) string {
 	if f.DisabledColor || c == nil {
 		return fmt.Sprint(s)
-	} else {
-		return c.SprintFunc()(s)
 	}
+	return c.SprintFunc()(s)
 }
 
 func (f *Formatter) pretty(v interface{}, depth int) string {
@@ -114,27 +113,31 @@ func (f *Formatter) pretty(v interface{}, depth int) string {
 
 func (f *Formatter) processString(s string) string {
 	r := []rune(s)
-
 	if f.StringMaxLength != 0 && len(r) >= f.StringMaxLength {
 		s = string(r[0:f.StringMaxLength]) + "..."
 	}
 
-	b, _ := json.Marshal(s)
+	buf := &bytes.Buffer{}
+	encoder := json.NewEncoder(buf)
+	encoder.SetEscapeHTML(false)
+	encoder.Encode(s)
+	s = string(buf.Bytes())
+	s = strings.TrimSuffix(s, "\n")
 
-	return f.sprintColor(f.StringColor, string(b))
+	return f.sprintColor(f.StringColor, s)
 }
 
 func (f *Formatter) processMap(m map[string]interface{}, depth int) string {
+	if len(m) == 0 {
+		return "{}"
+	}
+
 	currentIndent := f.generateIndent(depth - 1)
 	nextIndent := f.generateIndent(depth)
 	rows := []string{}
 	keys := []string{}
 
-	if len(m) == 0 {
-		return "{}"
-	}
-
-	for key, _ := range m {
+	for key := range m {
 		keys = append(keys, key)
 	}
 
@@ -144,33 +147,37 @@ func (f *Formatter) processMap(m map[string]interface{}, depth int) string {
 		val := m[key]
 		k := f.sprintfColor(f.KeyColor, `"%s"`, key)
 		v := f.pretty(val, depth+1)
-		row := fmt.Sprintf("%s%s: %s", nextIndent, k, v)
+
+		valueIndent := " "
+		if f.Newline == "" {
+			valueIndent = ""
+		}
+		row := fmt.Sprintf("%s%s:%s%s", nextIndent, k, valueIndent, v)
 		rows = append(rows, row)
 	}
 
-	return fmt.Sprintf("{\n%s\n%s}", strings.Join(rows, ",\n"), currentIndent)
+	return fmt.Sprintf("{%s%s%s%s}", f.Newline, strings.Join(rows, ","+f.Newline), f.Newline, currentIndent)
 }
 
 func (f *Formatter) processArray(a []interface{}, depth int) string {
-	currentIndent := f.generateIndent(depth - 1)
-	nextIndent := f.generateIndent(depth)
-	rows := []string{}
-
 	if len(a) == 0 {
 		return "[]"
 	}
+
+	currentIndent := f.generateIndent(depth - 1)
+	nextIndent := f.generateIndent(depth)
+	rows := []string{}
 
 	for _, val := range a {
 		c := f.pretty(val, depth+1)
 		row := nextIndent + c
 		rows = append(rows, row)
 	}
-
-	return fmt.Sprintf("[\n%s\n%s]", strings.Join(rows, ",\n"), currentIndent)
+	return fmt.Sprintf("[%s%s%s%s]", f.Newline, strings.Join(rows, ","+f.Newline), f.Newline, currentIndent)
 }
 
 func (f *Formatter) generateIndent(depth int) string {
-	return strings.Join(make([]string, f.Indent*depth+1), " ")
+	return strings.Repeat(" ", f.Indent*depth)
 }
 
 // Marshal JSON data with default options.
