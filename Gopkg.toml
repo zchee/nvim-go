@@ -21,7 +21,7 @@ ignored = ["golang.org/x/tools/cmd/guru"]
 
 [[constraint]]
   name = "go.opencensus.io"
-  version = "0.15.0"
+  version = ">=0.15.0"
 
 # constraint:master
 [[constraint]]
@@ -76,6 +76,10 @@ ignored = ["golang.org/x/tools/cmd/guru"]
   name = "github.com/lestrrat-go/config"
   branch = "master"
 
+[[constraint]]
+  name = "github.com/haya14busa/errorformat"
+  branch = "master"
+
 # override
 [[override]]
   name = "go.uber.org/multierr"
@@ -97,7 +101,3 @@ ignored = ["golang.org/x/tools/cmd/guru"]
 [[override]]
   name = "golang.org/x/sys"
   revision = "f3918c30c5c2cb527c0b071a27c35120a6c0719a"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/haya14busa/errorformat"
