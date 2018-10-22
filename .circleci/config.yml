@@ -14,7 +14,7 @@ jobs:
           name: Install nvim binary
           command: |
             set -eux
-            wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xzf - --strip-components=1 -C "/usr/local"
+            wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xf - --strip-components=1 -C '/usr/local'
             nvim --version
       - run:
           name: Install go dependencies tools
@@ -49,7 +49,7 @@ jobs:
           name: Install nvim binary
           command: |
             set -eux
-            curl -SO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz | tar xzf - --strip-components=1 -C "/usr/local"
+            curl -SL https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz | tar xf - --strip-components=1 -C '/usr/local'
             nvim --version
       - run:
           name: install latest go
