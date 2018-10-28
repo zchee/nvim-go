@@ -48,7 +48,7 @@ const (
 	opencensusTaskKey         = "opencensus_task"
 	opencensusTaskDescription = "Opencensus task identifier"
 	defaultDisplayNamePrefix  = "OpenCensus"
-	version                   = "0.7.0"
+	version                   = "0.8.0"
 )
 
 var userAgent = fmt.Sprintf("opencensus-go %s; stackdriver-exporter %s", opencensus.Version(), version)
@@ -87,6 +87,7 @@ func newStatsExporter(o Options) (*statsExporter, error) {
 		o:            o,
 		createdViews: make(map[string]*metricpb.MetricDescriptor),
 	}
+
 	if o.DefaultMonitoringLabels != nil {
 		e.defaultLabels = o.DefaultMonitoringLabels.m
 	} else {
@@ -105,6 +106,21 @@ func newStatsExporter(o Options) (*statsExporter, error) {
 		e.bundler.BundleCountThreshold = e.o.BundleCountThreshold
 	}
 	return e, nil
+}
+
+func (e *statsExporter) getMonitoredResource(v *view.View, tags []tag.Tag) ([]tag.Tag, *monitoredrespb.MonitoredResource) {
+	if get := e.o.GetMonitoredResource; get != nil {
+		newTags, mr := get(v, tags)
+		return newTags, convertMonitoredResourceToPB(mr)
+	} else {
+		resource := e.o.Resource
+		if resource == nil {
+			resource = &monitoredrespb.MonitoredResource{
+				Type: "global",
+			}
+		}
+		return tags, resource
+	}
 }
 
 // ExportView exports to the Stackdriver Monitoring if view data
@@ -177,20 +193,13 @@ func (e *statsExporter) uploadStats(vds []*view.Data) error {
 func (e *statsExporter) makeReq(vds []*view.Data, limit int) []*monitoringpb.CreateTimeSeriesRequest {
 	var reqs []*monitoringpb.CreateTimeSeriesRequest
 	var timeSeries []*monitoringpb.TimeSeries
-
-	resource := e.o.Resource
-	if resource == nil {
-		resource = &monitoredrespb.MonitoredResource{
-			Type: "global",
-		}
-	}
-
 	for _, vd := range vds {
 		for _, row := range vd.Rows {
+			tags, resource := e.getMonitoredResource(vd.View, append([]tag.Tag(nil), row.Tags...))
 			ts := &monitoringpb.TimeSeries{
 				Metric: &metricpb.Metric{
-					Type:   namespacedViewName(vd.View.Name),
-					Labels: newLabels(e.defaultLabels, row.Tags),
+					Type:   e.metricType(vd.View),
+					Labels: newLabels(e.defaultLabels, tags),
 				},
 				Resource: resource,
 				Points:   []*monitoringpb.Point{newPoint(vd.View, row, vd.Start, vd.End)},
@@ -230,7 +239,7 @@ func (e *statsExporter) createMeasure(ctx context.Context, v *view.View) error {
 		return e.equalMeasureAggTagKeys(md, m, agg, tagKeys)
 	}
 
-	metricType := namespacedViewName(viewName)
+	metricType := e.metricType(v)
 	var valueType metricpb.MetricDescriptor_ValueType
 	unit := m.Unit()
 	// Default metric Kind
@@ -263,16 +272,22 @@ func (e *statsExporter) createMeasure(ctx context.Context, v *view.View) error {
 		return fmt.Errorf("unsupported aggregation type: %s", agg.Type.String())
 	}
 
-	displayNamePrefix := defaultDisplayNamePrefix
-	if e.o.MetricPrefix != "" {
-		displayNamePrefix = e.o.MetricPrefix
+	var displayName string
+	if e.o.GetMetricDisplayName == nil {
+		displayNamePrefix := defaultDisplayNamePrefix
+		if e.o.MetricPrefix != "" {
+			displayNamePrefix = e.o.MetricPrefix
+		}
+		displayName = path.Join(displayNamePrefix, viewName)
+	} else {
+		displayName = e.o.GetMetricDisplayName(v)
 	}
 
 	md, err := createMetricDescriptor(ctx, e.c, &monitoringpb.CreateMetricDescriptorRequest{
 		Name: fmt.Sprintf("projects/%s", e.o.ProjectID),
 		MetricDescriptor: &metricpb.MetricDescriptor{
 			Name:        fmt.Sprintf("projects/%s/metricDescriptors/%s", e.o.ProjectID, metricType),
-			DisplayName: path.Join(displayNamePrefix, viewName),
+			DisplayName: displayName,
 			Description: v.Description,
 			Unit:        unit,
 			Type:        metricType,
@@ -380,8 +395,12 @@ func newTypedValue(vd *view.View, r *view.Row) *monitoringpb.TypedValue {
 	return nil
 }
 
-func namespacedViewName(v string) string {
-	return path.Join("custom.googleapis.com", "opencensus", v)
+func (e *statsExporter) metricType(v *view.View) string {
+	if formatter := e.o.GetMetricType; formatter != nil {
+		return formatter(v)
+	} else {
+		return path.Join("custom.googleapis.com", "opencensus", v.Name)
+	}
 }
 
 func newLabels(defaults map[string]labelValue, tags []tag.Tag) map[string]string {
