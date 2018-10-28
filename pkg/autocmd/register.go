@@ -52,5 +52,5 @@ func Register(pctx context.Context, cancel func(), p *plugin.Plugin, buildContex
 	// Handle the after the write to file.
 	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.bufWritePost)
 
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimLeavePre", Pattern: "*", Group: "nvim-go"}, autocmd.VimLeavePre)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimLeavePre", Pattern: "*.go", Group: "nvim-go"}, autocmd.VimLeavePre)
 }
