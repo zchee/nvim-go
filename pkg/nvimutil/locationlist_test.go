@@ -5,6 +5,7 @@
 package nvimutil
 
 import (
+	"context"
 	"go/build"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"github.com/neovim/go-client/nvim"
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
+	"github.com/zchee/nvim-go/pkg/testutil"
 )
 
 func TestSplitPos(t *testing.T) {
@@ -272,7 +274,7 @@ cmd/relative/main.go:10:14: undefined: relative.B`),
 			build.Default = *bctx
 			defer fn()
 
-			got, err := ParseError(tt.args.errors, tt.args.cwd, tt.args.buildContext, nil)
+			got, err := ParseError(testutil.TestContext(t, context.Background()), tt.args.errors, tt.args.cwd, tt.args.buildContext, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%q. ParseError(%v, %v, %v) error = %v, wantErr %v", tt.name, string(tt.args.errors), tt.args.cwd, tt.args.buildContext, err, tt.wantErr)
 				return
