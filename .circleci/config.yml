@@ -4,7 +4,7 @@ defaults: &defaults
   working_directory: /go/src/github.com/zchee/nvim-go
 
 jobs:
-  build-linux:
+  linux:
     docker:
       - image: golang:1.11.1-stretch
     <<: *defaults
@@ -30,11 +30,11 @@ jobs:
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
-            bash <(curl -s https://codecov.io/bash) -Z
+            bash <(curl -s https://codecov.io/bash) -Z -F linux
       - store_test_results:
           path: test-results
 
-  build-macos:
+  macos:
     macos:
       xcode: "10.0.0"
     environment:
@@ -78,7 +78,7 @@ jobs:
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
-            bash <(curl -s https://codecov.io/bash) -Z
+            bash <(curl -s https://codecov.io/bash) -Z -F darwin
       - store_test_results:
           path: test-results
 
@@ -98,9 +98,9 @@ workflows:
   version: 2
   build-workflow:
     jobs:
-      - build-linux:
+      - linux:
           context: org-global
-      - build-macos:
+      - macos:
           context: org-global
       - reviewdog:
           context: org-global
