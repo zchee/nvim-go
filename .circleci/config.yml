@@ -6,7 +6,7 @@ defaults: &defaults
 jobs:
   build-linux:
     docker:
-      - image: golang:1.11.0-stretch
+      - image: golang:1.11.1-stretch
     <<: *defaults
     steps:
       - checkout
@@ -84,7 +84,7 @@ jobs:
 
   reviewdog:
     docker:
-      - image: golang:1.11.0-stretch
+      - image: golang:1.11.1-stretch
     <<: *defaults
     steps:
       - checkout
