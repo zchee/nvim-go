@@ -14,7 +14,7 @@ jobs:
           name: Install nvim binary
           command: |
             set -eux
-            wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xf - --strip-components=1 -C '/usr/local'
+            wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xfz - --strip-components=1 -C '/usr/local'
             nvim --version
       - run:
           name: Install go dependencies tools
@@ -49,12 +49,13 @@ jobs:
           name: Install nvim binary
           command: |
             set -eux
-            curl -SL https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz | tar xf - --strip-components=1 -C '/usr/local'
+            mkdir -p /usr/loal/libs
+            curl -SL https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz | tar xfz - --strip-components=1 -C '/usr/local'
             nvim --version
       - run:
           name: install latest go
           command: |
-            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb || true
+            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb || brew upgrade https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb || true
       - run:
           name: show versions
           command: |
