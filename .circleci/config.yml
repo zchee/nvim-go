@@ -49,9 +49,8 @@ jobs:
           name: Install nvim binary
           command: |
             set -eux
-            mkdir -p /usr/loal/libs
-            curl -SL https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz | tar xfz - --strip-components=1 -C '/usr/local'
-            nvim --version
+            sudo mkdir -p /usr/local/libs
+            curl -SL https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz | sudo tar xfz - --strip-components=1 -C '/usr/local'
       - run:
           name: install latest go
           command: |
@@ -63,6 +62,7 @@ jobs:
             sw_vers
             xcodebuild -version
             system_profiler SPHardwareDataType
+            nvim --version
             go version
       - run:
           name: "Install go dependencies tools"
