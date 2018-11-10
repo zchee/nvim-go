@@ -17,8 +17,10 @@ GIT_COMMIT := $(shell git rev-parse --short HEAD)
 SHELL := /usr/bin/env bash
 CC := clang  # need compile cgo for delve
 CXX := clang++
-GO_LDFLAGS ?= -X=main.tag=$(GIT_TAG) -X=main.gitCommit=$(GIT_COMMIT)
 GO_GCFLAGS ?=
+GO_GCFLAGS_BASE=
+GO_LDFLAGS ?=
+GO_LDFLAGS_BASE=-X=main.tag=$(GIT_TAG) -X=main.gitCommit=$(GIT_COMMIT)
 CGO_CFLAGS ?=
 CGO_CPPFLAGS ?=
 CGO_CXXFLAGS ?=
@@ -28,16 +30,29 @@ CGO_LDFLAGS ?=
 # build and test flags
 
 GO_TEST ?= go test
-GO_BUILD_FLAGS ?=
+GO_BUILD_TAGS ?= osusergo
+GO_BUILD_FLAGS ?= -tags "$(GO_BUILD_TAGS)"
 GO_TEST_FUNCS ?= .
 GO_TEST_FLAGS ?= -race -run=$(GO_TEST_FUNCS)
 GO_BENCH_FUNCS ?= .
 GO_BENCH_FLAGS ?= -bench=${GO_BENCH_FUNCS} -benchmem
 
 ifneq ($(NVIM_GO_DEBUG),)
-GO_GCFLAGS+=all="-N -l -dwarflocationlists=true"  # https://tip.golang.org/doc/diagnostics.html#debugging
+GO_GCFLAGS_BASE+=all="-N -l -dwarflocationlists=true"  # https://tip.golang.org/doc/diagnostics.html#debugging
+GO_LDFLAGS_BASE+=-compressdwarf=false
 else
+GO_BUILD_TAGS+=netgo
+GO_BUILD_FLAGS+=-installsuffix netgo
+GO_GCFLAGS_BASE+=-lang=go1.12
 GO_LDFLAGS+=-w -s
+endif
+
+ifneq ($(GO_GCFLAGS_BASE),)
+GO_GCFLAGS=-gcflags="$(strip ${GO_GCFLAGS_BASE})"
+endif
+
+ifneq ($(GO_LDFLAGS_BASE),)
+GO_LDFLAGS=-ldflags="$(strip ${GO_LDFLAGS_BASE})"
 endif
 
 # ----------------------------------------------------------------------------
@@ -64,7 +79,7 @@ init:  ## Install dependency tools
 .PHONY: build
 build:  ## Build the nvim-go binary
 	$(call target)
-	go build -v -o ./bin/${APP} $(strip ${GO_BUILD_FLAGS}) -gcflags=$(strip ${GO_GCFLAGS}) -ldflags="$(strip ${GO_LDFLAGS})" ./cmd/nvim-go
+	go build -v -o ./bin/${APP} $(strip ${GO_BUILD_FLAGS}) $(strip ${GO_GCFLAGS}) $(strip ${GO_LDFLAGS}) ./cmd/${APP}
 
 .PHONY: build.race
 build.race: GO_BUILD_FLAGS+=-race
