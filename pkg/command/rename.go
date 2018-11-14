@@ -15,9 +15,11 @@ import (
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
+	"go.uber.org/zap"
 	"golang.org/x/tools/refactor/rename"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -105,19 +107,26 @@ func (c *Command) Rename(ctx context.Context, args []string, bang bool, eval *cm
 	// TODO(zchee): More elegant way
 	// save original stdout and stderr
 	saveStdout, saveStderr := os.Stdout, os.Stderr
-	read, write, _ := os.Pipe()
-	// migrate stderr and stdout
+	rd, wd, err := os.Pipe()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	// migrate and stderr and stdout
 	os.Stderr = os.Stdout
-	os.Stderr = write
+	os.Stderr = wd
 	defer func() {
 		os.Stderr = saveStdout
 		os.Stderr = saveStderr
 	}()
 
+	bctxt := &build.Default
+	logger.FromContext(ctx).Debug("Rename", zap.String("bctxt.GOROOT", bctxt.GOROOT), zap.String("bctxt.GOPATH", bctxt.GOPATH))
+
 	// TODO(zchee): reached race limit, dying when race build
-	if err := rename.Main(&build.Default, pos, "", renameTo); err != nil {
-		write.Close()
-		renameErr, err := ioutil.ReadAll(read)
+	if err = rename.Main(bctxt, pos, "", renameTo); err != nil {
+		wd.Close()
+		renameErr, err := ioutil.ReadAll(rd)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -129,8 +138,11 @@ func (c *Command) Rename(ctx context.Context, args []string, bang bool, eval *cm
 		return loclist
 	}
 
-	write.Close()
-	out, _ := ioutil.ReadAll(read)
+	wd.Close()
+	out, err := ioutil.ReadAll(rd)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	defer nvimutil.EchoSuccess(c.Nvim, pkgRename, fmt.Sprintf("%s", out))
 
 	// TODO(zchee): 'edit' command is ugly.
