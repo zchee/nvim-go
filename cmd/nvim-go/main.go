@@ -15,6 +15,7 @@ import (
 	"syscall"
 
 	"cloud.google.com/go/errorreporting"
+	"cloud.google.com/go/profiler"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
@@ -54,7 +55,7 @@ func main() {
 		return
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(Context())
 	defer cancel()
 
 	if *pluginHost != "" {
@@ -77,10 +78,7 @@ func main() {
 		return
 	}
 
-	env, err := config.Process()
-	if err != nil {
-		logpkg.Fatalf("env.Process: %+v", err)
-	}
+	env := config.Process()
 
 	var lv zapcore.Level
 	if err := lv.UnmarshalText([]byte(env.LogLevel)); err != nil {
@@ -89,21 +87,26 @@ func main() {
 	zapLogger, undo := logger.NewRedirectZapLogger(lv)
 	defer undo()
 	ctx = logger.NewContext(ctx, zapLogger)
-	ctx = trace.NewContext(ctx, &trace.Span{}) // add empty span context
+	// ctx = trace.NewContext(ctx, &trace.Span{}) // add empty span context
 
-	if gcpProjectID := env.GCPProjectID; gcpProjectID != "" {
+	if config.HasGCPProjectID() {
+		gcpProjectID := env.GCPProjectID
+		trace.ApplyConfig(trace.Config{
+			DefaultSampler: trace.AlwaysSample(),
+		})
+
 		// Stackdriver Profiler
-		// profCfg := profiler.Config{
-		// 	Service:        appName,
-		// 	ServiceVersion: tag,
-		// 	MutexProfiling: true,
-		// 	ProjectID:      gcpProjectID,
-		// }
-		// if err := profiler.Start(profCfg); err != nil {
-		// 	logpkg.Fatalf("failed to start stackdriver profiler: %v", err)
-		// }
+		profConf := profiler.Config{
+			Service:        appName,
+			ServiceVersion: tag,
+			MutexProfiling: true,
+			ProjectID:      gcpProjectID,
+		}
+		if err := profiler.Start(profConf); err != nil {
+			logpkg.Fatalf("failed to start stackdriver profiler: %v", err)
+		}
 
-		// OpenCensus tracing
+		// OpenCensus tracing with Stackdriver exporter
 		sdOpts := stackdriver.Options{
 			ProjectID: gcpProjectID,
 			OnError: func(err error) {
@@ -118,32 +121,48 @@ func main() {
 		}
 		defer sd.Flush()
 		trace.RegisterExporter(sd)
-		trace.ApplyConfig(trace.Config{
-			DefaultSampler: trace.AlwaysSample(),
-		})
+		zapLogger.Debug("opencensus", zap.String("trace", "enabled Stackdriver exporter"))
 		view.RegisterExporter(sd)
+
+		// OpenCensus tracing with DataDog exporter
+		// dd := ddexp.NewExporter(ddexp.Options{
+		// 	Namespace: "zchee",
+		// 	Service:   "nvim-go",
+		// 	TraceAddr: "127.0.0.1:8126",
+		// 	StatsAddr: "127.0.0.1:8125",
+		// 	// StatsAddr: "unix:///var/run/dogstatsd/dsd.sock",
+		// 	OnError: func(err error) {
+		// 		zapLogger.Error("datadog exporter", zap.Error(err))
+		// 	},
+		// 	GlobalTags: map[string]interface{}{
+		// 		"environment": "development",
+		// 		"tag":         tag,
+		// 	},
+		// })
+		// trace.RegisterExporter(dd)
+		// zapLogger.Debug("opencensus", zap.String("trace", "enabled DataDog exporter"))
 
 		ctx, span := trace.StartSpan(ctx, "main") // start root span
 		defer span.End()
 
 		// Stackdriver Error Reporting
-		errReportCfg := errorreporting.Config{
+		errReportConf := errorreporting.Config{
 			ServiceName:    appName,
 			ServiceVersion: tag,
 			OnError: func(err error) {
 				zapLogger.Error("errorreporting", zap.Error(fmt.Errorf("could not log error: %v", err)))
 			},
 		}
-		errClient, err := errorreporting.NewClient(ctx, gcpProjectID, errReportCfg)
+		errClient, err := errorreporting.NewClient(ctx, gcpProjectID, errReportConf)
 		if err != nil {
 			logpkg.Fatalf("failed to create errorreporting client: %v", err)
 		}
 		defer errClient.Close()
 		ctx = context.WithValue(ctx, &errorreporting.Client{}, errClient)
+		zapLogger.Debug("stackdriver", zap.String("errorreporting", "enabled Stackdriver errorreporting"))
 	}
 
-	zapLogger.Info("starting "+appName+" server", zap.Object("env", env))
-
+	zapLogger.Info(fmt.Sprintf("starting %s server", appName), zap.Object("env", env))
 	eg := new(errgroup.Group)
 	eg, ctx = errgroup.WithContext(ctx)
 	eg.Go(func() error {
