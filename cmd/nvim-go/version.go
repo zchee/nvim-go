@@ -4,13 +4,13 @@
 
 package main
 
-// tag is version of merpay-gateway-jp.
+// tag is version of nvim-go.
 //
 // This is used for GCP profiler Sentry error reporting and so on. tag is overridden using
 // `-X main.tag` during release builds.
 var tag string
 
-// gitCommit is commit hash of merpay-gateway-jp.
+// gitCommit is commit hash of nvim-go.
 //
 // This is used for GCP profiler Sentry error reporting and so on. gitCommit is overridden using
 // `-X main.gitCommit` during release builds.
