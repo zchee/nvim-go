@@ -78,7 +78,9 @@ func newStatsExporter(o Options) (*statsExporter, error) {
 	}
 
 	opts := append(o.MonitoringClientOptions, option.WithUserAgent(userAgent))
-	client, err := monitoring.NewMetricClient(o.Context, opts...)
+	ctx, cancel := o.newContextWithTimeout()
+	defer cancel()
+	client, err := monitoring.NewMetricClient(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -167,8 +169,10 @@ func (e *statsExporter) Flush() {
 }
 
 func (e *statsExporter) uploadStats(vds []*view.Data) error {
+	ctx, cancel := e.o.newContextWithTimeout()
+	defer cancel()
 	ctx, span := trace.StartSpan(
-		e.o.Context,
+		ctx,
 		"contrib.go.opencensus.io/exporter/stackdriver.uploadStats",
 		trace.WithSampler(trace.NeverSample()),
 	)

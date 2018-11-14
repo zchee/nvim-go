@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:249b756679b9712d8940e2d2b11509e81f90f87831dc27df443773546b0aa8aa"
+  digest = "1:25f35fe472d803194b8354c74362f4d2cf8eb57f14eb3bd5b75282416954af5b"
   name = "cloud.google.com/go"
   packages = [
     "compute/metadata",
@@ -14,22 +14,22 @@
     "trace/apiv2",
   ]
   pruneopts = "NUT"
-  revision = "1fd54cf41e6e0e178ffe3c52b0e2260281f603e3"
-  version = "v0.32.0"
+  revision = "bb12be1742b232539b22ad8d0efc7afb02bbae39"
+  version = "v0.33.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:c36708793e406ad461fa7eea17b66709088672f60161397d2b25ed97f1e440f5"
+  digest = "1:b73244f6a5ab381f938bfd2d831c57eeea884b0fab333126cc175914ec82dec5"
   name = "contrib.go.opencensus.io/exporter/stackdriver"
   packages = [
     ".",
     "monitoredresource",
   ]
   pruneopts = "NUT"
-  revision = "65a75dfc67cb2100e2df6a2799a321ef8d259970"
+  revision = "2b7f4fc93daf5ec3048fa4fc1c15573466711a17"
 
 [[projects]]
-  digest = "1:393ad706b174ee141b9cbcc1dba2f5f9892ddc6c0653ca29f765a5283c6c557c"
+  digest = "1:2c0a70b5f8c21b5cad9db181eb92d715ffa559f9372c8bc132b317c04251f144"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -62,8 +62,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "cf00ea20983ce38df17ab0a0814463ab8838459f"
-  version = "v1.15.73"
+  revision = "ab1e4ad20b12ab0df8a825805de3e48ad6c59d28"
+  version = "v1.15.75"
 
 [[projects]]
   branch = "master"
@@ -112,14 +112,6 @@
   revision = "92dad944d7e0c1e0affb64d7a45e9ce8c5704fe5"
 
 [[projects]]
-  digest = "1:fcd865894ce87bcf6499e5d2db3526679e3ab1ae454f48070ebaf983efd20665"
-  name = "github.com/fatih/camelcase"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "44e46d280b43ec1531bb25252440e34f1b800b65"
-  version = "v1.0.0"
-
-[[projects]]
   branch = "master"
   digest = "1:ade392a843b2035effb4b4a2efa2c3bab3eb29b992e98bacf9c898b0ecb54e45"
   name = "github.com/fatih/color"
@@ -164,15 +156,15 @@
   name = "github.com/google/pprof"
   packages = ["profile"]
   pruneopts = "NUT"
-  revision = "fde099a545debf81bf2a96a0ec13d7da2c2a6663"
+  revision = "3950eec66bcbba269bb8bba7684ba5c29bb710a3"
 
 [[projects]]
-  digest = "1:fe852c57b4fc4d11e6ef79bce1e930ee2f2f7d148b370afef8f8d012a80960ea"
+  digest = "1:fb9f5147a9d6fc69057d05b0739bcd79562c55db143c3bdacfe1c9c6129461f6"
   name = "github.com/googleapis/gax-go"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "317e0006254c44a0ac427cc52a0e083ff0b9622f"
-  version = "v2.0.0"
+  revision = "b001040cd31805261cbd978842099e326dfa857b"
+  version = "v2.0.2"
 
 [[projects]]
   branch = "master"
@@ -199,22 +191,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f1c9e12ea8f23a1c67bdbf2d75f8660ad79ef76ac5339c2dfc18d2d4ac955228"
-  name = "github.com/lestrrat-go/config"
-  packages = [
-    "env",
-    "env/internal/structtag",
-  ]
-  pruneopts = "NUT"
-  revision = "356432950c1424cc75098192e334615987b44bec"
-
-[[projects]]
-  branch = "master"
-  digest = "1:b9c8c629d0a86a2a1e59620e4e85d1e1f6e5ffe1deb3b140c7bafcfea3b62ce5"
-  name = "github.com/lestrrat-go/pdebug"
+  digest = "1:d0e2ccec526fe3d27ee8a5304146afb0ea4c3d0dcad0aec1cdcd0a46bf7608d9"
+  name = "github.com/kelseyhightower/envconfig"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "39f9a71bcabe9432cbdfe4d3d33f41988acd2ce6"
+  revision = "dd1402a4d99de9ac2f396cd6fcb957bc2c695ec1"
 
 [[projects]]
   digest = "1:08c231ec84231a7e23d67e4b58f975e1423695a32467a362ee55a803f9de8061"
@@ -372,7 +353,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:980eaef0205e77a7f341c0b6cee4a2c356cf469c410e1f24765054f2ebb4f3dd"
+  digest = "1:82c792687e3b34cbc9c2ccc0bc10fe29d5011e85f6482d2737043bfb4a6160c3"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -385,7 +366,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "03003ca0c849e57b6ea29a4bab8d3cb6e4d568fe"
+  revision = "88d92db4c548972d942ac2a3531a8a9a34c82ca6"
 
 [[projects]]
   branch = "master"
@@ -448,7 +429,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9fdcca4d245970268394a06f1d600e22c42494099939cb71105bbec29b762bd3"
+  digest = "1:1c94bce921c90227746fbee25232012bb24d0143479671ccf88dd2b8e1288db1"
   name = "golang.org/x/tools"
   packages = [
     "cmd/guru/serial",
@@ -476,11 +457,11 @@
     "refactor/satisfy",
   ]
   pruneopts = "NUT"
-  revision = "92d8274bd7b8a4c65f24bafe401a029e58392704"
+  revision = "7e59e591a2617a3067db5fe2fe8e903b4c1b10cc"
 
 [[projects]]
   branch = "master"
-  digest = "1:ec68a80e3c4c42bd3701633154a7bdcc9a86783201a75ddd439327b77e4a671f"
+  digest = "1:abe7c89519ed2f514a5a9f795765439036094bcd6d25447c211c8b219a6cc251"
   name = "google.golang.org/api"
   packages = [
     "googleapi/transport",
@@ -494,7 +475,7 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "cfbc873f6b93790282bed8e31e7f7df417caee1b"
+  revision = "c5e41677a12edeac5437ebceb220505ec6b90669"
 
 [[projects]]
   digest = "1:b400989fa9ecf8f825e9092d41c9779444afeda5d5ce7f5c9d4a9ca9d05c949c"
@@ -598,7 +579,7 @@
     "github.com/google/go-cmp/cmp",
     "github.com/haya14busa/errorformat",
     "github.com/hokaccha/go-prettyjson",
-    "github.com/lestrrat-go/config/env",
+    "github.com/kelseyhightower/envconfig",
     "github.com/motemen/go-astmanip",
     "github.com/neovim/go-client/nvim",
     "github.com/neovim/go-client/nvim/plugin",
@@ -612,6 +593,7 @@
     "golang.org/x/lint",
     "golang.org/x/sync/errgroup",
     "golang.org/x/sync/syncmap",
+    "golang.org/x/sys/unix",
     "golang.org/x/tools/cmd/guru/serial",
     "golang.org/x/tools/cover",
     "golang.org/x/tools/go/ast/astutil",
