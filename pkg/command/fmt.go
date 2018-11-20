@@ -8,14 +8,17 @@ import (
 	"bytes"
 	"context"
 	"go/scanner"
+	"strings"
 	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
+	"go.uber.org/zap"
 	"golang.org/x/tools/imports"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -57,12 +60,12 @@ func (c *Command) cmdFmt(dir string) {
 // Fmt format to the current buffer source uses gofmt behavior.
 func (c *Command) Fmt(ctx context.Context, dir string) interface{} {
 	defer nvimutil.Profile(ctx, time.Now(), "Fmt")
-
-	ctx, span := trace.StartSpan(ctx, "Fmt")
+	span := trace.FromContext(ctx)
+	span.SetName("Fmt")
 	defer span.End()
 
 	b := nvim.Buffer(c.buildContext.BufNr)
-	in, err := c.Nvim.BufferLines(b, 0, -1, true)
+	data, err := c.Nvim.BufferLines(b, 0, -1, true)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -71,12 +74,18 @@ func (c *Command) Fmt(ctx context.Context, dir string) interface{} {
 	case "fmt":
 		importsOptions.FormatOnly = true
 	case "goimports":
-		// nothing to do
+		if locals := config.FmtGoImportsLocal; len(locals) > 0 {
+			imports.LocalPrefix = strings.Join(locals, ",")
+		}
 	default:
 		return errors.WithStack(errors.New("invalid value of go#fmt#mode option"))
 	}
+	logger.FromContext(ctx).Debug("Fmt",
+		zap.Any("importsOptions", importsOptions),
+		zap.String("imports.LocalPrefix", imports.LocalPrefix),
+	)
 
-	buf, formatErr := imports.Process("", nvimutil.ToByteSlice(in), &importsOptions)
+	buf, formatErr := imports.Process("", nvimutil.ToByteSlice(data), &importsOptions)
 	if formatErr != nil {
 		bufName, err := c.Nvim.BufferName(b)
 		if err != nil {
@@ -105,7 +114,7 @@ func (c *Command) Fmt(ctx context.Context, dir string) interface{} {
 	}
 
 	out := nvimutil.ToBufferLines(bytes.TrimSuffix(buf, []byte{'\n'}))
-	minUpdate(ctx, c.Nvim, b, in, out)
+	minUpdate(ctx, c.Nvim, b, data, out)
 
 	// TODO(zchee): When executed Fmt(itself) function at autocmd BufWritePre, vim "write"
 	// command will starting before the finish of the Fmt function because that function called
