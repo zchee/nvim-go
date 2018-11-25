@@ -14,22 +14,30 @@
     "trace/apiv2",
   ]
   pruneopts = "NUT"
-  revision = "bb12be1742b232539b22ad8d0efc7afb02bbae39"
-  version = "v0.33.0"
+  revision = "74b12019e2aa53ec27882158f59192d7cd6d1998"
+  version = "v0.33.1"
 
 [[projects]]
   branch = "master"
-  digest = "1:b73244f6a5ab381f938bfd2d831c57eeea884b0fab333126cc175914ec82dec5"
+  digest = "1:85d28f257179d9d312aa71646c44bd70488990b6b2e86fcd34297458add6b2d2"
+  name = "contrib.go.opencensus.io/exporter/ocagent"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "b8ece14a43f0cda76036504e4a4fd7fa27ce1869"
+
+[[projects]]
+  branch = "master"
+  digest = "1:b5f5089e3c919ed9f862c8b47eeb0af5c98c8b936af0b5e985e51d67f1adbb8a"
   name = "contrib.go.opencensus.io/exporter/stackdriver"
   packages = [
     ".",
     "monitoredresource",
   ]
   pruneopts = "NUT"
-  revision = "2b7f4fc93daf5ec3048fa4fc1c15573466711a17"
+  revision = "899e456273f5c46d23aef8f0c66e899d7d1e17f4"
 
 [[projects]]
-  digest = "1:2c0a70b5f8c21b5cad9db181eb92d715ffa559f9372c8bc132b317c04251f144"
+  digest = "1:880d85333fb2b7440537db5ed5cf22aa0a998a44b9e9551c5768ddebfd9bf6bc"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -62,8 +70,21 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "ab1e4ad20b12ab0df8a825805de3e48ad6c59d28"
-  version = "v1.15.75"
+  revision = "66af558c91f83a793b4a0101f70742062982f611"
+  version = "v1.15.81"
+
+[[projects]]
+  digest = "1:65b0d980b428a6ad4425f2df4cd5410edd81f044cf527bd1c345368444649e58"
+  name = "github.com/census-instrumentation/opencensus-proto"
+  packages = [
+    "gen-go/agent/common/v1",
+    "gen-go/agent/trace/v1",
+    "gen-go/resource/v1",
+    "gen-go/trace/v1",
+  ]
+  pruneopts = "NUT"
+  revision = "7f2434bc10da710debe5c4315ed6d4df454b4024"
+  version = "v0.1.0"
 
 [[projects]]
   branch = "master"
@@ -139,7 +160,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:65c38c337785971067ae7c822fa82f1381943cca8c6450fb03e1dafba86b69bf"
+  digest = "1:223930d9167ddfe6588371dfe80931c2885487e4dfbf443783e30d8cee24841e"
   name = "github.com/google/go-cmp"
   packages = [
     "cmp",
@@ -148,7 +169,7 @@
     "cmp/internal/value",
   ]
   pruneopts = "NUT"
-  revision = "745b8ec8378318d64f3f04949d010ee8d2fc71e2"
+  revision = "2248b49eaa8e1c8c0963ee77b40841adbc19d4ca"
 
 [[projects]]
   branch = "master"
@@ -156,7 +177,7 @@
   name = "github.com/google/pprof"
   packages = ["profile"]
   pruneopts = "NUT"
-  revision = "3950eec66bcbba269bb8bba7684ba5c29bb710a3"
+  revision = "dcb5510988eb33b1f6ce96939b7ad97ed95db32f"
 
 [[projects]]
   digest = "1:fb9f5147a9d6fc69057d05b0739bcd79562c55db143c3bdacfe1c9c6129461f6"
@@ -366,11 +387,11 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "88d92db4c548972d942ac2a3531a8a9a34c82ca6"
+  revision = "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
 
 [[projects]]
   branch = "master"
-  digest = "1:286347e7534393dccf6e9bb8e912730c02f0de71bc93f820906511817b61cf3a"
+  digest = "1:ae6187c169fc5ec0d8d46483be8ce73e137a6ebb2dac5e1b1280ea04a95e1c2c"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -380,7 +401,7 @@
     "jwt",
   ]
   pruneopts = "NUT"
-  revision = "f42d05182288abf10faef86d16c0d07b8d40ea2d"
+  revision = "8f65e3013ebad444f13bc19536f7865efc793816"
 
 [[projects]]
   branch = "master"
@@ -429,7 +450,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1c94bce921c90227746fbee25232012bb24d0143479671ccf88dd2b8e1288db1"
+  digest = "1:f69d3df437e2a56f5d017c5f9d3745a316e9f8bad4aa482eac0c4b891e18ebf5"
   name = "golang.org/x/tools"
   packages = [
     "cmd/guru/serial",
@@ -457,7 +478,7 @@
     "refactor/satisfy",
   ]
   pruneopts = "NUT"
-  revision = "7e59e591a2617a3067db5fe2fe8e903b4c1b10cc"
+  revision = "04b5d21e00f1f47bd824a6ade581e7189bacde87"
 
 [[projects]]
   branch = "master"
@@ -475,7 +496,7 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "c5e41677a12edeac5437ebceb220505ec6b90669"
+  revision = "faade3cbb06a30202f2da53a8a5e3c4afe60b0c2"
 
 [[projects]]
   digest = "1:b400989fa9ecf8f825e9092d41c9779444afeda5d5ce7f5c9d4a9ca9d05c949c"
@@ -569,6 +590,7 @@
   input-imports = [
     "cloud.google.com/go/errorreporting",
     "cloud.google.com/go/profiler",
+    "contrib.go.opencensus.io/exporter/ocagent",
     "contrib.go.opencensus.io/exporter/stackdriver",
     "github.com/cweill/gotests/gotests/process",
     "github.com/davecgh/go-spew/spew",

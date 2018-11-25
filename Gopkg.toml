@@ -73,16 +73,16 @@ ignored = ["golang.org/x/tools/cmd/guru"]
   branch = "master"
 
 [[constraint]]
+  name = "contrib.go.opencensus.io/exporter/ocagent"
+  branch = "master"
+
+[[constraint]]
   name = "github.com/kelseyhightower/envconfig"
   branch = "master"
 
 [[constraint]]
   name = "github.com/haya14busa/errorformat"
   branch = "master"
-
-# [[constraint]]
-#   name = "github.com/DataDog/opencensus-go-exporter-datadog"
-#   branch = "master"
 
 # override
 [[override]]

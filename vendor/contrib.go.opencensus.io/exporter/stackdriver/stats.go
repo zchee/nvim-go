@@ -48,7 +48,7 @@ const (
 	opencensusTaskKey         = "opencensus_task"
 	opencensusTaskDescription = "Opencensus task identifier"
 	defaultDisplayNamePrefix  = "OpenCensus"
-	version                   = "0.8.0"
+	version                   = "0.9.0"
 )
 
 var userAgent = fmt.Sprintf("opencensus-go %s; stackdriver-exporter %s", opencensus.Version(), version)
