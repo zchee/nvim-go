@@ -5,238 +5,292 @@
 package config
 
 import (
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strings"
-	"sync"
-
-	"github.com/pkg/errors"
-	xdgbasedir "github.com/zchee/go-xdgbasedir"
-	yaml "gopkg.in/yaml.v2"
+	"github.com/neovim/go-client/nvim"
 )
+
+// Config represents a config variable for nvim-go.
+// Each type must be exported for plugin.HandleAutocmd Eval option.
+// Also it does not support embeded type.
+type Config struct {
+	Global *Global
+
+	Build    *build
+	Cover    *cover
+	Fmt      *fmt
+	Generate *generate
+	Guru     *guru
+	Iferr    *iferr
+	Lint     *lint
+	Rename   *rename
+	Terminal *terminal
+	Test     *test
+
+	Debug *debug
+}
+
+// Global represents a global config variable.
+type Global struct {
+	ChannelID     int
+	ServerName    string `eval:"v:servername"`
+	ErrorListType string `eval:"get(g:, 'go#global#errorlisttype', 'locationlist')"`
+}
+
+// build GoBuild command config variable.
+type build struct {
+	Appengine int64    `eval:"get(g:, 'go#build#appengine', 0)"`
+	Autosave  int64    `eval:"get(g:, 'go#build#autosave', 0)"`
+	Force     int64    `eval:"get(g:, 'go#build#force', 0)"`
+	Flags     []string `eval:"get(g:, 'go#build#flags', [])"`
+	IsNotGb   int64    `eval:"get(g:, 'go#build#is_not_gb', 0)"`
+}
+
+type cover struct {
+	Flags []string `eval:"get(g:, 'go#cover#flags', [])"`
+	Mode  string   `eval:"get(g:, 'go#cover#mode', 'atomic')"`
+}
+
+// fmt represents a GoFmt command config variable.
+type fmt struct {
+	Autosave       int64    `eval:"get(g:, 'go#fmt#autosave', 0)"`
+	Mode           string   `eval:"get(g:, 'go#fmt#mode', 'goimports')"`
+	GoImportsLocal []string `eval:"get(g:, 'go#fmt#goimports_local', [])"`
+}
+
+// generate represents a GoGenerate command config variables.
+type generate struct {
+	TestAllFuncs      int64  `eval:"get(g:, 'go#generate#test#allfuncs', 1)"`
+	TestExclFuncs     string `eval:"get(g:, 'go#generate#test#exclude', '')"`
+	TestExportedFuncs int64  `eval:"get(g:, 'go#generate#test#exportedfuncs', 0)"`
+	TestSubTest       int64  `eval:"get(g:, 'go#generate#test#subtest', 1)"`
+}
+
+// guru represents a GoGuru command config variable.
+type guru struct {
+	Reflection int64            `eval:"get(g:, 'go#guru#reflection', 0)"`
+	KeepCursor map[string]int64 `eval:"get(g:, 'go#guru#keep_cursor', {'callees':0,'callers':0,'callstack':0,'definition':0,'describe':0,'freevars':0,'implements':0,'peers':0,'pointsto':0,'referrers':0,'whicherrs':0})"`
+	JumpFirst  int64            `eval:"get(g:, 'go#guru#jump_first', 0)"`
+}
+
+// iferr represents a GoIferr command config variable.
+type iferr struct {
+	Autosave int64 `eval:"get(g:, 'go#iferr#autosave', 0)"`
+}
+
+// lint represents a code lint commands config variable.
+type lint struct {
+	GolintAutosave          int64    `eval:"get(g:, 'go#lint#golint#autosave', 0)"`
+	GolintIgnore            []string `eval:"get(g:, 'go#lint#golint#ignore', [])"`
+	GolintMinConfidence     float64  `eval:"get(g:, 'go#lint#golint#min_confidence', 0.8)"`
+	GolintMode              string   `eval:"get(g:, 'go#lint#golint#mode', 'current')"`
+	GoVetAutosave           int64    `eval:"get(g:, 'go#lint#govet#autosave', 0)"`
+	GoVetFlags              []string `eval:"get(g:, 'go#lint#govet#flags', [])"`
+	GoVetIgnore             []string `eval:"get(g:, 'go#lint#govet#ignore', [])"`
+	MetalinterAutosave      int64    `eval:"get(g:, 'go#lint#metalinter#autosave', 0)"`
+	MetalinterAutosaveTools []string `eval:"get(g:, 'go#lint#metalinter#autosave#tools', ['vet', 'golint'])"`
+	MetalinterTools         []string `eval:"get(g:, 'go#lint#metalinter#tools', ['vet', 'golint'])"`
+	MetalinterDeadline      string   `eval:"get(g:, 'go#lint#metalinter#deadline', '5s')"`
+	MetalinterSkipDir       []string `eval:"get(g:, 'go#lint#metalinter#skip_dir', [])"`
+}
+
+// rename represents a GoRename command config variable.
+type rename struct {
+	Prefill int64 `eval:"get(g:, 'go#rename#prefill', 0)"`
+}
+
+// terminal represents a configure of Neovim terminal buffer.
+type terminal struct {
+	Mode       string `eval:"get(g:, 'go#terminal#mode', 'vsplit')"`
+	Position   string `eval:"get(g:, 'go#terminal#position', 'belowright')"`
+	Height     int64  `eval:"get(g:, 'go#terminal#height', 0)"`
+	Width      int64  `eval:"get(g:, 'go#terminal#width', 0)"`
+	StopInsert int64  `eval:"get(g:, 'go#terminal#stop_insert', 1)"`
+}
+
+// Test represents a GoTest command config variables.
+type test struct {
+	AllPackage int64    `eval:"get(g:, 'go#test#all_package', 0)"`
+	Autosave   int64    `eval:"get(g:, 'go#test#autosave', 0)"`
+	Flags      []string `eval:"get(g:, 'go#test#flags', [])"`
+}
+
+// Debug represents a debug of nvim-go config variable.
+type debug struct {
+	Enable int64 `eval:"get(g:, 'go#debug', 0)"`
+	Pprof  int64 `eval:"get(g:, 'go#debug#pprof', 0)"`
+}
 
 var (
-	mkdirOnce  sync.Once
-	ConfigHome = filepath.Join(xdgbasedir.ConfigHome(), "nvim-go")
-	ConfigFile = filepath.Join(ConfigHome, "config.yml")
+	// ChannelID remote plugins channel id.
+	ChannelID int
+	// ServerName Neovim socket listen location.
+	ServerName string
+	// ErrorListType type of error list window.
+	ErrorListType string
+
+	// BuildAppengine enable appengine bulid.
+	BuildAppengine bool
+	// BuildAutosave call the GoBuild command automatically at during the BufWritePost.
+	BuildAutosave bool
+	// BuildForce builds the binary instead of fake(use ioutil.TempFiile) build.
+	BuildForce bool
+	// BuildFlags flag of compile tools build command.
+	BuildFlags []string
+
+	// BuildIsNotGb workaround for not ues gb compiler.
+	BuildIsNotGb bool
+
+	// CoverFlags flags for cover command.
+	CoverFlags []string
+	// CoverMode mode of cover command.
+	CoverMode string
+
+	// FmtAutosave call the GoFmt command automatically at during the BufWritePre.
+	FmtAutosave bool
+	// FmtMode formatting mode of Fmt command.
+	FmtMode string
+	// FmtGoImportsLocal list packages of goimports -local flag.
+	FmtGoImportsLocal []string
+
+	// GenerateTestAllFuncs accept all functions to the GenerateTest.
+	GenerateTestAllFuncs bool
+	// GenerateTestExclFuncs exclude function of GenerateTest.
+	GenerateTestExclFuncs string
+	// GenerateTestExportedFuncs accept exported functions to the GenerateTest.
+	GenerateTestExportedFuncs bool
+	// GenerateTestSubTest whether the use Go subtest idiom or not.
+	GenerateTestSubTest bool
+
+	// GuruReflection use the type reflection on GoGuru commmands.
+	GuruReflection bool
+	// GuruKeepCursor keep the cursor focus to source buffer instead of quickfix or locationlist.
+	GuruKeepCursor map[string]int64
+	// GuruJumpFirst jump the first error position on GoGuru commands.
+	GuruJumpFirst bool
+
+	// IferrAutosave call the GoIferr command automatically at during the BufWritePre.
+	IferrAutosave bool
+
+	// GolintAutosave call the GoLint command automatically at during the BufWritePost.
+	GolintAutosave bool
+	// GolintIgnore ignore file for lint command.
+	GolintIgnore []string
+	// GolintMinConfidence minimum confidence of a problem to print it
+	GolintMinConfidence float64
+	// GolintMode mode of golint. available value are "root", "current" and "recursive".
+	GolintMode string
+	// GoVetAutosave call the GoVet command automatically at during the BufWritePost.
+	GoVetAutosave bool
+	// GoVetFlags default flags for GoVet commands
+	GoVetFlags []string
+	// GoVetIgnore ignore directories for go vet command.
+	GoVetIgnore []string
+	// MetalinterAutosave call the GoMetaLinter command automatically at during the BufWritePre.
+	MetalinterAutosave bool
+	// MetalinterAutosaveTools lint tool list for MetalinterAutosave.
+	MetalinterAutosaveTools []string
+	// MetalinterTools lint tool list for GoMetaLinter command.
+	MetalinterTools []string
+	// MetalinterDeadline deadline of GoMetaLinter command timeout.
+	MetalinterDeadline string
+	// MetalinterSkipDir skips of lint of the directory.
+	MetalinterSkipDir []string
+
+	// RenamePrefill Enable naming prefill.
+	RenamePrefill bool
+
+	// TerminalMode open the terminal window mode.
+	TerminalMode string
+	// TerminalPosition open the terminal window position.
+	TerminalPosition string
+	// TerminalHeight open the terminal window height.
+	TerminalHeight int64
+	// TerminalWidth open the terminal window width.
+	TerminalWidth int64
+	// TerminalStopInsert workaround if users set "autocmd BufEnter term://* startinsert".
+	TerminalStopInsert bool
+
+	// TestAutosave call the GoBuild command automatically at during the BufWritePost.
+	TestAutosave bool
+	// TestAll enable all package test on GoTest. similar "go test ./...", but ignored vendor and testdata.
+	TestAll bool
+	// TestFlags test command default flags.
+	TestFlags []string
+
+	// DebugEnable Enable debugging.
+	DebugEnable bool
+	// DebugPprof Enable net/http/pprof debugging.
+	DebugPprof bool
 )
 
-func CreateConfigHome() error {
-	var err error
-	mkdirOnce.Do(func() {
-		if _, e := os.Stat(ConfigHome); e != nil && os.IsNotExist(e) {
-			if e := os.MkdirAll(ConfigHome, 0700); e != nil {
-				err = e
-				return
-			}
-			err = e
-		}
-	})
-	if err != nil {
-		return err
-	}
+// Get gets the user config variables and convert to global varialble.
+func Get(v *nvim.Nvim, cfg *Config) {
+	// Client
+	ChannelID = cfg.Global.ChannelID
+	ServerName = cfg.Global.ServerName
+	ErrorListType = cfg.Global.ErrorListType
 
-	return nil
+	// Build
+	BuildAppengine = itob(cfg.Build.Appengine)
+	BuildAutosave = itob(cfg.Build.Autosave)
+	BuildForce = itob(cfg.Build.Force)
+	BuildFlags = cfg.Build.Flags
+	BuildIsNotGb = itob(cfg.Build.IsNotGb)
+
+	// Cover
+	CoverFlags = cfg.Cover.Flags
+	CoverMode = cfg.Cover.Mode
+
+	// Fmt
+	FmtAutosave = itob(cfg.Fmt.Autosave)
+	FmtMode = cfg.Fmt.Mode
+	FmtGoImportsLocal = cfg.Fmt.GoImportsLocal
+
+	// Generate
+	GenerateTestAllFuncs = itob(cfg.Generate.TestAllFuncs)
+	GenerateTestExclFuncs = cfg.Generate.TestExclFuncs
+	GenerateTestExportedFuncs = itob(cfg.Generate.TestExportedFuncs)
+	GenerateTestSubTest = itob(cfg.Generate.TestSubTest)
+
+	// Guru
+	GuruReflection = itob(cfg.Guru.Reflection)
+	GuruKeepCursor = cfg.Guru.KeepCursor
+	GuruJumpFirst = itob(cfg.Guru.JumpFirst)
+
+	// Iferr
+	IferrAutosave = itob(cfg.Iferr.Autosave)
+
+	// Lint
+	GolintAutosave = itob(cfg.Lint.GolintAutosave)
+	GolintIgnore = cfg.Lint.GolintIgnore
+	GolintMinConfidence = cfg.Lint.GolintMinConfidence
+	GolintMode = cfg.Lint.GolintMode
+	GoVetAutosave = itob(cfg.Lint.GoVetAutosave)
+	GoVetFlags = cfg.Lint.GoVetFlags
+	GoVetIgnore = cfg.Lint.GoVetIgnore
+	MetalinterAutosave = itob(cfg.Lint.MetalinterAutosave)
+	MetalinterAutosaveTools = cfg.Lint.MetalinterAutosaveTools
+	MetalinterTools = cfg.Lint.MetalinterTools
+	MetalinterDeadline = cfg.Lint.MetalinterDeadline
+	MetalinterSkipDir = cfg.Lint.MetalinterSkipDir
+
+	// Rename
+	RenamePrefill = itob(cfg.Rename.Prefill)
+
+	// Terminal
+	TerminalMode = cfg.Terminal.Mode
+	TerminalPosition = cfg.Terminal.Position
+	TerminalHeight = cfg.Terminal.Height
+	TerminalWidth = cfg.Terminal.Width
+	TerminalStopInsert = itob(cfg.Terminal.StopInsert)
+
+	// Test
+	TestAutosave = itob(cfg.Test.Autosave)
+	TestAll = itob(cfg.Test.AllPackage)
+	TestFlags = cfg.Test.Flags
+
+	// Debug
+	DebugEnable = itob(cfg.Debug.Enable)
+	DebugPprof = itob(cfg.Debug.Pprof)
 }
 
-func open() (*os.File, error) {
-	f, err := os.Open(ConfigFile)
-	if err != nil && os.IsNotExist(err) {
-		if err := CreateConfigHome(); err != nil {
-			return nil, err
-		}
-		f, err = os.Create(ConfigFile)
-		if err != nil {
-			return nil, errors.Wrapf(err, "could not create %s", ConfigFile)
-		}
-	}
-
-	return f, nil
-}
-
-func Read() (*Config, error) {
-	f, err := open()
-	if err != nil {
-		return nil, err
-	}
-	buf, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, errors.Wrapf(err, "could not read %s", f.Name())
-	}
-
-	cfg := new(Config)
-	if err := yaml.Unmarshal(buf, cfg); err != nil {
-		return nil, errors.Wrapf(err, "could not unmarshal %s", f.Name())
-	}
-
-	return cfg, nil
-}
-
-func Merge(cfg, cfg2 *Config) *Config {
-	// early return
-	if cfg2 == nil {
-		return cfg
-	}
-
-	if cfg2.Global != nil {
-		if cfg.Global.ErrorListType != cfg2.Global.ErrorListType {
-			cfg.Global.ErrorListType = cfg2.Global.ErrorListType
-		}
-	}
-
-	if cfg2.Build != nil {
-		if itob(cfg.Build.Appengine) != itob(cfg2.Build.Appengine) {
-			cfg.Build.Appengine = cfg2.Build.Appengine
-		}
-		if itob(cfg.Build.Autosave) != itob(cfg2.Build.Autosave) {
-			cfg.Build.Autosave = cfg2.Build.Autosave
-		}
-		if itob(cfg.Build.Autosave) != itob(cfg2.Build.Autosave) {
-			cfg.Build.Autosave = cfg2.Build.Autosave
-		}
-		if strings.EqualFold(strings.Join(cfg.Build.Flags, ""), strings.Join(cfg2.Build.Flags, "")) {
-			cfg.Build.Flags = cfg2.Build.Flags
-		}
-		if itob(cfg.Build.Force) != itob(cfg2.Build.Force) {
-			cfg.Build.Force = cfg2.Build.Force
-		}
-	}
-
-	if cfg2.Cover != nil {
-		if strings.EqualFold(strings.Join(cfg.Cover.Flags, ""), strings.Join(cfg2.Cover.Flags, "")) {
-			cfg.Cover.Flags = cfg2.Cover.Flags
-		}
-		if cfg.Cover.Mode != cfg2.Cover.Mode {
-			cfg.Cover.Mode = cfg2.Cover.Mode
-		}
-	}
-
-	if cfg2.Fmt != nil {
-		if itob(cfg.Fmt.Autosave) != itob(cfg2.Fmt.Autosave) {
-			cfg2.Fmt.Autosave = cfg2.Fmt.Autosave
-		}
-		if cfg.Fmt.Mode != cfg2.Fmt.Mode {
-			cfg.Fmt.Mode = cfg2.Fmt.Mode
-		}
-	}
-
-	if cfg2.Generate != nil {
-		if itob(cfg.Generate.TestAllFuncs) != itob(cfg2.Generate.TestAllFuncs) {
-			cfg.Generate.TestAllFuncs = cfg2.Generate.TestAllFuncs
-		}
-		if cfg.Generate.TestExclFuncs != cfg2.Generate.TestExclFuncs {
-			cfg.Generate.TestExclFuncs = cfg2.Generate.TestExclFuncs
-		}
-		if itob(cfg.Generate.TestExportedFuncs) != itob(cfg2.Generate.TestExportedFuncs) {
-			cfg.Generate.TestExportedFuncs = cfg2.Generate.TestExportedFuncs
-		}
-		if itob(cfg.Generate.TestSubTest) != itob(cfg2.Generate.TestSubTest) {
-			cfg.Generate.TestSubTest = cfg2.Generate.TestSubTest
-		}
-	}
-
-	if cfg2.Guru != nil {
-		if itob(cfg.Guru.JumpFirst) != itob(cfg2.Guru.JumpFirst) {
-			cfg.Guru.JumpFirst = cfg2.Guru.JumpFirst
-		}
-		if cfg2.Guru.KeepCursor != nil {
-			cfg.Guru.KeepCursor = cfg2.Guru.KeepCursor
-		}
-		if itob(cfg.Guru.Reflection) != itob(cfg2.Guru.Reflection) {
-			cfg.Guru.Reflection = cfg2.Guru.Reflection
-		}
-	}
-
-	if cfg2.Iferr != nil {
-		if itob(cfg.Iferr.Autosave) != itob(cfg2.Iferr.Autosave) {
-			cfg.Iferr.Autosave = cfg.Iferr.Autosave
-		}
-	}
-
-	if cfg2.Lint != nil {
-		if itob(cfg.Lint.GoVetAutosave) != itob(cfg2.Lint.GoVetAutosave) {
-			cfg.Lint.GoVetAutosave = cfg2.Lint.GoVetAutosave
-		}
-		if strings.EqualFold(strings.Join(cfg.Lint.GoVetFlags, ""), strings.Join(cfg2.Lint.GoVetFlags, "")) {
-			cfg.Lint.GoVetFlags = cfg2.Lint.GoVetFlags
-		}
-		if strings.EqualFold(strings.Join(cfg.Lint.GoVetIgnore, ""), strings.Join(cfg2.Lint.GoVetIgnore, "")) {
-			cfg.Lint.GoVetIgnore = cfg2.Lint.GoVetIgnore
-		}
-		if itob(cfg.Lint.GolintAutosave) != itob(cfg2.Lint.GolintAutosave) {
-			cfg.Lint.GolintAutosave = cfg2.Lint.GolintAutosave
-		}
-		if strings.EqualFold(strings.Join(cfg.Lint.GolintIgnore, ""), strings.Join(cfg2.Lint.GolintIgnore, "")) {
-			cfg.Lint.GolintIgnore = cfg2.Lint.GolintIgnore
-		}
-		if cfg.Lint.GolintMinConfidence != cfg2.Lint.GolintMinConfidence {
-			cfg.Lint.GolintMinConfidence = cfg2.Lint.GolintMinConfidence
-		}
-		if cfg.Lint.GolintMode != cfg2.Lint.GolintMode {
-			cfg.Lint.GolintMode = cfg2.Lint.GolintMode
-		}
-		if itob(cfg.Lint.MetalinterAutosave) != itob(cfg2.Lint.MetalinterAutosave) {
-			cfg.Lint.MetalinterAutosave = cfg2.Lint.MetalinterAutosave
-		}
-		if strings.EqualFold(strings.Join(cfg.Lint.MetalinterAutosaveTools, ""), strings.Join(cfg2.Lint.MetalinterAutosaveTools, "")) {
-			cfg.Lint.MetalinterAutosaveTools = cfg2.Lint.MetalinterAutosaveTools
-		}
-		if cfg.Lint.MetalinterDeadline != cfg2.Lint.MetalinterDeadline {
-			cfg.Lint.MetalinterDeadline = cfg2.Lint.MetalinterDeadline
-		}
-		if strings.EqualFold(strings.Join(cfg.Lint.MetalinterSkipDir, ""), strings.Join(cfg2.Lint.MetalinterSkipDir, "")) {
-			cfg.Lint.MetalinterSkipDir = cfg2.Lint.MetalinterSkipDir
-		}
-		if strings.EqualFold(strings.Join(cfg.Lint.MetalinterTools, ""), strings.Join(cfg2.Lint.MetalinterTools, "")) {
-			cfg.Lint.MetalinterTools = cfg2.Lint.MetalinterTools
-		}
-	}
-
-	if cfg2.Rename != nil {
-		if itob(cfg.Rename.Prefill) != itob(cfg2.Rename.Prefill) {
-			cfg.Rename.Prefill = cfg2.Rename.Prefill
-		}
-	}
-
-	if cfg2.Terminal != nil {
-		if cfg.Terminal.Height != cfg2.Terminal.Height {
-			cfg.Terminal.Height = cfg2.Terminal.Height
-		}
-		if cfg.Terminal.Mode != cfg2.Terminal.Mode {
-			cfg.Terminal.Mode = cfg2.Terminal.Mode
-		}
-		if cfg.Terminal.Position != cfg2.Terminal.Position {
-			cfg.Terminal.Position = cfg2.Terminal.Position
-		}
-		if itob(cfg.Terminal.StopInsert) != itob(cfg.Terminal.StopInsert) {
-			cfg.Terminal.StopInsert = cfg2.Terminal.StopInsert
-		}
-		if cfg.Terminal.Width != cfg2.Terminal.Width {
-			cfg.Terminal.Width = cfg2.Terminal.Width
-		}
-	}
-
-	if cfg2.Test != nil {
-		if itob(cfg.Test.AllPackage) != itob(cfg2.Test.AllPackage) {
-			cfg.Test.AllPackage = cfg2.Test.AllPackage
-		}
-		if itob(cfg.Test.Autosave) != itob(cfg2.Test.Autosave) {
-			cfg.Test.Autosave = cfg2.Test.Autosave
-		}
-		if strings.EqualFold(strings.Join(cfg.Test.Flags, ""), strings.Join(cfg2.Test.Flags, "")) {
-			cfg.Test.Flags = cfg2.Test.Flags
-		}
-	}
-
-	if cfg2.Debug != nil {
-		if itob(cfg.Debug.Enable) != itob(cfg2.Debug.Enable) {
-			cfg.Debug.Enable = cfg2.Debug.Enable
-		}
-		if itob(cfg.Debug.Pprof) != itob(cfg2.Debug.Pprof) {
-			cfg.Debug.Pprof = cfg2.Debug.Pprof
-		}
-	}
-
-	return cfg
-}
+func itob(i int64) bool { return i != int64(0) }
