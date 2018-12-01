@@ -156,7 +156,7 @@ func (c *Command) Guru(ctx context.Context, args []string, eval *funcGuruEval) i
 		root, _ = filepath.Abs(root)
 		scopes = []string{fs.ToWildcard(fs.TrimGoPath(root))}
 		if vendorDir := filepath.Join(root, "vendor"); fs.IsDirExist(vendorDir) {
-			scopes = append(scopes, "-"+fs.ToWildcard(fs.TrimGoPath(vendorDir)))
+			scopes = append(scopes, "-"+fs.TrimGoPath(vendorDir))
 		}
 	case "gb":
 		root := c.buildContext.Build.ProjectRoot
