@@ -48,7 +48,7 @@ GO_LDFLAGS+=-w -s
 endif
 
 ifneq ($(GO_GCFLAGS_BASE),)
-GO_GCFLAGS=-gcflags="$(strip ${GO_GCFLAGS_BASE})"
+GO_GCFLAGS=-gcflags=$(strip ${GO_GCFLAGS_BASE})
 endif
 
 ifneq ($(GO_LDFLAGS_BASE),)
@@ -195,7 +195,7 @@ lint.megacheck:  ## Run megacheck
 .PHONY: lint.vet
 lint.vet:  ## Run go vet
 	$(call target)
-	go vet -all ${PACKAGES}
+	go vet -vettool=/usr/local/go/pkg/tool/darwin_amd64/vet-lite ${PACKAGES}
 
 .PHONY: lint.unconvert
 lint.unconvert:  ## Run unconvert
