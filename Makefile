@@ -26,6 +26,8 @@ CGO_CPPFLAGS ?=
 CGO_CXXFLAGS ?=
 CGO_LDFLAGS ?=
 
+GO_PATH := $(shell go env GOPATH)
+
 # ----------------------------------------------------------------------------
 # build and test flags
 
@@ -160,6 +162,29 @@ vendor.guru-rename: vendor.guru-update
 	grep "guessImportPath" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/guessImportPath/GuessImportPath/'
 	@echo -e "[INFO] remove canonical custom import path from main.go\\n"
 	sed -i "s|package guru|\n// +build ignore\n\n\0|" ${PACKAGE_ROOT}/pkg/internal/guru/main.go
+
+.PHONY: vendor/x/tools/update
+vendor/x/tools/update:
+	@go get -u -v golang.org/x/tools/internal/...
+
+.PHONY: vendor/x/tools/%
+vendor/x/tools/%:
+	mkdir -p ${PACKAGE_ROOT}/pkg/internal/$*
+	find ${PACKAGE_ROOT}/pkg/internal/$* -type f -name '*.go' -print -delete
+	find /Users/zchee/go/src/golang.org/x/tools/internal/$* -type f -name '*.go' -and -not -name '*_test.go' -exec cp {} ${PACKAGE_ROOT}/pkg/internal/$* \;
+
+.PHONY: vendor/x/tools
+vendor/x/tools: vendor/x/tools/update vendor/x/tools/fastwalk vendor/x/tools/gopathwalk vendor/x/tools/semver
+
+.PHONY: vendor/valyala/bytebufferpool/update
+vendor/valyala/bytebufferpool/update:
+	@go get -u -v github.com/valyala/bytebufferpool
+
+.PHONY: vendor/x/tools
+vendor/valyala/bytebufferpool: vendor/valyala/bytebufferpool/update
+	mkdir -p ${PACKAGE_ROOT}/pkg/internal/$(subst vendor/valyala/bytebuffer,,$@)
+	find ${PACKAGE_ROOT}/pkg/internal/$(subst vendor/valyala/bytebuffer,,$@) -type f -name '*.go' -print -delete
+	find /Users/zchee/go/src/github.com/valyala/bytebufferpool -type f -name '*.go' -and -not -name '*_test.go' -exec cp {} ${PACKAGE_ROOT}/pkg/internal/$(subst vendor/valyala/bytebuffer,,$@) \;
 
 
 .PHONY: test
