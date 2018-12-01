@@ -16,12 +16,7 @@ ignored = ["golang.org/x/tools/cmd/guru"]
 
 [[constraint]]
   name = "github.com/neovim/go-client"
-  source = "github.com/zchee/go-client"
-  branch = "api/a225374"
-
-[[constraint]]
-  name = "go.opencensus.io"
-  version = ">=0.15.0"
+  branch = "api/0ce8800"
 
 # constraint:master
 [[constraint]]
