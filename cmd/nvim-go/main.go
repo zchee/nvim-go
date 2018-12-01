@@ -16,6 +16,7 @@ import (
 
 	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/profiler"
+	"contrib.go.opencensus.io/exporter/ocagent"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
@@ -106,6 +107,12 @@ func main() {
 			logpkg.Fatalf("failed to start stackdriver profiler: %v", err)
 		}
 
+		oce, err := ocagent.NewExporter(ocagent.WithInsecure())
+		if err := profiler.Start(profConf); err != nil {
+			logpkg.Fatalf("Failed to create ocagent-exporter: %v", err)
+		}
+		trace.RegisterExporter(oce)
+
 		// OpenCensus tracing with Stackdriver exporter
 		sdOpts := stackdriver.Options{
 			ProjectID: gcpProjectID,
@@ -123,24 +130,6 @@ func main() {
 		trace.RegisterExporter(sd)
 		zapLogger.Debug("opencensus", zap.String("trace", "enabled Stackdriver exporter"))
 		view.RegisterExporter(sd)
-
-		// OpenCensus tracing with DataDog exporter
-		// dd := ddexp.NewExporter(ddexp.Options{
-		// 	Namespace: "zchee",
-		// 	Service:   "nvim-go",
-		// 	TraceAddr: "127.0.0.1:8126",
-		// 	StatsAddr: "127.0.0.1:8125",
-		// 	// StatsAddr: "unix:///var/run/dogstatsd/dsd.sock",
-		// 	OnError: func(err error) {
-		// 		zapLogger.Error("datadog exporter", zap.Error(err))
-		// 	},
-		// 	GlobalTags: map[string]interface{}{
-		// 		"environment": "development",
-		// 		"tag":         tag,
-		// 	},
-		// })
-		// trace.RegisterExporter(dd)
-		// zapLogger.Debug("opencensus", zap.String("trace", "enabled DataDog exporter"))
 
 		ctx, span := trace.StartSpan(ctx, "main") // start root span
 		defer span.End()
