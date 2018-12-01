@@ -7,18 +7,15 @@ package config
 import (
 	"sync"
 
-	envpkg "github.com/lestrrat-go/config/env"
+	"github.com/kelseyhightower/envconfig"
 	"go.uber.org/zap/zapcore"
 )
 
-// e is the global env variable
-var e env
-
-// env represents a environment variabels with lestrrat-go/config/env struct tag.
+// env represents a environment variabels for nvim-go.
 type env struct {
-	GCPProjectID string `envconfig:"GCP_PROJECT_ID"`
-	Debug        bool   `envconfig:"DEBUG"`
-	LogLevel     string `envconfig:"LOG_LEVEL"`
+	GCPProjectID string `envconfig:"gcp_project_id"`
+	Debug        bool   `envconfig:"debug"`
+	LogLevel     string `envconfig:"log_level"`
 }
 
 func (e env) MarshalLogObject(enc zapcore.ObjectEncoder) error {
@@ -29,23 +26,32 @@ func (e env) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	return nil
 }
 
+// e is the global env variable
+var e env
+
 // envOnce for run Process once.
 var envOnce sync.Once
 
 // Process populates the specified struct based on environment variables.
-func Process() (e env, err error) {
+func Process() env {
 	envOnce.Do(func() {
-		err = envpkg.NewDecoder(envpkg.System).Prefix("NVIM_GO").Decode(&e)
+		envconfig.MustProcess("nvim_go", &e)
 	})
-	return e, err
+
+	return e
 }
 
 func GCPProjectID() string {
-	_, _ = Process()
+	_ = Process()
 	return e.GCPProjectID
 }
 
+func HasGCPProjectID() bool {
+	_ = Process()
+	return e.GCPProjectID != ""
+}
+
 func IsDebug() bool {
-	_, _ = Process()
+	_ = Process()
 	return e.Debug
 }
