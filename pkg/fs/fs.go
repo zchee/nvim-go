@@ -53,6 +53,43 @@ func TrimGoPath(p string) string {
 	return p
 }
 
+// ToGoPath trims the GOPATH and {bin,pkg,src}, basically for the converts
+// the package ID.
+func ToGoPath(p string) string {
+	if idx := strings.Index(p, build.Default.GOPATH); idx > 0 {
+		// Separate trim work for p equal GOPATH
+		p = strings.TrimPrefix(p, build.Default.GOPATH+string(filepath.Separator))
+	}
+
+	if len(p) >= 4 {
+		switch p[:3] {
+		case "bin", "pkg", "src":
+			return filepath.Clean(p[4:])
+		}
+	}
+
+	return p
+}
+
+// VendorPath finds the  package root and returens the vendor directory path.
+func VendorPath(p string) string {
+	if idx := strings.Index(p, build.Default.GOPATH); idx > 0 {
+		// Separate trim work for p equal GOPATH
+		p = strings.TrimPrefix(p, build.Default.GOPATH+string(filepath.Separator))
+	}
+
+	if len(p) >= 4 {
+		switch p[:3] {
+		case "bin", "pkg", "src":
+			return filepath.Clean(p[4:])
+		}
+	}
+
+	p = filepath.Join(p, "vendor")
+
+	return p
+}
+
 // ExpandGoRoot expands the "$GOROOT" include from p.
 func ExpandGoRoot(p string) string {
 	if strings.Index(p, "$GOROOT") != -1 {
