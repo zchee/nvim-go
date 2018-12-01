@@ -9,20 +9,20 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
+	"go.uber.org/zap"
 	"golang.org/x/tools/cover"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -75,14 +75,16 @@ func (c *Command) cover(ctx context.Context, eval *cmdCoverEval) interface{} {
 	}
 	defer os.Remove(coverFile.Name())
 
-	cmd := exec.CommandContext(ctx, "go", strings.Fields(fmt.Sprintf("test -cover -covermode=%s -coverprofile=%s .", config.CoverMode, coverFile.Name()))...)
+	cmd := exec.CommandContext(ctx, "go", strings.Fields(fmt.Sprintf("test -cover -covermode=atomic -coverpkg=./... -coverprofile=%s .", coverFile.Name()))...)
 	if len(config.CoverFlags) > 0 {
 		cmd.Args = append(cmd.Args, config.CoverFlags...)
 	}
 	cmd.Dir = filepath.Dir(eval.File)
+	logger.FromContext(ctx).Debug("cover", zap.Any("cmd", cmd))
 
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
+	cmd.Stderr = &stdout
 
 	if coverErr := cmd.Run(); coverErr != nil && coverErr.(*exec.ExitError) != nil {
 		errlist, err := nvimutil.ParseError(ctx, stdout.Bytes(), filepath.Dir(eval.File), &c.buildContext.Build, nil)
@@ -105,42 +107,34 @@ func (c *Command) cover(ctx context.Context, eval *cmdCoverEval) interface{} {
 		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return errors.WithStack(err)
 	}
-	buf, err := c.Nvim.BufferLines(b, 0, -1, true)
-	if err != nil {
-		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
-		return errors.WithStack(err)
-	}
 
 	highlighted := make(map[int]bool)
 	var res int // for ignore the msgpack decode errror. not used
 	batch := c.Nvim.NewBatch()
 	for _, prof := range profile {
-		if filepath.Base(prof.FileName) == filepath.Base(eval.File) {
+		if filepath.Base(prof.FileName) != filepath.Base(eval.File) {
+			continue
+		}
 
-			if config.DebugEnable {
-				log.Printf("prof.Blocks:\n%+v\n", spew.Sdump(prof.Blocks))
-				log.Printf("prof.Boundaries():\n%+v\n", spew.Sdump(prof.Boundaries(nvimutil.ToByteSlice(buf))))
-			}
-			for _, block := range prof.Blocks {
-				for line := block.StartLine - 1; line <= block.EndLine-1; line++ { // nvim_buf_add_highlight line started by 0
-					// not highlighting the last RBRACE of the function
-					if line == block.EndLine-1 && block.EndCol == 2 {
-						break
-					}
+		for _, block := range prof.Blocks {
+			for line := block.StartLine - 1; line <= block.EndLine-1; line++ { // nvim_buf_add_highlight line started by 0
+				// not highlighting the last RBRACE of the function
+				if line == block.EndLine-1 && block.EndCol == 2 {
+					break
+				}
 
-					var hl string
-					switch {
-					case block.Count == 0:
-						hl = "GoCoverMiss"
-					case block.Count-block.NumStmt == 0:
-						hl = "GoCoverPartial"
-					default:
-						hl = "GoCoverHit"
-					}
-					if !highlighted[line] {
-						batch.AddBufferHighlight(b, 0, hl, line, 0, -1, &res)
-						highlighted[line] = true
-					}
+				var hl string
+				switch {
+				case block.Count == 0:
+					hl = "GoCoverMiss"
+				case block.Count-block.NumStmt == 0:
+					hl = "GoCoverPartial"
+				default:
+					hl = "GoCoverHit"
+				}
+				if !highlighted[line] {
+					batch.AddBufferHighlight(b, 0, hl, line, 0, -1, &res)
+					highlighted[line] = true
 				}
 			}
 		}
