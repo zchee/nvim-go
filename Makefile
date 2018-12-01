@@ -175,6 +175,7 @@ vendor/x/tools/%:
 
 .PHONY: vendor/x/tools
 vendor/x/tools: vendor/x/tools/update vendor/x/tools/fastwalk vendor/x/tools/gopathwalk vendor/x/tools/semver
+	sed -i "s|golang.org/x/tools/internal/fastwalk|github.com/zchee/nvim-go/pkg/internal/fastwalk|" ${PACKAGE_ROOT}/pkg/internal/gopathwalk/walk.go
 
 .PHONY: vendor/valyala/bytebufferpool/update
 vendor/valyala/bytebufferpool/update:
