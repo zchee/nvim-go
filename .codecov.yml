@@ -9,23 +9,23 @@ coverage:
       linux:
         flags: linux
         target: auto
-        threshold: 5%
+        threshold: 10%
       darwin:
         flags: darwin
         target: auto
-        threshold: 5%
+        threshold: 10%
     patch:
       default: off
       linux:
         flags: linux
         only_pulls: true
         target: 50%
-        threshold: 5%
+        threshold: 10%
       darwin:
         flags: darwin
         only_pulls: true
         target: 50%
-        threshold: 5%
+        threshold: 10%
     changes: false
   ignore:
     - "vendor/*"
