@@ -1,0 +1,27 @@
+language: go
+
+go:
+  - 1.8
+  - master
+
+install:
+  - go get -d -v -t ./...
+  - go get github.com/haya14busa/goverage
+  # Install linters.
+  - go get github.com/haya14busa/reviewdog/cmd/reviewdog
+  - go get github.com/golang/lint/golint
+  - go get github.com/kisielk/errcheck
+  - go get honnef.co/go/tools/cmd/gosimple
+  - go get honnef.co/go/tools/cmd/staticcheck
+  - go get honnef.co/go/tools/cmd/unused
+  - go get github.com/client9/misspell/cmd/misspell
+
+script:
+  - reviewdog -reporter=github-pr-check
+  - go test -v -race ./...
+  - go generate ./...
+  - (! git diff | grep '^') # check diff
+  - goverage -coverprofile=coverage.txt ./...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
