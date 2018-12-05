@@ -18,7 +18,7 @@ let s:plugin_root   = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
 
 " wrapper of debug logging script
 if get(g:, 'go#debug', 0)
-  let s:plugin_cmd  = [s:plugin_root.'/scripts/debug.sh', s:plugin_root]
+  let s:plugin_cmd  = [s:plugin_root.'/hack/debug.sh', s:plugin_root]
 else
   let s:plugin_cmd = [s:plugin_root . '/bin/' . s:plugin_name]
 endif
