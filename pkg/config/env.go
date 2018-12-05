@@ -13,9 +13,9 @@ import (
 
 // env represents a environment variabels for nvim-go.
 type env struct {
-	GCPProjectID string `envconfig:"gcp_project_id"`
-	Debug        bool   `envconfig:"debug"`
-	LogLevel     string `envconfig:"log_level"`
+	GCPProjectID string `envconfig:"GCP_PROJECT_ID"`
+	Debug        bool   `envconfig:"DEBUG"`
+	LogLevel     string `envconfig:"LOG_LEVEL"`
 }
 
 func (e env) MarshalLogObject(enc zapcore.ObjectEncoder) error {
@@ -35,7 +35,7 @@ var envOnce sync.Once
 // Process populates the specified struct based on environment variables.
 func Process() env {
 	envOnce.Do(func() {
-		envconfig.MustProcess("nvim_go", &e)
+		envconfig.MustProcess("NVIM_GO", &e)
 	})
 
 	return e
