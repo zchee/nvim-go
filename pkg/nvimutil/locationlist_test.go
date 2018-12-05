@@ -16,7 +16,7 @@ import (
 	"github.com/neovim/go-client/nvim"
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
-	"github.com/zchee/nvim-go/pkg/testutil"
+	"github.com/zchee/nvim-go/pkg/internal/testutil"
 )
 
 func TestSplitPos(t *testing.T) {

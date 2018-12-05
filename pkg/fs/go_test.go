@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/zchee/nvim-go/pkg/fs"
-	"github.com/zchee/nvim-go/pkg/testutil"
+	"github.com/zchee/nvim-go/pkg/internal/testutil"
 )
 
 func TestPackagePath(t *testing.T) {
