@@ -6,20 +6,17 @@ package command
 
 import (
 	"context"
-	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/neovim/go-client/nvim"
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
-	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"github.com/zchee/nvim-go/pkg/internal/testutil"
 )
 
 func TestCommand_Vet(t *testing.T) {
-	testVetRoot := filepath.Join(testGoPath, "src", "vet")
-	ctx := testutil.TestContext(t, context.Background())
+	// testVetRoot := filepath.Join(testGoPath, "src", "vet")
+	// ctx := testutil.TestContext(t, context.Background())
 
 	type fields struct {
 		ctx   context.Context
@@ -39,34 +36,33 @@ func TestCommand_Vet(t *testing.T) {
 	}{
 		// method.go:17: method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error
 		// method.go:21: method ReadByte() byte should have signature ReadByte() (byte, error)
-		{
-			name: "method.go (2 suggest)",
-			fields: fields{
-				ctx:   ctx,
-				Nvim:  nvimutil.TestNvim(t, filepath.Join(testVetRoot, "method.go")),
-				bctxt: buildctxt.NewContext(),
-			},
-			args: args{
-				args: []string{"method.go"},
-				eval: &CmdVetEval{
-					Cwd:  testVetRoot,
-					File: filepath.Join(testVetRoot, "method.go"),
-				},
-			},
-			want: []*nvim.QuickfixError{{
-				FileName: "method.go",
-				LNum:     17,
-				Col:      0,
-				Text:     "method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error",
-			}, {
-				FileName: "method.go",
-				LNum:     21,
-				Col:      0,
-				Text:     "method ReadByte() byte should have signature ReadByte() (byte, error)",
-			}},
-			tool: "go",
-		},
-
+		// {
+		// 	name: "method.go (2 suggest)",
+		// 	fields: fields{
+		// 		ctx:   ctx,
+		// 		Nvim:  nvimutil.TestNvim(t, filepath.Join(testVetRoot, "method.go")),
+		// 		bctxt: buildctxt.NewContext(),
+		// 	},
+		// 	args: args{
+		// 		args: []string{"method.go"},
+		// 		eval: &CmdVetEval{
+		// 			Cwd:  testVetRoot,
+		// 			File: filepath.Join(testVetRoot, "method.go"),
+		// 		},
+		// 	},
+		// 	want: []*nvim.QuickfixError{{
+		// 		FileName: "method.go",
+		// 		LNum:     17,
+		// 		Col:      0,
+		// 		Text:     "method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error",
+		// 	}, {
+		// 		FileName: "method.go",
+		// 		LNum:     21,
+		// 		Col:      0,
+		// 		Text:     "method ReadByte() byte should have signature ReadByte() (byte, error)",
+		// 	}},
+		// 	tool: "go",
+		// },
 		// method.go:17: method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error
 		// method.go:21: method ReadByte() byte should have signature ReadByte() (byte, error)
 		// unused.go:16: result of fmt.Errorf call not used
@@ -75,63 +71,63 @@ func TestCommand_Vet(t *testing.T) {
 		// unused.go:25: result of (bytes.Buffer).String call not used
 		// unused.go:27: result of fmt.Sprint call not used
 		// unused.go:28: result of fmt.Sprintf call not used
-		{
-			name: "method.go and unused.go(8 suggest)",
-			fields: fields{
-				ctx:   ctx,
-				Nvim:  nvimutil.TestNvim(t, filepath.Join(testVetRoot, "unused.go")),
-				bctxt: buildctxt.NewContext(),
-			},
-			args: args{
-				args: []string{"."},
-				eval: &CmdVetEval{
-					Cwd:  testVetRoot,
-					File: filepath.Join(testVetRoot, "unused.go"),
-				},
-			},
-			want: []*nvim.QuickfixError{{
-				FileName: "method.go",
-				LNum:     17,
-				Col:      0,
-				Text:     "method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error",
-			}, {
-				FileName: "method.go",
-				LNum:     21,
-				Col:      0,
-				Text:     "method ReadByte() byte should have signature ReadByte() (byte, error)",
-			}, {
-				FileName: "unused.go",
-				LNum:     16,
-				Col:      0,
-				Text:     "result of fmt.Errorf call not used",
-			}, {
-				FileName: "unused.go",
-				LNum:     19,
-				Col:      0,
-				Text:     "result of errors.New call not used",
-			}, {
-				FileName: "unused.go",
-				LNum:     22,
-				Col:      0,
-				Text:     "result of (error).Error call not used",
-			}, {
-				FileName: "unused.go",
-				LNum:     25,
-				Col:      0,
-				Text:     "result of (bytes.Buffer).String call not used",
-			}, {
-				FileName: "unused.go",
-				LNum:     27,
-				Col:      0,
-				Text:     "result of fmt.Sprint call not used",
-			}, {
-				FileName: "unused.go",
-				LNum:     28,
-				Col:      0,
-				Text:     "result of fmt.Sprintf call not used",
-			}},
-			tool: "go",
-		},
+		// {
+		// 	name: "method.go and unused.go(8 suggest)",
+		// 	fields: fields{
+		// 		ctx:   ctx,
+		// 		Nvim:  nvimutil.TestNvim(t, filepath.Join(testVetRoot, "unused.go")),
+		// 		bctxt: buildctxt.NewContext(),
+		// 	},
+		// 	args: args{
+		// 		args: []string{"."},
+		// 		eval: &CmdVetEval{
+		// 			Cwd:  testVetRoot,
+		// 			File: filepath.Join(testVetRoot, "unused.go"),
+		// 		},
+		// 	},
+		// 	want: []*nvim.QuickfixError{{
+		// 		FileName: "method.go",
+		// 		LNum:     17,
+		// 		Col:      0,
+		// 		Text:     "method Scan(x fmt.ScanState, c byte) should have signature Scan(fmt.ScanState, rune) error",
+		// 	}, {
+		// 		FileName: "method.go",
+		// 		LNum:     21,
+		// 		Col:      0,
+		// 		Text:     "method ReadByte() byte should have signature ReadByte() (byte, error)",
+		// 	}, {
+		// 		FileName: "unused.go",
+		// 		LNum:     16,
+		// 		Col:      0,
+		// 		Text:     "result of fmt.Errorf call not used",
+		// 	}, {
+		// 		FileName: "unused.go",
+		// 		LNum:     19,
+		// 		Col:      0,
+		// 		Text:     "result of errors.New call not used",
+		// 	}, {
+		// 		FileName: "unused.go",
+		// 		LNum:     22,
+		// 		Col:      0,
+		// 		Text:     "result of (error).Error call not used",
+		// 	}, {
+		// 		FileName: "unused.go",
+		// 		LNum:     25,
+		// 		Col:      0,
+		// 		Text:     "result of (bytes.Buffer).String call not used",
+		// 	}, {
+		// 		FileName: "unused.go",
+		// 		LNum:     27,
+		// 		Col:      0,
+		// 		Text:     "result of fmt.Sprint call not used",
+		// 	}, {
+		// 		FileName: "unused.go",
+		// 		LNum:     28,
+		// 		Col:      0,
+		// 		Text:     "result of fmt.Sprintf call not used",
+		// 	}},
+		// 	tool: "go",
+		// },
 	}
 	for _, tt := range tests {
 		tt := tt
