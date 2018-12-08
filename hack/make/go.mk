@@ -235,7 +235,7 @@ dep/clean: cmd/dep  ## Cleanups the dep vendoring tool files.
 	@$(RM) Gopkg.toml Gopkg.lock
 
 .PHONY: dep
-dep: dep/ensure dep/update  ## Updates all vendor packages via dep.
+dep: dep/ensure  ## Updates all vendor packages via dep.
 
 ### mod
 
@@ -269,7 +269,10 @@ mod: Gopkg.toml Gopkg.lock mod/clean mod/init mod/tidy  ## Updates the vendor pa
 	@sed -i ':a;N;$$!ba;s|go 1\.12\n\n||g' go.mod
 
 .PHONY: vendor
-vendor: dep mod  ## Updates all vendor packages.
+vendor: dep mod mod/tidy  ## Ensure vendor packages.
+
+.PHONY: vendor/update
+vendor/update: dep/ensure dep/update mod mod/tidy  ## Updates all vendor packages.
 
 
 ## miscellaneous
