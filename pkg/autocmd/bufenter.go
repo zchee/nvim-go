@@ -44,12 +44,4 @@ func (a *Autocmd) BufEnter(eval *bufEnterEval) {
 	if eval.Dir != "" && a.buildContext.PrevDir != eval.Dir {
 		a.buildContext.SetContext(eval.Dir)
 	}
-
-	// log := logger.FromContext(a.ctx).Named("BufEnter")
-	// a.Nvim.RegisterHandler("nvim_buf_lines_event", func(updates ...interface{}) {
-	// 	log.Info("nvim_buf_lines_event", zap.Any("updates", updates))
-	// })
-	// if ok, err := a.Nvim.AttachBuffer(nvim.Buffer(eval.BufNr), true, make(map[string]interface{})); err != nil || !ok {
-	// 	log.Error("", zap.Error(errors.Wrap(err, "failed to attach buffer")))
-	// }
 }
