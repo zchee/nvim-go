@@ -224,7 +224,7 @@ func (c *Command) Guru(ctx context.Context, args []string, eval *funcGuruEval) i
 	}
 
 	var keepCursor bool
-	if int64(1) == config.GuruKeepCursor[mode] {
+	if config.GuruKeepCursor[mode] {
 		keepCursor = true
 	}
 	return nvimutil.OpenLoclist(c.Nvim, w, loclist, keepCursor)
