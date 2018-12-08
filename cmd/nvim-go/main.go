@@ -33,6 +33,7 @@ import (
 	"github.com/zchee/nvim-go/pkg/command"
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/logger"
+	"github.com/zchee/nvim-go/pkg/nvimctx"
 	"github.com/zchee/nvim-go/pkg/server"
 	"github.com/zchee/nvim-go/pkg/version"
 )
@@ -227,7 +228,7 @@ func Child(ctx context.Context) error {
 	}
 	go s.Serve()
 
-	s.Subscribe("NvimGo")
+	s.Subscribe(nvimctx.Method)
 
 	select {
 	case <-ctx.Done():
