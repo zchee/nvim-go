@@ -11,6 +11,10 @@ ignored = ["golang.org/x/tools/cmd/guru"]
 
 # constraint
 [[constraint]]
+  name = "golang.org/x/exp"
+  branch = "master"
+
+[[constraint]]
   name = "github.com/google/gops"
   branch = "master"
 

@@ -37,7 +37,7 @@
   revision = "899e456273f5c46d23aef8f0c66e899d7d1e17f4"
 
 [[projects]]
-  digest = "1:61490ab88e24f6fa24da3045a4ed8e0eef5ba98c8c5b89b116f4e1fb6c958ffc"
+  digest = "1:c908c41a148e9a0faaacbc0ddc31e14310e126a0c8a6ad13b4c090267a64f713"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -49,6 +49,7 @@
     "aws/credentials",
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
     "aws/credentials/stscreds",
     "aws/csm",
     "aws/defaults",
@@ -70,8 +71,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "ddc06f9fad886ea5daa5f828f3ca094084f8c2a7"
-  version = "v1.15.90"
+  revision = "c4e0e593d5f18b478f17ff0e86b56d41a70ced2d"
+  version = "v1.16.2"
 
 [[projects]]
   digest = "1:65b0d980b428a6ad4425f2df4cd5410edd81f044cf527bd1c345368444649e58"
@@ -189,7 +190,7 @@
   name = "github.com/google/pprof"
   packages = ["profile"]
   pruneopts = "NUT"
-  revision = "b4f47329b966aba6be4255b2fc50f9dbd8260416"
+  revision = "3ea8567a2e5752420fc544d2e2ad249721768934"
 
 [[projects]]
   digest = "1:fb9f5147a9d6fc69057d05b0739bcd79562c55db143c3bdacfe1c9c6129461f6"
@@ -216,11 +217,11 @@
   revision = "f579f869bbfea48a61fbea09207cadd1aaeceb83"
 
 [[projects]]
-  digest = "1:ac6d01547ec4f7f673311b4663909269bfb8249952de3279799289467837c3cc"
+  digest = "1:1f2aebae7e7c856562355ec0198d8ca2fa222fb05e5b1b66632a1fce39631885"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "0b12d6b5"
+  revision = "c2b33e84"
 
 [[projects]]
   branch = "master"
@@ -385,6 +386,18 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:d051e55b1aef0ff8043f18ab7e945055f1d6f483b9584386fd48873a6e0c01d5"
+  name = "golang.org/x/exp"
+  packages = [
+    "errors",
+    "errors/fmt",
+    "errors/internal",
+  ]
+  pruneopts = "NUT"
+  revision = "68cc7b1f272e93e048c7a32efa6e190d898afeca"
+
+[[projects]]
+  branch = "master"
   digest = "1:0c01d3008eafbab151304412727a9a0e0d485a0aab83585bd8220099147f952f"
   name = "golang.org/x/lint"
   packages = ["."]
@@ -406,7 +419,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "351d144fa1fc0bd934e2408202be0c29f25e35a0"
+  revision = "610586996380ceef02dd726cc09df7e00a3f8e56"
 
 [[projects]]
   branch = "master"
@@ -469,7 +482,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ddfdd7d3218e498ba307f2dfcd02d14a39a915db4ecc094c951efeb2d0e2b72b"
+  digest = "1:65a136dee054bbca2d56b33bace6a91b4a8382981db49d4c4924cc33d057e746"
   name = "golang.org/x/tools"
   packages = [
     "cmd/guru/serial",
@@ -497,7 +510,7 @@
     "refactor/satisfy",
   ]
   pruneopts = "NUT"
-  revision = "22934f0fdb6201c132a3dc6120150dcb1646d74c"
+  revision = "4c874b978acba4ecd4a257d3bb8829dd5de17be8"
 
 [[projects]]
   branch = "master"
@@ -515,7 +528,7 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "6142e720c068c6cd71f2258e007ff1991572e1d5"
+  revision = "1a5ef82f9af45ef51c486291ef2b0a16d82fdb95"
 
 [[projects]]
   digest = "1:b400989fa9ecf8f825e9092d41c9779444afeda5d5ce7f5c9d4a9ca9d05c949c"
@@ -637,6 +650,8 @@
     "go.uber.org/zap",
     "go.uber.org/zap/buffer",
     "go.uber.org/zap/zapcore",
+    "golang.org/x/exp/errors",
+    "golang.org/x/exp/errors/fmt",
     "golang.org/x/lint",
     "golang.org/x/sync/errgroup",
     "golang.org/x/sync/syncmap",
