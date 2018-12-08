@@ -13,7 +13,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/profiler"
 	"contrib.go.opencensus.io/exporter/ocagent"
 	"contrib.go.opencensus.io/exporter/stackdriver"
@@ -22,10 +21,10 @@ import (
 	"github.com/pkg/errors"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	xerrors "golang.org/x/exp/errors"
-	xfmt "golang.org/x/exp/errors/fmt"
+	"golang.org/x/exp/errors/fmt"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zchee/nvim-go/pkg/autocmd"
@@ -56,7 +55,7 @@ func init() {
 
 func main() {
 	if *fVersion {
-		xfmt.Printf("%s:\n  version: %s\n", appName, version.Version)
+		fmt.Printf("%s:\n  version: %s\n", appName, version.Version)
 		return
 	}
 
@@ -83,11 +82,54 @@ func main() {
 		return
 	}
 
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+	sighupFn := func() {}
+	sigintFn := func() {
+		logpkg.Println("Start shutdown gracefully")
+		cancel()
+	}
+	go signalHandler(sigc, sighupFn, sigintFn)
+
+	errc := make(chan error, 1)
+	go func() {
+		defer close(errc)
+		errc <- startServer(ctx)
+	}()
+
+	select {
+	case err := <-errc:
+		if err != nil {
+			logpkg.Fatal(err)
+		}
+		logpkg.Println("all jobs are finished")
+	}
+
+	logpkg.Println("done to the shutdown")
+}
+
+func signalHandler(ch <-chan os.Signal, sighupFn, sigintFn func()) {
+	for {
+		select {
+		case sig := <-ch:
+			switch sig {
+			case syscall.SIGHUP:
+				logpkg.Printf("catch signal %s", sig)
+				sighupFn()
+			case syscall.SIGINT, syscall.SIGTERM:
+				logpkg.Printf("catch signal %s", sig)
+				sigintFn()
+			}
+		}
+	}
+}
+
+func startServer(ctx context.Context) (errs error) {
 	env := config.Process()
 
 	var lv zapcore.Level
 	if err := lv.UnmarshalText([]byte(env.LogLevel)); err != nil {
-		logpkg.Fatalf("failed to parse log level: %s, err: %v", env.LogLevel, err)
+		return fmt.Errorf("failed to parse log level: %s, err: %v", env.LogLevel, err)
 	}
 	log, undo := logger.NewRedirectZapLogger(lv)
 	defer undo()
@@ -95,24 +137,20 @@ func main() {
 
 	// Open socket for using gops to get stacktraces of the daemon.
 	if err := gops.Listen(gops.Options{ConfigDir: "/tmp/gops", ShutdownCleanup: true}); err != nil {
-		logpkg.Fatalf("unable to start gops: %s", err)
+		return fmt.Errorf("unable to start gops: %s", err)
 	}
 	log.Info("starting gops agent")
 
-	if config.HasGCPProjectID() {
-		gcpProjectID := env.GCPProjectID
-		trace.ApplyConfig(trace.Config{
-			DefaultSampler: trace.AlwaysSample(),
-		})
-
+	if gcpProjectID := env.GCPProjectID; gcpProjectID != "" {
 		// OpenCensus tracing with OpenCensus agent exporter
 		oce, err := ocagent.NewExporter(ocagent.WithInsecure(), ocagent.WithServiceName(appName))
 		if err != nil {
-			msg := xerrors.New("Failed to create the OpenCensus agent exporter")
-			err = xfmt.Errorf("%s: %v", msg, err)
-			logpkg.Fatal(err)
+			return fmt.Errorf("Failed to create the OpenCensus agent exporter: %v", err)
 		}
-		defer oce.Stop()
+		defer func() {
+			errs = multierr.Append(errs, oce.Stop())
+		}()
+
 		trace.RegisterExporter(oce)
 		log.Info("opencensus", zap.String("trace", "enabled OpenCensus agent exporter"))
 
@@ -120,7 +158,7 @@ func main() {
 		sdOpts := stackdriver.Options{
 			ProjectID: gcpProjectID,
 			OnError: func(err error) {
-				log.Error("stackdriver.Exporter", zap.Error(xfmt.Errorf("could not log error: %v", err)))
+				errs = multierr.Append(errs, fmt.Errorf("stackdriver.Exporter: %v", err))
 			},
 			MetricPrefix: appName,
 			Context:      ctx,
@@ -130,9 +168,10 @@ func main() {
 			logpkg.Fatalf("failed to create stackdriver exporter: %v", err)
 		}
 		defer sd.Flush()
+
 		trace.RegisterExporter(sd)
-		log.Info("opencensus", zap.String("trace", "enabled Stackdriver exporter"))
 		view.RegisterExporter(sd)
+		log.Info("opencensus", zap.String("trace", "enabled Stackdriver exporter"))
 
 		// Stackdriver Profiler
 		profConf := profiler.Config{
@@ -146,79 +185,47 @@ func main() {
 		}
 		log.Info("stackdriver", zap.String("profiler", "enabled Stackdriver profiler"))
 
-		// Stackdriver Error Reporting
-		errReportConf := errorreporting.Config{
-			ServiceName:    appName,
-			ServiceVersion: version.Tag,
-			OnError: func(err error) {
-				log.Error("errorreporting", zap.Error(xfmt.Errorf("could not log error: %v", err)))
-			},
-		}
-		errClient, err := errorreporting.NewClient(ctx, gcpProjectID, errReportConf)
-		if err != nil {
-			logpkg.Fatalf("failed to create errorreporting client: %v", err)
-		}
-		defer errClient.Close()
-		ctx = context.WithValue(ctx, &errorreporting.Client{}, errClient)
-		log.Info("stackdriver", zap.String("errorreporting", "enabled Stackdriver errorreporting"))
-
 		var span *trace.Span
 		ctx, span = trace.StartSpan(ctx, "main", trace.WithSampler(trace.AlwaysSample())) // start root span
 		defer span.End()
 	}
 
-	log.Info(xfmt.Sprintf("starting %s server", appName), zap.Object("env", env))
-	eg := new(errgroup.Group)
+	var eg *errgroup.Group
 	eg, ctx = errgroup.WithContext(ctx)
+
 	eg.Go(func() error {
 		fn := func(p *plugin.Plugin) error {
-			return Main(ctx, p)
+			return func(ctx context.Context, p *plugin.Plugin) error {
+				ctx, cancel := context.WithCancel(ctx)
+				log := logger.FromContext(ctx).Named("main")
+				ctx = logger.NewContext(ctx, log)
+
+				bctxt := buildctxt.NewContext()
+				autocmd.Register(ctx, cancel, p, bctxt, command.Register(ctx, p, bctxt))
+
+				// switch to unix socket rpc-connection
+				if n, err := server.Dial(ctx); err == nil {
+					p.Nvim = n
+				}
+
+				return nil
+			}(ctx, p)
 		}
 		return Plugin(fn)
 	})
 	eg.Go(func() error {
-		return Child(ctx)
+		return childServer(ctx)
 	})
 
-	go func() {
-		if err := eg.Wait(); err != nil {
-			log.Fatal("eg.Wait", zap.Error(err))
-		}
-	}()
-
-	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
-
-	select {
-	case <-ctx.Done():
-		log.Error("ctx.Done()", zap.Error(ctx.Err()))
-		return
-	case sig := <-sigc:
-		switch sig {
-		case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM:
-			log.Info("catch signal", zap.String("name", sig.String()))
-			return
-		}
-	}
-}
-
-func Main(ctx context.Context, p *plugin.Plugin) error {
-	ctx, cancel := context.WithCancel(ctx)
-	log := logger.FromContext(ctx).Named("main")
-	ctx = logger.NewContext(ctx, log)
-
-	bctxt := buildctxt.NewContext()
-	autocmd.Register(ctx, cancel, p, bctxt, command.Register(ctx, p, bctxt))
-
-	// switch to unix socket rpc-connection
-	if n, err := server.Dial(ctx); err == nil {
-		p.Nvim = n
+	log.Info(fmt.Sprintf("starting %s server", appName), zap.Object("env", env))
+	if err := eg.Wait(); err != nil {
+		log.Fatal("occurred error", zap.Error(err))
 	}
 
-	return nil
+	return errs
 }
 
-func Child(ctx context.Context) error {
+func childServer(ctx context.Context) error {
 	log := logger.FromContext(ctx).Named("child")
 	ctx = logger.NewContext(ctx, log)
 
