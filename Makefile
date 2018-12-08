@@ -1,139 +1,31 @@
-.DEFAULT_GOAL := build
-
 # ----------------------------------------------------------------------------
-# package level setting
+# global
 
-APP := $(notdir $(CURDIR))
-PACKAGE_ROOT := $(CURDIR)
-PACKAGES := $(shell go list ./pkg/... | grep -v -e 'pkg/internal/go' -e 'pkg/internal/gotool')
-VENDOR_PACKAGES := $(shell go list -deps ./pkg/...)
+APP = nvim-go
 
-GIT_TAG := $(shell git describe --tags --abbrev=0)
-GIT_COMMIT := $(shell git rev-parse --short HEAD)
+# ---------------------------------------------------------------------------
+# target
 
-# ----------------------------------------------------------------------------
-# common environment variables
-
-SHELL := /usr/bin/env bash
-CC := clang  # need compile cgo for delve
-CXX := clang++
-GO_GCFLAGS ?=
-GO_GCFLAGS_BASE=
-GO_LDFLAGS ?=
-GO_LDFLAGS_BASE=-X=main.tag=$(GIT_TAG) -X=main.gitCommit=$(GIT_COMMIT)
-CGO_CFLAGS ?=
-CGO_CPPFLAGS ?=
-CGO_CXXFLAGS ?=
-CGO_LDFLAGS ?=
-
-GO_PATH := $(shell go env GOPATH)
-
-# ----------------------------------------------------------------------------
-# build and test flags
-
-GO_TEST ?= go test
-GO_BUILD_TAGS ?= osusergo
-GO_BUILD_FLAGS ?= -tags "$(GO_BUILD_TAGS)"
-GO_TEST_FUNCS ?= .
-GO_TEST_FLAGS ?= -race -run=$(GO_TEST_FUNCS)
-GO_BENCH_FUNCS ?= .
-GO_BENCH_FLAGS ?= -bench=${GO_BENCH_FUNCS} -benchmem
-
-ifneq ($(NVIM_GO_DEBUG),)
-GO_GCFLAGS_BASE+=all="-N -l -dwarflocationlists=true"  # https://tip.golang.org/doc/diagnostics.html#debugging
-GO_LDFLAGS_BASE+=-compressdwarf=false
-else
-GO_BUILD_TAGS+=netgo
-GO_BUILD_FLAGS+=-installsuffix netgo
-GO_GCFLAGS_BASE+=
-GO_LDFLAGS+=-w -s
-endif
-
-ifeq ($(GO_GCFLAGS_BASE),)
-GO_GCFLAGS=-gcflags=$(strip ${GO_GCFLAGS_BASE})
-endif
-
-ifneq ($(GO_LDFLAGS_BASE),)
-GO_LDFLAGS=-ldflags="$(strip ${GO_LDFLAGS_BASE})"
-endif
-
-# ----------------------------------------------------------------------------
-# targets
-
-define target
-	@printf "+ \\033[32m$(shell printf $@ | cut -d '.' -f2)\\033[0m\\n"
-endef
-
-.PHONY: init
-init:  ## Install dependency tools
-	go get -u -v \
-		github.com/golang/dep/cmd/dep \
-		\
-		github.com/kisielk/errcheck \
-		github.com/mdempsky/unconvert \
-		golang.org/x/lint/golint \
-		honnef.co/go/tools/cmd/gosimple \
-		honnef.co/go/tools/cmd/staticcheck \
-		honnef.co/go/tools/cmd/unused \
-		\
-		github.com/rakyll/gotest
-
-.PHONY: build
-build:  ## Build the nvim-go binary
-	$(call target)
-	go build -v -o ./bin/${APP} $(strip ${GO_BUILD_FLAGS}) $(strip ${GO_GCFLAGS}) $(strip ${GO_LDFLAGS}) ./cmd/${APP}
-
-.PHONY: build.race
-build.race: GO_BUILD_FLAGS+=-race
-build.race: clean build  ## Build the nvim-go binary with race
-	$(call target)
-
-.PHONY: build.rebuild
-build.rebuild: clean build  ## Rebuild the nvim-go binary
-	$(call target)
-
+# manifest
 .PHONY: manifest
 manifest: build  ## Write plugin manifest for developer
 	$(call target)
-	./bin/${APP} -manifest ${APP} -location ./plugin/nvim-go.vim
+	$(CURDIR)/bin/${APP} -manifest ${APP} -location $(CURDIR)/plugin/nvim-go.vim
 
-.PHONY: manifest.race
-manifest.race: APP=nvim-race
-manifest.race: build.race manifest  ## Write plugin manifest for developer
+.PHONY: manifest/race
+manifest/race: APP=nvim-race
+manifest/race: build/race manifest  ## Write plugin manifest for developer
 	$(call target)
 
-.PHONY: manifest.dump
-manifest.dump: build  ## Dump plugin manifest
+.PHONY: manifest/dump
+manifest/dump: build  ## Dump plugin manifest
 	$(call target)
-	./bin/${APP} -manifest ${APP}
+	$(CURDIR)/bin/${APP} -manifest ${APP}
 
 
-.PHONY: vendor.push
-vendor.push:
-	$(call target)
-	sed -i 's|# unused-packages|unused-packages|' Gopkg.toml
-	dep ensure -v
-	git add Gopkg* vendor
-	sed -i 's|unused-packages|# unused-packages|' Gopkg.toml
-	dep ensure -v
-
-.PHONY: vendor.update
-vendor.update:  ## Update the all vendor packages
-	$(call target)
-	dep ensure -v -update
-
-.PHONY: vendor.install
-vendor.install:  # Install vendor packages for gocode completion
-	$(call target)
-	go install -v -x ${VENDOR_PACKAGES}
-
-
-.PHONY: vendor.guru
-vendor.guru: vendor.guru-update vendor.guru-rename
-	$(call target)
-
-.PHONY: vendor.guru-update
-vendor.guru-update:  ## Update the internal guru package
+# internal vendor
+.PHONY: vendor/guru/update
+vendor/guru/update:  ## Update the internal guru package
 	$(call target)
 	sed -i 's|unused-packages|# unused-packages|' Gopkg.toml
 	dep ensure -v -update golang.org/x/tools
@@ -149,8 +41,8 @@ vendor.guru-update:  ## Update the internal guru package
 	dep ensure -v -no-vendor
 	unset DEP_REVISION
 
-.PHONY: vendor.guru-rename
-vendor.guru-rename: vendor.guru-update
+.PHONY: vendor/guru/rename
+vendor/guru/rename: vendor/guru/update
 	$(call target)
 	@echo -e "[INFO] Rename main to guru\\n"
 	grep "package main" ${PACKAGE_ROOT}/pkg/internal/guru/*.go -l | xargs sed -i 's/package main/package guru/'
@@ -163,8 +55,12 @@ vendor.guru-rename: vendor.guru-update
 	@echo -e "[INFO] remove canonical custom import path from main.go\\n"
 	sed -i "s|package guru|\n// +build ignore\n\n\0|" ${PACKAGE_ROOT}/pkg/internal/guru/main.go
 
+.PHONY: vendor/guru
+vendor/guru: vendor/guru/update vendor/guru/rename
+	$(call target)
+
 .PHONY: vendor/x/tools/update
-vendor/x/tools/update:
+vendor/x/tools/internal/update:
 	@go get -u -v golang.org/x/tools/internal/...
 
 .PHONY: vendor/x/tools/%
@@ -177,93 +73,40 @@ vendor/x/tools/%:
 vendor/x/tools: vendor/x/tools/update vendor/x/tools/fastwalk vendor/x/tools/gopathwalk vendor/x/tools/semver
 	sed -i "s|golang.org/x/tools/internal/fastwalk|github.com/zchee/nvim-go/pkg/internal/fastwalk|" ${PACKAGE_ROOT}/pkg/internal/gopathwalk/walk.go
 
-.PHONY: vendor/valyala/bytebufferpool/update
-vendor/valyala/bytebufferpool/update:
+.PHONY: vendor/bytebufferpool/update
+vendor/bytebufferpool/update:
 	@go get -u -v github.com/valyala/bytebufferpool
 
 .PHONY: vendor/x/tools
-vendor/valyala/bytebufferpool: vendor/valyala/bytebufferpool/update
-	mkdir -p ${PACKAGE_ROOT}/pkg/internal/$(subst vendor/valyala/bytebuffer,,$@)
-	find ${PACKAGE_ROOT}/pkg/internal/$(subst vendor/valyala/bytebuffer,,$@) -type f -name '*.go' -print -delete
-	find /Users/zchee/go/src/github.com/valyala/bytebufferpool -type f -name '*.go' -and -not -name '*_test.go' -exec cp {} ${PACKAGE_ROOT}/pkg/internal/$(subst vendor/valyala/bytebuffer,,$@) \;
-
-
-.PHONY: test
-test:  ## Run the package test
-	$(call target)
-	${GO_TEST} -v $(strip ${GO_TEST_FLAGS} ${PACKAGES})
-
-.PHONY: bench
-bench: GO_TEST_FUNCS=^$$
-bench: GO_TEST_FLAGS+=${GO_BENCH_FLAGS}
-bench: test ## Take the packages benchmark
-	$(call target)
-
-
-.PHONY: lint
-lint: lint.golint lint.errcheck lint.megacheck lint.vet lint.unconvert  ## Run lint use all tools
-
-.PHONY: lint.golint
-lint.golint:  ## Run golint
-	$(call target)
-	golint -set_exit_status -min_confidence=0.6 ${PACKAGES}
-
-.PHONY: lint.errcheck
-lint.errcheck:  ## Run errcheck
-	$(call target)
-	errcheck ${PACKAGES}
-
-.PHONY: lint.megacheck
-lint.megacheck:  ## Run megacheck
-	$(call target)
-	megacheck $(PACKAGES)
-
-.PHONY: lint.vet
-lint.vet:  ## Run go vet
-	$(call target)
-	go vet -vettool=/usr/local/go/pkg/tool/darwin_amd64/vet-lite ${PACKAGES}
-
-.PHONY: lint.unconvert
-lint.unconvert:  ## Run unconvert
-	$(call target)
-	unconvert -v ${PACKAGES}
-
-.PHONY: coverage
-coverage:  # take test coverage
-	$(call target)
-	${GO_TEST} -v -race -covermode=atomic -coverprofile=$@.out -coverpkg=./pkg/... $(PACKAGES)
-
-
-.PHONY: clean
-clean:  ## Clean the {bin,pkg} directory
-	$(call target)
-	${RM} -r ./bin *.out *.prof
+vendor/bytebufferpool: vendor/bytebufferpool/update
+	mkdir -p ${PACKAGE_ROOT}/pkg/internal/$(subst vendor/bytebuffer,,$@)
+	find ${PACKAGE_ROOT}/pkg/internal/$(subst vendor/bytebuffer,,$@) -type f -name '*.go' -print -delete
+	find /Users/zchee/go/src/github.com/valyala/bytebufferpool -type f -name '*.go' -and -not -name '*_test.go' -exec cp {} ${PACKAGE_ROOT}/pkg/internal/$(subst vendor/bytebuffer,,$@) \;
 
 
 .PHONY: docker
-docker: docker.test  ## Run the docker container test on Linux
+docker: docker/test  ## Run the docker container test on Linux
 	$(call target)
 
-.PHONY: docker.build
-docker.build:  ## Build the zchee/nvim-go docker container for testing on the Linux
+.PHONY: docker/build
+docker/build:  ## Build the zchee/nvim-go docker container for testing on the Linux
 	$(call target)
-	docker build --rm -t ${USER}/${APP} .
+	docker image build --rm --progress=plain -t $(IMAGE_REGISTRY)/$(APP) .
 
-.PHONY: docker.build-nocache
-docker.build-nocache:  ## Build the zchee/nvim-go docker container for testing on the Linux without cache
+.PHONY: docker/build-nocache
+docker/build-nocache:  ## Build the zchee/nvim-go docker container for testing on the Linux without cache
 	$(call target)
-	docker build --rm --no-cache -t ${USER}/${APP} .
+	docker image build --rm --no-cache --progress=plain -t $(IMAGE_REGISTRY)/$(APP) .
 
-.PHONY: docker.test
-docker.test: docker-build  ## Run the package test with docker container
+.PHONY: docker/test
+docker/test: docker/build  ## Run the package test with docker container
 	$(call target)
-	docker run --rm -it ${USER}/${APP} go test -v ${GO_TEST_FLAGS} ${PACKAGES}
+	docker container run --rm -it $(IMAGE_REGISTRY)/$(APP) go test -v ${GO_TEST_FLAGS} ${PACKAGES}
 
+# ----------------------------------------------------------------------------
+# include
 
-.PHONY: todo
-todo:  ## Print the all of (TODO|BUG|XXX|FIXME|NOTE) in nvim-go package sources
-	@pt -e '(TODO|BUG|XXX|FIXME|NOTE)(\(.+\):|:)' --follow --hidden --ignore=.git --ignore=vendor --ignore=internal --ignore=Makefile --ignore=snippets --ignore=indent
+include hack/make/go.mk
 
-.PHONY: help
-help:  ## Print this help
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z./_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+# ----------------------------------------------------------------------------
+# override
