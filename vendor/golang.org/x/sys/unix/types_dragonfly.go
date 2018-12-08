@@ -5,7 +5,7 @@
 // +build ignore
 
 /*
-Input to cgo -godefs.  See README.md
+Input to cgo -godefs.  See also mkerrors.sh and mkall.sh
 */
 
 // +godefs map struct_in_addr [4]byte /* in_addr */
@@ -17,7 +17,6 @@ package unix
 #define KERNEL
 #include <dirent.h>
 #include <fcntl.h>
-#include <poll.h>
 #include <signal.h>
 #include <termios.h>
 #include <stdio.h>
@@ -35,7 +34,6 @@ package unix
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/un.h>
-#include <sys/utsname.h>
 #include <sys/wait.h>
 #include <net/bpf.h>
 #include <net/if.h>
@@ -65,14 +63,14 @@ struct sockaddr_any {
 */
 import "C"
 
-// Machine characteristics
+// Machine characteristics; for internal use.
 
 const (
-	SizeofPtr      = C.sizeofPtr
-	SizeofShort    = C.sizeof_short
-	SizeofInt      = C.sizeof_int
-	SizeofLong     = C.sizeof_long
-	SizeofLongLong = C.sizeof_longlong
+	sizeofPtr      = C.sizeofPtr
+	sizeofShort    = C.sizeof_short
+	sizeofInt      = C.sizeof_int
+	sizeofLong     = C.sizeof_long
+	sizeofLongLong = C.sizeof_longlong
 )
 
 // Basic types
@@ -100,6 +98,23 @@ type _Gid_t C.gid_t
 
 // Files
 
+const ( // Directory mode bits
+	S_IFMT   = C.S_IFMT
+	S_IFIFO  = C.S_IFIFO
+	S_IFCHR  = C.S_IFCHR
+	S_IFDIR  = C.S_IFDIR
+	S_IFBLK  = C.S_IFBLK
+	S_IFREG  = C.S_IFREG
+	S_IFLNK  = C.S_IFLNK
+	S_IFSOCK = C.S_IFSOCK
+	S_ISUID  = C.S_ISUID
+	S_ISGID  = C.S_ISGID
+	S_ISVTX  = C.S_ISVTX
+	S_IRUSR  = C.S_IRUSR
+	S_IWUSR  = C.S_IWUSR
+	S_IXUSR  = C.S_IXUSR
+)
+
 type Stat_t C.struct_stat
 
 type Statfs_t C.struct_statfs
@@ -109,12 +124,6 @@ type Flock_t C.struct_flock
 type Dirent C.struct_dirent
 
 type Fsid C.struct_fsid
-
-// File system limits
-
-const (
-	PathMax = C.PATH_MAX
-)
 
 // Sockets
 
@@ -231,33 +240,3 @@ type BpfHdr C.struct_bpf_hdr
 // Terminal handling
 
 type Termios C.struct_termios
-
-type Winsize C.struct_winsize
-
-// fchmodat-like syscalls.
-
-const (
-	AT_FDCWD            = C.AT_FDCWD
-	AT_SYMLINK_NOFOLLOW = C.AT_SYMLINK_NOFOLLOW
-)
-
-// poll
-
-type PollFd C.struct_pollfd
-
-const (
-	POLLERR    = C.POLLERR
-	POLLHUP    = C.POLLHUP
-	POLLIN     = C.POLLIN
-	POLLNVAL   = C.POLLNVAL
-	POLLOUT    = C.POLLOUT
-	POLLPRI    = C.POLLPRI
-	POLLRDBAND = C.POLLRDBAND
-	POLLRDNORM = C.POLLRDNORM
-	POLLWRBAND = C.POLLWRBAND
-	POLLWRNORM = C.POLLWRNORM
-)
-
-// Uname
-
-type Utsname C.struct_utsname
