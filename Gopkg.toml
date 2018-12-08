@@ -1,0 +1,110 @@
+[metadata]
+  project = "github.com/zchee/nvim-go"
+
+required = []
+ignored = ["golang.org/x/tools/cmd/guru"]
+
+[prune]
+  non-go = true
+  go-tests = true
+  unused-packages = true
+
+# constraint
+[[constraint]]
+  name = "github.com/google/gops"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/zchee/go-xdgbasedir"
+  version = "1.0.3"
+
+[[constraint]]
+  name = "github.com/neovim/go-client"
+  branch = "api/0ce8800"
+
+# constraint:master
+[[constraint]]
+  name = "github.com/fatih/color"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/cweill/gotests"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/davecgh/go-spew"
+  branch = "master"
+
+[[constraint]]
+  name = "golang.org/x/lint"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/hokaccha/go-prettyjson"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/motemen/go-astmanip"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/pkg/errors"
+  branch = "master"
+
+[[constraint]]
+  name = "go.uber.org/zap"
+  branch = "master"
+
+[[constraint]]
+  name = "golang.org/x/sync"
+  branch = "master"
+
+[[constraint]]
+  name = "golang.org/x/tools"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/google/go-cmp"
+  branch = "master"
+
+[[constraint]]
+  name = "contrib.go.opencensus.io/exporter/stackdriver"
+  branch = "master"
+
+[[constraint]]
+  name = "contrib.go.opencensus.io/exporter/ocagent"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/kelseyhightower/envconfig"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/haya14busa/errorformat"
+  branch = "master"
+
+# override
+[[override]]
+  name = "go.uber.org/atomic"
+  branch = "master"
+
+[[override]]
+  name = "go.uber.org/multierr"
+  branch = "master"
+
+# derekparker/delve dependencies
+[[constraint]]
+  name = "github.com/derekparker/delve"
+  revision = "92dad944d7e0c1e0affb64d7a45e9ce8c5704fe5"
+
+[[override]]
+  name = "golang.org/x/arch"
+  revision = "f40095975f84d35d3958310c8247b9fb5a17fcb5"
+
+[[override]]
+  name = "golang.org/x/debug"
+  revision = "fb508927b491eca48a708e9d000fdb7afa53c32b"
+
+[[override]]
+  name = "golang.org/x/sys"
+  revision = "f3918c30c5c2cb527c0b071a27c35120a6c0719a"
