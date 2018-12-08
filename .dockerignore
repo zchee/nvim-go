@@ -10,6 +10,5 @@ syntax
 .gitignore
 .travis.yml
 Dockerfile
-Makefile
 LICENSE
 *.md

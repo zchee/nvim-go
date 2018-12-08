@@ -10,4 +10,4 @@ RUN set -ux \
 COPY . /go/src/github.com/zchee/nvim-go
 WORKDIR /go/src/github.com/zchee/nvim-go
 
-CMD ["go", "test", "-v", "-race", "./..."]
+CMD ["make", "test"]
