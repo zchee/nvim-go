@@ -33,6 +33,7 @@ import (
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/server"
+	"github.com/zchee/nvim-go/pkg/version"
 )
 
 const (
@@ -53,7 +54,7 @@ func init() {
 
 func main() {
 	if *fVersion {
-		fmt.Printf("%s:\n  version: %s\n", appName, version)
+		fmt.Printf("%s:\n  version: %s\n", appName, version.Version)
 		return
 	}
 
@@ -132,7 +133,7 @@ func main() {
 		// Stackdriver Profiler
 		profConf := profiler.Config{
 			Service:        appName,
-			ServiceVersion: tag,
+			ServiceVersion: version.Tag,
 			MutexProfiling: true,
 			ProjectID:      gcpProjectID,
 		}
@@ -144,7 +145,7 @@ func main() {
 		// Stackdriver Error Reporting
 		errReportConf := errorreporting.Config{
 			ServiceName:    appName,
-			ServiceVersion: tag,
+			ServiceVersion: version.Tag,
 			OnError: func(err error) {
 				zapLogger.Error("errorreporting", zap.Error(fmt.Errorf("could not log error: %v", err)))
 			},

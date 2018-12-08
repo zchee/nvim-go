@@ -20,7 +20,8 @@ ifneq ($(GIT_UNTRACKED_CHANGES),)
 	GIT_COMMIT := $(GIT_COMMIT)-dirty
 endif
 # CTIMEVAR=-X=$(PKG)/main.tag=$(VERSION) -X=$(PKG)/main.gitCommit=$(GIT_COMMIT)
-CTIMEVAR=-X=$(PKG)/main.tag=$(VERSION) -X=$(PKG)/main.gitCommit=$(GIT_COMMIT)
+CTIMEVAR=-X $(PKG)/pkg/version.Tag=$(VERSION) -X $(PKG)/pkg/version.GitCommit=$(GIT_COMMIT)
+# CTIMEVAR=-X $(PKG)/pkg/version.Version=$(VERSION)@$(GIT_COMMIT)
 
 # gcflags, ldflags
 GO_GCFLAGS?=
@@ -78,19 +79,23 @@ endef
 # ----------------------------------------------------------------------------
 # targets
 
-bin/$(APP): $(wildcard *.go) $(wildcard **/*.go)
+.PHONY: bin/$(APP)
+bin/$(APP):
 	CGO_ENABLED=$(CGO_ENABLED) go build -v -o ./bin/${APP} $(strip $(GOFLAGS)) ./cmd/${APP}
 
+.PHONY: $(APP)
 $(APP): bin/$(APP)
 
-build:
+.PHONY: build
 build: $(APP)  ## Builds a dynamic executable or package.
 	$(call target)
 
+.PHONY: build/race
 build/race: GOFLAGS+=-race
 build/race: clean $(APP)  ## Build the nvim-go binary with race
 	$(call target)
 
+.PHONY: static
 static: GOFLAGS+=${GO_LDFLAGS_STATIC}
 static: $(APP)  ## Builds a static executable or package.
 	$(call target)
