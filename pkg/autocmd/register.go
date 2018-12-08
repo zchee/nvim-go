@@ -6,11 +6,11 @@ package autocmd
 
 import (
 	"context"
+	"sync"
 
 	"github.com/neovim/go-client/nvim/plugin"
 	"go.uber.org/zap"
 	"golang.org/x/exp/errors/fmt"
-	"golang.org/x/sync/syncmap"
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/command"
@@ -34,7 +34,7 @@ func Register(pctx context.Context, cancel func(), p *plugin.Plugin, buildContex
 		cmd:              cmd,
 		bufWritePreChan:  make(chan interface{}),
 		bufWritePostChan: make(chan error),
-		errs:             new(syncmap.Map),
+		errs:             new(sync.Map),
 	}
 
 	// Handle the initial start Neovim process.

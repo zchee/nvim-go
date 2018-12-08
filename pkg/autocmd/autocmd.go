@@ -10,7 +10,6 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"go.opencensus.io/trace"
-	"golang.org/x/sync/syncmap"
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/command"
@@ -24,13 +23,13 @@ type Autocmd struct {
 	Nvim         *nvim.Nvim
 	buildContext *buildctxt.Context
 	cmd          *command.Command
+	mu           sync.Mutex
 
 	bufWritePostChan chan error
 	bufWritePreChan  chan interface{}
-	mu               sync.Mutex
 	wg               sync.WaitGroup
 
-	errs *syncmap.Map
+	errs *sync.Map
 }
 
 func (a *Autocmd) getStatus(bufnr, winID int, dir string) {
