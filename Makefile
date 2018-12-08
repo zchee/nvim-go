@@ -45,11 +45,11 @@ GO_LDFLAGS_BASE+=-compressdwarf=false
 else
 GO_BUILD_TAGS+=netgo
 GO_BUILD_FLAGS+=-installsuffix netgo
-GO_GCFLAGS_BASE+=-lang=go1.12
+GO_GCFLAGS_BASE+=
 GO_LDFLAGS+=-w -s
 endif
 
-ifneq ($(GO_GCFLAGS_BASE),)
+ifeq ($(GO_GCFLAGS_BASE),)
 GO_GCFLAGS=-gcflags=$(strip ${GO_GCFLAGS_BASE})
 endif
 
