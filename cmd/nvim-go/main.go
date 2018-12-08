@@ -7,7 +7,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	logpkg "log"
 	_ "net/http/pprof"
 	"os"
@@ -25,6 +24,8 @@ import (
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	xerrors "golang.org/x/exp/errors"
+	xfmt "golang.org/x/exp/errors/fmt"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zchee/nvim-go/pkg/autocmd"
@@ -54,7 +55,7 @@ func init() {
 
 func main() {
 	if *fVersion {
-		fmt.Printf("%s:\n  version: %s\n", appName, version.Version)
+		xfmt.Printf("%s:\n  version: %s\n", appName, version.Version)
 		return
 	}
 
@@ -87,15 +88,15 @@ func main() {
 	if err := lv.UnmarshalText([]byte(env.LogLevel)); err != nil {
 		logpkg.Fatalf("failed to parse log level: %s, err: %v", env.LogLevel, err)
 	}
-	zapLogger, undo := logger.NewRedirectZapLogger(lv)
+	log, undo := logger.NewRedirectZapLogger(lv)
 	defer undo()
-	ctx = logger.NewContext(ctx, zapLogger)
+	ctx = logger.NewContext(ctx, log)
 
 	// Open socket for using gops to get stacktraces of the daemon.
 	if err := gops.Listen(gops.Options{ConfigDir: "/tmp/gops", ShutdownCleanup: true}); err != nil {
 		logpkg.Fatalf("unable to start gops: %s", err)
 	}
-	zapLogger.Info("starting gops agent")
+	log.Info("starting gops agent")
 
 	if config.HasGCPProjectID() {
 		gcpProjectID := env.GCPProjectID
@@ -106,17 +107,19 @@ func main() {
 		// OpenCensus tracing with OpenCensus agent exporter
 		oce, err := ocagent.NewExporter(ocagent.WithInsecure(), ocagent.WithServiceName(appName))
 		if err != nil {
-			logpkg.Fatalf("Failed to create the OpenCensus agent exporter: %v", err)
+			msg := xerrors.New("Failed to create the OpenCensus agent exporter")
+			err = xfmt.Errorf("%s: %v", msg, err)
+			logpkg.Fatal(err)
 		}
 		defer oce.Stop()
 		trace.RegisterExporter(oce)
-		zapLogger.Info("opencensus", zap.String("trace", "enabled OpenCensus agent exporter"))
+		log.Info("opencensus", zap.String("trace", "enabled OpenCensus agent exporter"))
 
 		// OpenCensus tracing with Stackdriver exporter
 		sdOpts := stackdriver.Options{
 			ProjectID: gcpProjectID,
 			OnError: func(err error) {
-				zapLogger.Error("stackdriver.Exporter", zap.Error(fmt.Errorf("could not log error: %v", err)))
+				log.Error("stackdriver.Exporter", zap.Error(xfmt.Errorf("could not log error: %v", err)))
 			},
 			MetricPrefix: appName,
 			Context:      ctx,
@@ -127,7 +130,7 @@ func main() {
 		}
 		defer sd.Flush()
 		trace.RegisterExporter(sd)
-		zapLogger.Info("opencensus", zap.String("trace", "enabled Stackdriver exporter"))
+		log.Info("opencensus", zap.String("trace", "enabled Stackdriver exporter"))
 		view.RegisterExporter(sd)
 
 		// Stackdriver Profiler
@@ -140,14 +143,14 @@ func main() {
 		if err := profiler.Start(profConf); err != nil {
 			logpkg.Fatalf("failed to start stackdriver profiler: %v", err)
 		}
-		zapLogger.Info("stackdriver", zap.String("profiler", "enabled Stackdriver profiler"))
+		log.Info("stackdriver", zap.String("profiler", "enabled Stackdriver profiler"))
 
 		// Stackdriver Error Reporting
 		errReportConf := errorreporting.Config{
 			ServiceName:    appName,
 			ServiceVersion: version.Tag,
 			OnError: func(err error) {
-				zapLogger.Error("errorreporting", zap.Error(fmt.Errorf("could not log error: %v", err)))
+				log.Error("errorreporting", zap.Error(xfmt.Errorf("could not log error: %v", err)))
 			},
 		}
 		errClient, err := errorreporting.NewClient(ctx, gcpProjectID, errReportConf)
@@ -156,14 +159,14 @@ func main() {
 		}
 		defer errClient.Close()
 		ctx = context.WithValue(ctx, &errorreporting.Client{}, errClient)
-		zapLogger.Info("stackdriver", zap.String("errorreporting", "enabled Stackdriver errorreporting"))
+		log.Info("stackdriver", zap.String("errorreporting", "enabled Stackdriver errorreporting"))
 
 		var span *trace.Span
 		ctx, span = trace.StartSpan(ctx, "main", trace.WithSampler(trace.AlwaysSample())) // start root span
 		defer span.End()
 	}
 
-	zapLogger.Info(fmt.Sprintf("starting %s server", appName), zap.Object("env", env))
+	log.Info(xfmt.Sprintf("starting %s server", appName), zap.Object("env", env))
 	eg := new(errgroup.Group)
 	eg, ctx = errgroup.WithContext(ctx)
 	eg.Go(func() error {
@@ -178,20 +181,21 @@ func main() {
 
 	go func() {
 		if err := eg.Wait(); err != nil {
-			zapLogger.Fatal("eg.Wait", zap.Error(err))
+			log.Fatal("eg.Wait", zap.Error(err))
 		}
 	}()
 
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+
 	select {
 	case <-ctx.Done():
-		zapLogger.Error("ctx.Done()", zap.Error(ctx.Err()))
+		log.Error("ctx.Done()", zap.Error(ctx.Err()))
 		return
 	case sig := <-sigc:
 		switch sig {
 		case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM:
-			zapLogger.Info("catch signal", zap.String("name", sig.String()))
+			log.Info("catch signal", zap.String("name", sig.String()))
 			return
 		}
 	}
@@ -199,7 +203,8 @@ func main() {
 
 func Main(ctx context.Context, p *plugin.Plugin) error {
 	ctx, cancel := context.WithCancel(ctx)
-	ctx = logger.NewContext(ctx, logger.FromContext(ctx).Named("main"))
+	log := logger.FromContext(ctx).Named("main")
+	ctx = logger.NewContext(ctx, log)
 
 	bctxt := buildctxt.NewContext()
 	autocmd.Register(ctx, cancel, p, bctxt, command.Register(ctx, p, bctxt))
