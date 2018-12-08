@@ -78,8 +78,13 @@ func (c *Command) Build(ctx context.Context, args []string, bang bool, eval *Cmd
 	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
-
-	log.Info("", zap.Any("cmd", cmd))
+	log.Debug("command.Build",
+		zap.Strings("cmd.Args", cmd.Args),
+		zap.String("cmd.Path", cmd.Path),
+		zap.String("cmd.Dir", cmd.Dir),
+		zap.Any("cmd.SysProcAttr", cmd.SysProcAttr),
+		zap.Any("cmd.Process", cmd.Process),
+		zap.Any("cmd.ProcessState", cmd.ProcessState))
 
 	if buildErr := cmd.Run(); buildErr != nil {
 		if err, ok := buildErr.(*exec.ExitError); ok && err != nil {
@@ -143,7 +148,6 @@ func (c *Command) compileCmd(ctx context.Context, args []string, bang bool, dir 
 
 	args = append(args, "./...")
 	cmd.Args = append(cmd.Args, args...)
-	logger.FromContext(c.ctx).Debug("compileCmd", zap.Any("cmd", cmd))
 
 	return cmd, nil
 }
