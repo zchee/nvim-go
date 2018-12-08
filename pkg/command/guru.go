@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"go/build"
 	"go/token"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -158,6 +159,7 @@ func (c *Command) Guru(ctx context.Context, args []string, eval *funcGuruEval) i
 		if vendorDir := filepath.Join(root, "vendor"); fs.IsDirExist(vendorDir) {
 			scopes = append(scopes, "-"+fs.TrimGoPath(vendorDir))
 		}
+		os.Unsetenv("GO111MODULE")
 	case "gb":
 		root := c.buildContext.Build.ProjectRoot
 		var err error
