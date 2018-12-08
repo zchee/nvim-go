@@ -56,3 +56,7 @@ func (c *Command) cmdByteOffset() error {
 
 	return nvimutil.Echomsg(c.Nvim, offset)
 }
+
+func (c *Command) cmdNotify(args []string) error {
+	return nvimutil.Notify(c.Nvim, args...)
+}

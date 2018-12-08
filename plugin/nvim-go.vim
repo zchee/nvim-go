@@ -62,6 +62,7 @@ call remote#host#RegisterPlugin('nvim-go', '0', [
 \ {'type': 'command', 'name': 'GoIferr', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')'}},
 \ {'type': 'command', 'name': 'GoLint', 'sync': 0, 'opts': {'complete': 'customlist,GoLintCompletion', 'eval': 'expand(''%:p'')', 'nargs': '?'}},
 \ {'type': 'command', 'name': 'GoMetalinter', 'sync': 0, 'opts': {'eval': 'getcwd()'}},
+\ {'type': 'command', 'name': 'GoNotify', 'sync': 1, 'opts': {'nargs': '*'}},
 \ {'type': 'command', 'name': 'GoRename', 'sync': 0, 'opts': {'bang': '', 'eval': '[getcwd(), expand(''%:p''), expand(''<cword>'')]', 'nargs': '?'}},
 \ {'type': 'command', 'name': 'GoRun', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')', 'nargs': '*'}},
 \ {'type': 'command', 'name': 'GoRunLast', 'sync': 0, 'opts': {'eval': 'expand(''%:p'')'}},

@@ -43,6 +43,7 @@ func Register(ctx context.Context, p *plugin.Plugin, bctxt *buildctxt.Context) *
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoBuffers"}, c.cmdBuffers)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoWindows"}, c.cmdWindows)
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoTabpages"}, c.cmdTabpagas)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoNotify", NArgs: "*"}, c.cmdNotify)
 
 	delve.Register(ctx, p, bctxt)
 
