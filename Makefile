@@ -110,3 +110,5 @@ include hack/make/go.mk
 
 # ----------------------------------------------------------------------------
 # override
+
+build: GOFLAGS+=-mod=vendor

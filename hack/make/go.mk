@@ -241,7 +241,7 @@ dep: dep/ensure dep/update  ## Updates all vendor packages via dep.
 
 .PHONY: mod/init
 mod/init:  ## Init go.mod file.
-	$(call target,mod/init)
+	$(call target)
 	@GO111MODULE=on go mod init
 
 .PHONY: mod/tidy
