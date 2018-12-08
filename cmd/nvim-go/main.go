@@ -18,6 +18,7 @@ import (
 	"cloud.google.com/go/profiler"
 	"contrib.go.opencensus.io/exporter/ocagent"
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	gops "github.com/google/gops/agent"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
 	"go.opencensus.io/stats/view"
@@ -88,7 +89,12 @@ func main() {
 	zapLogger, undo := logger.NewRedirectZapLogger(lv)
 	defer undo()
 	ctx = logger.NewContext(ctx, zapLogger)
-	// ctx = trace.NewContext(ctx, &trace.Span{}) // add empty span context
+
+	// Open socket for using gops to get stacktraces of the daemon.
+	if err := gops.Listen(gops.Options{ConfigDir: "/tmp/gops", ShutdownCleanup: true}); err != nil {
+		logpkg.Fatalf("unable to start gops: %s", err)
+	}
+	zapLogger.Info("starting gops agent")
 
 	if config.HasGCPProjectID() {
 		gcpProjectID := env.GCPProjectID
@@ -96,22 +102,14 @@ func main() {
 			DefaultSampler: trace.AlwaysSample(),
 		})
 
-		// Stackdriver Profiler
-		profConf := profiler.Config{
-			Service:        appName,
-			ServiceVersion: tag,
-			MutexProfiling: true,
-			ProjectID:      gcpProjectID,
+		// OpenCensus tracing with OpenCensus agent exporter
+		oce, err := ocagent.NewExporter(ocagent.WithInsecure(), ocagent.WithServiceName(appName))
+		if err != nil {
+			logpkg.Fatalf("Failed to create the OpenCensus agent exporter: %v", err)
 		}
-		if err := profiler.Start(profConf); err != nil {
-			logpkg.Fatalf("failed to start stackdriver profiler: %v", err)
-		}
-
-		oce, err := ocagent.NewExporter(ocagent.WithInsecure())
-		if err := profiler.Start(profConf); err != nil {
-			logpkg.Fatalf("Failed to create ocagent-exporter: %v", err)
-		}
+		defer oce.Stop()
 		trace.RegisterExporter(oce)
+		zapLogger.Info("opencensus", zap.String("trace", "enabled OpenCensus agent exporter"))
 
 		// OpenCensus tracing with Stackdriver exporter
 		sdOpts := stackdriver.Options{
@@ -128,11 +126,20 @@ func main() {
 		}
 		defer sd.Flush()
 		trace.RegisterExporter(sd)
-		zapLogger.Debug("opencensus", zap.String("trace", "enabled Stackdriver exporter"))
+		zapLogger.Info("opencensus", zap.String("trace", "enabled Stackdriver exporter"))
 		view.RegisterExporter(sd)
 
-		ctx, span := trace.StartSpan(ctx, "main") // start root span
-		defer span.End()
+		// Stackdriver Profiler
+		profConf := profiler.Config{
+			Service:        appName,
+			ServiceVersion: tag,
+			MutexProfiling: true,
+			ProjectID:      gcpProjectID,
+		}
+		if err := profiler.Start(profConf); err != nil {
+			logpkg.Fatalf("failed to start stackdriver profiler: %v", err)
+		}
+		zapLogger.Info("stackdriver", zap.String("profiler", "enabled Stackdriver profiler"))
 
 		// Stackdriver Error Reporting
 		errReportConf := errorreporting.Config{
@@ -148,7 +155,11 @@ func main() {
 		}
 		defer errClient.Close()
 		ctx = context.WithValue(ctx, &errorreporting.Client{}, errClient)
-		zapLogger.Debug("stackdriver", zap.String("errorreporting", "enabled Stackdriver errorreporting"))
+		zapLogger.Info("stackdriver", zap.String("errorreporting", "enabled Stackdriver errorreporting"))
+
+		var span *trace.Span
+		ctx, span = trace.StartSpan(ctx, "main", trace.WithSampler(trace.AlwaysSample())) // start root span
+		defer span.End()
 	}
 
 	zapLogger.Info(fmt.Sprintf("starting %s server", appName), zap.Object("env", env))
