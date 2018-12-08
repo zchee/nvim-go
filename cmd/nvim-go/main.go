@@ -226,31 +226,14 @@ func Child(ctx context.Context) error {
 		return errors.Wrap(err, "failed to create NewServer")
 	}
 	go s.Serve()
-	defer func() {
+
+	s.Subscribe("NvimGo")
+
+	select {
+	case <-ctx.Done():
 		if err := s.Close(); err != nil {
 			log.Fatal("Close", zap.Error(err))
 		}
-	}()
-
-	bufs, err := s.Buffers()
-	if err != nil {
-		return errors.Wrap(err, "failed to get buffers")
+		return nil
 	}
-
-	// Get the names using a single atomic call to Nvim.
-	names := make([]string, len(bufs))
-	b := s.NewBatch()
-	for i, buf := range bufs {
-		b.BufferName(buf, &names[i])
-	}
-
-	if err := b.Execute(); err != nil {
-		return errors.Wrap(err, "failed to execute batch")
-	}
-
-	for _, name := range names {
-		log.Info("buffer", zap.String("name", name))
-	}
-
-	return nil
 }
