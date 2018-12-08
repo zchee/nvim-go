@@ -58,8 +58,8 @@ func (c *Command) cmdVet(args []string, eval *CmdVetEval) {
 // Vet is a simple checker for static errors in Go source code use go tool vet command.
 func (c *Command) Vet(ctx context.Context, args []string, eval *CmdVetEval) interface{} {
 	defer nvimutil.Profile(ctx, time.Now(), "Vet")
-
-	ctx, span := trace.StartSpan(ctx, "Vet")
+	span := trace.FromContext(ctx)
+	span.SetName("Vet")
 	defer span.End()
 
 	vetCmd := exec.CommandContext(ctx, "go", "tool", "vet")

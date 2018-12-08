@@ -30,9 +30,8 @@ var configOnce sync.Once
 // BufEnter gets the current buffer number, windows ID and set context from the directory structure on BufEnter autocmd.
 func (a *Autocmd) BufEnter(eval *bufEnterEval) {
 	defer nvimutil.Profile(a.ctx, time.Now(), "BufEnter")
-
-	span := new(trace.Span)
-	a.ctx, span = trace.StartSpan(a.ctx, "BufEnter")
+	span := trace.FromContext(a.ctx)
+	span.SetName("BufEnter")
 	defer span.End()
 
 	configOnce.Do(func() {

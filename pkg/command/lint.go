@@ -65,8 +65,8 @@ const (
 // TODO(zchee): Support go packages.
 func (c *Command) Lint(ctx context.Context, args []string, file string) interface{} {
 	defer nvimutil.Profile(ctx, time.Now(), "Lint")
-
-	ctx, span := trace.StartSpan(ctx, "Lint")
+	span := trace.FromContext(ctx)
+	span.SetName("Lint")
 	defer span.End()
 
 	var errlist []*nvim.QuickfixError

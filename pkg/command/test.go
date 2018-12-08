@@ -64,8 +64,8 @@ var testTerm *nvimutil.Terminal
 // the directory structure.
 func (c *Command) Test(ctx context.Context, args []string, dir string) error {
 	defer nvimutil.Profile(ctx, time.Now(), "Test")
-
-	ctx, span := trace.StartSpan(ctx, "Test")
+	span := trace.FromContext(ctx)
+	span.SetName("Test")
 	defer span.End()
 
 	cmd := []string{c.buildContext.Build.Tool, "test", strings.Join(config.TestFlags, " ")}

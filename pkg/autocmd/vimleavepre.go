@@ -15,9 +15,8 @@ import (
 
 func (a *Autocmd) VimLeavePre() {
 	defer nvimutil.Profile(a.ctx, time.Now(), "VimLeavePre")
-
-	span := new(trace.Span)
-	a.ctx, span = trace.StartSpan(a.ctx, "VimLeavePre")
+	span := trace.FromContext(a.ctx)
+	span.SetName("VimLeavePre")
 	defer span.End()
 
 	a.cancel()

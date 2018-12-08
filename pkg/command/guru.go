@@ -72,8 +72,8 @@ func (c *Command) funcGuru(args []string, eval *funcGuruEval) {
 // Guru go source analysis and output result to the quickfix or locationlist.
 func (c *Command) Guru(ctx context.Context, args []string, eval *funcGuruEval) interface{} {
 	defer nvimutil.Profile(ctx, time.Now(), "Guru")
-
-	ctx, span := trace.StartSpan(ctx, "Guru")
+	span := trace.FromContext(ctx)
+	span.SetName("Guru")
 	defer span.End()
 
 	log := logger.FromContext(c.ctx).Named("Guru").With(zap.Any("funcGuruEval", eval))

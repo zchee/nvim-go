@@ -62,8 +62,8 @@ func (c *Command) cmdBuild(args []string, bang bool, eval *CmdBuildEval) {
 // from the package directory structure.
 func (c *Command) Build(ctx context.Context, args []string, bang bool, eval *CmdBuildEval) interface{} {
 	defer nvimutil.Profile(ctx, time.Now(), "Build")
-
-	ctx, span := trace.StartSpan(ctx, "Build")
+	span := trace.FromContext(ctx)
+	span.SetName("Build")
 	defer span.End()
 
 	log := logger.FromContext(c.ctx).With(zap.Strings("args", args), zap.Bool("bang", bang), zap.Any("CmdBuildEval", eval))
@@ -99,7 +99,8 @@ func (c *Command) Build(ctx context.Context, args []string, bang bool, eval *Cmd
 
 // compileCmd returns the *exec.Cmd corresponding to the compile tool.
 func (c *Command) compileCmd(ctx context.Context, args []string, bang bool, dir string) (*exec.Cmd, error) {
-	ctx, span := trace.StartSpan(ctx, "compileCmd")
+	span := trace.FromContext(ctx)
+	span.SetName("compileCmd")
 	defer span.End()
 
 	bin, err := exec.LookPath(c.buildContext.Build.Tool)

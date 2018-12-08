@@ -34,8 +34,8 @@ type Autocmd struct {
 }
 
 func (a *Autocmd) getStatus(bufnr, winID int, dir string) {
-	span := new(trace.Span)
-	a.ctx, span = trace.StartSpan(a.ctx, "getStatus")
+	span := trace.FromContext(a.ctx)
+	span.SetName("getStatus")
 	defer span.End()
 
 	a.mu.Lock()

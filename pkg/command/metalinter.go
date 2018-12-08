@@ -52,8 +52,8 @@ type metalinterResult struct {
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
 func (c *Command) Metalinter(ctx context.Context, cwd string) error {
 	defer nvimutil.Profile(ctx, time.Now(), "MetaLinter")
-
-	ctx, span := trace.StartSpan(ctx, "MetaLinter")
+	span := trace.FromContext(ctx)
+	span.SetName("MetaLinter")
 	defer span.End()
 
 	var loclist []*nvim.QuickfixError

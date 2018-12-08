@@ -59,8 +59,8 @@ func (c *Command) cmdIferr(file string) {
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func (c *Command) Iferr(ctx context.Context, file string) error {
 	defer nvimutil.Profile(ctx, time.Now(), "Iferr")
-
-	ctx, span := trace.StartSpan(ctx, "Iferr")
+	span := trace.FromContext(ctx)
+	span.SetName("Iferr")
 	defer span.End()
 
 	b := nvim.Buffer(c.buildContext.BufNr)

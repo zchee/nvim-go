@@ -11,10 +11,11 @@ import (
 	"testing"
 
 	"github.com/neovim/go-client/nvim"
+
 	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/config"
-	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/internal/testutil"
+	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
 func TestCommand_Fmt(t *testing.T) {

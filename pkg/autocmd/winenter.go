@@ -21,9 +21,8 @@ type winEnterEval struct {
 
 func (a *Autocmd) WinEnter(eval *winEnterEval) error {
 	defer nvimutil.Profile(a.ctx, time.Now(), "WinEnter")
-
-	span := new(trace.Span)
-	a.ctx, span = trace.StartSpan(a.ctx, "WinEnter")
+	span := trace.FromContext(a.ctx)
+	span.SetName("WinEnter")
 	defer span.End()
 
 	a.getStatus(eval.BufNr, eval.WinID, eval.Dir)

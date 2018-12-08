@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/neovim/go-client/nvim"
+
+	"github.com/zchee/nvim-go/pkg/config"
 )
 
 var (
@@ -63,4 +65,10 @@ func setXDGEnv(tmpdir string) {
 	os.Setenv("XDG_CONFIG_DIRS", xdgDir)
 	os.Setenv("XDG_CACHE_HOME", xdgDir)
 	os.Setenv("XDG_LOG_HOME", xdgDir)
+}
+
+func TestMain(m *testing.M) {
+	_ = config.Process()
+	// goleak.VerifyTestMain(m)
+	os.Exit(m.Run())
 }

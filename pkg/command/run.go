@@ -88,8 +88,8 @@ func (c *Command) cmdRunLast(file string) {
 // Run runs the go run command for current buffer's packages.
 func (c *Command) Run(ctx context.Context, args []string, file string) error {
 	defer nvimutil.Profile(ctx, time.Now(), "Run")
-
-	ctx, span := trace.StartSpan(ctx, "Run")
+	span := trace.FromContext(ctx)
+	span.SetName("Run")
 	defer span.End()
 
 	cmd := []string{"go", "run", file}

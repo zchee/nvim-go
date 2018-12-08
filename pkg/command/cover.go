@@ -64,8 +64,8 @@ func (c *Command) cmdCover(eval *cmdCoverEval) {
 // profile result.
 func (c *Command) cover(ctx context.Context, eval *cmdCoverEval) interface{} {
 	defer nvimutil.Profile(ctx, time.Now(), "Cover")
-
-	ctx, span := trace.StartSpan(ctx, "Cover")
+	span := trace.FromContext(ctx)
+	span.SetName("Cover")
 	defer span.End()
 
 	coverFile, err := ioutil.TempFile(os.TempDir(), "nvim-go-cover")

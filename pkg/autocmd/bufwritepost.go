@@ -28,9 +28,8 @@ func (a *Autocmd) bufWritePost(eval *bufWritePostEval) {
 // BufWritePost run the 'autosave' commands on BufWritePost autocmd.
 func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 	defer nvimutil.Profile(a.ctx, time.Now(), "BufWritePost")
-
-	span := new(trace.Span)
-	a.ctx, span = trace.StartSpan(a.ctx, "BufWritePost")
+	span := trace.FromContext(a.ctx)
+	span.SetName("BufWritePost")
 	defer span.End()
 
 	dir := filepath.Dir(eval.File)

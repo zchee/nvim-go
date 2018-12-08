@@ -17,8 +17,7 @@ type bufReadPreEval struct{}
 // BufReadPre gets user config variables and assign to global variable when autocmd BufReadPre.
 func (a *Autocmd) BufReadPre(eval *bufReadPreEval) {
 	defer nvimutil.Profile(a.ctx, time.Now(), "BufReadPre")
-
-	span := new(trace.Span)
-	a.ctx, span = trace.StartSpan(a.ctx, "BufReadPre")
+	span := trace.FromContext(a.ctx)
+	span.SetName("BufReadPre")
 	defer span.End()
 }

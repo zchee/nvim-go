@@ -13,8 +13,8 @@ import (
 	"github.com/neovim/go-client/nvim"
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
-	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/internal/testutil"
+	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
 func TestCommand_Lint(t *testing.T) {
@@ -22,8 +22,8 @@ func TestCommand_Lint(t *testing.T) {
 	ctx := testutil.TestContext(t, context.Background())
 
 	type fields struct {
-		ctx       context.Context
-		Nvim      *nvim.Nvim
+		ctx   context.Context
+		Nvim  *nvim.Nvim
 		bctxt *buildctxt.Context
 	}
 	type args struct {
@@ -40,8 +40,8 @@ func TestCommand_Lint(t *testing.T) {
 		{
 			name: "no suggest(go)",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "blank-import-main.go")),
+				ctx:   ctx,
+				Nvim:  nvimutil.TestNvim(t, filepath.Join(testLintDir, "blank-import-main.go")),
 				bctxt: buildctxt.NewContext(),
 			},
 			args: args{
@@ -53,8 +53,8 @@ func TestCommand_Lint(t *testing.T) {
 		{
 			name: "2 suggest(go)",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "time.go")),
+				ctx:   ctx,
+				Nvim:  nvimutil.TestNvim(t, filepath.Join(testLintDir, "time.go")),
 				bctxt: buildctxt.NewContext(),
 			},
 			args: args{
@@ -100,8 +100,8 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 	ctx := testutil.TestContext(t, context.Background())
 
 	type fields struct {
-		ctx       context.Context
-		Nvim      *nvim.Nvim
+		ctx   context.Context
+		Nvim  *nvim.Nvim
 		bctxt *buildctxt.Context
 	}
 	type args struct {
@@ -118,8 +118,8 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 		{
 			name: "lint dir - no args (go)",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "make.go")),
+				ctx:   ctx,
+				Nvim:  nvimutil.TestNvim(t, filepath.Join(testLintDir, "make.go")),
 				bctxt: buildctxt.NewContext(),
 			},
 			args: args{
@@ -131,8 +131,8 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 		{
 			name: "lint dir - 'ma' (go)",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, filepath.Join(testLintDir, "make.go")),
+				ctx:   ctx,
+				Nvim:  nvimutil.TestNvim(t, filepath.Join(testLintDir, "make.go")),
 				bctxt: buildctxt.NewContext(),
 			},
 			args: args{
@@ -146,8 +146,8 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 		{
 			name: "astdump (go)",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, astdumpMain),
+				ctx:   ctx,
+				Nvim:  nvimutil.TestNvim(t, astdumpMain),
 				bctxt: buildctxt.NewContext(),
 			},
 			args: args{
@@ -159,8 +159,8 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 		{
 			name: "gsftp (gb)",
 			fields: fields{
-				ctx:       ctx,
-				Nvim:      nvimutil.TestNvim(t, gsftpMain),
+				ctx:   ctx,
+				Nvim:  nvimutil.TestNvim(t, gsftpMain),
 				bctxt: buildctxt.NewContext(),
 			},
 			args: args{

@@ -26,9 +26,8 @@ func (a *Autocmd) bufWritePre(eval *bufWritePreEval) {
 // BufWritePre run the commands on BufWritePre autocmd.
 func (a *Autocmd) BufWritePre(eval *bufWritePreEval) {
 	defer nvimutil.Profile(a.ctx, time.Now(), "BufWritePre")
-
-	span := new(trace.Span)
-	a.ctx, span = trace.StartSpan(a.ctx, "BufWritePre")
+	span := trace.FromContext(a.ctx)
+	span.SetName("BufWritePre")
 	defer span.End()
 
 	select {

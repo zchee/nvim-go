@@ -16,8 +16,7 @@ import (
 // VimEnter gets user config variables and assign to global variable when autocmd VimEnter.
 func (a *Autocmd) VimEnter(cfg *config.Config) {
 	defer nvimutil.Profile(a.ctx, time.Now(), "VimEnter")
-
-	span := new(trace.Span)
-	a.ctx, span = trace.StartSpan(a.ctx, "VimEnter")
+	span := trace.FromContext(a.ctx)
+	span.SetName("VimEnter")
 	defer span.End()
 }

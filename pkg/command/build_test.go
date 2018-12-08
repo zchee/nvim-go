@@ -10,8 +10,8 @@ import (
 	"golang.org/x/sync/syncmap"
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
-	"github.com/zchee/nvim-go/pkg/nvimutil"
 	"github.com/zchee/nvim-go/pkg/internal/testutil"
+	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
 func TestCommand_Build(t *testing.T) {

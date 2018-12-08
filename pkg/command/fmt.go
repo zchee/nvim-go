@@ -128,7 +128,8 @@ func (c *Command) Fmt(ctx context.Context, dir string) interface{} {
 }
 
 func minUpdate(ctx context.Context, v *nvim.Nvim, b nvim.Buffer, in [][]byte, out [][]byte) error {
-	ctx, span := trace.StartSpan(ctx, "minUpdate")
+	span := trace.FromContext(ctx)
+	span.SetName("minUpdate")
 	defer span.End()
 
 	// Find matching head lines.

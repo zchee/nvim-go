@@ -48,8 +48,8 @@ func (c *Command) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir s
 // functions.
 func (c *Command) GenerateTest(ctx context.Context, args []string, ranges [2]int, bang bool, dir string) error {
 	defer nvimutil.Profile(ctx, time.Now(), "GenerateTest")
-
-	ctx, span := trace.StartSpan(ctx, "GoGenerateTest")
+	span := trace.FromContext(ctx)
+	span.SetName("GenerateTest")
 	defer span.End()
 
 	b := nvim.Buffer(c.buildContext.BufNr)
