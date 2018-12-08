@@ -27,7 +27,7 @@ require (
 	github.com/zchee/go-xdgbasedir v1.0.3
 	go.opencensus.io v0.18.0
 	go.uber.org/atomic v0.0.0-20181018215023-8dc6146f7569 // indirect
-	go.uber.org/multierr v0.0.0-20180122172545-ddea229ff1df // indirect
+	go.uber.org/multierr v0.0.0-20180122172545-ddea229ff1df
 	go.uber.org/zap v0.0.0-20180814183419-67bc79d13d15
 	golang.org/x/arch v0.0.0-20170711125641-f40095975f84 // indirect
 	golang.org/x/build v0.0.0-20181207205057-228e5d2805f4 // indirect

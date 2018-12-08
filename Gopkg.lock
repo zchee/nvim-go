@@ -2,12 +2,10 @@
 
 
 [[projects]]
-  digest = "1:8186a45f32e5576f83efd7b0e63992ce7330f43dcaf1deede3b3df656f2390b2"
+  digest = "1:f76490afa9c6c2d9cbf7f36aa902633fd36f37b11db5c0ba66d8f2a85ab40001"
   name = "cloud.google.com/go"
   packages = [
     "compute/metadata",
-    "errorreporting",
-    "errorreporting/apiv1beta1",
     "internal/version",
     "monitoring/apiv3",
     "profiler",
@@ -553,7 +551,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cd6de0929a59e5b278f8cc1862cdcd4e0f6ffe4732b7af8811a75204cfa46249"
+  digest = "1:3552e7267a98c605e6cbfe6b03c34589265ab72e6078b95fb2e10e0cb44f5cc8"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
@@ -561,7 +559,6 @@
     "googleapis/api/label",
     "googleapis/api/metric",
     "googleapis/api/monitoredres",
-    "googleapis/devtools/clouderrorreporting/v1beta1",
     "googleapis/devtools/cloudprofiler/v2",
     "googleapis/devtools/cloudtrace/v2",
     "googleapis/monitoring/v3",
@@ -625,7 +622,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "cloud.google.com/go/errorreporting",
     "cloud.google.com/go/profiler",
     "contrib.go.opencensus.io/exporter/ocagent",
     "contrib.go.opencensus.io/exporter/stackdriver",
@@ -647,10 +643,10 @@
     "github.com/zchee/go-xdgbasedir",
     "go.opencensus.io/stats/view",
     "go.opencensus.io/trace",
+    "go.uber.org/multierr",
     "go.uber.org/zap",
     "go.uber.org/zap/buffer",
     "go.uber.org/zap/zapcore",
-    "golang.org/x/exp/errors",
     "golang.org/x/exp/errors/fmt",
     "golang.org/x/lint",
     "golang.org/x/sync/errgroup",
