@@ -10,7 +10,7 @@ APP = nvim-go
 .PHONY: manifest
 manifest: build  ## Write plugin manifest for developer
 	$(call target)
-	$(CURDIR)/bin/${APP} -manifest ${APP} -location $(CURDIR)/plugin/nvim-go.vim
+	@$(CURDIR)/bin/${APP} -manifest ${APP} -location $(CURDIR)/plugin/nvim-go.vim
 
 .PHONY: manifest/race
 manifest/race: APP=nvim-race
@@ -20,7 +20,7 @@ manifest/race: build/race manifest  ## Write plugin manifest for developer
 .PHONY: manifest/dump
 manifest/dump: build  ## Dump plugin manifest
 	$(call target)
-	$(CURDIR)/bin/${APP} -manifest ${APP}
+	@$(CURDIR)/bin/${APP} -manifest ${APP}
 
 
 # internal vendor
