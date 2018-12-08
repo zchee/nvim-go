@@ -28,7 +28,7 @@ GO_GCFLAGS?=
 GO_LDFLAGS=$(CTIMEVAR)
 GO_LDFLAGS_STATIC=$(CTIMEVAR) '-extldflags=-static'
 # GO_LDFLAGS_STATIC=${GO_LDFLAGS}+='-extldflags=-static'
-ifeq ($(NVIM_GO_DEBUG),)
+ifneq ($(NVIM_GO_DEBUG),)
 	GO_LDFLAGS+=-w -s
 else
 	GO_GCFLAGS+=all='-N -l -dwarflocationlists=true'  # https://tip.golang.org/doc/diagnostics.html#debugging
