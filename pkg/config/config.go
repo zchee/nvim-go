@@ -37,11 +37,11 @@ type Global struct {
 
 // build GoBuild command config variable.
 type build struct {
-	Appengine int64    `eval:"get(g:, 'go#build#appengine', 0)"`
-	Autosave  int64    `eval:"get(g:, 'go#build#autosave', 0)"`
-	Force     int64    `eval:"get(g:, 'go#build#force', 0)"`
+	Appengine bool     `eval:"get(g:, 'go#build#appengine', v:false)"`
+	Autosave  bool     `eval:"get(g:, 'go#build#autosave', v:false)"`
+	Force     bool     `eval:"get(g:, 'go#build#force', v:false)"`
 	Flags     []string `eval:"get(g:, 'go#build#flags', [])"`
-	IsNotGb   int64    `eval:"get(g:, 'go#build#is_not_gb', 0)"`
+	IsNotGb   bool     `eval:"get(g:, 'go#build#is_not_gb', v:false)"`
 }
 
 type cover struct {
@@ -51,41 +51,41 @@ type cover struct {
 
 // fmt represents a GoFmt command config variable.
 type fmt struct {
-	Autosave       int64    `eval:"get(g:, 'go#fmt#autosave', 0)"`
+	Autosave       bool     `eval:"get(g:, 'go#fmt#autosave', v:false)"`
 	Mode           string   `eval:"get(g:, 'go#fmt#mode', 'goimports')"`
 	GoImportsLocal []string `eval:"get(g:, 'go#fmt#goimports_local', [])"`
 }
 
 // generate represents a GoGenerate command config variables.
 type generate struct {
-	TestAllFuncs      int64  `eval:"get(g:, 'go#generate#test#allfuncs', 1)"`
+	TestAllFuncs      bool   `eval:"get(g:, 'go#generate#test#allfuncs', v:true)"`
 	TestExclFuncs     string `eval:"get(g:, 'go#generate#test#exclude', '')"`
-	TestExportedFuncs int64  `eval:"get(g:, 'go#generate#test#exportedfuncs', 0)"`
-	TestSubTest       int64  `eval:"get(g:, 'go#generate#test#subtest', 1)"`
+	TestExportedFuncs bool   `eval:"get(g:, 'go#generate#test#exportedfuncs', v:false)"`
+	TestSubTest       bool   `eval:"get(g:, 'go#generate#test#subtest', v:true)"`
 }
 
 // guru represents a GoGuru command config variable.
 type guru struct {
-	Reflection int64            `eval:"get(g:, 'go#guru#reflection', 0)"`
-	KeepCursor map[string]int64 `eval:"get(g:, 'go#guru#keep_cursor', {'callees':0,'callers':0,'callstack':0,'definition':0,'describe':0,'freevars':0,'implements':0,'peers':0,'pointsto':0,'referrers':0,'whicherrs':0})"`
-	JumpFirst  int64            `eval:"get(g:, 'go#guru#jump_first', 0)"`
+	Reflection bool            `eval:"get(g:, 'go#guru#reflection', v:false)"`
+	KeepCursor map[string]bool `eval:"get(g:, 'go#guru#keep_cursor', {'callees':v:false,'callers':v:false,'callstack':v:false,'definition':v:false,'describe':v:false,'freevars':v:false,'implements':v:false,'peers':v:false,'pointsto':v:false,'referrers':v:false,'whicherrs':v:false})"`
+	JumpFirst  bool            `eval:"get(g:, 'go#guru#jump_first', v:false)"`
 }
 
 // iferr represents a GoIferr command config variable.
 type iferr struct {
-	Autosave int64 `eval:"get(g:, 'go#iferr#autosave', 0)"`
+	Autosave bool `eval:"get(g:, 'go#iferr#autosave', v:false)"`
 }
 
 // lint represents a code lint commands config variable.
 type lint struct {
-	GolintAutosave          int64    `eval:"get(g:, 'go#lint#golint#autosave', 0)"`
+	GolintAutosave          bool     `eval:"get(g:, 'go#lint#golint#autosave', v:false)"`
 	GolintIgnore            []string `eval:"get(g:, 'go#lint#golint#ignore', [])"`
 	GolintMinConfidence     float64  `eval:"get(g:, 'go#lint#golint#min_confidence', 0.8)"`
 	GolintMode              string   `eval:"get(g:, 'go#lint#golint#mode', 'current')"`
-	GoVetAutosave           int64    `eval:"get(g:, 'go#lint#govet#autosave', 0)"`
+	GoVetAutosave           bool     `eval:"get(g:, 'go#lint#govet#autosave', v:false)"`
 	GoVetFlags              []string `eval:"get(g:, 'go#lint#govet#flags', [])"`
 	GoVetIgnore             []string `eval:"get(g:, 'go#lint#govet#ignore', [])"`
-	MetalinterAutosave      int64    `eval:"get(g:, 'go#lint#metalinter#autosave', 0)"`
+	MetalinterAutosave      bool     `eval:"get(g:, 'go#lint#metalinter#autosave', v:false)"`
 	MetalinterAutosaveTools []string `eval:"get(g:, 'go#lint#metalinter#autosave#tools', ['vet', 'golint'])"`
 	MetalinterTools         []string `eval:"get(g:, 'go#lint#metalinter#tools', ['vet', 'golint'])"`
 	MetalinterDeadline      string   `eval:"get(g:, 'go#lint#metalinter#deadline', '5s')"`
@@ -94,7 +94,7 @@ type lint struct {
 
 // rename represents a GoRename command config variable.
 type rename struct {
-	Prefill int64 `eval:"get(g:, 'go#rename#prefill', 0)"`
+	Prefill bool `eval:"get(g:, 'go#rename#prefill', v:false)"`
 }
 
 // terminal represents a configure of Neovim terminal buffer.
@@ -103,20 +103,20 @@ type terminal struct {
 	Position   string `eval:"get(g:, 'go#terminal#position', 'belowright')"`
 	Height     int64  `eval:"get(g:, 'go#terminal#height', 0)"`
 	Width      int64  `eval:"get(g:, 'go#terminal#width', 0)"`
-	StopInsert int64  `eval:"get(g:, 'go#terminal#stop_insert', 1)"`
+	StopInsert bool   `eval:"get(g:, 'go#terminal#stop_insert', v:true)"`
 }
 
 // Test represents a GoTest command config variables.
 type test struct {
-	AllPackage int64    `eval:"get(g:, 'go#test#all_package', 0)"`
-	Autosave   int64    `eval:"get(g:, 'go#test#autosave', 0)"`
+	AllPackage bool     `eval:"get(g:, 'go#test#all_package', v:false)"`
+	Autosave   bool     `eval:"get(g:, 'go#test#autosave', v:false)"`
 	Flags      []string `eval:"get(g:, 'go#test#flags', [])"`
 }
 
 // Debug represents a debug of nvim-go config variable.
 type debug struct {
-	Enable int64 `eval:"get(g:, 'go#debug', 0)"`
-	Pprof  int64 `eval:"get(g:, 'go#debug#pprof', 0)"`
+	Enable bool `eval:"get(g:, 'go#debug', v:false)"`
+	Pprof  bool `eval:"get(g:, 'go#debug#pprof', v:false)"`
 }
 
 var (
@@ -163,7 +163,7 @@ var (
 	// GuruReflection use the type reflection on GoGuru commmands.
 	GuruReflection bool
 	// GuruKeepCursor keep the cursor focus to source buffer instead of quickfix or locationlist.
-	GuruKeepCursor map[string]int64
+	GuruKeepCursor map[string]bool
 	// GuruJumpFirst jump the first error position on GoGuru commands.
 	GuruJumpFirst bool
 
@@ -230,67 +230,65 @@ func Get(v *nvim.Nvim, cfg *Config) {
 	ErrorListType = cfg.Global.ErrorListType
 
 	// Build
-	BuildAppengine = itob(cfg.Build.Appengine)
-	BuildAutosave = itob(cfg.Build.Autosave)
-	BuildForce = itob(cfg.Build.Force)
+	BuildAppengine = cfg.Build.Appengine
+	BuildAutosave = cfg.Build.Autosave
+	BuildForce = cfg.Build.Force
 	BuildFlags = cfg.Build.Flags
-	BuildIsNotGb = itob(cfg.Build.IsNotGb)
+	BuildIsNotGb = cfg.Build.IsNotGb
 
 	// Cover
 	CoverFlags = cfg.Cover.Flags
 	CoverMode = cfg.Cover.Mode
 
 	// Fmt
-	FmtAutosave = itob(cfg.Fmt.Autosave)
+	FmtAutosave = cfg.Fmt.Autosave
 	FmtMode = cfg.Fmt.Mode
 	FmtGoImportsLocal = cfg.Fmt.GoImportsLocal
 
 	// Generate
-	GenerateTestAllFuncs = itob(cfg.Generate.TestAllFuncs)
+	GenerateTestAllFuncs = cfg.Generate.TestAllFuncs
 	GenerateTestExclFuncs = cfg.Generate.TestExclFuncs
-	GenerateTestExportedFuncs = itob(cfg.Generate.TestExportedFuncs)
-	GenerateTestSubTest = itob(cfg.Generate.TestSubTest)
+	GenerateTestExportedFuncs = cfg.Generate.TestExportedFuncs
+	GenerateTestSubTest = cfg.Generate.TestSubTest
 
 	// Guru
-	GuruReflection = itob(cfg.Guru.Reflection)
+	GuruReflection = cfg.Guru.Reflection
 	GuruKeepCursor = cfg.Guru.KeepCursor
-	GuruJumpFirst = itob(cfg.Guru.JumpFirst)
+	GuruJumpFirst = cfg.Guru.JumpFirst
 
 	// Iferr
-	IferrAutosave = itob(cfg.Iferr.Autosave)
+	IferrAutosave = cfg.Iferr.Autosave
 
 	// Lint
-	GolintAutosave = itob(cfg.Lint.GolintAutosave)
+	GolintAutosave = cfg.Lint.GolintAutosave
 	GolintIgnore = cfg.Lint.GolintIgnore
 	GolintMinConfidence = cfg.Lint.GolintMinConfidence
 	GolintMode = cfg.Lint.GolintMode
-	GoVetAutosave = itob(cfg.Lint.GoVetAutosave)
+	GoVetAutosave = cfg.Lint.GoVetAutosave
 	GoVetFlags = cfg.Lint.GoVetFlags
 	GoVetIgnore = cfg.Lint.GoVetIgnore
-	MetalinterAutosave = itob(cfg.Lint.MetalinterAutosave)
+	MetalinterAutosave = cfg.Lint.MetalinterAutosave
 	MetalinterAutosaveTools = cfg.Lint.MetalinterAutosaveTools
 	MetalinterTools = cfg.Lint.MetalinterTools
 	MetalinterDeadline = cfg.Lint.MetalinterDeadline
 	MetalinterSkipDir = cfg.Lint.MetalinterSkipDir
 
 	// Rename
-	RenamePrefill = itob(cfg.Rename.Prefill)
+	RenamePrefill = cfg.Rename.Prefill
 
 	// Terminal
 	TerminalMode = cfg.Terminal.Mode
 	TerminalPosition = cfg.Terminal.Position
 	TerminalHeight = cfg.Terminal.Height
 	TerminalWidth = cfg.Terminal.Width
-	TerminalStopInsert = itob(cfg.Terminal.StopInsert)
+	TerminalStopInsert = cfg.Terminal.StopInsert
 
 	// Test
-	TestAutosave = itob(cfg.Test.Autosave)
-	TestAll = itob(cfg.Test.AllPackage)
+	TestAutosave = cfg.Test.Autosave
+	TestAll = cfg.Test.AllPackage
 	TestFlags = cfg.Test.Flags
 
 	// Debug
-	DebugEnable = itob(cfg.Debug.Enable)
-	DebugPprof = itob(cfg.Debug.Pprof)
+	DebugEnable = cfg.Debug.Enable
+	DebugPprof = cfg.Debug.Pprof
 }
-
-func itob(i int64) bool { return i != int64(0) }
