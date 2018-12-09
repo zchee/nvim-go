@@ -14,7 +14,6 @@ import (
 	"syscall"
 
 	"cloud.google.com/go/profiler"
-	"contrib.go.opencensus.io/exporter/ocagent"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	gops "github.com/google/gops/agent"
 	"github.com/neovim/go-client/nvim/plugin"
@@ -96,14 +95,13 @@ func main() {
 	}()
 
 	select {
+	case <-ctx.Done():
 	case err := <-errc:
 		if err != nil {
 			logpkg.Fatal(err)
 		}
-		logpkg.Println("all jobs are finished")
 	}
-
-	logpkg.Println("done to the shutdown")
+	logpkg.Println("shutdown nvim-go server")
 }
 
 func signalHandler(ch <-chan os.Signal, sighupFn, sigintFn func()) {
@@ -140,18 +138,6 @@ func startServer(ctx context.Context) (errs error) {
 	log.Info("starting gops agent")
 
 	if gcpProjectID := env.GCPProjectID; gcpProjectID != "" {
-		// OpenCensus tracing with OpenCensus agent exporter
-		oce, err := ocagent.NewExporter(ocagent.WithInsecure(), ocagent.WithServiceName(appName))
-		if err != nil {
-			return fmt.Errorf("Failed to create the OpenCensus agent exporter: %v", err)
-		}
-		defer func() {
-			errs = multierr.Append(errs, oce.Stop())
-		}()
-
-		trace.RegisterExporter(oce)
-		log.Info("opencensus", zap.String("trace", "enabled OpenCensus agent exporter"))
-
 		// OpenCensus tracing with Stackdriver exporter
 		sdOpts := stackdriver.Options{
 			ProjectID: gcpProjectID,
@@ -166,7 +152,6 @@ func startServer(ctx context.Context) (errs error) {
 			logpkg.Fatalf("failed to create stackdriver exporter: %v", err)
 		}
 		defer sd.Flush()
-
 		trace.RegisterExporter(sd)
 		view.RegisterExporter(sd)
 		log.Info("opencensus", zap.String("trace", "enabled Stackdriver exporter"))
@@ -183,8 +168,9 @@ func startServer(ctx context.Context) (errs error) {
 		}
 		log.Info("stackdriver", zap.String("profiler", "enabled Stackdriver profiler"))
 
+		trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 		var span *trace.Span
-		ctx, span = trace.StartSpan(ctx, "main", trace.WithSampler(trace.AlwaysSample())) // start root span
+		ctx, span = trace.StartSpan(ctx, "main") // start root span
 		defer span.End()
 	}
 
@@ -194,7 +180,8 @@ func startServer(ctx context.Context) (errs error) {
 			ctx = logger.NewContext(ctx, log)
 
 			bctxt := buildctxt.NewContext()
-			autocmd.Register(ctx, p, bctxt, command.Register(ctx, p, bctxt))
+			cmd := command.Register(ctx, p, bctxt)
+			autocmd.Register(ctx, p, bctxt, cmd)
 
 			// switch to unix socket rpc-connection
 			if n, err := server.Dial(ctx); err == nil {
