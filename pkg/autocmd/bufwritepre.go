@@ -37,5 +37,10 @@ func (a *Autocmd) BufWritePre(pctx context.Context, eval *bufWritePreEval) {
 		go func() {
 			a.bufWritePreChan <- a.cmd.Fmt(ctx, dir)
 		}()
+
+		select {
+		case <-ctx.Done():
+			return
+		}
 	}
 }
