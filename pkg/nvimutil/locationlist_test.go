@@ -58,6 +58,7 @@ func TestSplitPos(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got, got1, got2 := SplitPos(tt.args.pos, tt.args.cwd)
 			if got != tt.want {
 				t.Errorf("%q. SplitPos(%v, %v) got = %v, want %v", tt.name, tt.args.pos, tt.args.cwd, got, tt.want)
@@ -271,7 +272,6 @@ cmd/relative/main.go:10:14: undefined: relative.B`),
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 
 			bctx, fn := FakeBuildContext(tt.packContext)
 			build.Default = *bctx
