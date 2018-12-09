@@ -33,7 +33,7 @@ jobs:
           command: |
             bash <(curl -s https://codecov.io/bash) -Z -F linux
       - store_test_results:
-          path: test-results
+          path: _test-results
 
   macos:
     macos:
@@ -82,7 +82,7 @@ jobs:
           command: |
             bash <(curl -s https://codecov.io/bash) -Z -F darwin
       - store_test_results:
-          path: test-results
+          path: _test-results
 
   reviewdog:
     docker:
