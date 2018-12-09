@@ -73,7 +73,7 @@ func Dial(pctx context.Context) (*nvim.Nvim, error) {
 	ctx, cancel := context.WithTimeout(pctx, 1*time.Second)
 	defer cancel()
 
-	n := &nvim.Nvim{}
+	var n *nvim.Nvim
 	dialOpts := []nvim.DialOption{
 		nvim.DialContext(ctx),
 		nvim.DialServe(false),
