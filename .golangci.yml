@@ -1,0 +1,101 @@
+run:
+  deadline: 1m
+  issues-exit-code: 1
+  tests: true
+  skip-dirs:
+    - "pkg/internal/fastwalk"
+    - "pkg/internal/gopathwalk"
+    - "pkg/internal/guru"
+    - "pkg/internal/semver"
+  skip-files:
+    - ".*\\.pb\\.go$"
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters:
+  enable-all: false
+  disable-all: false
+  fast: true
+  enable:
+    - deadcode
+    - depguard
+    - errcheck
+    - goconst
+    - gocritic
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - misspell
+    - nakedret
+    - prealloc
+    - scopelint
+    - staticcheck
+    - structcheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+  disable:
+    - dupl
+    - gochecknoglobals
+    - gochecknoinits
+    - gocyclo
+    - golint
+    - gosec
+    - lll
+    - maligned
+    - megacheck
+    - typecheck
+
+linters-settings:
+  depguard:
+    list-type: blacklist
+    include-go-root: false
+  # dupl:
+  #   threshold: 100
+  # errcheck:
+  #   check-type-assertions: true
+  #   check-blank: true
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  # gocyclo:
+  #   min-complexity: 10
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes: github.com/zchee
+  # golint:
+  #   min-confidence: 0.8
+  govet:
+    check-shadowing: false
+  # maligned:
+  #   suggest-new: true
+  misspell:
+    locale: US
+  nakedret:
+    max-func-lines: 30
+  prealloc:
+    simple: true
+    range-loops: true  # Report preallocation suggestions on range loops, true by default
+    for-loops: false  # Report preallocation suggestions on for loops, false by default
+  unparam:
+    algo: cha
+    check-exported: false
+  unused:
+    check-exported: false
+
+issues:
+  exclude:
+    - 'flags\.Parse'
+    - 'log\.Sync'
+    - '.*\.Shutdown'
+    - '.*\.Close'
+    - 'encoder\.Encode'
+  exclude-use-default: false
