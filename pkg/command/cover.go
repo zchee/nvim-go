@@ -13,7 +13,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -22,6 +21,7 @@ import (
 	"golang.org/x/tools/cover"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
@@ -62,16 +62,8 @@ func (c *Command) cmdCover(ctx context.Context, eval *cmdCoverEval) {
 
 // cover run the go tool cover command and highlight current buffer based cover
 // profile result.
-func (c *Command) cover(ctx context.Context, eval *cmdCoverEval) interface{} {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "Cover")
-	span := trace.FromContext(ctx)
-	span.SetName("Cover")
+func (c *Command) cover(pctx context.Context, eval *cmdCoverEval) interface{} {
+	ctx, span := monitoring.StartSpan(pctx, "Cover")
 	defer span.End()
 
 	coverFile, err := ioutil.TempFile(os.TempDir(), "nvim-go-cover")

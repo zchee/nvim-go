@@ -6,11 +6,8 @@ package autocmd
 
 import (
 	"context"
-	"time"
 
-	"go.opencensus.io/trace"
-
-	"github.com/zchee/nvim-go/pkg/nvimutil"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 )
 
 // winEnterEval represents the current buffer number, windows ID and buffer files directory.
@@ -20,10 +17,8 @@ type winEnterEval struct {
 	Dir   string `eval:"expand('%:p:h')"`
 }
 
-func (a *Autocmd) WinEnter(ctx context.Context, eval *winEnterEval) error {
-	defer nvimutil.Profile(ctx, time.Now(), "WinEnter")
-	span := trace.FromContext(ctx)
-	span.SetName("WinEnter")
+func (a *Autocmd) WinEnter(pctx context.Context, eval *winEnterEval) error {
+	ctx, span := monitoring.StartSpan(pctx, "WinEnter")
 	defer span.End()
 
 	a.getStatus(ctx, eval.BufNr, eval.WinID, eval.Dir)

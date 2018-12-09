@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -21,6 +20,7 @@ import (
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/logger"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -60,16 +60,8 @@ func (c *Command) cmdBuild(ctx context.Context, args []string, bang bool, eval *
 
 // Build builds the current buffers package use compile tool that determined
 // from the package directory structure.
-func (c *Command) Build(ctx context.Context, args []string, bang bool, eval *CmdBuildEval) interface{} {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "Build")
-	span := trace.FromContext(ctx)
-	span.SetName("Build")
+func (c *Command) Build(pctx context.Context, args []string, bang bool, eval *CmdBuildEval) interface{} {
+	ctx, span := monitoring.StartSpan(pctx, "Build")
 	defer span.End()
 
 	log := logger.FromContext(ctx).With(zap.Strings("args", args), zap.Bool("bang", bang), zap.Any("CmdBuildEval", eval))
@@ -92,6 +84,8 @@ func (c *Command) Build(ctx context.Context, args []string, bang bool, eval *Cmd
 		zap.Any("cmd.Process", cmd.Process),
 		zap.Any("cmd.ProcessState", cmd.ProcessState))
 
+	os.Unsetenv("GO111MODULE")
+
 	if buildErr := cmd.Run(); buildErr != nil {
 		if err, ok := buildErr.(*exec.ExitError); ok && err != nil {
 			errlist, err := nvimutil.ParseError(ctx, stderr.Bytes(), eval.Cwd, &c.buildContext.Build, nil)
@@ -109,9 +103,8 @@ func (c *Command) Build(ctx context.Context, args []string, bang bool, eval *Cmd
 }
 
 // compileCmd returns the *exec.Cmd corresponding to the compile tool.
-func (c *Command) compileCmd(ctx context.Context, args []string, bang bool, dir string) (*exec.Cmd, error) {
-	span := trace.FromContext(ctx)
-	span.SetName("compileCmd")
+func (c *Command) compileCmd(pctx context.Context, args []string, bang bool, dir string) (*exec.Cmd, error) {
+	ctx, span := monitoring.StartSpan(pctx, "compileCmd")
 	defer span.End()
 
 	bin, err := exec.LookPath(c.buildContext.Build.Tool)

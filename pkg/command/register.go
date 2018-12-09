@@ -12,11 +12,14 @@ import (
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/command/delve"
+	"github.com/zchee/nvim-go/pkg/logger"
 )
 
 // Register register nvim-go command or function to Neovim over the msgpack-rpc plugin interface.
 func Register(ctx context.Context, p *plugin.Plugin, bctxt *buildctxt.Context) *Command {
 	c := NewCommand(ctx, p.Nvim, bctxt)
+	log := logger.FromContext(ctx).Named("command")
+	ctx = logger.NewContext(ctx, log)
 
 	// CommandOptions order:
 	//  Name, NArgs, Range, Count, Addr, Bang, Register, Eval, Bar, Complete

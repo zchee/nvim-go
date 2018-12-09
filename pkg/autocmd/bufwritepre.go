@@ -7,12 +7,9 @@ package autocmd
 import (
 	"context"
 	"path/filepath"
-	"time"
-
-	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/config"
-	"github.com/zchee/nvim-go/pkg/nvimutil"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 )
 
 type bufWritePreEval struct {
@@ -21,10 +18,8 @@ type bufWritePreEval struct {
 }
 
 // BufWritePre run the commands on BufWritePre autocmd.
-func (a *Autocmd) BufWritePre(ctx context.Context, eval *bufWritePreEval) {
-	defer nvimutil.Profile(ctx, time.Now(), "BufWritePre")
-	span := trace.FromContext(ctx)
-	span.SetName("BufWritePre")
+func (a *Autocmd) BufWritePre(pctx context.Context, eval *bufWritePreEval) {
+	ctx, span := monitoring.StartSpan(pctx, "BufWritePre")
 	defer span.End()
 
 	dir := filepath.Dir(eval.File)

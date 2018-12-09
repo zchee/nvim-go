@@ -7,14 +7,12 @@ package autocmd
 import (
 	"context"
 	"sync"
-	"time"
 
-	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/logger"
-	"github.com/zchee/nvim-go/pkg/nvimutil"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 )
 
 // bufEnterEval represents the current buffer number, windows ID and buffer files directory.
@@ -29,10 +27,8 @@ type bufEnterEval struct {
 var configOnce sync.Once
 
 // BufEnter gets the current buffer number, windows ID and set context from the directory structure on BufEnter autocmd.
-func (a *Autocmd) BufEnter(ctx context.Context, eval *bufEnterEval) {
-	defer nvimutil.Profile(ctx, time.Now(), "BufEnter")
-	span := trace.FromContext(ctx)
-	span.SetName("BufEnter")
+func (a *Autocmd) BufEnter(pctx context.Context, eval *bufEnterEval) {
+	ctx, span := monitoring.StartSpan(pctx, "BufEnter")
 	defer span.End()
 
 	configOnce.Do(func() {

@@ -10,15 +10,14 @@ import (
 	"go/build"
 	"io/ioutil"
 	"os"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
-	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 	"golang.org/x/tools/refactor/rename"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
@@ -60,16 +59,8 @@ func (c *Command) cmdRename(ctx context.Context, args []string, bang bool, eval 
 }
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
-func (c *Command) Rename(ctx context.Context, args []string, bang bool, eval *cmdRenameEval) interface{} {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "Rename")
-	span := trace.FromContext(ctx)
-	span.SetName("Rename")
+func (c *Command) Rename(pctx context.Context, args []string, bang bool, eval *cmdRenameEval) interface{} {
+	ctx, span := monitoring.StartSpan(pctx, "Rename")
 	defer span.End()
 
 	b := nvim.Buffer(c.buildContext.BufNr)

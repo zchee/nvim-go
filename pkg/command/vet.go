@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/fs"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -56,16 +56,8 @@ func (c *Command) cmdVet(ctx context.Context, args []string, eval *CmdVetEval) {
 }
 
 // Vet is a simple checker for static errors in Go source code use go tool vet command.
-func (c *Command) Vet(ctx context.Context, args []string, eval *CmdVetEval) interface{} {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "Vet")
-	span := trace.FromContext(ctx)
-	span.SetName("Vet")
+func (c *Command) Vet(pctx context.Context, args []string, eval *CmdVetEval) interface{} {
+	ctx, span := monitoring.StartSpan(pctx, "Vet")
 	defer span.End()
 
 	vetCmd := exec.CommandContext(ctx, "go", "tool", "vet")

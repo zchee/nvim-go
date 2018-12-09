@@ -9,10 +9,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/cweill/gotests/gotests/process"
 	"github.com/neovim/go-client/nvim"
@@ -20,6 +20,7 @@ import (
 	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/nvimctx"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -47,15 +48,8 @@ func (c *Command) cmdGenerateTest(ctx context.Context, args []string, ranges [2]
 // GenerateTest generates the test files based by current buffer or args files
 // functions.
 func (c *Command) GenerateTest(ctx context.Context, args []string, ranges [2]int, bang bool, dir string) error {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "GenerateTest")
-	span := trace.FromContext(ctx)
-	span.SetName("GenerateTest")
+	var span *trace.Span
+	ctx, span = trace.StartSpan(ctx, path.Join(nvimctx.PkgName, "GenerateTest"))
 	defer span.End()
 
 	b := nvim.Buffer(c.buildContext.BufNr)

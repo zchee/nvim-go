@@ -46,20 +46,34 @@ func Register(ctx context.Context, p *plugin.Plugin, buildContext *buildctxt.Con
 
 	// Handle the open the file.
 	// If open the file at first, run the 'BufEnter' -> 'VimEnter'.
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufEnter", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, func(eval *bufEnterEval) { autocmd.BufEnter(ctx, eval) })
-
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufEnter", Pattern: "*.go", Group: "nvim-go", Eval: "*"},
+		func(eval *bufEnterEval) {
+			autocmd.BufEnter(ctx, eval)
+		})
 	// BufNewFile: Handle create the new file.
 	// BufReadPre: Handle the before the read to file.
 	// If create the new file, does not run the 'BufReadPre', Instead of 'BufNewFile'.
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufNewFile,BufReadPre", Group: "nvim-go", Pattern: "*", Eval: "*"}, func(eval *bufReadPreEval) { autocmd.BufReadPre(ctx, eval) })
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufNewFile,BufReadPre", Group: "nvim-go", Pattern: "*", Eval: "*"},
+		func(eval *bufReadPreEval) {
+			autocmd.BufReadPre(ctx, eval)
+		})
 
 	// p.HandleAutocmd(&plugin.AutocmdOptions{Event: "WinEnter", Group: "nvim-go", Pattern: "*.go", Eval: "*"}, func(eval *winEnterEval) { autocmd.WinEnter(ctx, eval) })
 
 	// Handle the before the write to file.
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, func(eval *bufWritePreEval) { autocmd.BufWritePre(ctx, eval) })
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "*"},
+		func(eval *bufWritePreEval) {
+			autocmd.BufWritePre(ctx, eval)
+		})
 
 	// Handle the after the write to file.
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, func(eval *bufWritePostEval) { autocmd.BufWritePost(ctx, eval) })
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "*"},
+		func(eval *bufWritePostEval) {
+			autocmd.BufWritePost(ctx, eval)
+		})
 
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimLeavePre", Pattern: "*.go", Group: "nvim-go"}, func() { autocmd.VimLeavePre(ctx) })
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimLeavePre", Pattern: "*.go", Group: "nvim-go"},
+		func() {
+			autocmd.VimLeavePre(ctx)
+		})
 }

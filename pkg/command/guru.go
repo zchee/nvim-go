@@ -19,7 +19,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -31,6 +30,7 @@ import (
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/internal/guru"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
@@ -71,16 +71,8 @@ func (c *Command) funcGuru(ctx context.Context, args []string, eval *funcGuruEva
 }
 
 // Guru go source analysis and output result to the quickfix or locationlist.
-func (c *Command) Guru(ctx context.Context, args []string, eval *funcGuruEval) interface{} {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "Guru")
-	span := trace.FromContext(ctx)
-	span.SetName("Guru")
+func (c *Command) Guru(pctx context.Context, args []string, eval *funcGuruEval) interface{} {
+	ctx, span := monitoring.StartSpan(pctx, "Guru")
 	defer span.End()
 
 	log := logger.FromContext(ctx).Named("Guru").With(zap.Any("funcGuruEval", eval))

@@ -14,7 +14,6 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -23,6 +22,7 @@ import (
 
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/fs"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -64,15 +64,8 @@ const (
 // Lint lints a go source file. The argument is a filename or directory path.
 // TODO(zchee): Support go packages.
 func (c *Command) Lint(ctx context.Context, args []string, file string) interface{} {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "Lint")
-	span := trace.FromContext(ctx)
-	span.SetName("Lint")
+	var span *trace.Span
+	ctx, span = monitoring.StartSpan(ctx, "Lint")
 	defer span.End()
 
 	var errlist []*nvim.QuickfixError

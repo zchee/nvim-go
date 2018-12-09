@@ -23,6 +23,7 @@ import (
 
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/fs"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -63,15 +64,8 @@ var testTerm *nvimutil.Terminal
 // Test run the package test command use compile tool that determined from
 // the directory structure.
 func (c *Command) Test(ctx context.Context, args []string, dir string) error {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "Test")
-	span := trace.FromContext(ctx)
-	span.SetName("Test")
+	var span *trace.Span
+	ctx, span = monitoring.StartSpan(ctx, "Test")
 	defer span.End()
 
 	cmd := []string{c.buildContext.Build.Tool, "test", strings.Join(config.TestFlags, " ")}

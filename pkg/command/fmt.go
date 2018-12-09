@@ -9,7 +9,6 @@ import (
 	"context"
 	"go/scanner"
 	"strings"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -18,6 +17,7 @@ import (
 	"golang.org/x/tools/imports"
 
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
@@ -58,16 +58,8 @@ func (c *Command) cmdFmt(ctx context.Context, dir string) {
 }
 
 // Fmt format to the current buffer source uses gofmt behavior.
-func (c *Command) Fmt(ctx context.Context, dir string) interface{} {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "Fmt")
-	span := trace.FromContext(ctx)
-	span.SetName("Fmt")
+func (c *Command) Fmt(pctx context.Context, dir string) interface{} {
+	ctx, span := monitoring.StartSpan(pctx, "Fmt")
 	defer span.End()
 
 	b := nvim.Buffer(c.buildContext.BufNr)
@@ -134,14 +126,8 @@ func (c *Command) Fmt(ctx context.Context, dir string) interface{} {
 }
 
 func minUpdate(ctx context.Context, v *nvim.Nvim, b nvim.Buffer, in [][]byte, out [][]byte) error {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	span := trace.FromContext(ctx)
-	span.SetName("minUpdate")
+	var span *trace.Span
+	ctx, span = monitoring.StartSpan(ctx, "minUpdate")
 	defer span.End()
 
 	// Find matching head lines.

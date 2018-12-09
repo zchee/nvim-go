@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/fs"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -51,15 +51,8 @@ type metalinterResult struct {
 
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
 func (c *Command) Metalinter(ctx context.Context, cwd string) error {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "MetaLinter")
-	span := trace.FromContext(ctx)
-	span.SetName("MetaLinter")
+	var span *trace.Span
+	ctx, span = monitoring.StartSpan(ctx, "MetaLinter")
 	defer span.End()
 
 	var loclist []*nvim.QuickfixError

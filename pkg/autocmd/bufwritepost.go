@@ -7,13 +7,12 @@ package autocmd
 import (
 	"context"
 	"path/filepath"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
-	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/command"
 	"github.com/zchee/nvim-go/pkg/config"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -23,10 +22,8 @@ type bufWritePostEval struct {
 }
 
 // BufWritePost run the 'autosave' commands on BufWritePost autocmd.
-func (a *Autocmd) BufWritePost(ctx context.Context, eval *bufWritePostEval) error {
-	defer nvimutil.Profile(ctx, time.Now(), "BufWritePost")
-	span := trace.FromContext(ctx)
-	span.SetName("BufWritePost")
+func (a *Autocmd) BufWritePost(pctx context.Context, eval *bufWritePostEval) error {
+	ctx, span := monitoring.StartSpan(pctx, "BufWritePost")
 	defer span.End()
 
 	dir := filepath.Dir(eval.File)

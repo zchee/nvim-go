@@ -7,7 +7,6 @@ package command
 import (
 	"context"
 	"path/filepath"
-	"time"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/fs"
+	"github.com/zchee/nvim-go/pkg/monitoring"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -87,15 +87,8 @@ func (c *Command) cmdRunLast(ctx context.Context, file string) {
 
 // Run runs the go run command for current buffer's packages.
 func (c *Command) Run(ctx context.Context, args []string, file string) error {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
-	defer nvimutil.Profile(ctx, time.Now(), "Run")
-	span := trace.FromContext(ctx)
-	span.SetName("Run")
+	var span *trace.Span
+	ctx, span = monitoring.StartSpan(ctx, "Run")
 	defer span.End()
 
 	cmd := []string{"go", "run", file}
