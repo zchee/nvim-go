@@ -25,7 +25,7 @@ endif
 
 function! s:JobStart(host) abort
   try
-    return jobstart(s:plugin_cmd, {'rpc': v:true, 'detach': v:true})
+    return jobstart(s:plugin_cmd, {'rpc': v:true, 'detach': v:false})
   catch
     echomsg v:throwpoint
     echomsg v:exception
