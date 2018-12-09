@@ -76,10 +76,6 @@ ignored = ["golang.org/x/tools/cmd/guru"]
   branch = "master"
 
 [[constraint]]
-  name = "contrib.go.opencensus.io/exporter/ocagent"
-  branch = "master"
-
-[[constraint]]
   name = "github.com/kelseyhightower/envconfig"
   branch = "master"
 
