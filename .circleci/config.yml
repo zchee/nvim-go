@@ -31,7 +31,7 @@ jobs:
       - run:
           name: Send coverage reports to codecov.io
           command: |
-            bash <(curl -s https://codecov.io/bash) -Z -F linux
+            bash <(curl -s https://codecov.io/bash) -Z -F linux -f coverage.out
       - store_test_results:
           path: _test-results
 
@@ -81,7 +81,7 @@ jobs:
           name: Send coverage reports to codecov.io
           shell: /bin/bash -eux -o pipefail
           command: |
-            bash <(curl -s https://codecov.io/bash) -Z -F darwin
+            bash <(curl -s https://codecov.io/bash) -Z -F darwin -f coverage.out
       - store_test_results:
           path: _test-results
 
