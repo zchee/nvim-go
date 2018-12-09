@@ -41,6 +41,7 @@ func (a *Autocmd) BufWritePre(pctx context.Context, eval *bufWritePreEval) {
 		select {
 		case <-ctx.Done():
 			return
+		default:
 		}
 	}
 }
