@@ -68,11 +68,9 @@ func main() {
 
 		fn := func(p *plugin.Plugin) error {
 			return func(ctx context.Context, p *plugin.Plugin) error {
-				ctx, cancel := context.WithCancel(ctx)
-				defer cancel()
 				bctxt := buildctxt.NewContext()
 				c := command.Register(ctx, p, bctxt)
-				autocmd.Register(ctx, cancel, p, bctxt, c)
+				autocmd.Register(ctx, p, bctxt, c)
 				return nil
 			}(ctx, p)
 		}
@@ -190,27 +188,25 @@ func startServer(ctx context.Context) (errs error) {
 		defer span.End()
 	}
 
-	var eg *errgroup.Group
-	eg, ctx = errgroup.WithContext(ctx)
+	fn := func(p *plugin.Plugin) error {
+		return func(ctx context.Context, p *plugin.Plugin) error {
+			log := logger.FromContext(ctx).Named("main")
+			ctx = logger.NewContext(ctx, log)
 
+			bctxt := buildctxt.NewContext()
+			autocmd.Register(ctx, p, bctxt, command.Register(ctx, p, bctxt))
+
+			// switch to unix socket rpc-connection
+			if n, err := server.Dial(ctx); err == nil {
+				p.Nvim = n
+			}
+
+			return nil
+		}(ctx, p)
+	}
+
+	eg := new(errgroup.Group)
 	eg.Go(func() error {
-		fn := func(p *plugin.Plugin) error {
-			return func(ctx context.Context, p *plugin.Plugin) error {
-				ctx, cancel := context.WithCancel(ctx)
-				log := logger.FromContext(ctx).Named("main")
-				ctx = logger.NewContext(ctx, log)
-
-				bctxt := buildctxt.NewContext()
-				autocmd.Register(ctx, cancel, p, bctxt, command.Register(ctx, p, bctxt))
-
-				// switch to unix socket rpc-connection
-				if n, err := server.Dial(ctx); err == nil {
-					p.Nvim = n
-				}
-
-				return nil
-			}(ctx, p)
-		}
 		return Plugin(fn)
 	})
 	eg.Go(func() error {
