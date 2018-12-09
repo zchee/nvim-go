@@ -81,7 +81,7 @@ jobs:
           name: Send coverage reports to codecov.io
           shell: /bin/bash -eux -o pipefail
           command: |
-            bash <(curl -s https://codecov.io/bash) -Z -F darwin -f coverage.out
+            bash <(curl -s https://codecov.io/bash) -F darwin -f coverage.out
       - store_test_results:
           path: _test-results
 
