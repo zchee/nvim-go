@@ -5,6 +5,7 @@
 package autocmd
 
 import (
+	"context"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -14,9 +15,9 @@ import (
 )
 
 // VimEnter gets user config variables and assign to global variable when autocmd VimEnter.
-func (a *Autocmd) VimEnter(cfg *config.Config) {
-	defer nvimutil.Profile(a.ctx, time.Now(), "VimEnter")
-	span := trace.FromContext(a.ctx)
+func (a *Autocmd) VimEnter(ctx context.Context, cfg *config.Config) {
+	defer nvimutil.Profile(ctx, time.Now(), "VimEnter")
+	span := trace.FromContext(ctx)
 	span.SetName("VimEnter")
 	defer span.End()
 }

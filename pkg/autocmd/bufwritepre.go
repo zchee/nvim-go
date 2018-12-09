@@ -5,6 +5,7 @@
 package autocmd
 
 import (
+	"context"
 	"path/filepath"
 	"time"
 
@@ -19,29 +20,19 @@ type bufWritePreEval struct {
 	File string `eval:"expand('%:p')"`
 }
 
-func (a *Autocmd) bufWritePre(eval *bufWritePreEval) {
-	go a.BufWritePre(eval)
-}
-
 // BufWritePre run the commands on BufWritePre autocmd.
-func (a *Autocmd) BufWritePre(eval *bufWritePreEval) {
-	defer nvimutil.Profile(a.ctx, time.Now(), "BufWritePre")
-	span := trace.FromContext(a.ctx)
+func (a *Autocmd) BufWritePre(ctx context.Context, eval *bufWritePreEval) {
+	defer nvimutil.Profile(ctx, time.Now(), "BufWritePre")
+	span := trace.FromContext(ctx)
 	span.SetName("BufWritePre")
 	defer span.End()
-
-	select {
-	case <-a.ctx.Done():
-		return
-	default:
-	}
 
 	dir := filepath.Dir(eval.File)
 
 	// Iferr need execute before Fmt function because that function calls "noautocmd write"
 	// Also do not use goroutine.
 	if config.IferrAutosave {
-		err := a.cmd.Iferr(a.ctx, eval.File)
+		err := a.cmd.Iferr(ctx, eval.File)
 		if err != nil {
 			return
 		}
@@ -49,7 +40,7 @@ func (a *Autocmd) BufWritePre(eval *bufWritePreEval) {
 
 	if config.FmtAutosave {
 		go func() {
-			a.bufWritePreChan <- a.cmd.Fmt(a.ctx, dir)
+			a.bufWritePreChan <- a.cmd.Fmt(ctx, dir)
 		}()
 	}
 }

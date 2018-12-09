@@ -22,13 +22,11 @@ import (
 //
 //  :help rpcrequest()
 //  :help rpcnotify()
-func Register(pctx context.Context, cancel func(), p *plugin.Plugin, buildContext *buildctxt.Context, cmd *command.Command) {
-	log := logger.FromContext(pctx).Named("autocmd")
-	ctx := logger.NewContext(pctx, log)
+func Register(ctx context.Context, p *plugin.Plugin, buildContext *buildctxt.Context, cmd *command.Command) {
+	log := logger.FromContext(ctx).Named("autocmd")
+	ctx = logger.NewContext(ctx, log)
 
 	autocmd := &Autocmd{
-		ctx:              ctx,
-		cancel:           cancel,
 		Nvim:             p.Nvim,
 		buildContext:     buildContext,
 		cmd:              cmd,
@@ -48,20 +46,20 @@ func Register(pctx context.Context, cancel func(), p *plugin.Plugin, buildContex
 
 	// Handle the open the file.
 	// If open the file at first, run the 'BufEnter' -> 'VimEnter'.
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufEnter", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.BufEnter)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufEnter", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, func(eval *bufEnterEval) { autocmd.BufEnter(ctx, eval) })
 
 	// BufNewFile: Handle create the new file.
 	// BufReadPre: Handle the before the read to file.
 	// If create the new file, does not run the 'BufReadPre', Instead of 'BufNewFile'.
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufNewFile,BufReadPre", Group: "nvim-go-autocmd", Pattern: "*.go", Eval: "*"}, autocmd.BufReadPre)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufNewFile,BufReadPre", Group: "nvim-go", Pattern: "*", Eval: "*"}, func(eval *bufReadPreEval) { autocmd.BufReadPre(ctx, eval) })
 
-	// p.HandleAutocmd(&plugin.AutocmdOptions{Event: "WinEnter", Group: "nvim-go-autocmd", Pattern: "*.go", Eval: "*"}, autocmd.WinEnter)
+	// p.HandleAutocmd(&plugin.AutocmdOptions{Event: "WinEnter", Group: "nvim-go", Pattern: "*.go", Eval: "*"}, func(eval *winEnterEval) { autocmd.WinEnter(ctx, eval) })
 
 	// Handle the before the write to file.
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.BufWritePre)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePre", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, func(eval *bufWritePreEval) { autocmd.BufWritePre(ctx, eval) })
 
 	// Handle the after the write to file.
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, autocmd.bufWritePost)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufWritePost", Pattern: "*.go", Group: "nvim-go", Eval: "*"}, func(eval *bufWritePostEval) { autocmd.BufWritePost(ctx, eval) })
 
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimLeavePre", Pattern: "*.go", Group: "nvim-go"}, autocmd.VimLeavePre)
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimLeavePre", Pattern: "*.go", Group: "nvim-go"}, func() { autocmd.VimLeavePre(ctx) })
 }

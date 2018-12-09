@@ -17,9 +17,6 @@ import (
 
 // Autocmd represents a autocmd context.
 type Autocmd struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-
 	Nvim         *nvim.Nvim
 	buildContext *buildctxt.Context
 	cmd          *command.Command
@@ -32,8 +29,8 @@ type Autocmd struct {
 	errs *sync.Map
 }
 
-func (a *Autocmd) getStatus(bufnr, winID int, dir string) {
-	span := trace.FromContext(a.ctx)
+func (a *Autocmd) getStatus(ctx context.Context, bufnr, winID int, dir string) {
+	span := trace.FromContext(ctx)
 	span.SetName("getStatus")
 	defer span.End()
 

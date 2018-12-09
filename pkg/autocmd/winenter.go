@@ -5,6 +5,7 @@
 package autocmd
 
 import (
+	"context"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -19,13 +20,13 @@ type winEnterEval struct {
 	Dir   string `eval:"expand('%:p:h')"`
 }
 
-func (a *Autocmd) WinEnter(eval *winEnterEval) error {
-	defer nvimutil.Profile(a.ctx, time.Now(), "WinEnter")
-	span := trace.FromContext(a.ctx)
+func (a *Autocmd) WinEnter(ctx context.Context, eval *winEnterEval) error {
+	defer nvimutil.Profile(ctx, time.Now(), "WinEnter")
+	span := trace.FromContext(ctx)
 	span.SetName("WinEnter")
 	defer span.End()
 
-	a.getStatus(eval.BufNr, eval.WinID, eval.Dir)
+	a.getStatus(ctx, eval.BufNr, eval.WinID, eval.Dir)
 	if eval.Dir != "" && a.buildContext.PrevDir != eval.Dir {
 		a.buildContext.SetContext(eval.Dir)
 	}

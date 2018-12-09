@@ -5,6 +5,7 @@
 package autocmd
 
 import (
+	"context"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -13,12 +14,12 @@ import (
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
-func (a *Autocmd) VimLeavePre() {
-	defer nvimutil.Profile(a.ctx, time.Now(), "VimLeavePre")
-	span := trace.FromContext(a.ctx)
+func (a *Autocmd) VimLeavePre(ctx context.Context) {
+	defer nvimutil.Profile(ctx, time.Now(), "VimLeavePre")
+	span := trace.FromContext(ctx)
 	span.SetName("VimLeavePre")
 	defer span.End()
 
-	a.cancel()
-	logger.FromContext(a.ctx).Named("VimLeavePre").Debug("canceled")
+	logger.FromContext(ctx).Named("VimLeavePre").Debug("canceled")
+	<-ctx.Done()
 }

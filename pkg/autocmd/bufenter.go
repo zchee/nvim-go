@@ -5,6 +5,7 @@
 package autocmd
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -28,19 +29,19 @@ type bufEnterEval struct {
 var configOnce sync.Once
 
 // BufEnter gets the current buffer number, windows ID and set context from the directory structure on BufEnter autocmd.
-func (a *Autocmd) BufEnter(eval *bufEnterEval) {
-	defer nvimutil.Profile(a.ctx, time.Now(), "BufEnter")
-	span := trace.FromContext(a.ctx)
+func (a *Autocmd) BufEnter(ctx context.Context, eval *bufEnterEval) {
+	defer nvimutil.Profile(ctx, time.Now(), "BufEnter")
+	span := trace.FromContext(ctx)
 	span.SetName("BufEnter")
 	defer span.End()
 
 	configOnce.Do(func() {
 		eval.Cfg.Global.ChannelID = a.Nvim.ChannelID()
 		config.Get(a.Nvim, eval.Cfg)
-		logger.FromContext(a.ctx).Debug("BufEnter", zap.Any("eval.Config", eval.Cfg))
+		logger.FromContext(ctx).Debug("BufEnter", zap.Any("eval.Config", eval.Cfg))
 	})
 
-	a.getStatus(eval.BufNr, eval.WinID, eval.Dir)
+	a.getStatus(ctx, eval.BufNr, eval.WinID, eval.Dir)
 	if eval.Dir != "" && a.buildContext.PrevDir != eval.Dir {
 		a.buildContext.SetContext(eval.Dir)
 	}

@@ -5,6 +5,7 @@
 package autocmd
 
 import (
+	"context"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -15,9 +16,9 @@ import (
 type bufReadPreEval struct{}
 
 // BufReadPre gets user config variables and assign to global variable when autocmd BufReadPre.
-func (a *Autocmd) BufReadPre(eval *bufReadPreEval) {
-	defer nvimutil.Profile(a.ctx, time.Now(), "BufReadPre")
-	span := trace.FromContext(a.ctx)
+func (a *Autocmd) BufReadPre(ctx context.Context, eval *bufReadPreEval) {
+	defer nvimutil.Profile(ctx, time.Now(), "BufReadPre")
+	span := trace.FromContext(ctx)
 	span.SetName("BufReadPre")
 	defer span.End()
 }

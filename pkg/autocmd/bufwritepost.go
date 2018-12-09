@@ -5,6 +5,7 @@
 package autocmd
 
 import (
+	"context"
 	"path/filepath"
 	"time"
 
@@ -21,14 +22,10 @@ type bufWritePostEval struct {
 	File string `eval:"expand('%:p')"`
 }
 
-func (a *Autocmd) bufWritePost(eval *bufWritePostEval) {
-	go a.BufWritePost(eval)
-}
-
 // BufWritePost run the 'autosave' commands on BufWritePost autocmd.
-func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
-	defer nvimutil.Profile(a.ctx, time.Now(), "BufWritePost")
-	span := trace.FromContext(a.ctx)
+func (a *Autocmd) BufWritePost(ctx context.Context, eval *bufWritePostEval) error {
+	defer nvimutil.Profile(ctx, time.Now(), "BufWritePost")
+	span := trace.FromContext(ctx)
 	span.SetName("BufWritePost")
 	defer span.End()
 
@@ -47,7 +44,7 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 	}
 
 	if config.BuildAutosave {
-		err := a.cmd.Build(a.ctx, nil, config.BuildForce, &command.CmdBuildEval{
+		err := a.cmd.Build(ctx, nil, config.BuildForce, &command.CmdBuildEval{
 			Cwd:  eval.Cwd,
 			File: eval.File,
 		})
@@ -67,7 +64,7 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 			defer a.wg.Done()
 
 			a.errs.Delete("Lint")
-			err := a.cmd.Lint(a.ctx, nil, eval.File)
+			err := a.cmd.Lint(ctx, nil, eval.File)
 			switch e := err.(type) {
 			case error:
 				nvimutil.ErrorWrap(a.Nvim, e)
@@ -89,7 +86,7 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 			}()
 
 			a.errs.Delete("Vet")
-			err := a.cmd.Vet(a.ctx, nil, &command.CmdVetEval{
+			err := a.cmd.Vet(ctx, nil, &command.CmdVetEval{
 				Cwd:  eval.Cwd,
 				File: eval.File,
 			})
@@ -108,7 +105,7 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 			defer a.wg.Done()
 
 			a.errs.Delete("MetaLinter")
-			err := a.cmd.Metalinter(a.ctx, eval.Cwd)
+			err := a.cmd.Metalinter(ctx, eval.Cwd)
 			switch e := err.(type) {
 			case error:
 				nvimutil.ErrorWrap(a.Nvim, e)
@@ -123,7 +120,7 @@ func (a *Autocmd) BufWritePost(eval *bufWritePostEval) error {
 			defer a.wg.Done()
 
 			a.errs.Delete("Test")
-			err := a.cmd.Test(a.ctx, nil, dir)
+			err := a.cmd.Test(ctx, nil, dir)
 			switch e := err.(type) {
 			case error:
 				nvimutil.ErrorWrap(a.Nvim, e)
