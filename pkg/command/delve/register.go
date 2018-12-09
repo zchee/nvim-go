@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/neovim/go-client/nvim/plugin"
+
 	"github.com/zchee/nvim-go/pkg/buildctxt"
 )
 

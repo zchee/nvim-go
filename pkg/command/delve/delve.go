@@ -21,11 +21,12 @@ import (
 	delverpc2 "github.com/derekparker/delve/service/rpc2"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+
 	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/logger"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
-	"go.uber.org/zap"
 )
 
 const defaultAddr = "localhost:41222" // d:4 l:12 v:22

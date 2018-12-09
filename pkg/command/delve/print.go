@@ -14,6 +14,7 @@ import (
 	delveapi "github.com/derekparker/delve/service/api"
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
+
 	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
