@@ -108,8 +108,8 @@ func Dial(pctx context.Context) (*nvim.Nvim, error) {
 	}
 }
 
-func (s *Server) Serve() {
-	go s.Nvim.Serve()
+func (s *Server) Serve() error {
+	return s.Nvim.Serve()
 }
 
 func (s *Server) Close() error {
