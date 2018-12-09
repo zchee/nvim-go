@@ -11,14 +11,6 @@ ignored = ["golang.org/x/tools/cmd/guru"]
 
 # constraint
 [[constraint]]
-  name = "golang.org/x/exp"
-  branch = "master"
-
-[[constraint]]
-  name = "github.com/google/gops"
-  branch = "master"
-
-[[constraint]]
   name = "github.com/zchee/go-xdgbasedir"
   version = "1.0.3"
 
@@ -27,6 +19,14 @@ ignored = ["golang.org/x/tools/cmd/guru"]
   branch = "api/0ce8800"
 
 # constraint:master
+[[constraint]]
+  name = "golang.org/x/exp"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/google/gops"
+  branch = "master"
+
 [[constraint]]
   name = "github.com/fatih/color"
   branch = "master"
