@@ -2,7 +2,6 @@ module github.com/zchee/nvim-go
 
 require (
 	cloud.google.com/go v0.34.0
-	contrib.go.opencensus.io/exporter/ocagent v0.0.0-20181130223154-48c455c8df39
 	contrib.go.opencensus.io/exporter/stackdriver v0.0.0-20181114191937-899e456273f5
 	github.com/aws/aws-sdk-go v1.16.2 // indirect
 	github.com/cweill/gotests v0.0.0-20181029041911-276664f3b507

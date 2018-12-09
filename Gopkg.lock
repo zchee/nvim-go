@@ -17,14 +17,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:85d28f257179d9d312aa71646c44bd70488990b6b2e86fcd34297458add6b2d2"
-  name = "contrib.go.opencensus.io/exporter/ocagent"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "48c455c8df39b57f163cd1ee0445a7952ac295e9"
-
-[[projects]]
-  branch = "master"
   digest = "1:b5f5089e3c919ed9f862c8b47eeb0af5c98c8b936af0b5e985e51d67f1adbb8a"
   name = "contrib.go.opencensus.io/exporter/stackdriver"
   packages = [
@@ -71,19 +63,6 @@
   pruneopts = "NUT"
   revision = "c4e0e593d5f18b478f17ff0e86b56d41a70ced2d"
   version = "v1.16.2"
-
-[[projects]]
-  digest = "1:65b0d980b428a6ad4425f2df4cd5410edd81f044cf527bd1c345368444649e58"
-  name = "github.com/census-instrumentation/opencensus-proto"
-  packages = [
-    "gen-go/agent/common/v1",
-    "gen-go/agent/trace/v1",
-    "gen-go/resource/v1",
-    "gen-go/trace/v1",
-  ]
-  pruneopts = "NUT"
-  revision = "7f2434bc10da710debe5c4315ed6d4df454b4024"
-  version = "v0.1.0"
 
 [[projects]]
   branch = "master"
@@ -623,7 +602,6 @@
   analyzer-version = 1
   input-imports = [
     "cloud.google.com/go/profiler",
-    "contrib.go.opencensus.io/exporter/ocagent",
     "contrib.go.opencensus.io/exporter/stackdriver",
     "github.com/cweill/gotests/gotests/process",
     "github.com/davecgh/go-spew/spew",
