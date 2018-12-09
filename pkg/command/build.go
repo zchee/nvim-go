@@ -84,8 +84,6 @@ func (c *Command) Build(pctx context.Context, args []string, bang bool, eval *Cm
 		zap.Any("cmd.Process", cmd.Process),
 		zap.Any("cmd.ProcessState", cmd.ProcessState))
 
-	os.Unsetenv("GO111MODULE")
-
 	if buildErr := cmd.Run(); buildErr != nil {
 		if err, ok := buildErr.(*exec.ExitError); ok && err != nil {
 			errlist, err := nvimutil.ParseError(ctx, stderr.Bytes(), eval.Cwd, &c.buildContext.Build, nil)
@@ -129,6 +127,7 @@ func (c *Command) compileCmd(pctx context.Context, args []string, bang bool, dir
 		if config.BuildAppengine {
 			cmd.Args[0] += "app"
 		}
+		os.Unsetenv("GO111MODULE")
 	case "gb":
 		cmd.Dir = c.buildContext.Build.ProjectRoot
 
