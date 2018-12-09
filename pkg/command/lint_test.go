@@ -175,8 +175,9 @@ func TestCommand_cmdLintComplete(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			c := NewCommand(tt.fields.ctx, tt.fields.Nvim, tt.fields.bctxt)
-			gotFilelist, err := c.cmdLintComplete(tt.args.a, tt.args.cwd)
+			ctx := tt.fields.ctx
+			c := NewCommand(ctx, tt.fields.Nvim, tt.fields.bctxt)
+			gotFilelist, err := c.cmdLintComplete(ctx, tt.args.a, tt.args.cwd)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%q. Commands.cmdLintComplete(%v, %v) error = %v, wantErr %v", tt.name, tt.args.a, tt.args.cwd, err, tt.wantErr)
 				return
