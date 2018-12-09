@@ -42,7 +42,10 @@ func TestTestNvim(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel())
+
 			got := TestNvim(tt.args.t, tt.args.file...)
 			gotBuffers, err := got.Buffers()
 			if err != nil {
@@ -85,6 +88,7 @@ func Test_setXDGEnv(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			if err := setXDGEnv(tt.args.dir); (err != nil) != tt.wantErr {
 				t.Errorf("setXDGEnv(%v) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)
 			}

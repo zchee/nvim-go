@@ -269,7 +269,10 @@ cmd/relative/main.go:10:14: undefined: relative.B`),
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			bctx, fn := FakeBuildContext(tt.packContext)
 			build.Default = *bctx
 			defer fn()
