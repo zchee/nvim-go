@@ -26,14 +26,14 @@ import (
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
-func (c *Command) cmdLint(v *nvim.Nvim, args []string, file string) {
+func (c *Command) cmdLint(ctx context.Context, args []string, file string) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Lint(c.ctx, args, file)
+		errch <- c.Lint(ctx, args, file)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -64,6 +64,12 @@ const (
 // Lint lints a go source file. The argument is a filename or directory path.
 // TODO(zchee): Support go packages.
 func (c *Command) Lint(ctx context.Context, args []string, file string) interface{} {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "Lint")
 	span := trace.FromContext(ctx)
 	span.SetName("Lint")
@@ -125,7 +131,7 @@ func (c *Command) Lint(ctx context.Context, args []string, file string) interfac
 }
 
 // TODO(zchee): Support list of go packages.
-func (c *Command) cmdLintComplete(a *nvim.CommandCompletionArgs, cwd string) (filelist []string, err error) {
+func (c *Command) cmdLintComplete(ctx context.Context, a *nvim.CommandCompletionArgs, cwd string) (filelist []string, err error) {
 	files, err := nvimutil.CompleteFiles(c.Nvim, a, cwd)
 	if err != nil {
 		return nil, err

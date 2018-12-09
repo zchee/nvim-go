@@ -240,7 +240,7 @@ func BenchmarkBuildGb(b *testing.B) {
 // 	for _, tt := range tests {
 // 		t.Run(tt.name, func(t *testing.T) {
 // 			c := NewCommand(tt.fields.Nvim, tt.fields.ctx)
-// 			c.ctx.SetContext(filepath.Dir(tt.args.dir))
+// 			tt.fields.ctx.SetContext(filepath.Dir(tt.args.dir))
 //
 // 			got, err := c.compileCmd(tt.args.bang, tt.args.dir, tt.testfile)
 // 			if (err != nil) != tt.wantErr {

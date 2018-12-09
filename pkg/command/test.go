@@ -29,14 +29,14 @@ import (
 // ----------------------------------------------------------------------------
 // GoTest
 
-func (c *Command) cmdTest(args []string, dir string) {
+func (c *Command) cmdTest(ctx context.Context, args []string, dir string) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Test(c.ctx, args, dir)
+		errch <- c.Test(ctx, args, dir)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -63,6 +63,12 @@ var testTerm *nvimutil.Terminal
 // Test run the package test command use compile tool that determined from
 // the directory structure.
 func (c *Command) Test(ctx context.Context, args []string, dir string) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "Test")
 	span := trace.FromContext(ctx)
 	span.SetName("Test")
@@ -134,13 +140,15 @@ type cmdTestSwitchEval struct {
 	Offset int
 }
 
-func (c *Command) cmdSwitchTest(eval *cmdTestSwitchEval) {
-	go c.SwitchTest(eval)
-}
-
 // SwitchTest switch to the corresponds current cursor (Test)function.
-func (c *Command) SwitchTest(eval *cmdTestSwitchEval) error {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GoSwitchTest")
+func (c *Command) SwitchTest(ctx context.Context, eval *cmdTestSwitchEval) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
+	defer nvimutil.Profile(ctx, time.Now(), "GoSwitchTest")
 
 	fname := eval.File
 	ext := filepath.Ext(fname)

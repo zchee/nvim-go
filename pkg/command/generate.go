@@ -25,14 +25,14 @@ import (
 
 var generateFuncRe = regexp.MustCompile(`(?m)^func\s(?:\(\w\s[[:graph:]]+\)\s)?([\w]+)\(`)
 
-func (c *Command) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir string) {
+func (c *Command) cmdGenerateTest(ctx context.Context, args []string, ranges [2]int, bang bool, dir string) {
 	errch := make(chan error, 1)
 	go func() {
-		errch <- c.GenerateTest(c.ctx, args, ranges, bang, dir)
+		errch <- c.GenerateTest(ctx, args, ranges, bang, dir)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -47,6 +47,12 @@ func (c *Command) cmdGenerateTest(args []string, ranges [2]int, bang bool, dir s
 // GenerateTest generates the test files based by current buffer or args files
 // functions.
 func (c *Command) GenerateTest(ctx context.Context, args []string, ranges [2]int, bang bool, dir string) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "GenerateTest")
 	span := trace.FromContext(ctx)
 	span.SetName("GenerateTest")

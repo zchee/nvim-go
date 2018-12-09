@@ -42,14 +42,14 @@ type funcGuruEval struct {
 	Offset   int
 }
 
-func (c *Command) funcGuru(args []string, eval *funcGuruEval) {
+func (c *Command) funcGuru(ctx context.Context, args []string, eval *funcGuruEval) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Guru(c.ctx, args, eval)
+		errch <- c.Guru(ctx, args, eval)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -72,12 +72,18 @@ func (c *Command) funcGuru(args []string, eval *funcGuruEval) {
 
 // Guru go source analysis and output result to the quickfix or locationlist.
 func (c *Command) Guru(ctx context.Context, args []string, eval *funcGuruEval) interface{} {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "Guru")
 	span := trace.FromContext(ctx)
 	span.SetName("Guru")
 	defer span.End()
 
-	log := logger.FromContext(c.ctx).Named("Guru").With(zap.Any("funcGuruEval", eval))
+	log := logger.FromContext(ctx).Named("Guru").With(zap.Any("funcGuruEval", eval))
 
 	mode := args[0]
 	if len(args) > 1 {

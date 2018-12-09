@@ -31,14 +31,14 @@ type cmdRenameEval struct {
 	RenameFrom string
 }
 
-func (c *Command) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
+func (c *Command) cmdRename(ctx context.Context, args []string, bang bool, eval *cmdRenameEval) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Rename(c.ctx, args, bang, eval)
+		errch <- c.Rename(ctx, args, bang, eval)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -61,6 +61,12 @@ func (c *Command) cmdRename(args []string, bang bool, eval *cmdRenameEval) {
 
 // Rename rename the current cursor word use golang.org/x/tools/refactor/rename.
 func (c *Command) Rename(ctx context.Context, args []string, bang bool, eval *cmdRenameEval) interface{} {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "Rename")
 	span := trace.FromContext(ctx)
 	span.SetName("Rename")

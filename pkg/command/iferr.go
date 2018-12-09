@@ -28,14 +28,14 @@ import (
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
-func (c *Command) cmdIferr(file string) {
+func (c *Command) cmdIferr(ctx context.Context, file string) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Iferr(c.ctx, file)
+		errch <- c.Iferr(ctx, file)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -58,6 +58,12 @@ func (c *Command) cmdIferr(file string) {
 
 // Iferr automatically insert 'if err' Go idiom by parse the current buffer's Go abstract syntax tree(AST).
 func (c *Command) Iferr(ctx context.Context, file string) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "Iferr")
 	span := trace.FromContext(ctx)
 	span.SetName("Iferr")

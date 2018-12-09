@@ -23,14 +23,14 @@ var (
 	runLastArgs []string
 )
 
-func (c *Command) cmdRun(args []string, file string) {
+func (c *Command) cmdRun(ctx context.Context, args []string, file string) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Run(c.ctx, args, file)
+		errch <- c.Run(ctx, args, file)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -51,7 +51,7 @@ func (c *Command) cmdRun(args []string, file string) {
 	}
 }
 
-func (c *Command) cmdRunLast(file string) {
+func (c *Command) cmdRunLast(ctx context.Context, file string) {
 	if len(runLastArgs) == 0 {
 		err := errors.New("not found GoRun last arguments")
 		nvimutil.ErrorWrap(c.Nvim, err)
@@ -60,11 +60,11 @@ func (c *Command) cmdRunLast(file string) {
 
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Run(c.ctx, runLastArgs, file)
+		errch <- c.Run(ctx, runLastArgs, file)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -87,6 +87,12 @@ func (c *Command) cmdRunLast(file string) {
 
 // Run runs the go run command for current buffer's packages.
 func (c *Command) Run(ctx context.Context, args []string, file string) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "Run")
 	span := trace.FromContext(ctx)
 	span.SetName("Run")

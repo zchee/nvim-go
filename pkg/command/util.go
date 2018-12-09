@@ -5,6 +5,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 
 	"go.uber.org/zap"
@@ -13,7 +14,7 @@ import (
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
-func (c *Command) cmdBuffers() error {
+func (c *Command) cmdBuffers(ctx context.Context) error {
 	bufs, _ := c.Nvim.Buffers()
 	var b []string
 	for _, buf := range bufs {
@@ -23,7 +24,7 @@ func (c *Command) cmdBuffers() error {
 	return nvimutil.Echomsg(c.Nvim, "Buffers:", b)
 }
 
-func (c *Command) cmdWindows() error {
+func (c *Command) cmdWindows(ctx context.Context) error {
 	wins, _ := c.Nvim.Windows()
 	var w []string
 	for _, win := range wins {
@@ -32,7 +33,7 @@ func (c *Command) cmdWindows() error {
 	return nvimutil.Echomsg(c.Nvim, "Windows:", w)
 }
 
-func (c *Command) cmdTabpagas() error {
+func (c *Command) cmdTabpagas(ctx context.Context) error {
 	tabs, _ := c.Nvim.Tabpages()
 	var t []string
 	for _, tab := range tabs {
@@ -41,7 +42,7 @@ func (c *Command) cmdTabpagas() error {
 	return nvimutil.Echomsg(c.Nvim, "Tabpages:", t)
 }
 
-func (c *Command) cmdByteOffset() error {
+func (c *Command) cmdByteOffset(ctx context.Context) error {
 	b, err := c.Nvim.CurrentBuffer()
 	if err != nil {
 		return err
@@ -52,11 +53,11 @@ func (c *Command) cmdByteOffset() error {
 	}
 
 	offset, _ := nvimutil.ByteOffset(c.Nvim, b, w)
-	logger.FromContext(c.ctx).Info("cmdByteOffset", zap.Int("offset", offset))
+	logger.FromContext(ctx).Info("cmdByteOffset", zap.Int("offset", offset))
 
 	return nvimutil.Echomsg(c.Nvim, offset)
 }
 
-func (c *Command) cmdNotify(args []string) error {
+func (c *Command) cmdNotify(ctx context.Context, args []string) error {
 	return nvimutil.Notify(c.Nvim, args...)
 }

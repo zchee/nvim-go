@@ -5,6 +5,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,8 +14,9 @@ import (
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
-	xdgbasedir "github.com/zchee/go-xdgbasedir"
 	yaml "gopkg.in/yaml.v2"
+
+	xdgbasedir "github.com/zchee/go-xdgbasedir"
 
 	"github.com/zchee/nvim-go/pkg/fs"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
@@ -31,7 +33,7 @@ var (
 	configFile = filepath.Join(configDir, "config.yml")
 )
 
-func (c *Command) cmdConfig(args []string, eval *CmdConfigEval) {
+func (c *Command) cmdConfig(ctx context.Context, args []string, eval *CmdConfigEval) {
 	if err := fs.Mkdir(configDir, 0700); err != nil {
 		nvimutil.Echoerr(c.Nvim, "%v", err)
 		return
@@ -44,7 +46,7 @@ func (c *Command) cmdConfig(args []string, eval *CmdConfigEval) {
 	go func() {
 		c.errs.Delete("config")
 
-		err := c.Config(args, eval)
+		err := c.Config(ctx, args, eval)
 		switch e := err.(type) {
 		case error:
 			nvimutil.ErrorWrap(c.Nvim, e)
@@ -63,8 +65,8 @@ func (c *Command) cmdConfig(args []string, eval *CmdConfigEval) {
 
 // Config configs nvim-go plugin specific config.
 // Such as enable appengine mode, set GOPATH for project or etc.
-func (c *Command) Config(args []string, eval *CmdConfigEval) interface{} {
-	defer nvimutil.Profile(c.ctx, time.Now(), "GoConfig")
+func (c *Command) Config(ctx context.Context, args []string, eval *CmdConfigEval) interface{} {
+	defer nvimutil.Profile(ctx, time.Now(), "GoConfig")
 
 	if err := c.parseConfigCmd(args[0], args[1:], eval.Cwd); err != nil {
 		return err

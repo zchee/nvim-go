@@ -29,14 +29,14 @@ var importsOptions = imports.Options{
 	TabWidth:  8,
 }
 
-func (c *Command) cmdFmt(dir string) {
+func (c *Command) cmdFmt(ctx context.Context, dir string) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Fmt(c.ctx, dir)
+		errch <- c.Fmt(ctx, dir)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -59,6 +59,12 @@ func (c *Command) cmdFmt(dir string) {
 
 // Fmt format to the current buffer source uses gofmt behavior.
 func (c *Command) Fmt(ctx context.Context, dir string) interface{} {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "Fmt")
 	span := trace.FromContext(ctx)
 	span.SetName("Fmt")
@@ -128,6 +134,12 @@ func (c *Command) Fmt(ctx context.Context, dir string) interface{} {
 }
 
 func minUpdate(ctx context.Context, v *nvim.Nvim, b nvim.Buffer, in [][]byte, out [][]byte) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	span := trace.FromContext(ctx)
 	span.SetName("minUpdate")
 	defer span.End()

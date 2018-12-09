@@ -27,14 +27,14 @@ type CmdVetEval struct {
 	File string
 }
 
-func (c *Command) cmdVet(args []string, eval *CmdVetEval) {
+func (c *Command) cmdVet(ctx context.Context, args []string, eval *CmdVetEval) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Vet(c.ctx, args, eval)
+		errch <- c.Vet(ctx, args, eval)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -57,6 +57,12 @@ func (c *Command) cmdVet(args []string, eval *CmdVetEval) {
 
 // Vet is a simple checker for static errors in Go source code use go tool vet command.
 func (c *Command) Vet(ctx context.Context, args []string, eval *CmdVetEval) interface{} {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "Vet")
 	span := trace.FromContext(ctx)
 	span.SetName("Vet")
@@ -112,7 +118,7 @@ func (c *Command) Vet(ctx context.Context, args []string, eval *CmdVetEval) inte
 	return nil
 }
 
-func (c *Command) cmdVetComplete(v *nvim.Nvim, a *nvim.CommandCompletionArgs, dir string) ([]string, error) {
+func (c *Command) cmdVetComplete(ctx context.Context, a *nvim.CommandCompletionArgs, dir string) ([]string, error) {
 	// Flags:
 	//  -all
 	//        enable all non-experimental checks
@@ -170,7 +176,7 @@ func (c *Command) cmdVetComplete(v *nvim.Nvim, a *nvim.CommandCompletionArgs, di
 	//        comma-separated list of names of methods of type func() string whose results must be used (default "Error,String")
 	//  -v
 	//        verbose
-	complete, err := nvimutil.CompleteFiles(v, a, dir)
+	complete, err := nvimutil.CompleteFiles(c.Nvim, a, dir)
 	if err != nil {
 		return nil, err
 	}

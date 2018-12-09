@@ -30,14 +30,14 @@ type CmdBuildEval struct {
 	File string
 }
 
-func (c *Command) cmdBuild(args []string, bang bool, eval *CmdBuildEval) {
+func (c *Command) cmdBuild(ctx context.Context, args []string, bang bool, eval *CmdBuildEval) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Build(c.ctx, args, bang, eval)
+		errch <- c.Build(ctx, args, bang, eval)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -61,12 +61,18 @@ func (c *Command) cmdBuild(args []string, bang bool, eval *CmdBuildEval) {
 // Build builds the current buffers package use compile tool that determined
 // from the package directory structure.
 func (c *Command) Build(ctx context.Context, args []string, bang bool, eval *CmdBuildEval) interface{} {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "Build")
 	span := trace.FromContext(ctx)
 	span.SetName("Build")
 	defer span.End()
 
-	log := logger.FromContext(c.ctx).With(zap.Strings("args", args), zap.Bool("bang", bang), zap.Any("CmdBuildEval", eval))
+	log := logger.FromContext(ctx).With(zap.Strings("args", args), zap.Bool("bang", bang), zap.Any("CmdBuildEval", eval))
 	if !bang {
 		bang = config.BuildForce
 	}

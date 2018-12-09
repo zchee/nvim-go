@@ -32,14 +32,14 @@ type cmdCoverEval struct {
 	File string `msgpack:",array"`
 }
 
-func (c *Command) cmdCover(eval *cmdCoverEval) {
+func (c *Command) cmdCover(ctx context.Context, eval *cmdCoverEval) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.cover(c.ctx, eval)
+		errch <- c.cover(ctx, eval)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -63,6 +63,12 @@ func (c *Command) cmdCover(eval *cmdCoverEval) {
 // cover run the go tool cover command and highlight current buffer based cover
 // profile result.
 func (c *Command) cover(ctx context.Context, eval *cmdCoverEval) interface{} {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "Cover")
 	span := trace.FromContext(ctx)
 	span.SetName("Cover")

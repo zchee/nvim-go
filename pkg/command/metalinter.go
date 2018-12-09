@@ -21,14 +21,14 @@ import (
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
-func (c *Command) cmdMetalinter(cwd string) {
+func (c *Command) cmdMetalinter(ctx context.Context, cwd string) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.Metalinter(c.ctx, cwd)
+		errch <- c.Metalinter(ctx, cwd)
 	}()
 
 	select {
-	case <-c.ctx.Done():
+	case <-ctx.Done():
 		return
 	case err := <-errch:
 		switch e := err.(type) {
@@ -51,6 +51,12 @@ type metalinterResult struct {
 
 // Metalinter lint the Go sources from current buffer's package use gometalinter tool.
 func (c *Command) Metalinter(ctx context.Context, cwd string) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	defer nvimutil.Profile(ctx, time.Now(), "MetaLinter")
 	span := trace.FromContext(ctx)
 	span.SetName("MetaLinter")
