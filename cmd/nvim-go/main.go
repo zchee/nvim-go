@@ -197,7 +197,7 @@ func startServer(ctx context.Context) (errs error) {
 		return Plugin(fn)
 	})
 	eg.Go(func() error {
-		return childServer(ctx)
+		return subscribeServer(ctx)
 	})
 
 	log.Info(fmt.Sprintf("starting %s server", appName), zap.Object("env", env))
@@ -208,7 +208,7 @@ func startServer(ctx context.Context) (errs error) {
 	return errs
 }
 
-func childServer(ctx context.Context) error {
+func subscribeServer(ctx context.Context) error {
 	log := logger.FromContext(ctx).Named("child")
 	ctx = logger.NewContext(ctx, log)
 
