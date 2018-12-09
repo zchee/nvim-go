@@ -79,6 +79,7 @@ jobs:
             make coverage/junit
       - run:
           name: Send coverage reports to codecov.io
+          shell: /bin/bash -eux -o pipefail
           command: |
             bash <(curl -s https://codecov.io/bash) -Z -F darwin
       - store_test_results:
