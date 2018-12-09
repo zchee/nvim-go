@@ -25,8 +25,7 @@ jobs:
       - run:
           name: "Take a coverage"
           command: |
-            mkdir -p test-results/linux
-            go test -v -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./pkg/... $(go list ./pkg/...) 2>&1 | go-junit-report > test-results/linux/results.xml
+            make coverage/junit
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
@@ -68,13 +67,11 @@ jobs:
           name: "Install go dependencies tools"
           command: |
             go get -u \
-              github.com/constabulary/gb/cmd/... \
-              github.com/jstemmer/go-junit-report
+              github.com/constabulary/gb/cmd/...
       - run:
           name: "Take a coverage"
           command: |
-            mkdir -p test-results/darwin
-            go test -v -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./pkg/... $(go list ./pkg/...) 2>&1 | go-junit-report > test-results/darwin/results.xml
+            make coverage/junit
       - run:
           name: "Send coverage reports to codecov.io"
           command: |
