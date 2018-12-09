@@ -40,9 +40,9 @@ GO_BUILD_TAGS ?= osusergo netgo
 
 # GOFLAGS
 GOFLAGS ?= -tags '$(GO_BUILD_TAGS)' -installsuffix netgo
-# ifneq ($(CI),)
-# 	GOFLAGS+=-mod=vendor
-# endif
+ifeq ($(CI),)
+	GOFLAGS+=-mod=vendor
+endif
 
 ifneq ($(GO_GCFLAGS),)
 	GOFLAGS+=-gcflags $(strip $(GO_GCFLAGS))
