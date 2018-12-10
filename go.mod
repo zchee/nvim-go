@@ -2,8 +2,9 @@ module github.com/zchee/nvim-go
 
 require (
 	cloud.google.com/go v0.34.0
-	contrib.go.opencensus.io/exporter/stackdriver v0.0.0-20181114191937-899e456273f5
+	contrib.go.opencensus.io/exporter/stackdriver v0.0.0-20181210042938-c719bc19d7cd
 	github.com/aws/aws-sdk-go v1.16.2 // indirect
+	github.com/census-instrumentation/opencensus-proto v0.1.0 // indirect
 	github.com/cweill/gotests v0.0.0-20181029041911-276664f3b507
 	github.com/davecgh/go-spew v1.1.1
 	github.com/derekparker/delve v0.0.0-20170419170936-92dad944d7e0
