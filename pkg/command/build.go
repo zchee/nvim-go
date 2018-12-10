@@ -127,7 +127,6 @@ func (c *Command) compileCmd(pctx context.Context, args []string, bang bool, dir
 		if config.BuildAppengine {
 			cmd.Args[0] += "app"
 		}
-		os.Unsetenv("GO111MODULE")
 	case "gb":
 		cmd.Dir = c.buildContext.Build.ProjectRoot
 
