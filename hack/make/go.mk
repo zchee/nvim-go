@@ -72,8 +72,9 @@ IMAGE_REGISTRY := quay.io/zchee
 # ----------------------------------------------------------------------------
 # defines
 
+GOPHER = ""
 define target
-@printf "+ \\033[32m$(patsubst ,$@,$(1))\\033[0m\\n"
+@printf "$(GOPHER)  \\033[32m$(patsubst ,$@,$(1))\\033[0m\\n"
 endef
 
 # ----------------------------------------------------------------------------
@@ -244,6 +245,11 @@ mod/init:  ## Init go.mod file.
 	$(call target)
 	@GO111MODULE=on go mod init
 
+.PHONY: mod/update
+mod/update:  ## Update module and go.mod.
+	$(call target)
+	@GO111MODULE=on go get -u -m -v -x ./...
+
 .PHONY: mod/tidy
 mod/tidy:  ## Makes sure go.mod matches the source code in the module.
 	$(call target)
@@ -264,15 +270,24 @@ mod/clean:  ## Cleanups the go mod vendoring tool files.
 	$(call target)
 	@$(RM) go.mod go.sum
 
+.PHONY: mod/lock/delve
+mod/lock/delve:  # locked to derekparker/delve@92dad94
+	$(call target)
+	@go get -u -m -v -x github.com/derekparker/delve@92dad94 golang.org/x/arch@f40095975f golang.org/x/debug@fb508927b4 golang.org/x/sys@f3918c30c5
+
 .PHONY: mod
-mod: Gopkg.toml Gopkg.lock mod/clean mod/init mod/tidy  ## Updates the vendor packages via go mod.
+mod: mod/clean mod/init mod/tidy  ## Updates the vendor packages via go mod.
 	@sed -i ':a;N;$$!ba;s|go 1\.12\n\n||g' go.mod
 
 .PHONY: vendor
-vendor: dep mod mod/tidy  ## Ensure vendor packages.
+vendor: mod/tidy mod/vendor  ## Ensure tidy and fetch depends package to vendor directory.
+
+.PHONY: vendor/install
+vendor/install:
+	@go install -v $(shell go list -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}{{.ImportPath}}{{end}}' ./vendor/...)
 
 .PHONY: vendor/update
-vendor/update: dep/ensure dep/update mod mod/tidy  ## Updates all vendor packages.
+vendor/update: mod/update mod/lock/delve mod/tidy mod/vendor vendor/install  ## Updates all vendor packages.
 
 
 ## miscellaneous
@@ -294,7 +309,7 @@ AUTHORS:  ## Creates AUTHORS file.
 .PHONY: clean
 clean:  ## Cleanups the any build binaries or packages.
 	$(call target)
-	$(RM) -r ./bin *.out *.test *.prof trace.log
+	@$(RM) -r ./bin *.out *.test *.prof trace.log
 
 
 .PHONY: todo
