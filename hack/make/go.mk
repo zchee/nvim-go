@@ -270,6 +270,12 @@ mod/clean:  ## Cleanups the go mod vendoring tool files.
 	$(call target)
 	@$(RM) go.mod go.sum
 
+
+.PHONY: mod/lock/go-client
+mod/lock/go-client:  # locked to neovim/go-client@api/32405de
+	$(call target)
+	@go get -u -m -v -x github.com/neovim/go-client@api/32405de
+
 .PHONY: mod/lock/delve
 mod/lock/delve:  # locked to derekparker/delve@92dad94
 	$(call target)
@@ -280,14 +286,14 @@ mod: mod/clean mod/init mod/tidy  ## Updates the vendor packages via go mod.
 	@sed -i ':a;N;$$!ba;s|go 1\.12\n\n||g' go.mod
 
 .PHONY: vendor
-vendor: mod/tidy mod/vendor  ## Ensure tidy and fetch depends package to vendor directory.
+vendor: mod/lock/go-client mod/lock/delve mod/tidy mod/vendor  ## Ensure tidy and fetch depends package to vendor directory.
 
 .PHONY: vendor/install
 vendor/install:
 	@go install -v $(shell go list -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}{{.ImportPath}}{{end}}' ./vendor/...)
 
 .PHONY: vendor/update
-vendor/update: mod/update mod/lock/delve mod/tidy mod/vendor vendor/install  ## Updates all vendor packages.
+vendor/update: mod/update mod/lock/go-client mod/lock/delve mod/tidy mod/vendor vendor/install  ## Updates all vendor packages.
 
 
 ## miscellaneous

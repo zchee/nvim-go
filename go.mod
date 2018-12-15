@@ -24,7 +24,6 @@ require (
 	github.com/peterh/liner v1.1.0 // indirect
 	github.com/pkg/errors v0.8.0
 	github.com/pkg/profile v1.2.1 // indirect
-	github.com/rakyll/autopprof v0.1.0
 	github.com/zchee/go-xdgbasedir v1.0.3
 	go.opencensus.io v0.18.0
 	go.uber.org/atomic v1.3.2 // indirect

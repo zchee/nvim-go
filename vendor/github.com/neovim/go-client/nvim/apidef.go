@@ -42,6 +42,26 @@ func BufferLines(buffer Buffer, start int, end int, strict bool) [][]byte {
 	name(nvim_buf_get_lines)
 }
 
+// AttachBuffer activate updates from this buffer to the current channel.
+//
+// If sendBuffer is true, initial notification should contain the whole buffer.
+// If false, the first notification will be a `nvim_buf_lines_event`.
+// Otherwise, the first notification will be a `nvim_buf_changedtick_event`
+//
+// opts is optional parameters. Currently not used.
+//
+// returns whether the updates couldn't be enabled because the buffer isn't loaded or opts contained an invalid key.
+func AttachBuffer(buffer Buffer, sendBuffer bool, opts map[string]interface{}) bool {
+	name(nvim_buf_attach)
+}
+
+// DetachBuffer deactivate updates from this buffer to the current channel.
+//
+// returns whether the updates couldn't be disabled because the buffer isn't loaded.
+func DetachBuffer(buffer Buffer) bool {
+	name(nvim_buf_detach)
+}
+
 // SetBufferLines replaces a line range on a buffer.
 //
 // Indexing is zero-based, end-exclusive. Negative indices are interpreted as
@@ -57,6 +77,19 @@ func SetBufferLines(buffer Buffer, start int, end int, strict bool, replacement 
 	name(nvim_buf_set_lines)
 }
 
+// BufferOffset returns the byte offset for a line.
+//
+// Line 1 (index=0) has offset 0. UTF-8 bytes are counted. EOL is one byte.
+// 'fileformat' and 'fileencoding' are ignored. The line index just after the
+// last line gives the total byte-count of the buffer. A final EOL byte is
+// counted if it would be written, see 'eol'.
+//
+// Unlike |line2byte()|, throws error for out-of-bounds indexing.
+// Returns -1 for unloaded buffer.
+func BufferOffset(buffer Buffer, index int) int {
+	name(nvim_buf_get_offset)
+}
+
 // BufferVar gets a buffer-scoped (b:) variable.
 func BufferVar(buffer Buffer, name string) interface{} {
 	name(nvim_buf_get_var)
@@ -70,6 +103,13 @@ func BufferChangedTick(buffer Buffer) int {
 // BufferKeymap gets a list of buffer-local mappings.
 func BufferKeyMap(buffer Buffer, mode string) []*Mapping {
 	name(nvim_buf_get_keymap)
+}
+
+// BufferCommands gets a map of buffer-local user-commands.
+//
+// opts is optional parameters. Currently not used.
+func BufferCommands(buffer Buffer, opts map[string]interface{}) map[string]interface{} {
+	name(nvim_buf_get_commands)
 }
 
 // SetBufferVar sets a buffer-scoped (b:) variable.
@@ -112,6 +152,12 @@ func SetBufferName(buffer Buffer, name string) {
 	name(nvim_buf_set_name)
 }
 
+// IsBufferLoaded Checks if a buffer is valid and loaded.
+// See api-buffer for more info about unloaded buffers.
+func IsBufferLoaded(buffer Buffer) bool {
+	name(nvim_buf_is_loaded)
+}
+
 // IsBufferValid returns true if the buffer is valid.
 func IsBufferValid(buffer Buffer) bool {
 	name(nvim_buf_is_valid)
@@ -149,6 +195,14 @@ func AddBufferHighlight(buffer Buffer, srcID int, hlGroup string, line int, star
 	name(nvim_buf_add_highlight)
 }
 
+// ClearBufferNamespace clears namespaced objects, highlights and virtual text, from a line range.
+//
+// To clear the namespace in the entire buffer, pass in 0 and -1 to
+// line_start and line_end respectively.
+func ClearBufferNamespace(buffer Buffer, nsID int, line_start int, line_end int) {
+	name(nvim_buf_clear_namespace)
+}
+
 // ClearBufferHighlight clears highlights from a given source group and a range
 // of lines.
 //
@@ -158,7 +212,30 @@ func AddBufferHighlight(buffer Buffer, srcID int, hlGroup string, line int, star
 // The lineStart and lineEnd parameters specify the range of lines to clear.
 // The end of range is exclusive. Specify -1 to clear to the end of the file.
 func ClearBufferHighlight(buffer Buffer, srcID int, startLine int, endLine int) {
-	name(nvim_buf_clear_highlight)
+	name(nvim_buf_clear_namespace)
+}
+
+// SetBufferVirtualText sets the virtual text (annotation) for a buffer line.
+//
+// By default (and currently the only option) the text will be placed after
+// the buffer text. Virtual text will never cause reflow, rather virtual
+// text will be truncated at the end of the screen line. The virtual text will
+// begin after one cell to the right of the ordinary text, this will contain
+// the lcs-eol char if set, otherwise just be a space.
+//
+// Namespaces are used to support batch deletion/updating of virtual text.
+// To create a namespace, use |nvim_create_namespace|. Virtual text is
+// cleared using ClearBufferNamespace. The same `nsID` can be used for
+// both virtual text and highlights added by AddBufferHighlight, both
+// can then be cleared with a single call to ClearBufferNamespace. If the
+// virtual text never will be cleared by an API call, pass `ns_id = -1`.
+//
+// As a shorthand, `nsID = 0` can be used to create a new namespace for the
+// virtual text, the allocated id is then returned.
+//
+// The opts is the optional parameters. Currently not used.
+func SetBufferVirtualText(buffer Buffer, nsID int, line int, chunks []interface{}, opts map[string]interface{}) int {
+	name(nvim_buf_set_virtual_text)
 }
 
 // TabpageWindows returns the windows in a tabpage.
@@ -413,6 +490,27 @@ func SetCurrentTabpage(tabpage Tabpage) {
 	name(nvim_set_current_tabpage)
 }
 
+// CreateNamespace creates a new namespace, or get one with an exisiting name
+//
+// Namespaces are currently used for buffer highlighting and virtual text, see
+// AddBufferHighlight and SetBufferVirtualText.
+//
+// Namespaces can have a name of be anonymous. If `name` is a non-empty string,
+// and a namespace already exists with that name,the existing namespace id is
+// returned. If an empty string is used, a new anonymous namespace is returned.
+//
+// The returns the namespace ID.
+func CreateNamespace(name string) int {
+	name(nvim_create_namespace)
+}
+
+// Namespaces gets existing named namespaces
+//
+// The return dict that maps from names to namespace ids.
+func Namespaces() map[string]interface{} {
+	name(nvim_get_namespaces)
+}
+
 // Subscribe subscribes to a Nvim event.
 func Subscribe(event string) {
 	name(nvim_subscribe)
@@ -441,13 +539,64 @@ func KeyMap(mode string) []*Mapping {
 	name(nvim_get_keymap)
 }
 
+// Commands gets a map of global (non-buffer-local) Ex commands.
+// Currently only user-commands are supported, not builtin Ex commands.
+//
+// opts is optional parameters. Currently only supports {"builtin":false}.
+func Commands(opts map[string]interface{}) map[string]interface{} {
+	name(nvim_get_commands)
+}
+
 func APIInfo() []interface{} {
 	name(nvim_get_api_info)
+}
+
+// SetClientInfo identify the client for nvim.
+//
+// Can be called more than once, but subsequent calls will remove earlier info, which should be resent if it is still valid.
+// (This could happen if a library first identifies the channel, and a plugin using that library later overrides that info)
+func SetClientInfo(name string, version Version, typ string, methods Methods, attributes Attributes) {
+	name(nvim_set_client_info)
+}
+
+// ChannelInfo get information about a channel.
+func ChannelInfo(channel int) *Channel {
+	name(nvim_get_chan_info)
+}
+
+// Channels get information about all open channels.
+func Channels() []*Channel {
+	name(nvim_list_chans)
+}
+
+// ParseExpression parse a VimL expression.
+func ParseExpression(expr string, flags string, highlight bool) map[string]interface{} {
+	name(nvim_parse_expression)
+}
+
+// UIs gets a list of dictionaries representing attached UIs.
+func UIs() []*UI {
+	name(nvim_list_uis)
+}
+
+// ProcChildren gets the immediate children of process `pid`.
+func ProcChildren(pid int) []*Process {
+	name(nvim_get_proc_children)
+}
+
+// Proc gets info describing process `pid`.
+func Proc(pid int) Process {
+	name(nvim_get_proc)
 }
 
 // WindowBuffer returns the current buffer in a window.
 func WindowBuffer(window Window) Buffer {
 	name(nvim_win_get_buf)
+}
+
+// SetBufferToWindow sets the current buffer in a window, without side-effects.
+func SetBufferToWindow(window Window, buffer Buffer) {
+	name(nvim_win_set_buf)
 }
 
 // WindowCursor returns the cursor position in the window.

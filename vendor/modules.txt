@@ -105,7 +105,7 @@ github.com/mattn/go-isatty
 github.com/mattn/go-runewidth
 # github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153
 github.com/motemen/go-astmanip
-# github.com/neovim/go-client v0.0.0-20180317061334-9ff6dbd3a83f
+# github.com/neovim/go-client v0.0.0-20181212110631-d1c52e18d0a2
 github.com/neovim/go-client/nvim
 github.com/neovim/go-client/nvim/plugin
 github.com/neovim/go-client/msgpack
@@ -114,8 +114,6 @@ github.com/neovim/go-client/msgpack/rpc
 github.com/peterh/liner
 # github.com/pkg/errors v0.8.0
 github.com/pkg/errors
-# github.com/rakyll/autopprof v0.1.0
-github.com/rakyll/autopprof
 # github.com/zchee/go-xdgbasedir v1.0.3
 github.com/zchee/go-xdgbasedir
 github.com/zchee/go-xdgbasedir/home
