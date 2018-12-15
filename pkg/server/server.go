@@ -6,6 +6,8 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"net"
 	"os"
 	"time"
 
@@ -14,95 +16,75 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/zchee/nvim-go/pkg/logger"
+	"github.com/zchee/nvim-go/pkg/nctx"
 )
 
 type Server struct {
-	*nvim.Nvim
+	Nvim *nvim.Nvim
 }
 
-func NewServer(pctx context.Context) (*Server, error) {
-	log := logger.FromContext(pctx).Named("server")
-
-	const envNvimListenAddress = "NVIM_LISTEN_ADDRESS"
-	addr := os.Getenv(envNvimListenAddress)
-	if addr == "" {
-		return nil, errors.Errorf("%s not set", envNvimListenAddress)
+func NewServer(ctx context.Context) (*Server, error) {
+	n, err := Dial(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	zapLogf := func(format string, a ...interface{}) {
-		log.Info("", zap.Any(format, a))
-	}
+	return &Server{
+		Nvim: n,
+	}, nil
+}
 
-	ctx, cancel := context.WithTimeout(pctx, 1*time.Second)
-	defer cancel()
+var DefaultDialer = func(ctx context.Context, network, address string) (net.Conn, error) {
+	return (&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		DualStack: true,
+	}).DialContext(ctx, network, address)
+}
 
-	var n *nvim.Nvim
-	var tempDelay time.Duration
-	for {
-		var err error
-		n, err = nvim.Dial(addr, nvim.DialContext(ctx), nvim.DialServe(false), nvim.DialLogf(zapLogf))
-		if err != nil {
-			if tempDelay == 0 {
-				tempDelay = 5 * time.Millisecond
-			} else {
-				tempDelay *= 2
-			}
-			if max := 1 * time.Second; tempDelay > max {
-				tempDelay = max
-			}
-			log.Info("Dial error", zap.Error(err), zap.Duration("retrying in", tempDelay))
-			timer := time.NewTimer(tempDelay)
-			select {
-			case <-timer.C:
-			}
-			continue
-		}
-		tempDelay = 0
-
-		return &Server{Nvim: n}, nil
+var DefaultLogFunc = func(ctx context.Context) func(string, ...interface{}) {
+	return func(format string, a ...interface{}) {
+		logger.FromContext(ctx).Info(fmt.Sprintf(format, a))
 	}
 }
 
-func Dial(pctx context.Context) (*nvim.Nvim, error) {
-	const envNvimListenAddress = "NVIM_LISTEN_ADDRESS"
-	addr := os.Getenv(envNvimListenAddress) // NVIM_LISTEN_ADDRESS env can get if launched nvim process
+func Dial(ctx context.Context) (n *nvim.Nvim, err error) {
+	log := logger.FromContext(ctx).Named("server")
+	ctx = logger.NewContext(ctx, log)
+
+	addr := os.Getenv(nctx.ListenAddress) // NVIM_LISTEN_ADDRESS environment can get if already launch the nvim process
 	if addr == "" {
-		return nil, errors.Errorf("failed get %s", envNvimListenAddress)
+		return nil, errors.Errorf("failed get %s", nctx.ListenAddress)
 	}
 
-	ctx, cancel := context.WithTimeout(pctx, 1*time.Second)
-	defer cancel()
-
-	var n *nvim.Nvim
 	dialOpts := []nvim.DialOption{
 		nvim.DialContext(ctx),
 		nvim.DialServe(false),
-		nvim.DialLogf(func(format string, a ...interface{}) {
-			logger.FromContext(ctx).Info("", zap.Any(format, a))
-		}),
+		nvim.DialNetDial(DefaultDialer),
+		nvim.DialLogf(DefaultLogFunc(ctx)),
 	}
 
-	var tempDelay time.Duration // how long to sleep on accept failure
-	var err error
+	var tmpDelay time.Duration // how long to sleep on accept failure
 	for {
 		n, err = nvim.Dial(addr, dialOpts...)
 		if err != nil {
-			if tempDelay == 0 {
-				tempDelay = 5 * time.Millisecond
+			log.Error("Dial error", zap.Error(err), zap.Duration("retrying", tmpDelay))
+
+			if tmpDelay == 0 {
+				tmpDelay = 5 * time.Millisecond
 			} else {
-				tempDelay *= 2
+				tmpDelay *= 2
 			}
-			if max := 1 * time.Second; tempDelay > max {
-				tempDelay = max
+			if max := 1 * time.Second; tmpDelay > max {
+				tmpDelay = max
 			}
-			logger.FromContext(ctx).Error("Dial error", zap.Error(err), zap.Duration("retrying in", tempDelay))
-			timer := time.NewTimer(tempDelay)
+			timer := time.NewTimer(tmpDelay)
 			select {
 			case <-timer.C:
 			}
 			continue
 		}
-		tempDelay = 0
+		tmpDelay = 0
 
 		return n, nil
 	}
