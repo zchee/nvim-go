@@ -8,9 +8,9 @@ import (
 	"github.com/neovim/go-client/nvim"
 
 	"github.com/zchee/nvim-go/pkg/config"
-	"github.com/zchee/nvim-go/pkg/nvimctx"
+	"github.com/zchee/nvim-go/pkg/nctx"
 )
 
 func Notify(n *nvim.Nvim, args ...string) error {
-	return n.Call("rpcnotify", nil, config.ChannelID, nvimctx.Method, args)
+	return n.Call("rpcnotify", nil, config.ChannelID, nctx.Method, args)
 }

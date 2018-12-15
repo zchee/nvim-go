@@ -20,7 +20,7 @@ import (
 	"go.opencensus.io/trace"
 
 	"github.com/zchee/nvim-go/pkg/config"
-	"github.com/zchee/nvim-go/pkg/nvimctx"
+	"github.com/zchee/nvim-go/pkg/nctx"
 	"github.com/zchee/nvim-go/pkg/nvimutil"
 )
 
@@ -49,7 +49,7 @@ func (c *Command) cmdGenerateTest(ctx context.Context, args []string, ranges [2]
 // functions.
 func (c *Command) GenerateTest(ctx context.Context, args []string, ranges [2]int, bang bool, dir string) error {
 	var span *trace.Span
-	ctx, span = trace.StartSpan(ctx, path.Join(nvimctx.PkgName, "GenerateTest"))
+	ctx, span = trace.StartSpan(ctx, path.Join(nctx.PkgName, "GenerateTest"))
 	defer span.End()
 
 	b := nvim.Buffer(c.buildContext.BufNr)

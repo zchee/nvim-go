@@ -31,13 +31,9 @@ import (
 	"github.com/zchee/nvim-go/pkg/command"
 	"github.com/zchee/nvim-go/pkg/config"
 	"github.com/zchee/nvim-go/pkg/logger"
-	"github.com/zchee/nvim-go/pkg/nvimctx"
+	"github.com/zchee/nvim-go/pkg/nctx"
 	"github.com/zchee/nvim-go/pkg/server"
 	"github.com/zchee/nvim-go/pkg/version"
-)
-
-const (
-	appName = "nvim-go"
 )
 
 // flags
@@ -54,7 +50,7 @@ func init() {
 
 func main() {
 	if *fVersion {
-		fmt.Printf("%s:\n  version: %s\n", appName, version.Version)
+		fmt.Printf("%s:\n  version: %s\n", nctx.AppName, version.Version)
 		return
 	}
 
@@ -144,7 +140,7 @@ func startServer(ctx context.Context) (errs error) {
 			OnError: func(err error) {
 				errs = multierr.Append(errs, fmt.Errorf("stackdriver.Exporter: %v", err))
 			},
-			MetricPrefix: appName,
+			MetricPrefix: nctx.AppName,
 			Context:      ctx,
 		}
 		sd, err := stackdriver.NewExporter(sdOpts)
@@ -158,7 +154,7 @@ func startServer(ctx context.Context) (errs error) {
 
 		// Stackdriver Profiler
 		profConf := profiler.Config{
-			Service:        appName,
+			Service:        nctx.AppName,
 			ServiceVersion: version.Tag,
 			MutexProfiling: true,
 			ProjectID:      gcpProjectID,
@@ -200,7 +196,7 @@ func startServer(ctx context.Context) (errs error) {
 		return subscribeServer(ctx)
 	})
 
-	log.Info(fmt.Sprintf("starting %s server", appName), zap.Object("env", env))
+	log.Info(fmt.Sprintf("starting %s server", nctx.AppName), zap.Object("env", env))
 	if err := eg.Wait(); err != nil {
 		log.Fatal("occurred error", zap.Error(err))
 	}
@@ -218,7 +214,7 @@ func subscribeServer(ctx context.Context) error {
 	}
 	go s.Serve()
 
-	s.Subscribe(nvimctx.Method)
+	s.Nvim.Subscribe(nctx.Method)
 
 	select {
 	case <-ctx.Done():

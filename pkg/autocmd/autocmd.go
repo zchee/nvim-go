@@ -14,7 +14,7 @@ import (
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/command"
-	"github.com/zchee/nvim-go/pkg/nvimctx"
+	"github.com/zchee/nvim-go/pkg/nctx"
 )
 
 // Autocmd represents a autocmd context.
@@ -33,7 +33,7 @@ type Autocmd struct {
 
 func (a *Autocmd) getStatus(ctx context.Context, bufnr, winID int, dir string) {
 	var span *trace.Span
-	ctx, span = trace.StartSpan(ctx, path.Join(nvimctx.PkgName, "getStatus"))
+	ctx, span = trace.StartSpan(ctx, path.Join(nctx.PkgName, "getStatus"))
 	defer span.End()
 
 	a.mu.Lock()

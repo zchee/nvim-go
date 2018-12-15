@@ -15,7 +15,7 @@ import (
 	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/command"
 	"github.com/zchee/nvim-go/pkg/logger"
-	"github.com/zchee/nvim-go/pkg/nvimctx"
+	"github.com/zchee/nvim-go/pkg/nctx"
 )
 
 // Register registers autocmd to Neovim.
@@ -40,8 +40,8 @@ func Register(ctx context.Context, p *plugin.Plugin, buildContext *buildctxt.Con
 	// TODO(zchee): consider Pattern to '*' instead of '*.go' with get '&filetype' and early return
 	// p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimEnter", Pattern: "*", Group: "nvim-go", Eval: "*"}, autocmd.VimEnter)
 
-	p.Handle(nvimctx.Method, func(event ...interface{}) {
-		log.Debug(fmt.Sprintf("handles %s", nvimctx.Method), zap.Any("event", event))
+	p.Handle(nctx.Method, func(event ...interface{}) {
+		log.Debug(fmt.Sprintf("handles %s", nctx.Method), zap.Any("event", event))
 	})
 
 	// Handle the open the file.
