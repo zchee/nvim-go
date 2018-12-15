@@ -50,10 +50,11 @@ func Register(ctx context.Context, p *plugin.Plugin, buildContext *buildctxt.Con
 		func(eval *bufEnterEval) {
 			autocmd.BufEnter(ctx, eval)
 		})
+
 	// BufNewFile: Handle create the new file.
 	// BufReadPre: Handle the before the read to file.
 	// If create the new file, does not run the 'BufReadPre', Instead of 'BufNewFile'.
-	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufNewFile,BufReadPre", Group: "nvim-go", Pattern: "*", Eval: "*"},
+	p.HandleAutocmd(&plugin.AutocmdOptions{Event: "BufNewFile,BufReadPre", Pattern: "*", Group: "nvim-go", Eval: "*"},
 		func(eval *bufReadPreEval) {
 			autocmd.BufReadPre(ctx, eval)
 		})
