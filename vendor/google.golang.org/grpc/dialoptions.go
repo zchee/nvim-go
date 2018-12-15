@@ -19,11 +19,11 @@
 package grpc
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"time"
 
+	"golang.org/x/net/context"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/internal"
@@ -55,11 +55,10 @@ type dialOptions struct {
 	balancerBuilder balancer.Builder
 	// This is to support grpclb.
 	resolverBuilder      resolver.Builder
-	reqHandshake         envconfig.RequireHandshakeSetting
+	waitForHandshake     bool
 	channelzParentID     int64
 	disableServiceConfig bool
 	disableRetry         bool
-	disableHealthCheck   bool
 }
 
 // DialOption configures how we set up the connection.
@@ -92,15 +91,10 @@ func newFuncDialOption(f func(*dialOptions)) *funcDialOption {
 }
 
 // WithWaitForHandshake blocks until the initial settings frame is received from
-// the server before assigning RPCs to the connection.
-//
-// Deprecated: this will become the default behavior in the 1.17 release, and
-// will be removed after the 1.18 release.  To override the default behavior in
-// the 1.17 release, either use this dial option or set the environment
-// variable GRPC_GO_READY_BEFORE_HANDSHAKE=on.
+// the server before assigning RPCs to the connection. Experimental API.
 func WithWaitForHandshake() DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
-		o.reqHandshake = envconfig.RequireHandshakeOn
+		o.waitForHandshake = true
 	})
 }
 
@@ -460,18 +454,9 @@ func WithMaxHeaderListSize(s uint32) DialOption {
 	})
 }
 
-// WithDisableHealthCheck disables the LB channel health checking for all SubConns of this ClientConn.
-//
-// This API is EXPERIMENTAL.
-func WithDisableHealthCheck() DialOption {
-	return newFuncDialOption(func(o *dialOptions) {
-		o.disableHealthCheck = true
-	})
-}
 func defaultDialOptions() dialOptions {
 	return dialOptions{
 		disableRetry: !envconfig.Retry,
-		reqHandshake: envconfig.RequireHandshake,
 		copts: transport.ConnectOptions{
 			WriteBufferSize: defaultWriteBufSize,
 			ReadBufferSize:  defaultReadBufSize,

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
-	"os"
 
 	"github.com/cweill/gotests/internal/models"
 )
@@ -15,11 +14,7 @@ func Files(srcPath string) ([]models.Path, error) {
 	if err != nil {
 		return nil, fmt.Errorf("filepath.Abs: %v\n", err)
 	}
-	var fi os.FileInfo
-	if fi, err = os.Stat(srcPath); err != nil {
-		return nil, fmt.Errorf("os.Stat: %v\n", err)
-	}
-	if fi.IsDir() {
+	if filepath.Ext(srcPath) == "" {
 		return dirFiles(srcPath)
 	}
 	return file(srcPath)
@@ -43,7 +38,7 @@ func dirFiles(srcPath string) ([]models.Path, error) {
 
 func file(srcPath string) ([]models.Path, error) {
 	src := models.Path(srcPath)
-	if filepath.Ext(srcPath) != ".go" || isHiddenFile(srcPath) {
+	if filepath.Ext(srcPath) != ".go" || isHiddenFile(srcPath) || src.IsTestPath() {
 		return nil, fmt.Errorf("no Go source files found at %v", srcPath)
 	}
 	return []models.Path{src}, nil

@@ -24,7 +24,6 @@ type Options struct {
 	PrintInputs bool                  // Print function parameters in error messages
 	Subtests    bool                  // Print tests using Go 1.7 subtests
 	Importer    func() types.Importer // A custom importer.
-	TemplateDir string                // Path to custom template set
 }
 
 // A GeneratedTest contains information about a test file with generated tests.
@@ -117,7 +116,6 @@ func generateTest(src models.Path, files []models.Path, opt *Options) (*Generate
 	b, err := output.Process(h, funcs, &output.Options{
 		PrintInputs: opt.PrintInputs,
 		Subtests:    opt.Subtests,
-		TemplateDir: opt.TemplateDir,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("output.Process: %v", err)
@@ -154,19 +152,12 @@ func testableFuncs(funcs []*models.Function, only, excl *regexp.Regexp, exp bool
 	sort.Strings(testFuncs)
 	var fs []*models.Function
 	for _, f := range funcs {
-		if isTestFunction(f, testFuncs) || isExcluded(f, excl) || isUnexported(f, exp) || !isIncluded(f, only) || isInvalid(f) {
+		if isTestFunction(f, testFuncs) || isExcluded(f, excl) || isUnexported(f, exp) || !isIncluded(f, only) {
 			continue
 		}
 		fs = append(fs, f)
 	}
 	return fs
-}
-
-func isInvalid(f *models.Function) bool {
-	if f.Name == "init" && f.IsNaked() {
-		return true
-	}
-	return false
 }
 
 func isTestFunction(f *models.Function, testFuncs []string) bool {
