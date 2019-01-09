@@ -7,7 +7,7 @@ cloud.google.com/go/trace/apiv2
 # contrib.go.opencensus.io/exporter/stackdriver v0.8.0
 contrib.go.opencensus.io/exporter/stackdriver
 contrib.go.opencensus.io/exporter/stackdriver/monitoredresource
-# github.com/aws/aws-sdk-go v1.16.6
+# github.com/aws/aws-sdk-go v1.15.31
 github.com/aws/aws-sdk-go/aws/ec2metadata
 github.com/aws/aws-sdk-go/aws/session
 github.com/aws/aws-sdk-go/aws
@@ -18,16 +18,14 @@ github.com/aws/aws-sdk-go/aws/corehandlers
 github.com/aws/aws-sdk-go/aws/request
 github.com/aws/aws-sdk-go/internal/sdkuri
 github.com/aws/aws-sdk-go/aws/credentials
-github.com/aws/aws-sdk-go/aws/credentials/processcreds
 github.com/aws/aws-sdk-go/aws/credentials/stscreds
 github.com/aws/aws-sdk-go/aws/csm
 github.com/aws/aws-sdk-go/aws/defaults
 github.com/aws/aws-sdk-go/aws/endpoints
-github.com/aws/aws-sdk-go/internal/ini
-github.com/aws/aws-sdk-go/internal/shareddefaults
 github.com/aws/aws-sdk-go/internal/sdkio
 github.com/aws/aws-sdk-go/internal/sdkrand
 github.com/aws/aws-sdk-go/aws/awsutil
+github.com/aws/aws-sdk-go/internal/shareddefaults
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
 github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
@@ -64,6 +62,8 @@ github.com/derekparker/delve/pkg/dwarf/reader
 github.com/derekparker/delve/pkg/dwarf/util
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
+# github.com/go-ini/ini v1.25.4
+github.com/go-ini/ini
 # github.com/golang/protobuf v1.2.0
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes
@@ -83,15 +83,15 @@ github.com/google/go-cmp/cmp/internal/value
 github.com/google/gops/agent
 github.com/google/gops/internal
 github.com/google/gops/signal
-# github.com/google/pprof v0.0.0-20181206194817-3ea8567a2e57
+# github.com/google/pprof v0.0.0-20190109223431-e84dfd68c163
 github.com/google/pprof/profile
-# github.com/googleapis/gax-go v2.0.2+incompatible
+# github.com/googleapis/gax-go v2.0.0+incompatible
 github.com/googleapis/gax-go
 # github.com/haya14busa/errorformat v0.0.0-20180607161917-689b7d67b7a8
 github.com/haya14busa/errorformat
 # github.com/hokaccha/go-prettyjson v0.0.0-20180920040306-f579f869bbfe
 github.com/hokaccha/go-prettyjson
-# github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
+# github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
 github.com/jmespath/go-jmespath
 # github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1
 github.com/kardianos/osext
@@ -112,7 +112,7 @@ github.com/neovim/go-client/msgpack
 github.com/neovim/go-client/msgpack/rpc
 # github.com/peterh/liner v1.1.0
 github.com/peterh/liner
-# github.com/pkg/errors v0.8.0
+# github.com/pkg/errors v0.8.1
 github.com/pkg/errors
 # github.com/zchee/go-xdgbasedir v1.0.3
 github.com/zchee/go-xdgbasedir
@@ -150,13 +150,13 @@ golang.org/x/arch/x86/x86asm
 golang.org/x/debug/dwarf
 golang.org/x/debug/elf
 golang.org/x/debug/macho
-# golang.org/x/exp/errors v0.0.0-20181210123644-7d6377eee41f
+# golang.org/x/exp/errors v0.0.0-20190104205336-ae74f88a12a8
 golang.org/x/exp/errors/fmt
 golang.org/x/exp/errors
 golang.org/x/exp/errors/internal
-# golang.org/x/lint v0.0.0-20181212231659-93c0bb5c8393
+# golang.org/x/lint v0.0.0-20181217174547-8f45f776aaf1
 golang.org/x/lint
-# golang.org/x/net v0.0.0-20181213202711-891ebc4b82d6
+# golang.org/x/net v0.0.0-20181029044818-c44066c5c816
 golang.org/x/net/context
 golang.org/x/net/trace
 golang.org/x/net/internal/timeseries
@@ -165,13 +165,13 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
 golang.org/x/net/idna
-# golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890
+# golang.org/x/oauth2 v0.0.0-20181017192945-9dcd33a902f4
 golang.org/x/oauth2/google
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sync v0.0.0-20181108010431-42b317875d0f
+# golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
 golang.org/x/sync/errgroup
 golang.org/x/sync/syncmap
 golang.org/x/sync/semaphore
@@ -183,7 +183,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/transform
-# golang.org/x/tools v0.0.0-20181214171254-3c39ce7b6105
+# golang.org/x/tools v0.0.0-20190110015856-aa033095749b
 golang.org/x/tools/cmd/guru/serial
 golang.org/x/tools/cover
 golang.org/x/tools/go/ast/astutil
@@ -205,9 +205,10 @@ golang.org/x/tools/internal/gopathwalk
 golang.org/x/tools/refactor/satisfy
 golang.org/x/tools/container/intsets
 golang.org/x/tools/go/internal/gcimporter
+golang.org/x/tools/go/internal/packagesdriver
 golang.org/x/tools/internal/semver
 golang.org/x/tools/internal/fastwalk
-# google.golang.org/api v0.0.0-20181214000652-874d9dc5b186
+# google.golang.org/api v0.0.0-20181030000543-1d582fd0359e
 google.golang.org/api/option
 google.golang.org/api/transport/grpc
 google.golang.org/api/support/bundler
@@ -217,7 +218,7 @@ google.golang.org/api/transport
 google.golang.org/api/transport/http
 google.golang.org/api/googleapi/transport
 google.golang.org/api/transport/http/internal/propagation
-# google.golang.org/appengine v1.3.0
+# google.golang.org/appengine v1.2.0
 google.golang.org/appengine
 google.golang.org/appengine/socket
 google.golang.org/appengine/internal

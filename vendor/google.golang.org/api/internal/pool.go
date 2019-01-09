@@ -16,7 +16,6 @@ package internal
 
 import (
 	"errors"
-
 	"google.golang.org/grpc/naming"
 )
 
@@ -55,7 +54,6 @@ func (r *PoolResolver) Next() ([]*naming.Update, error) {
 	return <-r.ch, nil
 }
 
-// Close releases resources associated with the pool and causes Next to unblock.
 func (r *PoolResolver) Close() {
 	close(r.ch)
 }

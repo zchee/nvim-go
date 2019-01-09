@@ -17,8 +17,7 @@
 package transport
 
 import (
-	"context"
-
+	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/internal"
 	"google.golang.org/api/option"

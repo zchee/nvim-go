@@ -64,6 +64,8 @@ import (
 //       Credentials: credentials.AnonymousCredentials,
 //     })))
 //     // Access public S3 buckets.
+//
+// @readonly
 var AnonymousCredentials = NewStaticCredentials("", "", "")
 
 // A Value is the AWS credentials value for individual credential fields.
