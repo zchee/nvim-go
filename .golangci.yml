@@ -1,67 +1,28 @@
 run:
-  deadline: 1m
+  concurrency: 4
+  deadline: 5m
   issues-exit-code: 1
   tests: true
   skip-dirs:
-    - "pkg/internal/fastwalk"
-    - "pkg/internal/gopathwalk"
-    - "pkg/internal/guru"
-    - "pkg/internal/semver"
+    - api/gate/*
+    - api/mock/*
+    - internal/cmd/*
   skip-files:
-    - ".*\\.pb\\.go$"
-
-output:
-  format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
-
-linters:
-  enable-all: false
-  disable-all: false
-  fast: true
-  enable:
-    - deadcode
-    - depguard
-    - errcheck
-    - goconst
-    - gocritic
-    - gofmt
-    - goimports
-    - gosimple
-    - govet
-    - ineffassign
-    - interfacer
-    - misspell
-    - nakedret
-    - prealloc
-    - scopelint
-    - staticcheck
-    - structcheck
-    - unconvert
-    - unparam
-    - unused
-    - varcheck
-  disable:
-    - dupl
-    - gochecknoglobals
-    - gochecknoinits
-    - gocyclo
-    - golint
-    - gosec
-    - lll
-    - maligned
-    - megacheck
-    - typecheck
+    - ".*\\.pb\\.go"
+    - ".*\\.gen\\.go"
+  modules-download-mode: readonly
 
 linters-settings:
   depguard:
     list-type: blacklist
     include-go-root: false
+    packages: []
   # dupl:
   #   threshold: 100
-  # errcheck:
-  #   check-type-assertions: true
-  #   check-blank: true
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+    exclude: .errcheckignore
   goconst:
     min-len: 3
     min-occurrences: 3
@@ -70,13 +31,13 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/zchee
-  # golint:
-  #   min-confidence: 0.8
+    local-prefixes: github.com/zchee/nvim-go
+  golint:
+    min-confidence: 0.3
   govet:
     check-shadowing: false
-  # maligned:
-  #   suggest-new: true
+  maligned:
+    suggest-new: true
   misspell:
     locale: US
   nakedret:
@@ -87,15 +48,55 @@ linters-settings:
     for-loops: false  # Report preallocation suggestions on for loops, false by default
   unparam:
     algo: cha
-    check-exported: false
+    check-exported: true
   unused:
-    check-exported: false
+    check-exported: true
+
+linters:
+  enable:
+    - deadcode
+    - depguard
+    - errcheck
+    - goconst
+    - gocritic
+    - gofmt
+    - goimports
+    - golint
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - maligned
+    - misspell
+    - nakedret
+    - prealloc
+    - scopelint
+    - staticcheck
+    - structcheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+  enable-all: false
+  disable:
+    - dupl
+    - gochecknoglobals
+    - gochecknoinits
+    - gocyclo
+    - gosec
+    - lll
+    - megacheck
+    - typecheck
+  disable-all: false
+  presets:
+    - bugs
+    - unused
+  fast: false
 
 issues:
-  exclude:
-    - 'flags\.Parse'
-    - 'log\.Sync'
-    - '.*\.Shutdown'
-    - '.*\.Close'
-    - 'encoder\.Encode'
   exclude-use-default: false
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
