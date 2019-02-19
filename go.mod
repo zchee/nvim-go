@@ -39,10 +39,12 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190219183015-4b83411ed2b3 // indirect
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
 	golang.org/x/sys v0.0.0-20181029174526-d69651ed3497
-	golang.org/x/tools v0.0.0-20190219185102-9394956cfdc5
+	golang.org/x/tools v0.0.0-20181030000716-a0a13e073c7b
 	google.golang.org/genproto v0.0.0-20190219182410-082222b4a5c5 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
 
 replace github.com/googleapis/gax-go/v2 v2.0.0 => github.com/googleapis/gax-go/v2 v2.0.3
+
+replace golang.org/x/tools v0.0.0-20181030000716-a0a13e073c7b => golang.org/x/tools v0.0.0-20190219185102-9394956cfdc5
