@@ -6,6 +6,7 @@ package config
 
 import (
 	"sync"
+	"sync/atomic"
 
 	"github.com/kelseyhightower/envconfig"
 	"go.uber.org/zap/zapcore"
@@ -13,7 +14,7 @@ import (
 
 // Env represents a environment variabels for nvim-go.
 type Env struct {
-	GCPProjectID string `envconfig:"GCP_PROJECT_ID"`
+	GCPProjectID string `envconfig:"GOOGLE_CLOUD_PROJECT"`
 	Debug        bool   `envconfig:"DEBUG"`
 	LogLevel     string `envconfig:"LOG_LEVEL"`
 }
@@ -26,32 +27,49 @@ func (e Env) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	return nil
 }
 
-// e is the global env variable
-var e Env
+var (
+	// e is the global env variable
+	e Env
 
-// envOnce for run Process once.
-var envOnce sync.Once
+	// envOnce for run Process once.
+	envOnce sync.Once
+
+	done uint32
+)
 
 // Process populates the specified struct based on environment variables.
 func Process() Env {
 	envOnce.Do(func() {
 		envconfig.MustProcess("NVIM_GO", &e)
+		atomic.StoreUint32(&done, 1)
 	})
 
 	return e
 }
 
+// GCPProjectID return the GCP Project ID from the $GOOGLE_CLOUD_PROJECT environment variable.
 func GCPProjectID() string {
-	_ = Process()
+	if atomic.LoadUint32(&done) == 0 {
+		_ = Process()
+	}
+
 	return e.GCPProjectID
 }
 
-func HasGCPProjectID() bool {
-	_ = Process()
-	return e.GCPProjectID != ""
+// HasGCPProjectID reports whether the has $GOOGLE_CLOUD_PROJECT environment variable and return the GCP Project ID.
+func HasGCPProjectID() (string, bool) {
+	if atomic.LoadUint32(&done) == 0 {
+		_ = Process()
+	}
+
+	return e.GCPProjectID, e.GCPProjectID != ""
 }
 
+// IsDebug reports whether the debug environment.
 func IsDebug() bool {
-	_ = Process()
+	if atomic.LoadUint32(&done) == 0 {
+		_ = Process()
+	}
+
 	return e.Debug
 }
