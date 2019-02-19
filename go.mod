@@ -8,7 +8,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/derekparker/delve v0.12.3-0.20170419170936-92dad944d7e0
 	github.com/fatih/color v1.7.0
-	github.com/google/go-cmp v0.2.0
+	github.com/google/go-cmp v0.2.1-0.20190217060313-77b690bf6c10
 	github.com/google/pprof v0.0.0-20190208070709-b421f19a5c07 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/haya14busa/errorformat v0.0.0-20180607161917-689b7d67b7a8
