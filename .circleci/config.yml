@@ -26,14 +26,19 @@ jobs:
           name: Take a coverage
           environment:
             GO_TEST: 'gotest'
+            GO111MODULE: "on"
           command: |
-            make coverage/junit
+            make coverage/ci
       - run:
           name: Send coverage reports to codecov.io
           command: |
-            bash <(curl -s https://codecov.io/bash) -Z -F linux
+            bash <(curl -s https://codecov.io/bash) -Z -F linux -f /tmp/ci/artifacts/coverage.out
+      - store_artifacts:
+          path: /tmp/ci/artifacts
+      - store_artifacts:
+          path: /tmp/ci/artifacts
       - store_test_results:
-          path: _test-results
+          path: /tmp/ci/test-results
 
   macos:
     macos:
@@ -75,15 +80,20 @@ jobs:
           name: Take a coverage
           environment:
             GO_TEST: 'gotest'
+            GO111MODULE: "on"
           command: |
-            make coverage/junit
+            make coverage/ci
       - run:
           name: Send coverage reports to codecov.io
           shell: /bin/bash -eux -o pipefail
           command: |
-            bash <(curl -s https://codecov.io/bash) -F darwin
+            bash <(curl -s https://codecov.io/bash) -Z -F darwin -f /tmp/ci/artifacts/coverage.out
+      - store_artifacts:
+          path: /tmp/ci/artifacts
+      - store_artifacts:
+          path: /tmp/ci/artifacts
       - store_test_results:
-          path: _test-results
+          path: /tmp/ci/test-results
 
   reviewdog:
     docker:
