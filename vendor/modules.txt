@@ -1,10 +1,10 @@
-# cloud.google.com/go v0.34.0
+# cloud.google.com/go v0.36.0
 cloud.google.com/go/profiler
 cloud.google.com/go/compute/metadata
 cloud.google.com/go/internal/version
 cloud.google.com/go/monitoring/apiv3
 cloud.google.com/go/trace/apiv2
-# contrib.go.opencensus.io/exporter/stackdriver v0.8.0
+# contrib.go.opencensus.io/exporter/stackdriver v0.6.0
 contrib.go.opencensus.io/exporter/stackdriver
 contrib.go.opencensus.io/exporter/stackdriver/monitoredresource
 # github.com/aws/aws-sdk-go v1.15.31
@@ -79,29 +79,23 @@ github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/gops v0.3.5
-github.com/google/gops/agent
-github.com/google/gops/internal
-github.com/google/gops/signal
-# github.com/google/pprof v0.0.0-20190109223431-e84dfd68c163
+# github.com/google/pprof v0.0.0-20190208070709-b421f19a5c07
 github.com/google/pprof/profile
-# github.com/googleapis/gax-go v2.0.0+incompatible
-github.com/googleapis/gax-go
+# github.com/googleapis/gax-go/v2 v2.0.3
+github.com/googleapis/gax-go/v2
 # github.com/haya14busa/errorformat v0.0.0-20180607161917-689b7d67b7a8
 github.com/haya14busa/errorformat
 # github.com/hokaccha/go-prettyjson v0.0.0-20180920040306-f579f869bbfe
 github.com/hokaccha/go-prettyjson
 # github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
 github.com/jmespath/go-jmespath
-# github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1
-github.com/kardianos/osext
 # github.com/kelseyhightower/envconfig v1.3.0
 github.com/kelseyhightower/envconfig
-# github.com/mattn/go-colorable v0.0.9
+# github.com/mattn/go-colorable v0.1.0
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.4
 github.com/mattn/go-isatty
-# github.com/mattn/go-runewidth v0.0.3
+# github.com/mattn/go-runewidth v0.0.4
 github.com/mattn/go-runewidth
 # github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153
 github.com/motemen/go-astmanip
@@ -150,13 +144,13 @@ golang.org/x/arch/x86/x86asm
 golang.org/x/debug/dwarf
 golang.org/x/debug/elf
 golang.org/x/debug/macho
-# golang.org/x/exp/errors v0.0.0-20190104205336-ae74f88a12a8
+# golang.org/x/exp/errors v0.0.0-20190212162250-21964bba6549
 golang.org/x/exp/errors/fmt
 golang.org/x/exp/errors
 golang.org/x/exp/errors/internal
 # golang.org/x/lint v0.0.0-20181217174547-8f45f776aaf1
 golang.org/x/lint
-# golang.org/x/net v0.0.0-20181029044818-c44066c5c816
+# golang.org/x/net v0.0.0-20190213061140-3a22650c66bd
 golang.org/x/net/context
 golang.org/x/net/trace
 golang.org/x/net/internal/timeseries
@@ -165,7 +159,7 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
 golang.org/x/net/idna
-# golang.org/x/oauth2 v0.0.0-20181017192945-9dcd33a902f4
+# golang.org/x/oauth2 v0.0.0-20190219183015-4b83411ed2b3
 golang.org/x/oauth2/google
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
@@ -183,7 +177,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/transform
-# golang.org/x/tools v0.0.0-20190110015856-aa033095749b
+# golang.org/x/tools v0.0.0-20190219185102-9394956cfdc5
 golang.org/x/tools/cmd/guru/serial
 golang.org/x/tools/cover
 golang.org/x/tools/go/ast/astutil
@@ -202,13 +196,14 @@ golang.org/x/tools/go/gcexportdata
 golang.org/x/tools/go/internal/cgo
 golang.org/x/tools/go/packages
 golang.org/x/tools/internal/gopathwalk
+golang.org/x/tools/internal/module
 golang.org/x/tools/refactor/satisfy
 golang.org/x/tools/container/intsets
 golang.org/x/tools/go/internal/gcimporter
 golang.org/x/tools/go/internal/packagesdriver
 golang.org/x/tools/internal/semver
 golang.org/x/tools/internal/fastwalk
-# google.golang.org/api v0.0.0-20181030000543-1d582fd0359e
+# google.golang.org/api v0.1.0
 google.golang.org/api/option
 google.golang.org/api/transport/grpc
 google.golang.org/api/support/bundler
@@ -218,7 +213,7 @@ google.golang.org/api/transport
 google.golang.org/api/transport/http
 google.golang.org/api/googleapi/transport
 google.golang.org/api/transport/http/internal/propagation
-# google.golang.org/appengine v1.2.0
+# google.golang.org/appengine v1.4.0
 google.golang.org/appengine
 google.golang.org/appengine/socket
 google.golang.org/appengine/internal
@@ -231,7 +226,7 @@ google.golang.org/appengine/internal/datastore
 google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
-# google.golang.org/genproto v0.0.0-20181029155118-b69ba1387ce2
+# google.golang.org/genproto v0.0.0-20190219182410-082222b4a5c5
 google.golang.org/genproto/googleapis/devtools/cloudprofiler/v2
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/api/distribution
@@ -243,7 +238,7 @@ google.golang.org/genproto/googleapis/monitoring/v3
 google.golang.org/genproto/googleapis/rpc/status
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/protobuf/field_mask
-# google.golang.org/grpc v1.16.0
+# google.golang.org/grpc v1.17.0
 google.golang.org/grpc
 google.golang.org/grpc/codes
 google.golang.org/grpc/metadata
@@ -258,9 +253,11 @@ google.golang.org/grpc/encoding/proto
 google.golang.org/grpc/grpclog
 google.golang.org/grpc/internal
 google.golang.org/grpc/internal/backoff
+google.golang.org/grpc/internal/binarylog
 google.golang.org/grpc/internal/channelz
 google.golang.org/grpc/internal/envconfig
 google.golang.org/grpc/internal/grpcrand
+google.golang.org/grpc/internal/grpcsync
 google.golang.org/grpc/internal/transport
 google.golang.org/grpc/keepalive
 google.golang.org/grpc/naming
@@ -270,6 +267,9 @@ google.golang.org/grpc/resolver/dns
 google.golang.org/grpc/resolver/passthrough
 google.golang.org/grpc/stats
 google.golang.org/grpc/tap
+google.golang.org/grpc/credentials/internal
 google.golang.org/grpc/balancer/base
+google.golang.org/grpc/binarylog/grpc_binarylog_v1
+google.golang.org/grpc/internal/syscall
 # gopkg.in/yaml.v2 v2.2.2
 gopkg.in/yaml.v2
