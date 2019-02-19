@@ -15,14 +15,12 @@
 package stackdriver
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"sync"
 	"time"
 
 	tracingclient "cloud.google.com/go/trace/apiv2"
-	"github.com/golang/protobuf/proto"
 	"go.opencensus.io/trace"
 	"google.golang.org/api/support/bundler"
 	tracepb "google.golang.org/genproto/googleapis/devtools/cloudtrace/v2"
@@ -36,7 +34,7 @@ type traceExporter struct {
 	projectID string
 	bundler   *bundler.Bundler
 	// uploadFn defaults to uploadSpans; it can be replaced for tests.
-	uploadFn func(spans []*tracepb.Span)
+	uploadFn func(spans []*trace.SpanData)
 	overflowLogger
 	client *tracingclient.Client
 }
@@ -44,18 +42,12 @@ type traceExporter struct {
 var _ trace.Exporter = (*traceExporter)(nil)
 
 func newTraceExporter(o Options) (*traceExporter, error) {
-	ctx := o.Context
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	client, err := tracingclient.NewClient(ctx, o.TraceClientOptions...)
+	client, err := tracingclient.NewClient(o.Context, o.TraceClientOptions...)
 	if err != nil {
 		return nil, fmt.Errorf("stackdriver: couldn't initialize trace client: %v", err)
 	}
 	return newTraceExporterWithClient(o, client), nil
 }
-
-const defaultBufferedByteLimit = 8 * 1024 * 1024
 
 func newTraceExporterWithClient(o Options, c *tracingclient.Client) *traceExporter {
 	e := &traceExporter{
@@ -63,42 +55,42 @@ func newTraceExporterWithClient(o Options, c *tracingclient.Client) *traceExport
 		client:    c,
 		o:         o,
 	}
-	b := bundler.NewBundler((*tracepb.Span)(nil), func(bundle interface{}) {
-		e.uploadFn(bundle.([]*tracepb.Span))
+	bundler := bundler.NewBundler((*trace.SpanData)(nil), func(bundle interface{}) {
+		e.uploadFn(bundle.([]*trace.SpanData))
 	})
 	if o.BundleDelayThreshold > 0 {
-		b.DelayThreshold = o.BundleDelayThreshold
+		bundler.DelayThreshold = o.BundleDelayThreshold
 	} else {
-		b.DelayThreshold = 2 * time.Second
+		bundler.DelayThreshold = 2 * time.Second
 	}
 	if o.BundleCountThreshold > 0 {
-		b.BundleCountThreshold = o.BundleCountThreshold
+		bundler.BundleCountThreshold = o.BundleCountThreshold
 	} else {
-		b.BundleCountThreshold = 50
+		bundler.BundleCountThreshold = 50
 	}
 	// The measured "bytes" are not really bytes, see exportReceiver.
-	b.BundleByteThreshold = b.BundleCountThreshold * 200
-	b.BundleByteLimit = b.BundleCountThreshold * 1000
-	if o.TraceSpansBufferMaxBytes > 0 {
-		b.BufferedByteLimit = o.TraceSpansBufferMaxBytes
-	} else {
-		b.BufferedByteLimit = defaultBufferedByteLimit
-	}
+	bundler.BundleByteThreshold = bundler.BundleCountThreshold * 200
+	bundler.BundleByteLimit = bundler.BundleCountThreshold * 1000
+	bundler.BufferedByteLimit = bundler.BundleCountThreshold * 2000
 
-	e.bundler = b
+	e.bundler = bundler
 	e.uploadFn = e.uploadSpans
 	return e
 }
 
 // ExportSpan exports a SpanData to Stackdriver Trace.
 func (e *traceExporter) ExportSpan(s *trace.SpanData) {
-	protoSpan := protoFromSpanData(s, e.projectID, e.o.Resource)
-	protoSize := proto.Size(protoSpan)
-	err := e.bundler.Add(protoSpan, protoSize)
+	// n is a length heuristic.
+	n := 1
+	n += len(s.Attributes)
+	n += len(s.Annotations)
+	n += len(s.MessageEvents)
+	err := e.bundler.Add(s, n)
 	switch err {
 	case nil:
 		return
 	case bundler.ErrOversizedItem:
+		go e.uploadFn([]*trace.SpanData{s})
 	case bundler.ErrOverflow:
 		e.overflowLogger.log()
 	default:
@@ -115,16 +107,17 @@ func (e *traceExporter) Flush() {
 }
 
 // uploadSpans uploads a set of spans to Stackdriver.
-func (e *traceExporter) uploadSpans(spans []*tracepb.Span) {
+func (e *traceExporter) uploadSpans(spans []*trace.SpanData) {
 	req := tracepb.BatchWriteSpansRequest{
 		Name:  "projects/" + e.projectID,
-		Spans: spans,
+		Spans: make([]*tracepb.Span, 0, len(spans)),
+	}
+	for _, span := range spans {
+		req.Spans = append(req.Spans, protoFromSpanData(span, e.projectID, e.o.Resource))
 	}
 	// Create a never-sampled span to prevent traces associated with exporter.
-	ctx, cancel := e.o.newContextWithTimeout()
-	defer cancel()
-	ctx, span := trace.StartSpan(
-		ctx,
+	ctx, span := trace.StartSpan( // TODO: add timeouts
+		e.o.Context,
 		"contrib.go.opencensus.io/exporter/stackdriver.uploadSpans",
 		trace.WithSampler(trace.NeverSample()),
 	)
