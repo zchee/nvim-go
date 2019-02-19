@@ -17,5 +17,3 @@ var Tag string
 var GitCommit string
 
 var Version = Tag + "@" + GitCommit
-
-// var Version string
