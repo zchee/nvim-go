@@ -23,17 +23,16 @@ include hack/make/go.mk
 
 # manifest
 .PHONY: manifest
-manifest: build  ## Write plugin manifest.
+manifest: static  ## Write plugin manifest.
 	$(call target)
 	@$(CURDIR)/bin/${APP} -manifest ${APP} -location $(CURDIR)/plugin/nvim-go.vim
 
 .PHONY: manifest/race
-manifest/race: APP=nvim-race
 manifest/race: build/race manifest  ## Write plugin manifest with race prefix.
 	$(call target)
 
 .PHONY: manifest/dump
-manifest/dump: build  ## Dump plugin manifest.
+manifest/dump: static  ## Dump plugin manifest.
 	$(call target)
 	@$(CURDIR)/bin/${APP} -manifest ${APP}
 
@@ -61,7 +60,7 @@ vendor/guru/rename: vendor/guru/update
 	sed -i "s|package guru|\n// +build ignore\n\n\0|" $(CURDIR)/pkg/internal/guru/main.go
 
 .PHONY: vendor/guru
-vendor/guru: vendor/guru/update vendor/guru/rename  ## Updates the vendoring guru package into pkg/internal.
+vendor/guru: vendor/guru/update vendor/guru/rename mod/install  ## Updates the vendoring guru package into pkg/internal.
 
 .PHONY: vendor/x/internal/tools/update
 vendor/x/tools/internal/update:

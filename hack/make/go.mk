@@ -3,47 +3,49 @@
 
 # base
 SHELL := /usr/bin/env bash
-GO_PATH := $(shell go env GOPATH)
+
+GO_PATH ?= $(shell go env GOPATH)
+GO_OS ?= $(shell go env GOOS)
+GO_ARCH ?= $(shell go env GOARCH)
 
 # pkg
-PKG := $(subst $(GO_PATH)/src/,,$(CURDIR))
-GO_PKGS := $(shell go list ./... | grep -v -e '.pb.go')
-GO_ABS_PKGS := $(shell go list -f '$(GO_PATH)/src/{{.ImportPath}}' ./... | grep -v -e '.pb.go')
+PKG = $(subst $(GO_PATH)/src/,,$(CURDIR))
+GO_PKGS := $(shell go list ./... | grep -v -e '.pb.go' -e 'api/gate')
+GO_APP_PKGS := $(shell go list -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}{{.ImportPath}}{{end}}' ${PKG}/...)
 GO_TEST_PKGS := $(shell go list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./...)
 GO_VENDOR_PKGS := $(shell go list -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}./vendor/{{.ImportPath}}{{end}}' ./vendor/...)
-
-# version
-VERSION=$(shell cat VERSION.txt)
-GIT_COMMIT := $(shell git rev-parse --short HEAD)
-GIT_UNTRACKED_CHANGES:= $(shell git status --porcelain --untracked-files=no)
-ifneq ($(GIT_UNTRACKED_CHANGES),)
-	GIT_COMMIT := $(GIT_COMMIT)-dirty
-endif
-CTIMEVAR=-X $(PKG)/pkg/version.Tag=$(VERSION) -X $(PKG)/pkg/version.GitCommit=$(GIT_COMMIT)
-
-CGO_ENABLED ?= 0
-GO_BUILD_TAGS := osusergo netgo
-GO_FLAGS ?= -tags '$(GO_BUILD_TAGS)'
-
-ifeq ($(NVIM_GO_DEBUG),)
-	GO_LDFLAGS:=-ldflags "-w -s $(CTIMEVAR)"
-	GO_LDFLAGS_STATIC:=-ldflags "-w -s $(CTIMEVAR) -extldflags -static"
-else
-	GO_GCFLAGS:=-gcflags all='-N -l -dwarflocationlists=true'  # https://tip.golang.org/doc/diagnostics.html#debugging
-	GO_LDFLAGS:=-ldflags "compressdwarf=false $(CTIMEVAR)"
-endif
-
-ifneq ($(wildcard go.mod),)  # exist go.mod file
-ifeq ($(CI),)  # $CI is empty
-	GOFLAGS+=-mod=vendor
-endif
-endif
 
 GO_TEST ?= go test
 GO_TEST_FUNC ?= .
 GO_TEST_FLAGS ?=
 GO_BENCH_FUNC ?= .
 GO_BENCH_FLAGS ?= -benchmem
+
+VERSION=$(shell cat VERSION.txt)
+GIT_COMMIT := $(shell git rev-parse --short HEAD)
+GIT_UNTRACKED_CHANGES=$(shell git status --porcelain --untracked-files=no)
+ifneq ($(GIT_UNTRACKED_CHANGES),)
+	GIT_COMMIT := $(GIT_COMMIT)-dirty
+endif
+CTIMEVAR=-X $(PKG)/pkg/version.Tag=$(VERSION) -X $(PKG)/pkg/version.GitCommit=$(GIT_COMMIT)
+
+CGO_ENABLED ?= 0
+GO_LDFLAGS=-s -w $(CTIMEVAR)
+GO_LDFLAGS_STATIC=-s -w $(CTIMEVAR)
+ifneq (${GO_OS},darwin)
+	GO_LDFLAGS_STATIC+='-extldflags=-static'
+endif
+
+GO_BUILDTAGS=osusergo netgo
+GO_BUILDTAGS_STATIC=static static_build
+GO_FLAGS ?= -tags='$(GO_BUILDTAGS)' -ldflags="${GO_LDFLAGS}"
+GO_INSTALLSUFFIX_STATIC=netgo
+
+ifneq ($(wildcard go.mod),)  # exist go.mod
+ifneq ($(GO111MODULE),auto)
+	GO_FLAGS+=-mod=vendor
+endif
+endif
 
 IMAGE_REGISTRY := gcr.io/container-image
 
@@ -59,34 +61,38 @@ endef
 # targets
 
 .PHONY: bin/$(APP)
-bin/$(APP): mod/vendor
+bin/$(APP):
 	$(call target,$@)
-	CGO_ENABLED=$(CGO_ENABLED) go build -v $(strip $(GOFLAGS)) -o $@ $(CMD)
+	CGO_ENABLED=$(CGO_ENABLED) go build -v $(strip $(GO_FLAGS)) -o $@ $(CMD)
+
+bin/$(APP)-race:
+	$(call target,$@)
+	CGO_ENABLED=$(CGO_ENABLED) go build -v $(strip $(GO_FLAGS)) -o $@ $(CMD)
 
 .PHONY: $(APP)
 $(APP): bin/$(APP)
 
 .PHONY: build
-build: GO_FLAGS+=$(GO_GCFLAGS) ${GO_LDFLAGS}
 build: $(APP)  ## Builds a dynamic executable or package.
 
 .PHONY: build/race
 build/race: GO_FLAGS+=-race
-build/race: GO_FLAGS+=$(GO_GCFLAGS) ${GO_LDFLAGS}
-build/race: clean $(APP) mod/vendor  ## Build the nvim-go binary with race
-	$(call target)
+build/race: GO_FLAGS+=-ldflags="${GO_LDFLAGS}"
+build/race: clean bin/$(APP)-race  ## Build the nvim-go binary with race
 
 .PHONY: static
-static: GO_BUILD_TAGS+=static
-static: GO_FLAGS+=$(GO_GCFLAGS) ${GO_LDFLAGS_STATIC}
-static: $(APP) mod/vendor  ## Builds a static executable or package.
-	$(call target)
+static: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
+static: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
+static: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
+static: $(APP)  ## Builds a static executable or package.
 
 .PHONY: install
-install: GO_FLAGS+=${GO_LDFLAGS_STATIC}
-install: mod/vendor  ## Installs the executable or package.
+install: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
+install: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
+install: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
+install:  ## Installs the executable or package.
 	$(call target)
-	CGO_ENABLED=$(CGO_ENABLED) go install -a -v $(strip $(GO_FLAGS)) $(CMD)
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GO_OS) GOARCH=$(GO_ARCH) go install -a -v $(strip $(GO_FLAGS)) $(CMD)
 
 
 ## test, bench and coverage
@@ -112,33 +118,34 @@ bench/trace:  ## Take a package benchmark with take a trace profiling.
 	GODEBUG=allocfreetrace=1 ./bench-trace.test -test.run=none -test.bench=$(GO_BENCH_FUNC) -test.benchmem -test.benchtime=10ms 2> trace.log
 
 .PHONY: coverage
-coverage: mod/vendor  ## Take test coverage.
+coverage: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
+coverage: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
+coverage: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
+coverage: clean  ## Take test coverage.
 	$(call target)
-	$(GO_TEST) -v -race $(strip $(GOFLAGS)) -covermode=atomic -coverpkg=$(PKG)/... -coverprofile=coverage.out $(GO_TEST_PKGS)
+	@$(GO_TEST) -v -race $(strip $(GO_FLAGS)) -covermode=atomic -coverpkg=$(PKG)/pkg/... -coverprofile=coverage.out $(GO_PKGS)
 
-.PHONY: $(GO_PATH)/bin/go-junit-report
 $(GO_PATH)/bin/go-junit-report:
 	@GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
 
 .PHONY: cmd/go-junit-report
 cmd/go-junit-report: $(GO_PATH)/bin/go-junit-report  # go get 'go-junit-report' binary
 
-.PHONY: coverage/junit
-coverage/junit: cmd/go-junit-report mod/vendor  ## Take test coverage and output test results with junit syntax.
+.PHONY: coverage/ci
+coverage/ci: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
+coverage/ci: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
+coverage/ci: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
+coverage/ci: cmd/go-junit-report  ## Take test coverage.
 	$(call target)
-	@mkdir -p test-results
-	$(GO_TEST) -v -race $(strip $(GO_FLAGS)) -covermode=atomic -coverpkg=$(PKG)/... -coverprofile=coverage.out $(GO_PKGS) 2>&1 | tee /dev/stderr | go-junit-report -set-exit-code > test-results/report.xml
+	@mkdir -p /tmp/ci/artifacts /tmp/ci/test-results
+	$(GO_TEST) -v -race $(strip $(GO_FLAGS)) -covermode=atomic -coverpkg=$(PKG)/pkg/... -coverprofile=/tmp/ci/artifacts/coverage.out $(GO_PKGS) 2>&1 | tee /dev/stderr | go-junit-report -set-exit-code > /tmp/ci/test-results/junit.xml
+	@go tool cover -html=/tmp/ci/artifacts/coverage.out -o /tmp/ci/artifacts/coverage.html
 
 
 ## lint
 
 .PHONY: lint
-lint: lint/fmt lint/golangci-lint  ## Run all linters.
-
-.PHONY: lint/fmt
-lint/fmt:  ## Verifies all files have been `gofmt`ed.
-	$(call target)
-	@gofmt -s -l . 2>&1 | grep -v -E -e 'testdata' -e 'vendor' -e '\.pb.go' -e '_.*' | tee /dev/stderr
+lint: lint/golangci-lint  ## Run all linters.
 
 .PHONY: $(GO_PATH)/bin/golangci-lint
 $(GO_PATH)/bin/golangci-lint:
@@ -150,7 +157,7 @@ cmd/golangci-lint: $(GO_PATH)/bin/golangci-lint  # go get 'golangci-lint' binary
 .PHONY: golangci-lint
 lint/golangci-lint: cmd/golangci-lint .golangci.yml mod/vendor  ## Run golangci-lint.
 	$(call target)
-	@golangci-lint run ./...
+	@GO111MODULE=on golangci-lint run ./...
 
 
 ## mod
@@ -158,7 +165,7 @@ lint/golangci-lint: cmd/golangci-lint .golangci.yml mod/vendor  ## Run golangci-
 .PHONY: mod/init
 mod/init:
 	$(call target)
-	@GO111MODULE=on go mod init
+	@GO111MODULE=on go mod init > /dev/null 2>&1 || true
 
 .PHONY: mod/goget
 mod/goget:  ## Update module and go.mod.
@@ -184,7 +191,7 @@ mod/graph:
 mod/clean:
 	$(call target)
 	@$(RM) go.mod go.sum
-	@$(RM) -r vendor
+	@$(RM) -r $(shell find vendor -maxdepth 1 -path "vendor/*" -type d)
 
 .PHONY: mod/lock/go-client
 mod/lock/go-client:  # locked to neovim/go-client@api/32405de
@@ -192,21 +199,28 @@ mod/lock/go-client:  # locked to neovim/go-client@api/32405de
 	@go get -u -m -v -x github.com/neovim/go-client@api/32405de
 
 .PHONY: mod/lock/delve
-mod/lock/delve:  # locked to derekparker/delve@92dad94
+mod/lock/delve:  # locked to go-delve/delve@92dad94
 	$(call target)
-	@go get -u -m -v -x github.com/derekparker/delve@92dad94 golang.org/x/arch@f40095975f golang.org/x/debug@fb508927b4 golang.org/x/sys@f3918c30c5
-
-.PHONY: mod
-mod: mod/clean mod/init mod/lock/go-client mod/lock/delve mod/tidy mod/vendor  ## Updates the vendoring directory via go mod.
-	@sed -i ':a;N;$$!ba;s|go 1\.12\n\n||g' go.mod
+	@go mod edit -replace=github.com/googleapis/gax-go/v2@v2.0.0=github.com/googleapis/gax-go/v2@v2.0.3
+	@go get -u -m -v -x github.com/derekparker/delve@92dad94
+	@go get -u -m -v -x golang.org/x/arch@f4009597
+	@go get -u -m -v -x golang.org/x/debug@fb50892
+	@go get -u -m -v -x golang.org/x/sys@f3918c30c
 
 .PHONY: mod/install
+mod/install: GO_FLAGS+=-ldflags="${GO_LDFLAGS_STATIC}" -installsuffix netgo
+mod/install: GO_BUILDTAGS+=netgo static static_build
 mod/install: mod/lock/go-client mod/lock/delve mod/tidy mod/vendor
 	$(call target)
-	@GO111MODULE=off go install -v $(GO_VENDOR_PKGS) || GO111MODULE=on go install -mod=vendor -v $(GO_VENDOR_PKGS)
+	GO111MODULE=on go install -mod=vendor -v $(strip $(GO_FLAGS)) $(GO_VENDOR_PKGS) || @GO111MODULE=off go install -v $(strip $(GO_FLAGS)) $(GO_VENDOR_PKGS)
 
 .PHONY: mod/update
 mod/update: mod/goget mod/lock/go-client mod/lock/delve mod/tidy mod/vendor mod/install  ## Updates all vendor packages.
+	@sed -i ':a;N;$$!ba;s|go 1\.12\n\n||g' go.mod
+
+.PHONY: mod
+mod: mod/tidy mod/vendor mod/install  ## Updates the vendoring directory via go mod.
+	@sed -i ':a;N;$$!ba;s|go 1\.12\n\n||g' go.mod
 
 
 ## miscellaneous
