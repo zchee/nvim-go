@@ -15,7 +15,6 @@ import (
 
 	"cloud.google.com/go/profiler"
 	"contrib.go.opencensus.io/exporter/stackdriver"
-	gops "github.com/google/gops/agent"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
 	"go.opencensus.io/stats/view"
@@ -127,13 +126,7 @@ func startServer(ctx context.Context) (errs error) {
 	defer undo()
 	ctx = logger.NewContext(ctx, log)
 
-	// Open socket for using gops to get stacktraces of the daemon.
-	if err := gops.Listen(gops.Options{ConfigDir: "/tmp/gops", ShutdownCleanup: true}); err != nil {
-		return fmt.Errorf("unable to start gops: %s", err)
-	}
-	log.Info("starting gops agent")
-
-	if gcpProjectID := env.GCPProjectID; gcpProjectID != "" {
+	if gcpProjectID, ok := config.HasGCPProjectID(); ok {
 		// OpenCensus tracing with Stackdriver exporter
 		sdOpts := stackdriver.Options{
 			ProjectID: gcpProjectID,
