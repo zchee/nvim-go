@@ -48,3 +48,7 @@ require (
 replace github.com/googleapis/gax-go/v2 v2.0.0 => github.com/googleapis/gax-go/v2 v2.0.3
 
 replace golang.org/x/tools v0.0.0-20181030000716-a0a13e073c7b => golang.org/x/tools v0.0.0-20190219185102-9394956cfdc5
+
+replace github.com/go-delve/delve v1.2.0 => github.com/derekparker/delve v0.12.3-0.20170419170936-92dad944d7e0
+
+replace github.com/derekparker/delve v1.2.0 => github.com/derekparker/delve v0.12.3-0.20170419170936-92dad944d7e0
