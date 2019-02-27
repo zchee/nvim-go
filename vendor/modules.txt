@@ -4,10 +4,10 @@ cloud.google.com/go/compute/metadata
 cloud.google.com/go/internal/version
 cloud.google.com/go/monitoring/apiv3
 cloud.google.com/go/trace/apiv2
-# contrib.go.opencensus.io/exporter/stackdriver v0.6.0
+# contrib.go.opencensus.io/exporter/stackdriver v0.9.1
 contrib.go.opencensus.io/exporter/stackdriver
 contrib.go.opencensus.io/exporter/stackdriver/monitoredresource
-# github.com/aws/aws-sdk-go v1.15.31
+# github.com/aws/aws-sdk-go v1.17.6
 github.com/aws/aws-sdk-go/aws/ec2metadata
 github.com/aws/aws-sdk-go/aws/session
 github.com/aws/aws-sdk-go/aws
@@ -18,14 +18,16 @@ github.com/aws/aws-sdk-go/aws/corehandlers
 github.com/aws/aws-sdk-go/aws/request
 github.com/aws/aws-sdk-go/internal/sdkuri
 github.com/aws/aws-sdk-go/aws/credentials
+github.com/aws/aws-sdk-go/aws/credentials/processcreds
 github.com/aws/aws-sdk-go/aws/credentials/stscreds
 github.com/aws/aws-sdk-go/aws/csm
 github.com/aws/aws-sdk-go/aws/defaults
 github.com/aws/aws-sdk-go/aws/endpoints
+github.com/aws/aws-sdk-go/internal/ini
+github.com/aws/aws-sdk-go/internal/shareddefaults
 github.com/aws/aws-sdk-go/internal/sdkio
 github.com/aws/aws-sdk-go/internal/sdkrand
 github.com/aws/aws-sdk-go/aws/awsutil
-github.com/aws/aws-sdk-go/internal/shareddefaults
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
 github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
@@ -35,6 +37,10 @@ github.com/aws/aws-sdk-go/private/protocol/rest
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/private/protocol
+# github.com/census-instrumentation/opencensus-proto v0.1.0
+github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1
+github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1
+github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1
 # github.com/cweill/gotests v1.5.2
 github.com/cweill/gotests/gotests/process
 github.com/cweill/gotests
@@ -62,9 +68,7 @@ github.com/derekparker/delve/pkg/dwarf/reader
 github.com/derekparker/delve/pkg/dwarf/util
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
-# github.com/go-ini/ini v1.25.4
-github.com/go-ini/ini
-# github.com/golang/protobuf v1.2.0
+# github.com/golang/protobuf v1.3.0
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/timestamp
@@ -79,7 +83,7 @@ github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/pprof v0.0.0-20190208070709-b421f19a5c07
+# github.com/google/pprof v0.0.0-20190226225141-b51a6544410d
 github.com/google/pprof/profile
 # github.com/googleapis/gax-go/v2 v2.0.3
 github.com/googleapis/gax-go/v2
@@ -87,7 +91,7 @@ github.com/googleapis/gax-go/v2
 github.com/haya14busa/errorformat
 # github.com/hokaccha/go-prettyjson v0.0.0-20180920040306-f579f869bbfe
 github.com/hokaccha/go-prettyjson
-# github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
+# github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
 # github.com/kelseyhightower/envconfig v1.3.0
 github.com/kelseyhightower/envconfig
@@ -111,7 +115,7 @@ github.com/pkg/errors
 # github.com/zchee/go-xdgbasedir v1.0.3
 github.com/zchee/go-xdgbasedir
 github.com/zchee/go-xdgbasedir/home
-# go.opencensus.io v0.18.0
+# go.opencensus.io v0.19.0
 go.opencensus.io/stats/view
 go.opencensus.io/trace
 go.opencensus.io
@@ -144,13 +148,13 @@ golang.org/x/arch/x86/x86asm
 golang.org/x/debug/dwarf
 golang.org/x/debug/elf
 golang.org/x/debug/macho
-# golang.org/x/exp/errors v0.0.0-20190212162250-21964bba6549
+# golang.org/x/exp/errors v0.0.0-20190221220918-438050ddec5e
 golang.org/x/exp/errors/fmt
 golang.org/x/exp/errors
 golang.org/x/exp/errors/internal
 # golang.org/x/lint v0.0.0-20181217174547-8f45f776aaf1
 golang.org/x/lint
-# golang.org/x/net v0.0.0-20190213061140-3a22650c66bd
+# golang.org/x/net v0.0.0-20190227154436-e86916475b29
 golang.org/x/net/context
 golang.org/x/net/trace
 golang.org/x/net/internal/timeseries
@@ -159,17 +163,17 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
 golang.org/x/net/idna
-# golang.org/x/oauth2 v0.0.0-20190219183015-4b83411ed2b3
+# golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 golang.org/x/oauth2/google
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
+# golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
 golang.org/x/sync/errgroup
 golang.org/x/sync/syncmap
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.0.0-20181029174526-d69651ed3497
+# golang.org/x/sys v0.0.0-20181218192612-074acd46bca6
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2
@@ -177,7 +181,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/transform
-# golang.org/x/tools v0.0.0-20181030000716-a0a13e073c7b => golang.org/x/tools v0.0.0-20190219185102-9394956cfdc5
+# golang.org/x/tools v0.0.0-20190226205152-f727befe758c
 golang.org/x/tools/cmd/guru/serial
 golang.org/x/tools/cover
 golang.org/x/tools/go/ast/astutil
@@ -226,7 +230,7 @@ google.golang.org/appengine/internal/datastore
 google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
-# google.golang.org/genproto v0.0.0-20190219182410-082222b4a5c5
+# google.golang.org/genproto v0.0.0-20190201180003-4b09977fb922
 google.golang.org/genproto/googleapis/devtools/cloudprofiler/v2
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/api/distribution
