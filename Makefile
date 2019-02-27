@@ -9,35 +9,26 @@ CGO_ENABLED = 1
 # ----------------------------------------------------------------------------
 # target
 
-# ----------------------------------------------------------------------------
-# include
-
-include hack/make/go.mk
-
-# ----------------------------------------------------------------------------
-# override
-
-
-# ---------------------------------------------------------------------------
-# target
-
 # manifest
+
 .PHONY: manifest
-manifest: static  ## Write plugin manifest.
+manifest: static  ## Writes the plugin manifest.
 	$(call target)
 	@$(CURDIR)/bin/${APP} -manifest ${APP} -location $(CURDIR)/plugin/nvim-go.vim
 
 .PHONY: manifest/race
-manifest/race: build/race manifest  ## Write plugin manifest with race prefix.
+manifest/race: build/race manifest  ## Writes plugin manifest with the race prefix.
 	$(call target)
 
 .PHONY: manifest/dump
-manifest/dump: static  ## Dump plugin manifest.
+manifest/dump: static  ## Dumps plugin manifest.
 	$(call target)
 	@$(CURDIR)/bin/${APP} -manifest ${APP}
 
 
-# internal vendor
+# internal vendor packages
+
+## guru
 .PHONY: vendor/guru/update
 vendor/guru/update:
 	$(call target)
@@ -60,8 +51,10 @@ vendor/guru/rename: vendor/guru/update
 	sed -i "s|package guru|\n// +build ignore\n\n\0|" $(CURDIR)/pkg/internal/guru/main.go
 
 .PHONY: vendor/guru
-vendor/guru: vendor/guru/update vendor/guru/rename mod/install  ## Updates the vendoring guru package into pkg/internal.
+vendor/guru: vendor/guru/update vendor/guru/rename mod/install
+vendor/guru:  ## Updates the vendoring guru package into pkg/internal.
 
+## golang.org/x/tools/internal
 .PHONY: vendor/x/internal/tools/update
 vendor/x/tools/internal/update:
 	@GO111MODULE=off go get -u -v golang.org/x/tools/internal/...
@@ -73,16 +66,19 @@ vendor/x/tools/internal/%:
 	find /Users/zchee/go/src/golang.org/x/tools/internal/$* -type f -name '*.go' -and -not -name '*_test.go' -exec cp {} $(CURDIR)/pkg/internal/$* \;
 
 .PHONY: vendor/x/tools/internal
-vendor/x/tools/internal: vendor/x/tools/internal/update  ## Updates the vendoring golang.org/x/tools/internal packages into pkg/internal.
+vendor/x/tools/internal: vendor/x/tools/internal/update
+vendor/x/tools/internal:  ## Updates the vendoring golang.org/x/tools/internal packages into pkg/internal.
 	${MAKE} vendor/x/tools/internal/fastwalk vendor/x/tools/internal/gopathwalk
 	sed -i "s|golang.org/x/tools/internal/fastwalk|$(PKG)/pkg/internal/fastwalk|" $(CURDIR)/pkg/internal/gopathwalk/walk.go
 
+## github.com/valyala/bytebufferpool
 .PHONY: vendor/bytebufferpool/update
 vendor/bytebufferpool/update:
 	@GO111MODULE=off go get -u -v github.com/valyala/bytebufferpool
 
 .PHONY: vendor/x/tools
-vendor/bytebufferpool: vendor/bytebufferpool/update  ## Update vendoring valyala/bytebufferpool package into pkg/internal.
+vendor/bytebufferpool: vendor/bytebufferpool/update
+vendor/bytebufferpool:  ## Update vendoring valyala/bytebufferpool package into pkg/internal.
 	mkdir -p $(CURDIR)/pkg/internal/$(subst vendor/bytebuffer,,$@)
 	find $(CURDIR)/pkg/internal/$(subst vendor/bytebuffer,,$@) -type f -name '*.go' -print -delete
 	find $(GO_PATH)/src/github.com/$(subst vendor,valyala,$@) -type f -name '*.go' -and -not -name '*_test.go' -exec cp {} $(CURDIR)/pkg/internal/$(subst vendor/bytebuffer,,$@) \;
@@ -90,10 +86,17 @@ vendor/bytebufferpool: vendor/bytebufferpool/update  ## Update vendoring valyala
 
 ## miscellaneous
 
-.PHONY: test/container
-test/container: container/build  ## Run the package test into Linux container.
+.PHONY: container/test
+container/test: container/build  ## Runs package test into Linux container.
 	$(call target)
-	docker container run --rm -it $(IMAGE_REGISTRY)/$(APP):$(VERSION:v%=%) $(GO_TEST) -v -race $(strip $(GOFLAGS)) -run=$(GO_TEST_FUNC) $(GO_TEST_PKGS)
+	docker container run ${CONTAINER_RUN_ARGS} $(IMAGE_REGISTRY)/$(APP):$(VERSION:v%=%) $(GO_TEST) -v -race $(strip $(GO_FLAGS)) -run=$(GO_TEST_FUNC) $(GO_TEST_PKGS)
+
+.PHONY: container/bench
+container/bench: container/build  ## Runs package benchmarks into Linux container.
+	$(call target)
+	docker container run ${CONTAINER_RUN_ARGS} $(IMAGE_REGISTRY)/$(APP):$(VERSION:v%=%) $(GO_TEST) -v $(strip $(GO_FLAGS)) -run='^$$' -bench=$(GO_BENCH_FUNC) -benchmem $(GO_TEST_PKGS)
 
 # ----------------------------------------------------------------------------
-# override
+# include
+
+include hack/make/go.mk
