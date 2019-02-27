@@ -94,31 +94,27 @@ bin/$(APP)-race:
 $(APP): bin/$(APP)
 
 .PHONY: build
-build: GO_FLAGS+=-ldflags="${GO_LDFLAGS}"
 build: $(APP)  ## Builds a dynamic executable or package.
 
 .PHONY: build/race
 build/race: GO_FLAGS+=-race
-build/race: GO_FLAGS+=-ldflags="${GO_LDFLAGS}"
 build/race: clean bin/$(APP)-race  ## Build the nvim-go binary with race
 
 .PHONY: static
-static: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
 static: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 static: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 static: $(APP)  ## Builds a static executable or package.
 
 .PHONY: install
 install: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
-install: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
 install: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 install:  ## Installs the executable or package.
 	$(call target)
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GO_OS) GOARCH=$(GO_ARCH) go install -a -v $(strip $(GO_FLAGS)) $(CMD)
 
 .PHONY: pkg/install
-pkg/install: GO_FLAGS+=-ldflags="${GO_LDFLAGS_STATIC}" -installsuffix ${GO_INSTALLSUFFIX_STATIC}
 pkg/install: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
+pkg/install: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 pkg/install:
 	$(call target)
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GO_OS) GOARCH=$(GO_ARCH) go install -v ${GO_APP_PKGS}
@@ -127,12 +123,16 @@ pkg/install:
 ## test, bench and coverage
 
 .PHONY: test
+test: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
+test: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 test:  ## Runs package test including race condition.
 	$(call target)
 	$(GO_TEST) -v -race $(strip $(GO_FLAGS)) -run=$(GO_TEST_FUNC) $(GO_TEST_PKGS)
 
 .PHONY: bench
-bench:  ## Takes packages benchmark.
+bench: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
+bench: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
+bench:  ## Take a package benchmark.
 	$(call target)
 	$(GO_TEST) -v $(strip $(GO_FLAGS)) -run='^$$' -bench=$(GO_BENCH_FUNC) -benchmem $(GO_TEST_PKGS)
 
@@ -158,8 +158,8 @@ $(GO_PATH)/bin/go-junit-report:
 cmd/go-junit-report: $(GO_PATH)/bin/go-junit-report  # go get 'go-junit-report' binary
 
 .PHONY: coverage/ci
-coverage/ci: GO_FLAGS+=-a -ldflags="${GO_LDFLAGS_STATIC}" -installsuffix ${GO_INSTALLSUFFIX_STATIC}
 coverage/ci: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
+coverage/ci: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 coverage/ci: cmd/go-junit-report
 coverage/ci:  ## Takes packages test coverage, and output coverage results to CI artifacts.
 	$(call target)
@@ -232,8 +232,6 @@ mod/lock/delve:  ## Locks version with go-delve/delve@92dad94.
 	@go get -u -m -v -x golang.org/x/sys@f3918c30c
 
 .PHONY: mod/install
-mod/install: GO_FLAGS+=-ldflags="${GO_LDFLAGS_STATIC}" -installsuffix ${GO_INSTALLSUFFIX_STATIC}
-mod/install: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 mod/install: mod/lock/go-client mod/lock/delve mod/tidy mod/vendor
 mod/install:  ## Install the module vendor package as an object file.
 	$(call target)
