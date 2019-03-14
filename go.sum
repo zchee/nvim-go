@@ -91,6 +91,8 @@ github.com/neelance/astrewrite v0.0.0-20160511093645-99348263ae86/go.mod h1:kHJE
 github.com/neelance/sourcemap v0.0.0-20151028013722-8c68805598ab/go.mod h1:Qr6/a/Q4r9LP1IltGz7tA7iOK1WonHEYhu1HRBA7ZiM=
 github.com/neovim/go-client v0.0.0-20181201035206-cb423a764808 h1:iNv2fPhonX9Np2HGka4lHyxpY0Sncg9/s4xlOD4xg8M=
 github.com/neovim/go-client v0.0.0-20181201035206-cb423a764808/go.mod h1:cHx8fl6EhCgSA/pyKeVtyl3o6UzgE31ADtc+bx3JpKg=
+github.com/neovim/go-client v0.0.0-20190307061348-177c72b37553 h1:yw9nEF0ce6tsoo9V9m6k49aWt2yW1v++9aB8lF9HuXc=
+github.com/neovim/go-client v0.0.0-20190307061348-177c72b37553/go.mod h1:cHx8fl6EhCgSA/pyKeVtyl3o6UzgE31ADtc+bx3JpKg=
 github.com/openzipkin/zipkin-go v0.1.1/go.mod h1:NtoC/o8u3JlF1lSlyPNswIbeQH9bJTmOf0Erfk+hxe8=
 github.com/peterh/liner v1.1.0 h1:f+aAedNJA6uk7+6rXsYBnhdo4Xux7ESLe+kcuVUF5os=
 github.com/peterh/liner v1.1.0/go.mod h1:CRroGNssyjTd/qIG2FyxByd2S8JEAZXBl4qUrZf8GS0=
