@@ -2,15 +2,14 @@ module github.com/zchee/nvim-go
 
 require (
 	cloud.google.com/go v0.36.0
-	contrib.go.opencensus.io/exporter/ocagent v0.4.6 // indirect
-	contrib.go.opencensus.io/exporter/stackdriver v0.9.1
+	contrib.go.opencensus.io/exporter/stackdriver v0.9.3-0.20190320001309-fff47fbfe49b
+	github.com/DataDog/datadog-go v0.0.0-20190315133836-a5d50a065561 // indirect
+	github.com/DataDog/opencensus-go-exporter-datadog v0.0.0-20190314110122-1e6ba4554ec1
 	github.com/aws/aws-sdk-go v1.17.6 // indirect
-	github.com/census-instrumentation/opencensus-proto v0.1.0 // indirect
 	github.com/cweill/gotests v1.5.2
 	github.com/davecgh/go-spew v1.1.1
 	github.com/derekparker/delve v0.12.3-0.20170419170936-92dad944d7e0
 	github.com/fatih/color v1.7.0
-	github.com/golang/protobuf v1.3.0 // indirect
 	github.com/google/go-cmp v0.2.1-0.20190217060313-77b690bf6c10
 	github.com/google/pprof v0.0.0-20190226225141-b51a6544410d // indirect
 	github.com/haya14busa/errorformat v0.0.0-20180607161917-689b7d67b7a8
@@ -20,26 +19,27 @@ require (
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153
-	github.com/neovim/go-client v0.0.0-20190307061348-177c72b37553
+	github.com/neovim/go-client v0.0.0-20190309223234-4c5fbd8d1f3c
 	github.com/peterh/liner v1.1.0 // indirect
+	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/profile v1.2.1 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
+	github.com/tinylib/msgp v1.1.0 // indirect
 	github.com/zchee/go-xdgbasedir v1.0.3
-	go.opencensus.io v0.19.0
+	go.opencensus.io v0.19.2-0.20190319182201-ebb7978abd3f
 	go.uber.org/atomic v1.3.2 // indirect
 	go.uber.org/multierr v1.1.0
 	go.uber.org/zap v1.9.1
 	golang.org/x/arch v0.0.0-20170711125641-f40095975f84 // indirect
-	golang.org/x/build v0.0.0-20190227044025-202164ea31fc // indirect
+	golang.org/x/build v0.0.0-20190319162919-ebee6e9d80f9 // indirect
 	golang.org/x/debug v0.0.0-20160621010512-fb508927b491 // indirect
 	golang.org/x/exp/errors v0.0.0-20190221220918-438050ddec5e
-	golang.org/x/lint v0.0.0-20181217174547-8f45f776aaf1
-	golang.org/x/net v0.0.0-20190227154436-e86916475b29 // indirect
-	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421 // indirect
+	golang.org/x/lint v0.0.0-20190301231843-5614ed5bae6f
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
-	golang.org/x/sys v0.0.0-20181218192612-074acd46bca6
-	golang.org/x/tools v0.0.0-20190226205152-f727befe758c
+	golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
+	golang.org/x/tools v0.0.0-20190312170243-e65039ee4138
+	gopkg.in/DataDog/dd-trace-go.v1 v1.10.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
 
