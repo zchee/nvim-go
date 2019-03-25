@@ -22,7 +22,7 @@ require (
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153
-	github.com/neovim/go-client v0.0.0-20181201035206-cb423a764808
+	github.com/neovim/go-client v0.0.0-20190307061348-177c72b37553
 	github.com/peterh/liner v1.1.0 // indirect
 	github.com/pkg/errors v0.0.0-20181023235946-059132a15dd0
 	github.com/pkg/profile v1.2.1 // indirect
