@@ -62,23 +62,19 @@ type Mapping struct {
 	Mode string `msgpack:"string"`
 }
 
-type VersionType string
-
-const (
-	// VersionMajor major version. (defaults to 0 if not set, for no release yet)
-	VersionMajor VersionType = "major"
-	// VersionMinor minor version.
-	VersionMinor VersionType = "minor"
-	// VersionPatch patch number.
-	VersionPatch VersionType = "patch"
-	// VersionPrerelease string describing a prerelease, like "dev" or "beta1".
-	VersionPrerelease VersionType = "prerelease"
-	// VersionCommit hash or similar identifier of commit.
-	VersionCommit VersionType = "commit"
-)
-
-// Version type of describing the version, with the following.
-type Version map[VersionType]string
+// Version represents a version of client for nvim.
+type Version struct {
+	// Major major version. (defaults to 0 if not set, for no release yet)
+	Major int `msgpack:"foreground,omitempty" empty:"0"`
+	// Minor minor version.
+	Minor int `msgpack:"minor,omitempty"`
+	// Patch patch number.
+	Patch int `msgpack:"patch,omitempty"`
+	// Prerelease string describing a prerelease, like "dev" or "beta1".
+	Prerelease string `msgpack:"prerelease,omitempty"`
+	// Commit hash or similar identifier of commit.
+	Commit string `msgpack:"commit,omitempty"`
+}
 
 // ClientType type of client type.
 type ClientType string
@@ -184,4 +180,20 @@ type UI struct {
 	ExtHlstate bool `msgpack:"ext_hlstate,omitempty"`
 	// ChannelID channel id of remote UI (not present for TUI)
 	ChannelID int `msgpack:"chan,omitempty"`
+}
+
+// Command represents a Neovim Ex command.
+type Command struct {
+	Bang        bool   `msgpack:"bang"`
+	Complete    string `msgpack:"complete,omitempty"`
+	Nargs       string `msgpack:"nargs"`
+	Range       string `msgpack:"range,omitempty"`
+	Name        string `msgpack:"name"`
+	ScriptID    int    `msgpack:"script_id"`
+	Bar         bool   `msgpack:"bar"`
+	Register    bool   `msgpack:"register"`
+	Addr        string `msgpack:"addr,omitempty"`
+	Count       string `msgpack:"count,omitempty"`
+	CompleteArg string `msgpack:"complete_arg,omitempty"`
+	Definition  string `msgpack:"definition"`
 }

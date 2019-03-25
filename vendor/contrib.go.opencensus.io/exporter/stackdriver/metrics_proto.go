@@ -29,7 +29,7 @@ import (
 	"go.opencensus.io/stats"
 	"go.opencensus.io/trace"
 
-	monitoring "cloud.google.com/go/monitoring/apiv3"
+	"cloud.google.com/go/monitoring/apiv3"
 	distributionpb "google.golang.org/genproto/googleapis/api/distribution"
 	labelpb "google.golang.org/genproto/googleapis/api/label"
 	googlemetricpb "google.golang.org/genproto/googleapis/api/metric"
@@ -42,30 +42,33 @@ import (
 )
 
 var errNilMetric = errors.New("expecting a non-nil metric")
+var errNilMetricDescriptor = errors.New("expecting a non-nil metric descriptor")
 
-type metricPayload struct {
+type metricProtoPayload struct {
 	node     *commonpb.Node
 	resource *resourcepb.Resource
 	metric   *metricspb.Metric
 }
 
-// ExportMetric exports OpenCensus Metrics to Stackdriver Monitoring.
-func (se *statsExporter) ExportMetric(ctx context.Context, node *commonpb.Node, rsc *resourcepb.Resource, metric *metricspb.Metric) error {
-	if metric == nil {
+// ExportMetricsProto exports OpenCensus Metrics Proto to Stackdriver Monitoring.
+func (se *statsExporter) ExportMetricsProto(ctx context.Context, node *commonpb.Node, rsc *resourcepb.Resource, metrics []*metricspb.Metric) error {
+	if len(metrics) == 0 {
 		return errNilMetric
 	}
 
-	payload := &metricPayload{
-		metric:   metric,
-		resource: rsc,
-		node:     node,
+	for _, metric := range metrics {
+		payload := &metricProtoPayload{
+			metric:   metric,
+			resource: rsc,
+			node:     node,
+		}
+		se.protoMetricsBundler.Add(payload, 1)
 	}
-	se.protoMetricsBundler.Add(payload, 1)
 
 	return nil
 }
 
-func (se *statsExporter) handleMetricsUpload(payloads []*metricPayload) error {
+func (se *statsExporter) handleMetricsProtoUpload(payloads []*metricProtoPayload) error {
 	ctx, cancel := se.o.newContextWithTimeout()
 	defer cancel()
 
@@ -187,7 +190,10 @@ func (se *statsExporter) protoMetricToTimeSeries(ctx context.Context, node *comm
 		resource = metric.Resource
 	}
 
-	metricName, _, _, _ := metricProseFromProto(metric)
+	metricName, _, _, err := metricProseFromProto(metric)
+	if err != nil {
+		return nil, err
+	}
 	metricType, _ := se.metricTypeFromProto(metricName)
 	metricLabelKeys := metric.GetMetricDescriptor().GetLabelKeys()
 	metricKind, _ := protoMetricDescriptorTypeToMetricKind(metric)
@@ -273,11 +279,20 @@ func (se *statsExporter) createMetricDescriptor(ctx context.Context, metric *met
 		return err
 	}
 
-	cmrdesc := &monitoringpb.CreateMetricDescriptorRequest{
-		Name:             fmt.Sprintf("projects/%s", se.o.ProjectID),
-		MetricDescriptor: inMD,
+	var md *googlemetricpb.MetricDescriptor
+	if builtinMetric(inMD.Type) {
+		gmrdesc := &monitoringpb.GetMetricDescriptorRequest{
+			Name: inMD.Name,
+		}
+		md, err = getMetricDescriptor(ctx, se.c, gmrdesc)
+	} else {
+
+		cmrdesc := &monitoringpb.CreateMetricDescriptorRequest{
+			Name:             fmt.Sprintf("projects/%s", se.o.ProjectID),
+			MetricDescriptor: inMD,
+		}
+		md, err = createMetricDescriptor(ctx, se.c, cmrdesc)
 	}
-	md, err := createMetricDescriptor(ctx, se.c, cmrdesc)
 
 	if err == nil {
 		// Now record the metric as having been created.
@@ -311,7 +326,10 @@ func (se *statsExporter) protoToMonitoringMetricDescriptor(metric *metricspb.Met
 		return nil, errNilMetric
 	}
 
-	metricName, description, unit, _ := metricProseFromProto(metric)
+	metricName, description, unit, err := metricProseFromProto(metric)
+	if err != nil {
+		return nil, err
+	}
 	metricType, _ := se.metricTypeFromProto(metricName)
 	displayName := se.displayName(metricName)
 	metricKind, valueType := protoMetricDescriptorTypeToMetricKind(metric)
@@ -353,26 +371,23 @@ func labelDescriptorsFromProto(defaults map[string]labelValue, protoLabelKeys []
 	return labelDescriptors
 }
 
-func metricProseFromProto(metric *metricspb.Metric) (name, description, unit string, ok bool) {
-	mname := metric.GetName()
-	if mname != "" {
-		name = mname
-		return
-	}
-
+func metricProseFromProto(metric *metricspb.Metric) (name, description, unit string, err error) {
 	md := metric.GetMetricDescriptor()
+	if md == nil {
+		return "", "", "", errNilMetricDescriptor
+	}
 
 	name = md.GetName()
 	unit = md.GetUnit()
 	description = md.GetDescription()
 
-	if md != nil && md.Type == metricspb.MetricDescriptor_CUMULATIVE_INT64 {
+	if md.Type == metricspb.MetricDescriptor_CUMULATIVE_INT64 {
 		// If the aggregation type is count, which counts the number of recorded measurements, the unit must be "1",
 		// because this view does not apply to the recorded values.
 		unit = stats.UnitDimensionless
 	}
 
-	return
+	return name, description, unit, nil
 }
 
 func (se *statsExporter) metricTypeFromProto(name string) (string, bool) {
@@ -452,22 +467,28 @@ func protoToMetricPoint(value interface{}) (*monitoringpb.TypedValue, error) {
 					Count:                 dv.Count,
 					Mean:                  mean,
 					SumOfSquaredDeviation: dv.SumOfSquaredDeviation,
-					BucketCounts:          bucketCounts(dv.Buckets),
 				},
 			}
 
+			insertZeroBound := false
 			if bopts := dv.BucketOptions; bopts != nil && bopts.Type != nil {
 				bexp, ok := bopts.Type.(*metricspb.DistributionValue_BucketOptions_Explicit_)
 				if ok && bexp != nil && bexp.Explicit != nil {
+					insertZeroBound = shouldInsertZeroBound(bexp.Explicit.Bounds...)
 					mv.DistributionValue.BucketOptions = &distributionpb.Distribution_BucketOptions{
 						Options: &distributionpb.Distribution_BucketOptions_ExplicitBuckets{
 							ExplicitBuckets: &distributionpb.Distribution_BucketOptions_Explicit{
-								Bounds: bexp.Explicit.Bounds[:],
+								// The first bucket bound should be 0.0 because the Metrics first bucket is
+								// [0, first_bound) but Stackdriver monitoring bucket bounds begin with -infinity
+								// (first bucket is (-infinity, 0))
+								Bounds: addZeroBoundOnCondition(insertZeroBound, bexp.Explicit.Bounds...),
 							},
 						},
 					}
 				}
 			}
+			mv.DistributionValue.BucketCounts = addZeroBucketCountOnCondition(insertZeroBound, bucketCounts(dv.Buckets)...)
+
 		}
 		tval = &monitoringpb.TypedValue{Value: mv}
 	}
