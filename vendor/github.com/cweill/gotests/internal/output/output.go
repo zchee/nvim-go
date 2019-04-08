@@ -17,9 +17,17 @@ import (
 type Options struct {
 	PrintInputs bool
 	Subtests    bool
+	TemplateDir string
 }
 
 func Process(head *models.Header, funcs []*models.Function, opt *Options) ([]byte, error) {
+	if opt != nil && opt.TemplateDir != "" {
+		err := render.LoadCustomTemplates(opt.TemplateDir)
+		if err != nil {
+			return nil, fmt.Errorf("loading custom templates: %v", err)
+		}
+	}
+
 	tf, err := ioutil.TempFile("", "gotests_")
 	if err != nil {
 		return nil, fmt.Errorf("ioutil.TempFile: %v", err)
@@ -30,6 +38,7 @@ func Process(head *models.Header, funcs []*models.Function, opt *Options) ([]byt
 	if err := writeTests(b, head, funcs, opt); err != nil {
 		return nil, err
 	}
+
 	out, err := imports.Process(tf.Name(), b.Bytes(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("imports.Process: %v", err)

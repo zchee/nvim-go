@@ -21,6 +21,8 @@ import (
 	"strings"
 	"time"
 
+	"go.opencensus.io/exemplar"
+
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/internal"
 	"go.opencensus.io/tag"
@@ -56,12 +58,6 @@ type registerViewReq struct {
 }
 
 func (cmd *registerViewReq) handleCommand(w *worker) {
-	for _, v := range cmd.views {
-		if err := v.canonicalize(); err != nil {
-			cmd.err <- err
-			return
-		}
-	}
 	var errstr []string
 	for _, view := range cmd.views {
 		vi, err := w.tryRegisterView(view)
@@ -159,7 +155,12 @@ func (cmd *recordReq) handleCommand(w *worker) {
 		}
 		ref := w.getMeasureRef(m.Measure().Name())
 		for v := range ref.views {
-			v.addSample(cmd.tm, m.Value())
+			e := &exemplar.Exemplar{
+				Value:       m.Value(),
+				Timestamp:   cmd.t,
+				Attachments: cmd.attachments,
+			}
+			v.addSample(cmd.tm, e)
 		}
 	}
 }

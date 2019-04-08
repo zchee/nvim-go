@@ -11,6 +11,8 @@ import (
 	"go/types"
 	"io/ioutil"
 
+	"strings"
+
 	"github.com/cweill/gotests/internal/models"
 )
 
@@ -49,9 +51,10 @@ func (p *Parser) Parse(srcPath string, files []models.Path) (*Result, error) {
 	}
 	return &Result{
 		Header: &models.Header{
-			Package: f.Name.String(),
-			Imports: parseImports(f.Imports),
-			Code:    goCode(b, f),
+			Comments: parsePkgComment(f, f.Package),
+			Package:  f.Name.String(),
+			Imports:  parseImports(f.Imports),
+			Code:     goCode(b, f),
 		},
 		Funcs: p.parseFunctions(fset, f, fs),
 	}, nil
@@ -69,7 +72,7 @@ func (p *Parser) readFile(srcPath string) ([]byte, error) {
 }
 
 func (p *Parser) parseFile(fset *token.FileSet, srcPath string) (*ast.File, error) {
-	f, err := parser.ParseFile(fset, srcPath, nil, 0)
+	f, err := parser.ParseFile(fset, srcPath, nil, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("target parser.ParseFile(): %v", err)
 	}
@@ -130,6 +133,32 @@ func (p *Parser) parseTypes(fset *token.FileSet, fs []*ast.File) (map[string]typ
 	return ul, el
 }
 
+func parsePkgComment(f *ast.File, pkgPos token.Pos) []string {
+	var comments []string
+	var count int
+
+	for _, comment := range f.Comments {
+
+		if comment.End() >= pkgPos {
+			break
+		}
+		for _, c := range comment.List {
+			count += len(c.Text) + 1 // +1 for '\n'
+			if count < int(c.End()) {
+				n := int(c.End()) - count - 1
+				comments = append(comments, strings.Repeat("\n", n))
+				count++ // for last of '\n'
+			}
+			comments = append(comments, c.Text)
+		}
+	}
+
+	if int(pkgPos)-count > 1 {
+		comments = append(comments, strings.Repeat("\n", int(pkgPos)-count-2))
+	}
+	return comments
+}
+
 // Returns the Go code below the imports block.
 func goCode(b []byte, f *ast.File) []byte {
 	furthestPos := f.Name.End()
@@ -140,6 +169,11 @@ func goCode(b []byte, f *ast.File) []byte {
 	}
 	if furthestPos < token.Pos(len(b)) {
 		furthestPos++
+
+		// Avoid wrong output on windows-encoded files
+		if b[furthestPos-2] == '\r' && b[furthestPos-1] == '\n' && furthestPos < token.Pos(len(b)) {
+			furthestPos++
+		}
 	}
 	return b[furthestPos:]
 }
@@ -195,9 +229,16 @@ func parseReceiver(fl *ast.FieldList, ul map[string]types.Type, el map[*types.St
 	if !ok {
 		return r
 	}
-	st := el[s].(*ast.StructType)
-	r.Fields = append(r.Fields, parseFieldList(st.Fields, ul)...)
+	st, found := el[s]
+	if !found {
+		return r
+	}
+	r.Fields = append(r.Fields, parseFieldList(st.(*ast.StructType).Fields, ul)...)
 	for i, f := range r.Fields {
+		// https://github.com/cweill/gotests/issues/69
+		if i >= s.NumFields() {
+			break
+		}
 		f.Name = s.Field(i).Name()
 	}
 	return r
