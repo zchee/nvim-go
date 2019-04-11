@@ -49,7 +49,7 @@ github.com/mattn/go-isatty
 github.com/mattn/go-runewidth
 # github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153
 github.com/motemen/go-astmanip
-# github.com/neovim/go-client v0.0.0-20190309223234-4c5fbd8d1f3c
+# github.com/neovim/go-client v0.0.0-20190408193136-de4d01378b14
 github.com/neovim/go-client/nvim
 github.com/neovim/go-client/nvim/plugin
 github.com/neovim/go-client/msgpack
