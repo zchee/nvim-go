@@ -393,10 +393,6 @@ call s:hi()
 " Search backwards for a global declaration to start processing the syntax.
 "syn sync match goSync grouphere NONE /^\(const\|var\|type\|func\)\>/
 
-" There's a bug in the implementation of grouphere. For now, use the
-" following as a more expensive/less precise workaround.
-syn sync minlines=500
-
 let b:current_syntax = "go"
 
-" vim: sw=2 ts=2 et
+" vim:sw=2:ts=2:et
