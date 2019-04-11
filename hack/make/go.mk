@@ -30,7 +30,7 @@ GIT_UNTRACKED_CHANGES:= $(shell git status --porcelain --untracked-files=no)
 ifneq ($(GIT_UNTRACKED_CHANGES),)
 	GIT_COMMIT := $(GIT_COMMIT)-dirty
 endif
-CTIMEVAR:=-X main.version=$(VERSION) -X main.gitCommit=$(GIT_COMMIT)
+CTIMEVAR:=-X ${PKG}/pkg/version.Tag=$(VERSION) -X ${PKG}/pkg/version.GitCommit=$(GIT_COMMIT)
 endif
 
 CGO_ENABLED ?= 0
@@ -46,7 +46,7 @@ ifeq ($(GO111MODULE),off)
 endif
 endif
 
-GO_BUILDTAGS=osusergo netgo
+GO_BUILDTAGS=osusergo
 GO_BUILDTAGS_STATIC=static static_build
 GO_FLAGS ?= -tags='$(GO_BUILDTAGS)' -ldflags="${GO_LDFLAGS}"
 GO_INSTALLSUFFIX_STATIC=netgo
@@ -83,18 +83,15 @@ endef
 .PHONY: bin/$(APP)
 bin/$(APP): VERSION.txt
 	$(call target)
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GO_OS) GOARCH=$(GO_ARCH) go build -v $(strip $(GO_FLAGS)) -o $(APP) $(CMD)
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GO_OS) GOARCH=$(GO_ARCH) go build -v $(strip $(GO_FLAGS)) -o $@ $(CMD)
 
 .PHONY: bin/$(APP)-race
 bin/$(APP)-race:
 	$(call target,$@)
 	CGO_ENABLED=$(CGO_ENABLED) go build -v $(strip $(GO_FLAGS)) -o $@ $(CMD)
 
-.PHONY: $(APP)
-$(APP): bin/$(APP)
-
 .PHONY: build
-build: $(APP)  ## Builds a dynamic executable or package.
+build: bin/$(APP)  ## Builds a dynamic executable or package.
 
 .PHONY: build/race
 build/race: GO_FLAGS+=-race
@@ -103,7 +100,7 @@ build/race: clean bin/$(APP)-race  ## Build the nvim-go binary with race
 .PHONY: static
 static: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 static: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
-static: $(APP)  ## Builds a static executable or package.
+static: bin/$(APP)  ## Builds a static executable or package.
 
 .PHONY: install
 install: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
@@ -195,7 +192,7 @@ mod/init:  ## Initializes and writes a new `go.mod` to the current directory.
 .PHONY: mod/get
 mod/get:  ## Updates all module packages and go.mod.
 	$(call target)
-	@GO111MODULE=on go get -u -m -v -x ./...
+	@GO111MODULE=on go get -u -m -v ./...
 
 .PHONY: mod/tidy
 mod/tidy:  ## Makes sure go.mod matches the source code in the module.
@@ -217,28 +214,14 @@ mod/clean:  ## Cleanups go.sum and vendor/modules.txt files.
 	$(call target)
 	@$(RM) -r go.sum $(shell find vendor -maxdepth 1 -path "vendor/*" -type d)
 
-.PHONY: mod/lock/go-client
-mod/lock/go-client:  ## Locks version with neovim/go-client@api@32405de.
-	$(call target)
-	@go get -u -m -v -x github.com/neovim/go-client@api/32405de
-
-.PHONY: mod/lock/delve
-mod/lock/delve:  ## Locks version with go-delve/delve@92dad94.
-	$(call target)
-	@go mod edit -replace=github.com/googleapis/gax-go/v2@v2.0.0=github.com/googleapis/gax-go/v2@v2.0.3
-	@go get -u -m -v -x github.com/derekparker/delve@92dad94
-	@go get -u -m -v -x golang.org/x/arch@f4009597
-	@go get -u -m -v -x golang.org/x/debug@fb50892
-	@go get -u -m -v -x golang.org/x/sys@f3918c30c
-
 .PHONY: mod/install
-mod/install: mod/lock/go-client mod/lock/delve mod/tidy mod/vendor
+mod/install: mod/tidy mod/vendor
 mod/install:  ## Install the module vendor package as an object file.
 	$(call target)
 	@GO111MODULE=off go install -v $(strip $(GO_FLAGS)) $(GO_VENDOR_PKGS) || GO111MODULE=on go install -mod=vendor -v $(strip $(GO_FLAGS)) $(GO_VENDOR_PKGS)
 
 .PHONY: mod/update
-mod/update: mod/get mod/lock/go-client mod/lock/delve mod/tidy mod/vendor mod/install
+mod/update: mod/get mod/tidy mod/vendor mod/install
 mod/update:  ## Updates all vendor packages.
 	@sed -i ':a;N;$$!ba;s|go 1\.12\n\n||g' go.mod
 
@@ -253,7 +236,7 @@ mod:  ## Updates the vendoring directory using go mod.
 .PHONY: clean
 clean:  ## Cleanups binaries and extra files in the package.
 	$(call target)
-	@$(RM) $(APP) *.out *.test *.prof trace.log
+	@$(RM) -r ./bin *.out *.test *.prof trace.log
 
 
 ## container
