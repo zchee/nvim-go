@@ -526,7 +526,7 @@ func CreateBuffer(listed, scratch bool) Buffer {
 // this should not be used to specify arbitrary WM screen positions.
 //
 // The returns the window handle or 0 when error.
-func OpenWindow(buffer Buffer, enter bool, width, height int, options map[string]interface{}) Window {
+func OpenWindow(buffer Buffer, enter bool, config map[string]interface{}) Window {
 	name(nvim_open_win)
 }
 
@@ -741,18 +741,27 @@ func IsWindowValid(window Window) bool {
 	name(nvim_win_is_valid)
 }
 
-// WindowConfig configure window position. Currently this is only used to configure
+// SetWindowConfig configure window position. Currently this is only used to configure
 // floating and external windows (including changing a split window to these
 // types).
 //
-// See documentation at |nvim_open_win()|, for the meaning of parameters. Pass
-// in -1 for 'witdh' and 'height' to keep exiting size.
+// See documentation at |nvim_open_win()|, for the meaning of parameters.
 //
 // When reconfiguring a floating window, absent option keys will not be
 // changed. The following restriction apply: `row`, `col` and `relative`
 // must be reconfigured together. Only changing a subset of these is an error.
-func WindowConfig(window Window, width, height int, options map[string]interface{}) {
-	name(nvim_win_config)
+func SetWindowConfig(window Window, config map[string]interface{}) {
+	name(nvim_win_set_config)
+}
+
+// WindowConfig return window configuration.
+//
+// Return a dictionary containing the same config that can be given to
+// |nvim_open_win()|.
+//
+// `relative` will be an empty string for normal windows.
+func WindowConfig(window Window) map[string]interface{} {
+	name(nvim_win_get_config)
 }
 
 // CloseWindow close a window.

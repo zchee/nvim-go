@@ -1126,9 +1126,9 @@ func (b *Batch) CreateBuffer(listed bool, scratch bool, result *Buffer) {
 // this should not be used to specify arbitrary WM screen positions.
 //
 // The returns the window handle or 0 when error.
-func (v *Nvim) OpenWindow(buffer Buffer, enter bool, width int, height int, options map[string]interface{}) (Window, error) {
+func (v *Nvim) OpenWindow(buffer Buffer, enter bool, config map[string]interface{}) (Window, error) {
 	var result Window
-	err := v.call("nvim_open_win", &result, buffer, enter, width, height, options)
+	err := v.call("nvim_open_win", &result, buffer, enter, config)
 	return result, err
 }
 
@@ -1155,8 +1155,8 @@ func (v *Nvim) OpenWindow(buffer Buffer, enter bool, width int, height int, opti
 // this should not be used to specify arbitrary WM screen positions.
 //
 // The returns the window handle or 0 when error.
-func (b *Batch) OpenWindow(buffer Buffer, enter bool, width int, height int, options map[string]interface{}, result *Window) {
-	b.call("nvim_open_win", result, buffer, enter, width, height, options)
+func (b *Batch) OpenWindow(buffer Buffer, enter bool, config map[string]interface{}, result *Window) {
+	b.call("nvim_open_win", result, buffer, enter, config)
 }
 
 // Tabpages returns the current list of tabpages.
@@ -1627,32 +1627,52 @@ func (b *Batch) IsWindowValid(window Window, result *bool) {
 	b.call("nvim_win_is_valid", result, window)
 }
 
-// WindowConfig configure window position. Currently this is only used to configure
+// SetWindowConfig configure window position. Currently this is only used to configure
 // floating and external windows (including changing a split window to these
 // types).
 //
-// See documentation at |nvim_open_win()|, for the meaning of parameters. Pass
-// in -1 for 'witdh' and 'height' to keep exiting size.
+// See documentation at |nvim_open_win()|, for the meaning of parameters.
 //
 // When reconfiguring a floating window, absent option keys will not be
 // changed. The following restriction apply: `row`, `col` and `relative`
 // must be reconfigured together. Only changing a subset of these is an error.
-func (v *Nvim) WindowConfig(window Window, width int, height int, options map[string]interface{}) error {
-	return v.call("nvim_win_config", nil, window, width, height, options)
+func (v *Nvim) SetWindowConfig(window Window, config map[string]interface{}) error {
+	return v.call("nvim_win_set_config", nil, window, config)
 }
 
-// WindowConfig configure window position. Currently this is only used to configure
+// SetWindowConfig configure window position. Currently this is only used to configure
 // floating and external windows (including changing a split window to these
 // types).
 //
-// See documentation at |nvim_open_win()|, for the meaning of parameters. Pass
-// in -1 for 'witdh' and 'height' to keep exiting size.
+// See documentation at |nvim_open_win()|, for the meaning of parameters.
 //
 // When reconfiguring a floating window, absent option keys will not be
 // changed. The following restriction apply: `row`, `col` and `relative`
 // must be reconfigured together. Only changing a subset of these is an error.
-func (b *Batch) WindowConfig(window Window, width int, height int, options map[string]interface{}) {
-	b.call("nvim_win_config", nil, window, width, height, options)
+func (b *Batch) SetWindowConfig(window Window, config map[string]interface{}) {
+	b.call("nvim_win_set_config", nil, window, config)
+}
+
+// WindowConfig return window configuration.
+//
+// Return a dictionary containing the same config that can be given to
+// |nvim_open_win()|.
+//
+// `relative` will be an empty string for normal windows.
+func (v *Nvim) WindowConfig(window Window) (map[string]interface{}, error) {
+	var result map[string]interface{}
+	err := v.call("nvim_win_get_config", &result, window)
+	return result, err
+}
+
+// WindowConfig return window configuration.
+//
+// Return a dictionary containing the same config that can be given to
+// |nvim_open_win()|.
+//
+// `relative` will be an empty string for normal windows.
+func (b *Batch) WindowConfig(window Window, result *map[string]interface{}) {
+	b.call("nvim_win_get_config", result, window)
 }
 
 // CloseWindow close a window.
