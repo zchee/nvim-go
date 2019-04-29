@@ -142,12 +142,10 @@ func PackageForQualIdent(path []ast.Node, id *ast.Ident) string {
 // pkg.member by loading and parsing the files of that package.
 // srcdir is the directory in which the import appears.
 func FindPackageMember(ctxt *build.Context, fset *token.FileSet, srcdir, pkg, member string) (token.Token, token.Pos, error) {
-	bp, err := ctxt.Import(pkg, srcdir, 0)
+	bp, err := importCgoAsGo(ctxt, pkg, srcdir, 0)
 	if err != nil {
 		return 0, token.NoPos, err // no files for package
 	}
-
-	bp.GoFiles = append(bp.GoFiles, bp.CgoFiles...)
 
 	// TODO(adonovan): opt: parallelize.
 	for _, fname := range bp.GoFiles {
