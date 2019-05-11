@@ -319,7 +319,7 @@ func (b *Batch) SetBufferOption(buffer Buffer, name string, value interface{}) {
 
 // BufferNumber gets a buffer's number.
 //
-// Deprecated: use int(buffer) to get the buffer's number as an integer.
+// Deprecated: Use int(buffer) to get the buffer's number as an integer.
 func (v *Nvim) BufferNumber(buffer Buffer) (int, error) {
 	var result int
 	err := v.call("nvim_buf_get_number", &result, buffer)
@@ -328,7 +328,7 @@ func (v *Nvim) BufferNumber(buffer Buffer) (int, error) {
 
 // BufferNumber gets a buffer's number.
 //
-// Deprecated: use int(buffer) to get the buffer's number as an integer.
+// Deprecated: Use int(buffer) to get the buffer's number as an integer.
 func (b *Batch) BufferNumber(buffer Buffer, result *int) {
 	b.call("nvim_buf_get_number", result, buffer)
 }
@@ -1333,7 +1333,7 @@ func (b *Batch) APIInfo(result *[]interface{}) {
 //
 // Can be called more than once, but subsequent calls will remove earlier info, which should be resent if it is still valid.
 // (This could happen if a library first identifies the channel, and a plugin using that library later overrides that info)
-func (v *Nvim) SetClientInfo(name string, version Version, typ string, methods Methods, attributes Attributes) error {
+func (v *Nvim) SetClientInfo(name string, version *ClientVersion, typ string, methods map[string]*ClientMethod, attributes ClientAttributes) error {
 	return v.call("nvim_set_client_info", nil, name, version, typ, methods, attributes)
 }
 
@@ -1341,7 +1341,7 @@ func (v *Nvim) SetClientInfo(name string, version Version, typ string, methods M
 //
 // Can be called more than once, but subsequent calls will remove earlier info, which should be resent if it is still valid.
 // (This could happen if a library first identifies the channel, and a plugin using that library later overrides that info)
-func (b *Batch) SetClientInfo(name string, version Version, typ string, methods Methods, attributes Attributes) {
+func (b *Batch) SetClientInfo(name string, version *ClientVersion, typ string, methods map[string]*ClientMethod, attributes ClientAttributes) {
 	b.call("nvim_set_client_info", nil, name, version, typ, methods, attributes)
 }
 

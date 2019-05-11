@@ -47,9 +47,10 @@ var errNilMetric = errors.New("expecting a non-nil metric")
 var errNilMetricDescriptor = errors.New("expecting a non-nil metric descriptor")
 
 type metricProtoPayload struct {
-	node     *commonpb.Node
-	resource *resourcepb.Resource
-	metric   *metricspb.Metric
+	node             *commonpb.Node
+	resource         *resourcepb.Resource
+	metric           *metricspb.Metric
+	additionalLabels map[string]labelValue
 }
 
 // ExportMetricsProto exports OpenCensus Metrics Proto to Stackdriver Monitoring.
@@ -58,11 +59,18 @@ func (se *statsExporter) ExportMetricsProto(ctx context.Context, node *commonpb.
 		return errNilMetric
 	}
 
+	additionalLabels := se.defaultLabels
+	if additionalLabels == nil {
+		// additionalLabels must be stateless because each node is different
+		additionalLabels = getDefaultLabelsFromNode(node)
+	}
+
 	for _, metric := range metrics {
 		payload := &metricProtoPayload{
-			metric:   metric,
-			resource: rsc,
-			node:     node,
+			metric:           metric,
+			resource:         rsc,
+			node:             node,
+			additionalLabels: additionalLabels,
 		}
 		se.protoMetricsBundler.Add(payload, 1)
 	}
@@ -83,7 +91,7 @@ func (se *statsExporter) handleMetricsProtoUpload(payloads []*metricProtoPayload
 
 	for _, payload := range payloads {
 		// Now create the metric descriptor remotely.
-		if err := se.createMetricDescriptor(ctx, payload.metric); err != nil {
+		if err := se.createMetricDescriptor(ctx, payload.metric, payload.additionalLabels); err != nil {
 			span.SetStatus(trace.Status{Code: 2, Message: err.Error()})
 			return err
 		}
@@ -91,7 +99,7 @@ func (se *statsExporter) handleMetricsProtoUpload(payloads []*metricProtoPayload
 
 	var allTimeSeries []*monitoringpb.TimeSeries
 	for _, payload := range payloads {
-		tsl, err := se.protoMetricToTimeSeries(ctx, payload.node, payload.resource, payload.metric)
+		tsl, err := se.protoMetricToTimeSeries(ctx, payload.node, payload.resource, payload.metric, payload.additionalLabels)
 		if err != nil {
 			span.SetStatus(trace.Status{Code: 2, Message: err.Error()})
 			return err
@@ -196,7 +204,7 @@ func (se *statsExporter) combineTimeSeriesToCreateTimeSeriesRequest(ts []*monito
 
 // protoMetricToTimeSeries converts a metric into a Stackdriver Monitoring v3 API CreateTimeSeriesRequest
 // but it doesn't invoke any remote API.
-func (se *statsExporter) protoMetricToTimeSeries(ctx context.Context, node *commonpb.Node, rsc *resourcepb.Resource, metric *metricspb.Metric) ([]*monitoringpb.TimeSeries, error) {
+func (se *statsExporter) protoMetricToTimeSeries(ctx context.Context, node *commonpb.Node, rsc *resourcepb.Resource, metric *metricspb.Metric, additionalLabels map[string]labelValue) ([]*monitoringpb.TimeSeries, error) {
 	if metric == nil {
 		return nil, errNilMetric
 	}
@@ -223,7 +231,7 @@ func (se *statsExporter) protoMetricToTimeSeries(ctx context.Context, node *comm
 
 		// Each TimeSeries has labelValues which MUST be correlated
 		// with that from the MetricDescriptor
-		labels, err := labelsPerTimeSeries(se.defaultLabels, metricLabelKeys, protoTimeSeries.GetLabelValues())
+		labels, err := labelsPerTimeSeries(additionalLabels, metricLabelKeys, protoTimeSeries.GetLabelValues())
 		if err != nil {
 			// TODO: (@odeke-em) perhaps log this error from labels extraction, if non-nil.
 			continue
@@ -261,10 +269,10 @@ func labelsPerTimeSeries(defaults map[string]labelValue, labelKeys []*metricspb.
 	return labels, nil
 }
 
-func (se *statsExporter) protoMetricDescriptorToCreateMetricDescriptorRequest(ctx context.Context, metric *metricspb.Metric) (*monitoringpb.CreateMetricDescriptorRequest, error) {
+func (se *statsExporter) protoMetricDescriptorToCreateMetricDescriptorRequest(ctx context.Context, metric *metricspb.Metric, additionalLabels map[string]labelValue) (*monitoringpb.CreateMetricDescriptorRequest, error) {
 	// Otherwise, we encountered a cache-miss and
 	// should create the metric descriptor remotely.
-	inMD, err := se.protoToMonitoringMetricDescriptor(metric)
+	inMD, err := se.protoToMonitoringMetricDescriptor(metric, additionalLabels)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +287,7 @@ func (se *statsExporter) protoMetricDescriptorToCreateMetricDescriptorRequest(ct
 
 // createMetricDescriptor creates a metric descriptor from the OpenCensus proto metric
 // and then creates it remotely using Stackdriver's API.
-func (se *statsExporter) createMetricDescriptor(ctx context.Context, metric *metricspb.Metric) error {
+func (se *statsExporter) createMetricDescriptor(ctx context.Context, metric *metricspb.Metric, additionalLabels map[string]labelValue) error {
 	se.protoMu.Lock()
 	defer se.protoMu.Unlock()
 
@@ -290,7 +298,7 @@ func (se *statsExporter) createMetricDescriptor(ctx context.Context, metric *met
 
 	// Otherwise, we encountered a cache-miss and
 	// should create the metric descriptor remotely.
-	inMD, err := se.protoToMonitoringMetricDescriptor(metric)
+	inMD, err := se.protoToMonitoringMetricDescriptor(metric, additionalLabels)
 	if err != nil {
 		return err
 	}
@@ -337,7 +345,7 @@ func (se *statsExporter) protoTimeSeriesToMonitoringPoints(ts *metricspb.TimeSer
 	return sptl, nil
 }
 
-func (se *statsExporter) protoToMonitoringMetricDescriptor(metric *metricspb.Metric) (*googlemetricpb.MetricDescriptor, error) {
+func (se *statsExporter) protoToMonitoringMetricDescriptor(metric *metricspb.Metric, additionalLabels map[string]labelValue) (*googlemetricpb.MetricDescriptor, error) {
 	if metric == nil {
 		return nil, errNilMetric
 	}
@@ -358,7 +366,7 @@ func (se *statsExporter) protoToMonitoringMetricDescriptor(metric *metricspb.Met
 		Type:        metricType,
 		MetricKind:  metricKind,
 		ValueType:   valueType,
-		Labels:      labelDescriptorsFromProto(se.defaultLabels, metric.GetMetricDescriptor().GetLabelKeys()),
+		Labels:      labelDescriptorsFromProto(additionalLabels, metric.GetMetricDescriptor().GetLabelKeys()),
 	}
 
 	return sdm, nil
@@ -572,4 +580,14 @@ func protoResourceToMonitoredResource(rsp *resourcepb.Resource) *monitoredrespb.
 		}
 	}
 	return mrsp
+}
+
+func getDefaultLabelsFromNode(node *commonpb.Node) map[string]labelValue {
+	taskValue := fmt.Sprintf("%s-%d@%s", strings.ToLower(node.LibraryInfo.GetLanguage().String()), node.Identifier.Pid, node.Identifier.HostName)
+	return map[string]labelValue{
+		opencensusTaskKey: {
+			val:  taskValue,
+			desc: opencensusTaskDescription,
+		},
+	}
 }

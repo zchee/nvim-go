@@ -157,15 +157,14 @@ func (e *statsExporter) getMonitoredResource(v *view.View, tags []tag.Tag) ([]ta
 	if get := e.o.GetMonitoredResource; get != nil {
 		newTags, mr := get(v, tags)
 		return newTags, convertMonitoredResourceToPB(mr)
-	} else {
-		resource := e.o.Resource
-		if resource == nil {
-			resource = &monitoredrespb.MonitoredResource{
-				Type: "global",
-			}
-		}
-		return tags, resource
 	}
+	resource := e.o.Resource
+	if resource == nil {
+		resource = &monitoredrespb.MonitoredResource{
+			Type: "global",
+		}
+	}
+	return tags, resource
 }
 
 // ExportView exports to the Stackdriver Monitoring if view data
@@ -239,17 +238,17 @@ func (e *statsExporter) uploadStats(vds []*view.Data) error {
 	return nil
 }
 
-func (se *statsExporter) makeReq(vds []*view.Data, limit int) []*monitoringpb.CreateTimeSeriesRequest {
+func (e *statsExporter) makeReq(vds []*view.Data, limit int) []*monitoringpb.CreateTimeSeriesRequest {
 	var reqs []*monitoringpb.CreateTimeSeriesRequest
 
 	var allTimeSeries []*monitoringpb.TimeSeries
 	for _, vd := range vds {
 		for _, row := range vd.Rows {
-			tags, resource := se.getMonitoredResource(vd.View, append([]tag.Tag(nil), row.Tags...))
+			tags, resource := e.getMonitoredResource(vd.View, append([]tag.Tag(nil), row.Tags...))
 			ts := &monitoringpb.TimeSeries{
 				Metric: &metricpb.Metric{
-					Type:   se.metricType(vd.View),
-					Labels: newLabels(se.defaultLabels, tags),
+					Type:   e.metricType(vd.View),
+					Labels: newLabels(e.defaultLabels, tags),
 				},
 				Resource: resource,
 				Points:   []*monitoringpb.Point{newPoint(vd.View, row, vd.Start, vd.End)},
@@ -262,14 +261,14 @@ func (se *statsExporter) makeReq(vds []*view.Data, limit int) []*monitoringpb.Cr
 	for _, ts := range allTimeSeries {
 		timeSeries = append(timeSeries, ts)
 		if len(timeSeries) == limit {
-			ctsreql := se.combineTimeSeriesToCreateTimeSeriesRequest(timeSeries)
+			ctsreql := e.combineTimeSeriesToCreateTimeSeriesRequest(timeSeries)
 			reqs = append(reqs, ctsreql...)
 			timeSeries = timeSeries[:0]
 		}
 	}
 
 	if len(timeSeries) > 0 {
-		ctsreql := se.combineTimeSeriesToCreateTimeSeriesRequest(timeSeries)
+		ctsreql := e.combineTimeSeriesToCreateTimeSeriesRequest(timeSeries)
 		reqs = append(reqs, ctsreql...)
 	}
 	return reqs
@@ -514,9 +513,8 @@ func addZeroBoundOnCondition(insert bool, bounds ...float64) []float64 {
 func (e *statsExporter) metricType(v *view.View) string {
 	if formatter := e.o.GetMetricType; formatter != nil {
 		return formatter(v)
-	} else {
-		return path.Join("custom.googleapis.com", "opencensus", v.Name)
 	}
+	return path.Join("custom.googleapis.com", "opencensus", v.Name)
 }
 
 func newLabels(defaults map[string]labelValue, tags []tag.Tag) map[string]string {

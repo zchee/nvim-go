@@ -49,7 +49,7 @@ func (e *traceExporter) convertSpan(s *trace.SpanData) *ddSpan {
 	span := &ddSpan{
 		TraceID:  binary.BigEndian.Uint64(s.SpanContext.TraceID[8:]),
 		SpanID:   binary.BigEndian.Uint64(s.SpanContext.SpanID[:]),
-		Name:     s.Name,
+		Name:     "opencensus",
 		Resource: s.Name,
 		Service:  e.opts.Service,
 		Start:    startNano,
@@ -117,9 +117,10 @@ func setTag(s *ddSpan, key string, val interface{}) {
 }
 
 func setMetric(s *ddSpan, key string, v float64) {
-	if key == ext.SamplingPriority {
+	switch key {
+	case ext.SamplingPriority:
 		s.Metrics[keySamplingPriority] = v
-	} else {
+	default:
 		s.Metrics[key] = v
 	}
 }
@@ -132,6 +133,12 @@ func setStringTag(s *ddSpan, key, v string) {
 		s.Resource = v
 	case ext.SpanType:
 		s.Type = v
+	case ext.AnalyticsEvent:
+		if v != "false" {
+			setMetric(s, ext.EventSampleRate, 1)
+		} else {
+			setMetric(s, ext.EventSampleRate, 0)
+		}
 	case keySpanName:
 		s.Name = v
 	default:

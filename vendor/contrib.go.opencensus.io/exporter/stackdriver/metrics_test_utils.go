@@ -33,9 +33,8 @@ import (
 func timestampToTime(ts *timestamp.Timestamp) time.Time {
 	if ts == nil {
 		return time.Unix(0, 0).UTC()
-	} else {
-		return time.Unix(ts.Seconds, int64(ts.Nanos)).UTC()
 	}
+	return time.Unix(ts.Seconds, int64(ts.Nanos)).UTC()
 }
 
 func cmpResource(got, want *monitoredrespb.MonitoredResource) string {

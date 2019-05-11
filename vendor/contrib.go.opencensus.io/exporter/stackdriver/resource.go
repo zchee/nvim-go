@@ -85,7 +85,7 @@ var resourceMappings = []resourceMap{
 	},
 }
 
-func DefaultMapResource(res *resource.Resource) *monitoredrespb.MonitoredResource {
+func defaultMapResource(res *resource.Resource) *monitoredrespb.MonitoredResource {
 Outer:
 	for _, rm := range resourceMappings {
 		if res.Type != rm.srcType {

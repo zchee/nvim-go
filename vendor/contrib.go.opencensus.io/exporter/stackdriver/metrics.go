@@ -23,6 +23,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"go.opencensus.io/trace"
 
@@ -39,6 +41,14 @@ import (
 var (
 	errLableExtraction       = errors.New("error extracting labels")
 	errUnspecifiedMetricKind = errors.New("metric kind is unpsecified")
+)
+
+const (
+	exemplarAttachmentTypeString  = "type.googleapis.com/google.protobuf.StringValue"
+	exemplarAttachmentTypeSpanCtx = "type.googleapis.com/google.monitoring.v3.SpanContext"
+
+	// TODO(songy23): add support for this.
+	// exemplarAttachmentTypeDroppedLabels = "type.googleapis.com/google.monitoring.v3.DroppedLabels"
 )
 
 // ExportMetrics exports OpenCensus Metrics to Stackdriver Monitoring.
@@ -122,7 +132,7 @@ func (se *statsExporter) metricToMpbTs(ctx context.Context, metric *metricdata.M
 		return nil, errNilMetric
 	}
 
-	resource := metricRscToMpbRsc(metric.Resource)
+	resource := se.metricRscToMpbRsc(metric.Resource)
 
 	metricName := metric.Descriptor.Name
 	metricType, _ := se.metricTypeFromProto(metricName)
@@ -162,7 +172,7 @@ func (se *statsExporter) metricToMpbTs(ctx context.Context, metric *metricdata.M
 	return timeSeries, nil
 }
 
-func metricLabelsToTsLabels(defaults map[string]labelValue, labelKeys []string, labelValues []metricdata.LabelValue) (map[string]string, error) {
+func metricLabelsToTsLabels(defaults map[string]labelValue, labelKeys []metricdata.LabelKey, labelValues []metricdata.LabelValue) (map[string]string, error) {
 	labels := make(map[string]string)
 	// Fill in the defaults firstly, irrespective of if the labelKeys and labelValues are mismatched.
 	for key, label := range defaults {
@@ -176,7 +186,7 @@ func metricLabelsToTsLabels(defaults map[string]labelValue, labelKeys []string, 
 
 	for i, labelKey := range labelKeys {
 		labelValue := labelValues[i]
-		labels[sanitize(labelKey)] = labelValue.Value
+		labels[sanitize(labelKey.Key)] = labelValue.Value
 	}
 
 	return labels, nil
@@ -246,7 +256,7 @@ func (se *statsExporter) metricToMpbMetricDescriptor(metric *metricdata.Metric) 
 	return sdm, nil
 }
 
-func metricLableKeysToLabels(defaults map[string]labelValue, labelKeys []string) []*labelpb.LabelDescriptor {
+func metricLableKeysToLabels(defaults map[string]labelValue, labelKeys []metricdata.LabelKey) []*labelpb.LabelDescriptor {
 	labelDescriptors := make([]*labelpb.LabelDescriptor, 0, len(defaults)+len(labelKeys))
 
 	// Fill in the defaults first.
@@ -261,8 +271,8 @@ func metricLableKeysToLabels(defaults map[string]labelValue, labelKeys []string)
 	// Now fill in those from the metric.
 	for _, key := range labelKeys {
 		labelDescriptors = append(labelDescriptors, &labelpb.LabelDescriptor{
-			Key:         sanitize(key),
-			Description: "",                             // TODO: [rghetia] when descriptor is available use that.
+			Key:         sanitize(key.Key),
+			Description: key.Description,
 			ValueType:   labelpb.LabelDescriptor_STRING, // We only use string tags
 		})
 	}
@@ -303,11 +313,15 @@ func metricDescriptorTypeToMetricKind(m *metricdata.Metric) (googlemetricpb.Metr
 	}
 }
 
-func metricRscToMpbRsc(rs *resource.Resource) *monitoredrespb.MonitoredResource {
+func (se *statsExporter) metricRscToMpbRsc(rs *resource.Resource) *monitoredrespb.MonitoredResource {
 	if rs == nil {
-		return &monitoredrespb.MonitoredResource{
-			Type: "global",
+		resource := se.o.Resource
+		if resource == nil {
+			resource = &monitoredrespb.MonitoredResource{
+				Type: "global",
+			}
 		}
+		return resource
 	}
 	typ := rs.Type
 	if typ == "" {
@@ -336,7 +350,7 @@ func (se *statsExporter) metricTsToMpbPoint(ts *metricdata.TimeSeries, metricKin
 			startTime = nil
 		}
 
-		spt, err := metricPointToMpbPoint(startTime, &pt)
+		spt, err := metricPointToMpbPoint(startTime, &pt, se.o.ProjectID)
 		if err != nil {
 			return nil, err
 		}
@@ -345,12 +359,12 @@ func (se *statsExporter) metricTsToMpbPoint(ts *metricdata.TimeSeries, metricKin
 	return sptl, nil
 }
 
-func metricPointToMpbPoint(startTime *timestamp.Timestamp, pt *metricdata.Point) (*monitoringpb.Point, error) {
+func metricPointToMpbPoint(startTime *timestamp.Timestamp, pt *metricdata.Point, projectID string) (*monitoringpb.Point, error) {
 	if pt == nil {
 		return nil, nil
 	}
 
-	mptv, err := metricPointToMpbValue(pt)
+	mptv, err := metricPointToMpbValue(pt, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +379,7 @@ func metricPointToMpbPoint(startTime *timestamp.Timestamp, pt *metricdata.Point)
 	return mpt, nil
 }
 
-func metricPointToMpbValue(pt *metricdata.Point) (*monitoringpb.TypedValue, error) {
+func metricPointToMpbValue(pt *metricdata.Point, projectID string) (*monitoringpb.TypedValue, error) {
 	if pt == nil {
 		return nil, nil
 	}
@@ -419,7 +433,9 @@ func metricPointToMpbValue(pt *metricdata.Point) (*monitoringpb.TypedValue, erro
 				},
 			}
 		}
-		mv.DistributionValue.BucketCounts = addZeroBucketCountOnCondition(insertZeroBound, metricBucketToBucketCounts(dv.Buckets)...)
+		bucketCounts, exemplars := metricBucketToBucketCountsAndExemplars(dv.Buckets, projectID)
+		mv.DistributionValue.BucketCounts = addZeroBucketCountOnCondition(insertZeroBound, bucketCounts...)
+		mv.DistributionValue.Exemplars = exemplars
 
 		tval = &monitoringpb.TypedValue{Value: mv}
 	}
@@ -427,10 +443,57 @@ func metricPointToMpbValue(pt *metricdata.Point) (*monitoringpb.TypedValue, erro
 	return tval, err
 }
 
-func metricBucketToBucketCounts(buckets []metricdata.Bucket) []int64 {
+func metricBucketToBucketCountsAndExemplars(buckets []metricdata.Bucket, projectID string) ([]int64, []*distributionpb.Distribution_Exemplar) {
 	bucketCounts := make([]int64, len(buckets))
+	var exemplars []*distributionpb.Distribution_Exemplar
 	for i, bucket := range buckets {
 		bucketCounts[i] = bucket.Count
+		if bucket.Exemplar != nil {
+			exemplars = append(exemplars, metricExemplarToPbExemplar(bucket.Exemplar, projectID))
+		}
 	}
-	return bucketCounts
+	return bucketCounts, exemplars
+}
+
+func metricExemplarToPbExemplar(exemplar *metricdata.Exemplar, projectID string) *distributionpb.Distribution_Exemplar {
+	return &distributionpb.Distribution_Exemplar{
+		Value:       exemplar.Value,
+		Timestamp:   timestampProto(exemplar.Timestamp),
+		Attachments: attachmentsToPbAttachments(exemplar.Attachments, projectID),
+	}
+}
+
+func attachmentsToPbAttachments(attachments metricdata.Attachments, projectID string) []*any.Any {
+	var pbAttachments []*any.Any
+	for _, v := range attachments {
+		switch v.(type) {
+		case trace.SpanContext:
+			spanCtx, _ := v.(trace.SpanContext)
+			pbAttachments = append(pbAttachments, toPbSpanCtxAttachment(spanCtx, projectID))
+		default:
+			// Treat everything else as plain string for now.
+			// TODO(songy23): add support for dropped label attachments.
+			pbAttachments = append(pbAttachments, toPbStringAttachment(v))
+		}
+	}
+	return pbAttachments
+}
+
+func toPbStringAttachment(v interface{}) *any.Any {
+	s := fmt.Sprintf("%v", v)
+	return &any.Any{
+		TypeUrl: exemplarAttachmentTypeString,
+		Value:   []byte(s),
+	}
+}
+
+func toPbSpanCtxAttachment(spanCtx trace.SpanContext, projectID string) *any.Any {
+	pbSpanCtx := monitoringpb.SpanContext{
+		SpanName: fmt.Sprintf("projects/%s/traces/%s/spans/%s", projectID, spanCtx.TraceID.String(), spanCtx.SpanID.String()),
+	}
+	bytes, _ := proto.Marshal(&pbSpanCtx)
+	return &any.Any{
+		TypeUrl: exemplarAttachmentTypeSpanCtx,
+		Value:   bytes,
+	}
 }
