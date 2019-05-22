@@ -1,5 +1,5 @@
 coverage:
-  precision: 2
+  precision: 1
   round: down
   range: "70...100"
 
@@ -10,10 +10,14 @@ coverage:
         flags: linux
         target: auto
         threshold: 10%
+        if_not_found: success
+        if_ci_failed: error
       darwin:
         flags: darwin
         target: auto
         threshold: 10%
+        if_not_found: success
+        if_ci_failed: error
     patch:
       default: off
       linux:
@@ -29,7 +33,10 @@ coverage:
     changes: false
   ignore:
     - "vendor"
-    - "pkg/internal"
+    - "pkg/internal/fastwalk"
+    - "pkg/internal/gopathwalk"
+    - "pkg/internal/guru"
+    - "pkg/internal/pool"
 
 flags:
   linux:
@@ -38,3 +45,7 @@ flags:
   darwin:
     paths:
       - /
+
+comment:
+  behavior: default
+  require_changes: true
