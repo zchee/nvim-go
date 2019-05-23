@@ -100,6 +100,7 @@ bin/$(APP): VERSION.txt
 	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GO_OS) GOARCH=$(GO_ARCH) go build -v $(strip $(GO_FLAGS)) -o $@ $(CMD)
 
 .PHONY: build
+build: GO_FLAGS+=${GO_MOD_FLAGS}
 build: bin/$(APP)  ## Builds a dynamic executable or package.
 
 .PHONY: static
