@@ -118,3 +118,8 @@ container/bench: container/build  ## Runs package benchmarks into Linux containe
 # include
 
 include hack/make/go.mk
+
+# ----------------------------------------------------------------------------
+# overlays
+
+lint/vet: GO_PKGS=$(shell go list ./... | grep -v -e '.pb.go' -e 'strutil')
