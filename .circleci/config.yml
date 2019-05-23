@@ -1,93 +1,47 @@
-version: 2
+version: 2.1
 
-defaults: &defaults
+orbs:
+  golang: cci-orb/golang@volatile
+  codecov: codecov/codecov@volatile
+
+linux: &linux
+  executor: golang/stretch
+  environment:
+    GO111MODULE: "on"
+    GOPROXY: "https://proxy.golang.org"
+    GOSUMDB: "sum.golang.org"
   working_directory: /go/src/github.com/zchee/nvim-go
+darwin: &darwin
+  executor: golang/macos
+  working_directory: ~/go/src/github.com/zchee/nvim-go
 
 jobs:
   linux:
-    docker:
-      - image: golang:1.11.1-stretch
-    <<: *defaults
+    <<: *linux
     steps:
-      - checkout
-      - run:
-          name: Install nvim binary
-          command: |
-            set -eux
-            wget -q -O - https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xfz - --strip-components=1 -C '/usr/local'
-            nvim --version
-      - run:
-          name: Install go dependencies tools
-          command: |
-            go get -u \
-              github.com/constabulary/gb/cmd/... \
-              github.com/rakyll/gotest
-      - run:
-          name: Take a coverage
-          environment:
-            GO_TEST: 'gotest'
-            GO111MODULE: "on"
-          command: |
-            make coverage/ci
-      - run:
-          name: Send coverage reports to codecov.io
-          command: |
-            bash <(curl -s https://codecov.io/bash) -Z -F linux -f /tmp/ci/artifacts/coverage.out
-      - store_artifacts:
-          path: /tmp/ci/artifacts
-      - store_artifacts:
-          path: /tmp/ci/artifacts
-      - store_test_results:
-          path: /tmp/ci/test-results
-
-  macos:
-    macos:
-      xcode: "10.1.0"
-    environment:
-      PATH: "/Users/distiller/go/bin:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-      GOPATH: "/Users/distiller/go"
-      HOMEBREW_NO_AUTO_UPDATE: "1"
-    working_directory: ~/go/src/github.com/zchee/nvim-go
-    shell: /bin/bash --login -eux -o pipefail
-    steps:
-      - checkout
-      - run:
-          name: Install nvim binary
-          command: |
-            set -eux
-            sudo mkdir -p /usr/local/libs
-            curl -SL https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz | sudo tar xfz - --strip-components=1 -C '/usr/local'
-      - run:
-          name: install latest go
-          command: |
-            brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb || brew upgrade https://github.com/Homebrew/homebrew-core/raw/master/Formula/go.rb || true
       - run:
           name: Show versions
           command: |
             uname -a
-            sw_vers
-            xcodebuild -version
-            system_profiler SPHardwareDataType
-            nvim --version
+            echo
+            cat /etc/os-release
+            echo
             go version
+      - checkout
+      - golang/gomod-download:
+          key: "gomod-linux"
       - run:
-          name: Install go dependencies tools
+          name: Install nvim binary
           command: |
-            go get -u \
-              github.com/constabulary/gb/cmd/... \
-              github.com/rakyll/gotest
+            curl -sSL https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xfz - --strip-components=1 -C '/usr/local'
+            nvim --version
       - run:
-          name: Take a coverage
-          environment:
-            GO_TEST: 'gotest'
-            GO111MODULE: "on"
+          name: Test and collect coverages
           command: |
             make coverage/ci
-      - run:
-          name: Send coverage reports to codecov.io
-          shell: /bin/bash -eux -o pipefail
-          command: |
-            bash <(curl -s https://codecov.io/bash) -Z -F darwin -f /tmp/ci/artifacts/coverage.out
+      - codecov/upload:
+          file: "/tmp/ci/artifacts/coverage.out"
+          flags: linux
       - store_artifacts:
           path: /tmp/ci/artifacts
       - store_artifacts:
@@ -95,12 +49,67 @@ jobs:
       - store_test_results:
           path: /tmp/ci/test-results
 
-  reviewdog:
-    docker:
-      - image: golang:1.11.1-stretch
-    <<: *defaults
+  darwin:
+    <<: *darwin
     steps:
       - checkout
+      - golang/homebrew
+      - run:
+          name: Show versions
+          command: |
+            uname -a
+            echo
+            sw_vers
+            echo
+            xcodebuild -version
+            echo
+            system_profiler SPHardwareDataType
+            echo
+            go version
+      - golang/gomod-download:
+          key: "gomod-darwin"
+          path: "~/go/pkg/mod"
+      - run:
+          name: Install nvim binary
+          command: |
+            sudo mkdir -p /usr/local/libs
+            curl -sSL https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz | sudo tar xfz - --strip-components=1 -C '/usr/local' || brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/neovim.rb --HEAD
+            nvim --version
+      - run:
+          name: Test and collect coverages
+          environment:
+            GO111MODULE: "on"
+            GOPROXY: "https://proxy.golang.org"
+            GOSUMDB: "sum.golang.org"
+          command: |
+            make coverage/ci
+      - codecov/upload:
+          file: "/tmp/ci/artifacts/coverage.out"
+          flags: darwin
+      - store_artifacts:
+          path: /tmp/ci/artifacts
+      - store_artifacts:
+          path: /tmp/ci/artifacts
+      - store_test_results:
+          path: /tmp/ci/test-results
+
+  lint:
+    <<: *linux
+    steps:
+      - checkout
+      - golang/gomod-download:
+          key: "gomod-linux"
+      - run:
+          name: Run lint for sources
+          command: |
+            make lint
+
+  reviewdog:
+    <<: *linux
+    steps:
+      - checkout
+      - golang/gomod-download:
+          key: "gomod-linux"
       - run:
           name: Run reviewdog
           command: |
@@ -109,11 +118,13 @@ jobs:
 
 workflows:
   version: 2
-  workflow:
+  workflows:
     jobs:
       - linux:
           context: org-global
-      - macos:
+      - darwin:
+          context: org-global
+      - lint:
           context: org-global
       - reviewdog:
           context: org-global
