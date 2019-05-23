@@ -12,7 +12,7 @@ CGO_ENABLED = 1
 # manifest
 
 .PHONY: manifest
-manifest: static  ## Writes the plugin manifest.
+manifest: build  ## Writes the plugin manifest.
 	$(call target)
 	@$(CURDIR)/bin/${APP} -manifest ${APP} -location $(CURDIR)/plugin/nvim-go.vim
 
@@ -21,7 +21,7 @@ manifest/race: build/race manifest  ## Writes plugin manifest with the race pref
 	$(call target)
 
 .PHONY: manifest/dump
-manifest/dump: static  ## Dumps plugin manifest.
+manifest/dump: build  ## Dumps plugin manifest.
 	$(call target)
 	@$(CURDIR)/bin/${APP} -manifest ${APP}
 
