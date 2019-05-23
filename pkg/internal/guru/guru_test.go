@@ -47,7 +47,7 @@ import (
 	"sync"
 	"testing"
 
-	guru "golang.org/x/tools/cmd/guru"
+	guru "github.com/zchee/nvim-go/pkg/internal/guru"
 )
 
 func init() {
