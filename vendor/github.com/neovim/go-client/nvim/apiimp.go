@@ -259,6 +259,38 @@ func (b *Batch) BufferKeyMap(buffer Buffer, mode string, result *[]*Mapping) {
 	b.call("nvim_buf_get_keymap", result, buffer, mode)
 }
 
+// SetBufferKeyMap sets a buffer-local mapping for the given mode.
+//
+// see
+//  :help nvim_set_keymap()
+func (v *Nvim) SetBufferKeyMap(buffer Buffer, mode string, lhs string, rhs string, opts map[string]bool) error {
+	return v.call("nvim_buf_set_keymap", nil, buffer, mode, lhs, rhs, opts)
+}
+
+// SetBufferKeyMap sets a buffer-local mapping for the given mode.
+//
+// see
+//  :help nvim_set_keymap()
+func (b *Batch) SetBufferKeyMap(buffer Buffer, mode string, lhs string, rhs string, opts map[string]bool) {
+	b.call("nvim_buf_set_keymap", nil, buffer, mode, lhs, rhs, opts)
+}
+
+// DeleteBufferKeyMap unmaps a buffer-local mapping for the given mode.
+//
+// see
+//  :help nvim_del_keymap()
+func (v *Nvim) DeleteBufferKeyMap(buffer Buffer, mode string, lhs string) error {
+	return v.call("nvim_buf_del_keymap", nil, buffer, mode, lhs)
+}
+
+// DeleteBufferKeyMap unmaps a buffer-local mapping for the given mode.
+//
+// see
+//  :help nvim_del_keymap()
+func (b *Batch) DeleteBufferKeyMap(buffer Buffer, mode string, lhs string) {
+	b.call("nvim_buf_del_keymap", nil, buffer, mode, lhs)
+}
+
 // BufferCommands gets a map of buffer-local user-commands.
 //
 // opts is optional parameters. Currently not used.
@@ -495,7 +527,7 @@ func (b *Batch) ClearBufferHighlight(buffer Buffer, srcID int, startLine int, en
 	b.call("nvim_buf_clear_highlight", nil, buffer, srcID, startLine, endLine)
 }
 
-// Set the virtual text (annotation) for a buffer line.
+// SetBufferVirtualText sets the virtual text (annotation) for a buffer line.
 //
 // By default (and currently the only option) the text will be placed after
 // the buffer text. Virtual text will never cause reflow, rather virtual
@@ -514,13 +546,13 @@ func (b *Batch) ClearBufferHighlight(buffer Buffer, srcID int, startLine int, en
 // The `opts` is optional parameters. Currently not used.
 //
 // The returns the nsID that was used.
-func (v *Nvim) SetBufferVirtualText(buffer Buffer, nsID int, line int, chunks []interface{}, opts map[string]interface{}) (int, error) {
+func (v *Nvim) SetBufferVirtualText(buffer Buffer, nsID int, line int, chunks []VirtualTextChunk, opts map[string]interface{}) (int, error) {
 	var result int
 	err := v.call("nvim_buf_set_virtual_text", &result, buffer, nsID, line, chunks, opts)
 	return result, err
 }
 
-// Set the virtual text (annotation) for a buffer line.
+// SetBufferVirtualText sets the virtual text (annotation) for a buffer line.
 //
 // By default (and currently the only option) the text will be placed after
 // the buffer text. Virtual text will never cause reflow, rather virtual
@@ -539,7 +571,7 @@ func (v *Nvim) SetBufferVirtualText(buffer Buffer, nsID int, line int, chunks []
 // The `opts` is optional parameters. Currently not used.
 //
 // The returns the nsID that was used.
-func (b *Batch) SetBufferVirtualText(buffer Buffer, nsID int, line int, chunks []interface{}, opts map[string]interface{}, result *int) {
+func (b *Batch) SetBufferVirtualText(buffer Buffer, nsID int, line int, chunks []VirtualTextChunk, opts map[string]interface{}, result *int) {
 	b.call("nvim_buf_set_virtual_text", result, buffer, nsID, line, chunks, opts)
 }
 
@@ -1299,6 +1331,74 @@ func (v *Nvim) KeyMap(mode string) ([]*Mapping, error) {
 
 func (b *Batch) KeyMap(mode string, result *[]*Mapping) {
 	b.call("nvim_get_keymap", result, mode)
+}
+
+// SetKeyMap sets a global |mapping| for the given mode.
+//
+// To set a buffer-local mapping, use SetBufferKeyMap().
+//
+// Unlike :map, leading/trailing whitespace is accepted as part of the {lhs}
+// or {rhs}.
+// Empty {rhs} is <Nop>. keycodes are replaced as usual.
+//
+//  mode
+// mode short-name (map command prefix: "n", "i", "v", "x", …) or "!" for :map!, or empty string for :map.
+//
+//  lhs
+// Left-hand-side {lhs} of the mapping.
+//
+//  rhs
+// Right-hand-side {rhs} of the mapping.
+//
+//   opts
+// Optional parameters map. Accepts all :map-arguments as keys excluding <buffer> but including noremap.
+// Values are Booleans. Unknown key is an error.
+func (v *Nvim) SetKeyMap(mode string, lhs string, rhs string, opts map[string]bool) error {
+	return v.call("nvim_set_keymap", nil, mode, lhs, rhs, opts)
+}
+
+// SetKeyMap sets a global |mapping| for the given mode.
+//
+// To set a buffer-local mapping, use SetBufferKeyMap().
+//
+// Unlike :map, leading/trailing whitespace is accepted as part of the {lhs}
+// or {rhs}.
+// Empty {rhs} is <Nop>. keycodes are replaced as usual.
+//
+//  mode
+// mode short-name (map command prefix: "n", "i", "v", "x", …) or "!" for :map!, or empty string for :map.
+//
+//  lhs
+// Left-hand-side {lhs} of the mapping.
+//
+//  rhs
+// Right-hand-side {rhs} of the mapping.
+//
+//   opts
+// Optional parameters map. Accepts all :map-arguments as keys excluding <buffer> but including noremap.
+// Values are Booleans. Unknown key is an error.
+func (b *Batch) SetKeyMap(mode string, lhs string, rhs string, opts map[string]bool) {
+	b.call("nvim_set_keymap", nil, mode, lhs, rhs, opts)
+}
+
+// DeleteKeyMap unmaps a global mapping for the given mode.
+//
+// To unmap a buffer-local mapping, use DeleteBufferKeyMap().
+//
+// see
+//  :help nvim_set_keymap()
+func (v *Nvim) DeleteKeyMap(mode string, lhs string) error {
+	return v.call("nvim_del_keymap", nil, mode, lhs)
+}
+
+// DeleteKeyMap unmaps a global mapping for the given mode.
+//
+// To unmap a buffer-local mapping, use DeleteBufferKeyMap().
+//
+// see
+//  :help nvim_set_keymap()
+func (b *Batch) DeleteKeyMap(mode string, lhs string) {
+	b.call("nvim_del_keymap", nil, mode, lhs)
 }
 
 // Commands gets a map of global (non-buffer-local) Ex commands.
