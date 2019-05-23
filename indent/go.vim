@@ -8,11 +8,6 @@
 " - function invocations split across lines
 " - general line splits (line ends in an operator)
 
-if exists("b:did_indent")
-  finish
-endif
-let b:did_indent = 1
-
 " C indentation is too far off useful, mainly due to Go's := operator.
 " Let's just define our own.
 setlocal nolisp
@@ -24,18 +19,11 @@ if exists("*GoIndent")
   finish
 endif
 
-" use shiftwidth function only if it's available
-if exists('*shiftwidth')
-  func s:sw()
-    return shiftwidth()
-  endfunc
-else
-  func s:sw()
-    return &sw
-  endfunc
-endif
+" don't spam the user when Vim is started in Vi compatibility mode
+let s:cpo_save = &cpo
+set cpo&vim
 
-function! GoIndent(lnum)
+function! GoIndent(lnum) abort
   let prevlnum = prevnonblank(a:lnum-1)
   if prevlnum == 0
     " top of file
@@ -49,19 +37,30 @@ function! GoIndent(lnum)
 
   let ind = previ
 
+  for synid in synstack(a:lnum, 1)
+    if synIDattr(synid, 'name') == 'goRawString'
+      if prevl =~ '\%(\%(:\?=\)\|(\|,\)\s*`[^`]*$'
+        " previous line started a multi-line raw string
+        return 0
+      endif
+      " return -1 to keep the current indent.
+      return -1
+    endif
+  endfor
+
   if prevl =~ '[({]\s*$'
     " previous line opened a block
-    let ind += s:sw()
+    let ind += shiftwidth()
   endif
   if prevl =~# '^\s*\(case .*\|default\):$'
     " previous line is part of a switch statement
-    let ind += s:sw()
+    let ind += shiftwidth()
   endif
   " TODO: handle if the previous line is a label.
 
   if thisl =~ '^\s*[)}]'
     " this line closed a block
-    let ind -= s:sw()
+    let ind -= shiftwidth()
   endif
 
   " Colons are tricky.
@@ -69,10 +68,10 @@ function! GoIndent(lnum)
   " We ignore trying to deal with jump labels because (a) they're rare, and
   " (b) they're hard to disambiguate from a composite literal key.
   if thisl =~# '^\s*\(case .*\|default\):$'
-    let ind -= s:sw()
+    let ind -= shiftwidth()
   endif
 
   return ind
 endfunction
 
-" vim:sw=2:ts=2:et
+" vim: sw=2 ts=2 et
