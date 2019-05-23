@@ -41,10 +41,10 @@ endif
 CGO_ENABLED ?= 0
 GO_GCFLAGS=
 GO_LDFLAGS=-s -w $(CTIMEVAR)
-GO_LDFLAGS_STATIC=-s -w '-extldflags=-static' $(CTIMEVAR)
-ifeq ($(CI),)
 ifneq ($(GO_OS),darwin)
-	GO_LDFLAGS_STATIC+=-d
+GO_LDFLAGS+='-extldflags=-static'
+ifeq ($(CI),)
+	GO_LDFLAGS+=-d
 endif
 endif
 
@@ -105,14 +105,12 @@ build: bin/$(APP)  ## Builds a dynamic executable or package.
 
 .PHONY: static
 static: GO_FLAGS+=${GO_MOD_FLAGS}
-static: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
 static: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 static: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 static: bin/$(APP)  ## Builds a static executable or package.
 
 .PHONY: install
 install: GO_FLAGS+=${GO_MOD_FLAGS}
-install: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
 install: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 install: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 install:  ## Installs the executable or package.
@@ -132,7 +130,6 @@ pkg/install:
 .PHONY: test
 test: CGO_ENABLED=1
 test: GO_FLAGS+=${GO_MOD_FLAGS}
-test: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
 test: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 test: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 test:  ## Runs package test including race condition.
@@ -141,7 +138,6 @@ test:  ## Runs package test including race condition.
 
 .PHONY: bench
 bench: GO_FLAGS+=${GO_MOD_FLAGS}
-bench: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
 bench: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 bench: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 bench:  ## Take a package benchmark.
@@ -162,7 +158,6 @@ bench/trace:  ## Take a package benchmark with take a trace profiling.
 .PHONY: coverage
 coverage: CGO_ENABLED=1
 coverage: GO_FLAGS+=${GO_MOD_FLAGS}
-coverage: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
 coverage: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 coverage: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 coverage:  ## Takes packages test coverage.
@@ -178,7 +173,6 @@ cmd/go-junit-report: $(GO_PATH)/bin/go-junit-report  # go get 'go-junit-report' 
 .PHONY: coverage/ci
 coverage/ci: CGO_ENABLED=1
 coverage/ci: GO_FLAGS+=-mod=readonly
-coverage/ci: GO_LDFLAGS=${GO_LDFLAGS_STATIC}
 coverage/ci: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 coverage/ci: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 coverage/ci: cmd/go-junit-report
