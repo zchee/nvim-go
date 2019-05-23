@@ -36,6 +36,10 @@ jobs:
             curl -sSL https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz | tar xfz - --strip-components=1 -C '/usr/local'
             nvim --version
       - run:
+          name: Install dependencies tools
+          command: |
+            go get -u github.com/constabulary/gb/cmd/...
+      - run:
           name: Test and collect coverages
           command: |
             make coverage/ci
@@ -76,6 +80,10 @@ jobs:
             curl -sSL https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz | sudo tar xfz - --strip-components=1 -C '/usr/local' || brew install https://github.com/Homebrew/homebrew-core/raw/master/Formula/neovim.rb --HEAD
             nvim --version
       - run:
+          name: Install dependencies tools
+          command: |
+            go get -u github.com/constabulary/gb/cmd/...
+      - run:
           name: Test and collect coverages
           environment:
             GO111MODULE: "on"
@@ -113,7 +121,7 @@ jobs:
       - run:
           name: Run reviewdog
           command: |
-            go get -u github.com/haya14busa/reviewdog/cmd/reviewdog
+            go get -u github.com/reviewdog/reviewdog/cmd/reviewdog
             reviewdog -reporter="github-pr-review"
 
 workflows:
