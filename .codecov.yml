@@ -32,6 +32,7 @@ coverage:
         threshold: 10%
     changes: false
   ignore:
+    - "cmd"
     - "vendor"
     - "pkg/internal/fastwalk"
     - "pkg/internal/gopathwalk"
