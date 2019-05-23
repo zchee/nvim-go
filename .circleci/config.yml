@@ -68,7 +68,7 @@ jobs:
             go version
       - golang/gomod-download:
           key: "gomod-darwin"
-          path: "~/go/pkg/mod"
+          paths: "~/go/pkg/mod"
       - run:
           name: Install nvim binary
           command: |
