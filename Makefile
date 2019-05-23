@@ -30,10 +30,7 @@ manifest/dump: build  ## Dumps plugin manifest.
 .PHONY: mod/lock/delve
 mod/lock/delve:  ## Locks version with go-delve/delve@92dad94.
 	$(call target)
-	@go get -u -m -v -x github.com/derekparker/delve@92dad94
-	@go get -u -m -v -x golang.org/x/arch@f4009597
-	@go get -u -m -v -x golang.org/x/debug@fb50892
-	@go get -u -m -v -x golang.org/x/sys@f3918c30c
+	@go get -u -m -v -x github.com/derekparker/delve@92dad944d7e0 golang.org/x/arch@f40095975f84 golang.org/x/debug@fb508927b491
 
 .PHONY: mod/install
 mod/install: mod/tidy mod/vendor
