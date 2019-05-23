@@ -37,6 +37,8 @@ jobs:
             nvim --version
       - run:
           name: Install dependencies tools
+          environment:
+            GO111MODULE: "off"
           command: |
             go get -u github.com/constabulary/gb/cmd/...
       - run:
