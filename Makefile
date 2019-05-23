@@ -27,11 +27,6 @@ manifest/dump: static  ## Dumps plugin manifest.
 
 # mod
 
-.PHONY: mod/lock/go-client
-mod/lock/go-client:  ## Locks version with neovim/go-client@api@5a81561.
-	$(call target)
-	@go get -u -m -v -x github.com/neovim/go-client@api/5a81561
-
 .PHONY: mod/lock/delve
 mod/lock/delve:  ## Locks version with go-delve/delve@92dad94.
 	$(call target)
@@ -41,10 +36,13 @@ mod/lock/delve:  ## Locks version with go-delve/delve@92dad94.
 	@go get -u -m -v -x golang.org/x/sys@f3918c30c
 
 .PHONY: mod/install
-mod/install: mod/lock/go-client mod/lock/delve mod/tidy mod/vendor
+mod/install: mod/tidy mod/vendor
 
 .PHONY: mod/update
-mod/update: mod/get mod/lock/go-client mod/lock/delve mod/tidy mod/vendor mod/install
+mod/update: mod/get mod/lock/delve mod/tidy mod/vendor mod/install
+
+.PHONY: mod
+mod: mod/init mod/lock/delve mod/tidy mod/vendor mod/install
 
 # internal vendor packages
 
