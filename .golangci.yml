@@ -1,41 +1,43 @@
 run:
-  concurrency: 4
+  concurrency: 12
   deadline: 5m
   issues-exit-code: 1
   tests: true
   skip-dirs:
-    - api/gate/*
-    - api/mock/*
-    - internal/cmd/*
+    - "pkg/internal/fastwalk"
+    - "pkg/internal/gopathwalk"
+    - "pkg/internal/guru"
+    - "pkg/internal/pool"
   skip-files:
     - ".*\\.pb\\.go"
-    - ".*\\.gen\\.go"
+    - ".*(.|_)gen\\.go"
   modules-download-mode: readonly
 
 linters-settings:
-  depguard:
-    list-type: blacklist
-    include-go-root: false
-    packages: []
-  # dupl:
-  #   threshold: 100
   errcheck:
     check-type-assertions: true
     check-blank: true
-    exclude: .errcheckignore
+    # exclude: .errcheckignore
   goconst:
     min-len: 3
     min-occurrences: 3
-  # gocyclo:
-  #   min-complexity: 10
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/zchee/nvim-go
+    local-prefixes: go-darwin.dev/apfs
   golint:
     min-confidence: 0.3
-  govet:
-    check-shadowing: false
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+      - experimental
+    settings:
+      captLocal:
+        paramsOnly: true
+      rangeValCopy:
+        sizeThreshold: 32
   maligned:
     suggest-new: true
   misspell:
@@ -44,57 +46,26 @@ linters-settings:
     max-func-lines: 30
   prealloc:
     simple: true
-    range-loops: true  # Report preallocation suggestions on range loops, true by default
-    for-loops: false  # Report preallocation suggestions on for loops, false by default
+    range-loops: true
+    for-loops: false
   unparam:
     algo: cha
     check-exported: true
   unused:
-    check-exported: true
+    check-exported: false
 
 linters:
   enable:
-    - deadcode
-    - depguard
-    - errcheck
-    - goconst
-    - gocritic
-    - gofmt
-    - goimports
-    - golint
-    - gosimple
-    - govet
-    - ineffassign
-    - interfacer
-    - maligned
-    - misspell
-    - nakedret
-    - prealloc
-    - scopelint
-    - staticcheck
-    - structcheck
-    - unconvert
-    - unparam
-    - unused
-    - varcheck
-  enable-all: false
+  enable-all: true
   disable:
-    - dupl
     - gochecknoglobals
     - gochecknoinits
     - gocyclo
     - gosec
     - lll
-    - megacheck
-    - typecheck
-  disable-all: false
-  presets:
-    - bugs
-    - unused
-  fast: false
-
-issues:
-  exclude-use-default: false
+    - nakedret
+    - scopelint
+  fast: true
 
 output:
   format: colored-line-number
