@@ -23,7 +23,7 @@ require (
 	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153
-	github.com/neovim/go-client v0.0.0-20190511104716-eaaca6f62369
+	github.com/neovim/go-client v1.0.1-0.20190523061612-8fe551ab1036
 	github.com/peterh/liner v1.1.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1

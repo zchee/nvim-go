@@ -75,8 +75,8 @@ github.com/mattn/go-runewidth v0.0.4 h1:2BvfKmzob6Bmd4YsL0zygOqfdFnK7GR4QL06Do4/
 github.com/mattn/go-runewidth v0.0.4/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153 h1:oExFz18mz6SKTrUbIfCNoEPAHB55IO0BBBySIpsIWDg=
 github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153/go.mod h1:8vSfxXOEJk8FwCYu/TGd0GwcApDFnt6VuG7iVx4CIms=
-github.com/neovim/go-client v0.0.0-20190511104716-eaaca6f62369 h1:ZKU6SkWXGPT5/cNmTPLBSm3spA+wSsc7M1Y0COpUwJM=
-github.com/neovim/go-client v0.0.0-20190511104716-eaaca6f62369/go.mod h1:cHx8fl6EhCgSA/pyKeVtyl3o6UzgE31ADtc+bx3JpKg=
+github.com/neovim/go-client v1.0.1-0.20190523061612-8fe551ab1036 h1:4pXWHqQBGxXTZkltev/M4gC4+5yiMe/ejgUHeuXlj2g=
+github.com/neovim/go-client v1.0.1-0.20190523061612-8fe551ab1036/go.mod h1:cHx8fl6EhCgSA/pyKeVtyl3o6UzgE31ADtc+bx3JpKg=
 github.com/peterh/liner v1.1.0 h1:f+aAedNJA6uk7+6rXsYBnhdo4Xux7ESLe+kcuVUF5os=
 github.com/peterh/liner v1.1.0/go.mod h1:CRroGNssyjTd/qIG2FyxByd2S8JEAZXBl4qUrZf8GS0=
 github.com/philhofer/fwd v1.0.0 h1:UbZqGr5Y38ApvM/V/jEljVxwocdweyH+vmYvRPBnbqQ=
