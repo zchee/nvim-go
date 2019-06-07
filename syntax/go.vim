@@ -35,61 +35,20 @@ if exists("b:current_syntax")
   finish
 endif
 
-if !exists("g:go_highlight_array_whitespace_error")
-  let g:go_highlight_array_whitespace_error = 1
-endif
-
-if !exists("g:go_highlight_chan_whitespace_error")
-  let g:go_highlight_chan_whitespace_error = 1
-endif
-
-if !exists("g:go_highlight_extra_types")
-  let g:go_highlight_extra_types = 1
-endif
-
-if !exists("g:go_highlight_space_tab_error")
-  let g:go_highlight_space_tab_error = 1
-endif
-
-if !exists("g:go_highlight_trailing_whitespace_error")
-  let g:go_highlight_trailing_whitespace_error = 1
-endif
-
-if !exists("g:go_highlight_operators")
-  let g:go_highlight_operators = 0
-endif
-
-if !exists("g:go_highlight_functions")
-  let g:go_highlight_functions = 0
-endif
-
-if !exists("g:go_highlight_methods")
-  let g:go_highlight_methods = 0
-endif
-
-if !exists("g:go_highlight_fields")
-  let g:go_highlight_fields = 0
-endif
-
-if !exists("g:go_highlight_types")
-  let g:go_highlight_types = 0
-endif
-
-if !exists("g:go_highlight_build_constraints")
-  let g:go_highlight_build_constraints = 0
-endif
-
-if !exists("g:go_highlight_string_spellcheck")
-  let g:go_highlight_string_spellcheck = 1
-endif
-
-if !exists("g:go_highlight_format_strings")
-  let g:go_highlight_format_strings = 1
-endif
-
-if !exists("g:go_highlight_generate_tags")
-  let g:go_highlight_generate_tags = 0
-endif
+let g:go_highlight_array_whitespace_error    = get( g:, 'go_highlight_array_whitespace_error', 1 )
+let g:go_highlight_chan_whitespace_error     = get( g:, 'go_highlight_chan_whitespace_error', 1 )
+let g:go_highlight_extra_types               = get( g:, 'go_highlight_extra_types', 1 )
+let g:go_highlight_space_tab_error           = get( g:, 'go_highlight_space_tab_error', 1 )
+let g:go_highlight_trailing_whitespace_error = get( g:, 'go_highlight_trailing_whitespace_error', 1 )
+let g:go_highlight_operators                 = get( g:, 'go_highlight_operators', 0 )
+let g:go_highlight_functions                 = get( g:, 'go_highlight_functions', 0 )
+let g:go_highlight_methods                   = get( g:, 'go_highlight_methods', 0 )
+let g:go_highlight_fields                    = get( g:, 'go_highlight_fields', 0 )
+let g:go_highlight_types                     = get( g:, 'go_highlight_types', 0 )
+let g:go_highlight_build_constraints         = get( g:, 'go_highlight_build_constraints', 0 )
+let g:go_highlight_string_spellcheck         = get( g:, 'go_highlight_string_spellcheck', 1 )
+let g:go_highlight_format_strings            = get( g:, 'go_highlight_format_strings', 1 )
+let g:go_highlight_generate_tags             = get( g:, 'go_highlight_generate_tags', 0 )
 
 syn case match
 
@@ -143,7 +102,7 @@ syn region      goComment           start="//" end="$" contains=goGenerate,@goCo
 hi def link     goComment           Comment
 hi def link     goTodo              Todo
 
-if g:go_highlight_generate_tags != 0
+if get( g:, 'go_highlight_generate_tags', 0 )
   syn match       goGenerateVariables contained /\(\$GOARCH\|\$GOOS\|\$GOFILE\|\$GOLINE\|\$GOPACKAGE\|\$DOLLAR\)\>/
   syn region      goGenerate          start="^\s*//go:generate" end="$" contains=goGenerateVariables
   hi def link     goGenerate          PreProc
@@ -168,7 +127,7 @@ hi def link     goEscapeError       Error
 
 " Strings and their contents
 syn cluster     goStringGroup       contains=goEscapeOctal,goEscapeC,goEscapeX,goEscapeU,goEscapeBigU,goEscapeError
-if g:go_highlight_string_spellcheck != 0
+if get( g:, 'go_highlight_string_spellcheck', 0 )
   syn region      goString            start=+"+ skip=+\\\\\|\\"+ end=+"+ contains=@goStringGroup,@Spell
   syn region      goRawString         start=+`+ end=+`+ contains=@Spell
 else
@@ -176,7 +135,7 @@ else
   syn region      goRawString         start=+`+ end=+`+
 endif
 
-if g:go_highlight_format_strings != 0
+if get( g:, 'go_highlight_format_strings', 0 )
   syn match       goFormatSpecifier   /\([^%]\(%%\)*\)\@<=%[-#0 +]*\%(\*\|\d\+\)\=\%(\.\%(\*\|\d\+\)\)*[vTtbcdoqxXUeEfgGspw]/ contained containedin=goString
   hi def link     goFormatSpecifier   goSpecialString
 endif
@@ -222,12 +181,12 @@ hi def link     goImaginary         Number
 hi def link     goImaginaryFloat    Float
 
 " Spaces after "[]"
-if g:go_highlight_array_whitespace_error != 0
+if get( g:, 'go_highlight_array_whitespace_error', 0 )
   syn match goSpaceError display "\(\[\]\)\@<=\s\+"
 endif
 
 " Spacing errors around the 'chan' keyword
-if g:go_highlight_chan_whitespace_error != 0
+if get( g:, 'go_highlight_chan_whitespace_error', 0 )
   " receive-only annotation on chan type
   "
   " \(\<chan\>\)\@<!<-  (only pick arrow when it doesn't come after a chan)
@@ -245,7 +204,7 @@ if g:go_highlight_chan_whitespace_error != 0
 endif
 
 " Extra types commonly seen
-if g:go_highlight_extra_types != 0
+if get( g:, 'go_highlight_extra_types', 0 )
   syn match goExtraType /\<bytes\.\(Buffer\)\>/
   syn match goExtraType /\<io\.\(Reader\|ReadSeeker\|ReadWriter\|ReadCloser\|ReadWriteCloser\|Writer\|WriteCloser\|Seeker\)\>/
   syn match goExtraType /\<reflect\.\(Kind\|Type\|Value\)\>/
@@ -253,12 +212,12 @@ if g:go_highlight_extra_types != 0
 endif
 
 " Space-tab error
-if g:go_highlight_space_tab_error != 0
+if get( g:, 'go_highlight_space_tab_error', 0 )
   syn match goSpaceError display " \+\t"me=e-1
 endif
 
 " Trailing white space error
-if g:go_highlight_trailing_whitespace_error != 0
+if get( g:, 'go_highlight_trailing_whitespace_error', 0 )
   syn match goSpaceError display excludenl "\s\+$"
 endif
 
@@ -276,7 +235,7 @@ hi def link     goTodo              Todo
 syn match goVarArgs /\.\.\./
 
 " Operators;
-if g:go_highlight_operators != 0
+if get( g:, 'go_highlight_operators', 0 )
   " match single-char operators:          - + % < > ! & | ^ * =
   " and corresponding two-char operators: -= += %= <= >= != &= |= ^= *= ==
   syn match goOperator /[-+%<>!&|^*=]=\?/
@@ -295,7 +254,7 @@ endif
 hi def link     goOperator          Operator
 
 " Functions;
-if g:go_highlight_functions != 0
+if get( g:, 'go_highlight_functions', 0 )
   syn match goDeclaration       /\<func\>/ nextgroup=goReceiver,goFunction skipwhite skipnl
   syn match goReceiver          /(\(\w\|[ *]\)\+)/ contained nextgroup=goFunction contains=goReceiverVar skipwhite skipnl
   syn match goReceiverVar       /\w\+/ nextgroup=goPointerOperator,goReceiverType skipwhite skipnl contained
@@ -308,19 +267,19 @@ endif
 hi def link     goFunction          Function
 
 " Methods;
-if g:go_highlight_methods != 0
+if get( g:, 'go_highlight_methods', 0 )
   syn match goMethod                /\.\w\+\ze(/hs=s+1
 endif
 hi def link     goMethod            Type
 
 " Fields;
-if g:go_highlight_fields != 0
+if get( g:, 'go_highlight_fields', 0 )
   syn match goField                 /\.\w\+\([.\ \n\r\:\)\[,]\)\@=/hs=s+1
 endif
 hi def link    goField              Identifier
 
 " Structs & Interfaces;
-if g:go_highlight_types != 0
+if get( g:, 'go_highlight_types', 0 )
   syn match goTypeConstructor      /\<\w\+{/he=e-1
   syn match goTypeDecl             /\<type\>/ nextgroup=goTypeName skipwhite skipnl
   syn match goTypeName             /\w\+/ contained nextgroup=goDeclType skipwhite skipnl
@@ -336,7 +295,7 @@ hi def link     goTypeDecl          Keyword
 hi def link     goDeclType          Keyword
 
 " Build Constraints
-if g:go_highlight_build_constraints != 0
+if get( g:, 'go_highlight_build_constraints', 0 )
   syn match   goBuildKeyword      display contained "+build"
   " Highlight the known values of GOOS, GOARCH, and other +build options.
   syn keyword goBuildDirectives   contained
@@ -369,7 +328,11 @@ if g:go_highlight_build_constraints != 0
 endif
 
 " Search backwards for a global declaration to start processing the syntax.
-"syn sync match goSync grouphere NONE /^\(const\|var\|type\|func\)\>/
+syn sync match goSync grouphere NONE /^\(const\|var\|type\|func\)\>/
+
+" There's a bug in the implementation of grouphere. For now, use the
+" following as a more expensive/less precise workaround.
+syn sync minlines=500
 
 let b:current_syntax = "go"
 
