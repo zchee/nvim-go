@@ -60,9 +60,9 @@ let g:go_highlight_import                    = get( g:, 'go_highlight_import', 0
 syn case match
 
 syn keyword     goPackage           package
-syn keyword     goImport            import    contained
-syn keyword     goVar               var       contained
-syn keyword     goConst             const     contained
+syn keyword     goImport            import
+syn keyword     goVar               var
+syn keyword     goConst             const
 
 hi def link     goPackage           Statement
 hi def link     goImport            Statement
