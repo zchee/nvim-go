@@ -368,6 +368,26 @@ endif
 
 " Build Constraints
 if get( g:, 'go_highlight_build_constraints', 0 )
+  syn match   goBuildKeyword      display contained "+build"
+  " Highlight the known values of GOOS, GOARCH, and other +build options.
+  syn keyword goBuildDirectives   contained
+        \ appengine android darwin dragonfly freebsd linux nacl netbsd openbsd plan9
+        \ solaris windows 386 amd64 amd64p32 arm armbe arm64 arm64be ppc64
+        \ ppc64le mips mipsle mips64 mips64le mips64p32 mips64p32le ppc
+        \ s390 s390x sparc sparc64 cgo ignore race
+
+  " Other words in the build directive are build tags not listed above, so
+  " avoid highlighting them as comments by using a matchgroup just for the
+  " start of the comment.
+  " The rs=s+2 option lets the \s*+build portion be part of the inner region
+  " instead of the matchgroup so it will be highlighted as a goBuildKeyword.
+  syn region  goBuildComment      matchgroup=goBuildCommentStart
+        \ start="//\s*+build\s"rs=s+2 end="$"
+        \ contains=goBuildKeyword,goBuildDirectives
+  hi def link goBuildCommentStart Comment
+  hi def link goBuildDirectives   Type
+  hi def link goBuildKeyword      PreProc
+
   " One or more line comments that are followed immediately by a "package"
   " declaration are treated like package documentation, so these must be
   " matched as comments to avoid looking like working build constraints.
