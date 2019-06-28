@@ -19,27 +19,23 @@ if exists("*GoIndent")
   finish
 endif
 
-" don't spam the user when Vim is started in Vi compatibility mode
-let s:cpo_save = &cpo
-set cpo&vim
-
 function! GoIndent(lnum) abort
-  let prevlnum = prevnonblank(a:lnum-1)
-  if prevlnum == 0
+  let l:prevlnum = prevnonblank(a:lnum-1)
+  if l:prevlnum == 0
     " top of file
     return 0
   endif
 
   " grab the previous and current line, stripping comments.
-  let prevl = substitute(getline(prevlnum), '//.*$', '', '')
-  let thisl = substitute(getline(a:lnum), '//.*$', '', '')
-  let previ = indent(prevlnum)
+  let l:prevl = substitute(getline(l:prevlnum), '//.*$', '', '')
+  let l:thisl = substitute(getline(a:lnum), '//.*$', '', '')
+  let l:previ = indent(l:prevlnum)
 
-  let ind = previ
+  let l:ind = previ
 
-  for synid in synstack(a:lnum, 1)
-    if synIDattr(synid, 'name') == 'goRawString'
-      if prevl =~ '\%(\%(:\?=\)\|(\|,\)\s*`[^`]*$'
+  for l:synid in synstack(a:lnum, 1)
+    if synIDattr(l:synid, 'name') == 'goRawString'
+      if l:prevl =~ '\%(\%(:\?=\)\|(\|,\)\s*`[^`]*$'
         " previous line started a multi-line raw string
         return 0
       endif
@@ -48,30 +44,30 @@ function! GoIndent(lnum) abort
     endif
   endfor
 
-  if prevl =~ '[({]\s*$'
+  if l:prevl =~ '[({]\s*$'
     " previous line opened a block
-    let ind += shiftwidth()
+    let l:ind += shiftwidth()
   endif
-  if prevl =~# '^\s*\(case .*\|default\):$'
+  if l:prevl =~# '^\s*\(case .*\|default\):$'
     " previous line is part of a switch statement
-    let ind += shiftwidth()
+    let l:ind += shiftwidth()
   endif
   " TODO: handle if the previous line is a label.
 
-  if thisl =~ '^\s*[)}]'
+  if l:thisl =~ '^\s*[)}]'
     " this line closed a block
-    let ind -= shiftwidth()
+    let l:ind -= shiftwidth()
   endif
 
   " Colons are tricky.
   " We want to outdent if it's part of a switch ("case foo:" or "default:").
   " We ignore trying to deal with jump labels because (a) they're rare, and
   " (b) they're hard to disambiguate from a composite literal key.
-  if thisl =~# '^\s*\(case .*\|default\):$'
-    let ind -= shiftwidth()
+  if l:thisl =~# '^\s*\(case .*\|default\):$'
+    let l:ind -= shiftwidth()
   endif
 
-  return ind
+  return l:ind
 endfunction
 
 " vim: sw=2 ts=2 et
