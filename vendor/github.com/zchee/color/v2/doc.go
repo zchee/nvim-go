@@ -1,3 +1,7 @@
+// Copyright 2019 The color Authors. All rights reserved.
+// Use of this source code is governed by a MIT
+// license that can be found in the LICENSE file.
+
 /*
 Package color is an ANSI color package to output colorized or SGR defined
 output to the standard output. The API can be used in several way, pick one
