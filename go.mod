@@ -19,8 +19,6 @@ require (
 	github.com/hokaccha/go-prettyjson v0.0.0-20180920040306-f579f869bbfe
 	github.com/kelseyhightower/envconfig v1.3.1-0.20180517194557-dd1402a4d99d
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/mattn/go-colorable v0.1.1 // indirect
-	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153
 	github.com/neovim/go-client v1.0.1-0.20190523061612-8fe551ab1036
@@ -29,7 +27,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/profile v1.2.1 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
-	github.com/zchee/color v1.7.0
+	github.com/zchee/color/v2 v2.0.3
 	github.com/zchee/go-xdgbasedir v1.0.3
 	go.opencensus.io v0.21.0
 	go.uber.org/atomic v1.3.3-0.20190226011305-5328d69c76a9 // indirect
@@ -42,9 +40,9 @@ require (
 	golang.org/x/net v0.0.0-20190522155817-f3200d17e092 // indirect
 	golang.org/x/oauth2 v0.0.0-20190517181255-950ef44c6e07 // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190522044717-8097e1b27ff5
+	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb
 	golang.org/x/text v0.3.2 // indirect
-	golang.org/x/tools v0.0.0-20190521203540-521d6ed310dd
+	golang.org/x/tools v0.0.0-20190523174634-38d8bcfa38af
 	google.golang.org/appengine v1.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20190522204451-c2c4e71fbf69 // indirect
 	google.golang.org/grpc v1.21.0 // indirect
