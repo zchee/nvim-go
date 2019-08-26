@@ -9,6 +9,9 @@ CGO_ENABLED = 1
 # ----------------------------------------------------------------------------
 # target
 
+.PHONY: all
+all: mod pkg/install manifest
+
 # manifest
 
 .PHONY: manifest
@@ -30,7 +33,7 @@ manifest/dump: build  ## Dumps plugin manifest.
 .PHONY: mod/lock/delve
 mod/lock/delve:  ## Locks version with go-delve/delve@92dad94.
 	$(call target)
-	@go get -u -m -v -x github.com/derekparker/delve@92dad944d7e0 golang.org/x/arch@f40095975f84 golang.org/x/debug@fb508927b491
+	@go get -u -d -v -x github.com/derekparker/delve@92dad944d7e0 golang.org/x/arch@f40095975f84 golang.org/x/debug@fb508927b491
 
 .PHONY: mod/install
 mod/install: mod/tidy mod/vendor
@@ -47,13 +50,14 @@ mod: mod/init mod/lock/delve mod/tidy mod/vendor mod/install
 .PHONY: vendor/guru/update
 vendor/guru/update:
 	$(call target)
-	@GO111MODULE=on go get -u -m -v golang.org/x/tools@master
+	@GO111MODULE=on go get -u -d -v golang.org/x/tools@master
 	printf "%s\\n\\n%s" 'package guru' 'import _ "golang.org/x/tools/cmd/guru"' > $(CURDIR)/pkg/internal/guru/hack.go
 	@GO111MODULE=on go mod vendor -v
 	${RM} -r $(shell find $(CURDIR)/pkg/internal/guru -maxdepth 1 -type f -name '*.go' -not -name 'result.go')
 	mv $(CURDIR)/vendor/golang.org/x/tools/cmd/guru/*.go $(CURDIR)/pkg/internal/guru
 	sed -i "s|\t// TODO(adonovan): opt: parallelize.|\tbp.GoFiles = append(bp.GoFiles, bp.CgoFiles...)\n\n\0|" $(CURDIR)/pkg/internal/guru/definition.go
 	sed -i 's| // import "golang.org/x/tools/cmd/guru"||' $(CURDIR)/pkg/internal/guru/main.go
+	rm -f $(CURDIR)/pkg/internal/guru/hack.go
 
 .PHONY: vendor/guru/rename
 vendor/guru/rename: vendor/guru/update
@@ -64,6 +68,7 @@ vendor/guru/rename: vendor/guru/update
 	grep "packageForQualIdent" $(CURDIR)/pkg/internal/guru/*.go -l | xargs sed -i 's/packageForQualIdent/PackageForQualIdent/'
 	grep "guessImportPath" $(CURDIR)/pkg/internal/guru/*.go -l | xargs sed -i 's/guessImportPath/GuessImportPath/'
 	sed -i "s|package guru|\n// +build ignore\n\n\0|" $(CURDIR)/pkg/internal/guru/main.go
+	rm -f $(CURDIR)/pkg/internal/guru/guru_test.go
 
 .PHONY: vendor/guru
 vendor/guru: vendor/guru/update vendor/guru/rename mod/install
