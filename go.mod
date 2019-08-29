@@ -27,7 +27,7 @@ require (
 	github.com/pkg/errors v0.0.0-20181023235946-059132a15dd0
 	github.com/pkg/profile v1.2.1 // indirect
 	github.com/zchee/go-xdgbasedir v1.0.3
-	go.opencensus.io v0.18.0
+	go.opencensus.io v0.22.0
 	go.uber.org/atomic v0.0.0-20181018215023-8dc6146f7569 // indirect
 	go.uber.org/multierr v0.0.0-20180122172545-ddea229ff1df // indirect
 	go.uber.org/zap v0.0.0-20180814183419-67bc79d13d15
