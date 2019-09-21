@@ -8,7 +8,7 @@ require (
 	github.com/DataDog/datadog-go v2.2.1-0.20190425163447-40bafcb5f6c1+incompatible // indirect
 	github.com/DataDog/opencensus-go-exporter-datadog v0.0.0-20190503082300-0f32ad59ab08
 	github.com/aws/aws-sdk-go v1.19.36 // indirect
-	github.com/cweill/gotests v1.5.3-0.20181029041911-276664f3b507
+	github.com/cweill/gotests v1.5.4-0.20190630173305-a871e1d1c88b
 	github.com/davecgh/go-spew v1.1.1
 	github.com/derekparker/delve v0.12.3-0.20170419170936-92dad944d7e0
 	github.com/fatih/color v1.6.0 // indirect
@@ -37,12 +37,11 @@ require (
 	golang.org/x/debug v0.0.0-20160621010512-fb508927b491 // indirect
 	golang.org/x/exp/errors v0.0.0-20190221220918-438050ddec5e
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
-	golang.org/x/net v0.0.0-20190522155817-f3200d17e092 // indirect
 	golang.org/x/oauth2 v0.0.0-20190517181255-950ef44c6e07 // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb
 	golang.org/x/text v0.3.2 // indirect
-	golang.org/x/tools v0.0.0-20190523174634-38d8bcfa38af
+	golang.org/x/tools v0.0.0-20190920225731-5eefd052ad72
 	google.golang.org/appengine v1.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20190522204451-c2c4e71fbf69 // indirect
 	google.golang.org/grpc v1.21.0 // indirect

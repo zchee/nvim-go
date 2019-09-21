@@ -49,7 +49,7 @@ github.com/aws/aws-sdk-go/service/sts
 github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1
-# github.com/cweill/gotests v1.5.3-0.20181029041911-276664f3b507
+# github.com/cweill/gotests v1.5.4-0.20190630173305-a871e1d1c88b
 github.com/cweill/gotests
 github.com/cweill/gotests/gotests/process
 github.com/cweill/gotests/internal/goparser
@@ -175,7 +175,7 @@ golang.org/x/exp/errors/fmt
 golang.org/x/exp/errors/internal
 # golang.org/x/lint v0.0.0-20190409202823-959b441ac422
 golang.org/x/lint
-# golang.org/x/net v0.0.0-20190522155817-f3200d17e092
+# golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
@@ -202,7 +202,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.0.0-20190523174634-38d8bcfa38af
+# golang.org/x/tools v0.0.0-20190920225731-5eefd052ad72
 golang.org/x/tools/cmd/guru/serial
 golang.org/x/tools/container/intsets
 golang.org/x/tools/cover
