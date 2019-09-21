@@ -53,7 +53,6 @@ require (
 )
 
 replace (
-	github.com/fatih/color v1.7.0 => github.com/zchee/color v1.7.1-0.20190331162438-438c6d2abc51
 	github.com/go-delve/delve v1.2.0 => github.com/derekparker/delve v0.12.3-0.20170419170936-92dad944d7e0
 	github.com/go-resty/resty v1.9.0 => gopkg.in/resty.v1 v1.9.0
 	github.com/googleapis/gax-go/v2 v2.0.0 => github.com/googleapis/gax-go/v2 v2.0.3
