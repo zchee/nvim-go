@@ -11,7 +11,7 @@ require (
 	github.com/cweill/gotests v1.5.4-0.20190630173305-a871e1d1c88b
 	github.com/davecgh/go-spew v1.1.1
 	github.com/derekparker/delve v0.12.3-0.20170419170936-92dad944d7e0
-	github.com/fatih/color v1.6.0 // indirect
+	github.com/fatih/color v1.7.0
 	github.com/google/go-cmp v0.3.0
 	github.com/google/pprof v0.0.0-20190404155422-f8f10df84213 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
@@ -47,7 +47,7 @@ require (
 	google.golang.org/grpc v1.21.0 // indirect
 	gopkg.in/DataDog/dd-trace-go.v1 v1.14.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
-	gopkg.in/yaml.v2 v2.2.2 // indirect
+	gopkg.in/yaml.v2 v2.2.2
 	gopkg.in/yaml.v3 v3.0.0-20190409140830-cdc409dda467
 )
 
