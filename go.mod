@@ -29,7 +29,7 @@ require (
 	github.com/tinylib/msgp v1.1.0 // indirect
 	github.com/zchee/color/v2 v2.0.3
 	github.com/zchee/go-xdgbasedir v1.0.3
-	go.opencensus.io v0.21.0
+	go.opencensus.io v0.22.1
 	go.uber.org/atomic v1.3.3-0.20190226011305-5328d69c76a9 // indirect
 	go.uber.org/multierr v1.1.1-0.20180122172545-ddea229ff1df
 	go.uber.org/zap v1.9.2-0.20190327195448-badef736563f
