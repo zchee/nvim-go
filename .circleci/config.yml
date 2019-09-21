@@ -116,18 +116,6 @@ jobs:
           command: |
             make lint
 
-  reviewdog:
-    <<: *linux
-    steps:
-      - checkout
-      - golang/gomod-download:
-          key: "gomod-linux"
-      - run:
-          name: Run reviewdog
-          command: |
-            go get -u github.com/reviewdog/reviewdog/cmd/reviewdog
-            reviewdog -reporter="github-pr-check"
-
 workflows:
   version: 2
   workflows:
@@ -138,8 +126,3 @@ workflows:
           context: org-global
       - lint:
           context: org-global
-      - reviewdog:
-          context: org-global
-          filters:
-            branches:
-              ignore: master
