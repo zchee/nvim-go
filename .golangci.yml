@@ -14,30 +14,41 @@ run:
   modules-download-mode: readonly
 
 linters-settings:
+  dupl:
+    #threshold: 400
   errcheck:
     check-type-assertions: true
     check-blank: true
     # exclude: .errcheckignore
+  funlen:
+    lines: 60
+    statements: 40
   goconst:
     min-len: 3
     min-occurrences: 3
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: go-darwin.dev/apfs
+    local-prefixes: github.com/zchee/nvim-go
   golint:
     min-confidence: 0.3
+  govet:
+    enable-all: true
+    check-shadowing: false
   gocritic:
     enabled-tags:
       - diagnostic
       - style
       - performance
       - experimental
+      - opinionated
     settings:
-      captLocal:
-        paramsOnly: true
+      hugeParam:
+        sizeThreshold: 80
+      rangeExprCopy:
+        sizeThreshold: 512
       rangeValCopy:
-        sizeThreshold: 32
+        sizeThreshold: 128
   maligned:
     suggest-new: true
   misspell:
@@ -52,12 +63,35 @@ linters-settings:
     algo: cha
     check-exported: true
   unused:
-    check-exported: false
+    check-exported: true
 
 linters:
   enable:
-  enable-all: true
+    - deadcode
+    - depguard
+    - dupl
+    - errcheck
+    - goconst
+    - gocritic
+    - gofmt
+    - goimports
+    - golint
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - maligned
+    - misspell
+    - prealloc
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - varcheck
   disable:
+    - funlen
     - gochecknoglobals
     - gochecknoinits
     - gocyclo
@@ -65,7 +99,11 @@ linters:
     - lll
     - nakedret
     - scopelint
-  fast: true
+    - unused
+  fast: false
+
+issues:
+  exclude-use-default: true
 
 output:
   format: colored-line-number
