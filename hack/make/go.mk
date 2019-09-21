@@ -246,12 +246,10 @@ mod/install:  ## Install the module vendor package as an object file.
 
 .PHONY: mod/update
 mod/update: mod/get mod/tidy mod/vendor mod/install  ## Updates all of vendor packages.
-	@GO111MODULE=on go mod edit -go 1.12
 
 .PHONY: mod
 mod: mod/init mod/tidy mod/vendor mod/install
 mod:  ## Updates the vendoring directory using go mod.
-	@GO111MODULE=on go mod edit -go 1.12
 
 
 ## clean
