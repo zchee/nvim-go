@@ -20,7 +20,7 @@ Note that it's highly compatible with Vim implementation, but it doesn't support
 import "github.com/haya14busa/errorformat"
 ```
 
-### Example
+### Example 
 
 #### Code:
 
