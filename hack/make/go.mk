@@ -164,18 +164,20 @@ coverage:  ## Takes packages test coverage.
 	$(call target)
 	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) $(GO_TEST) -v -race $(strip $(GO_FLAGS)) -covermode=atomic -coverpkg=$(PKG)/... -coverprofile=coverage.out $(GO_PKGS)
 
-$(GO_PATH)/bin/go-junit-report:
-	@GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
-
-.PHONY: cmd/go-junit-report
-cmd/go-junit-report: $(GO_PATH)/bin/go-junit-report  # go get 'go-junit-report' binary
+.PHONY: tools/go-junit-report
+tools/go-junit-report:  # go get 'go-junit-report' binary
+ifeq (, $(shell command -v go-junit-report))
+	@cd $(mktemp -d); \
+		go mod init tmp > /dev/null 2>&1; \
+		go get -u github.com/jstemmer/go-junit-report@master
+endif
 
 .PHONY: coverage/ci
 coverage/ci: CGO_ENABLED=1
 coverage/ci: GO_FLAGS+=-mod=readonly
 coverage/ci: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 coverage/ci: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
-coverage/ci: cmd/go-junit-report
+coverage/ci: tools/go-junit-report
 coverage/ci:  ## Takes packages test coverage, and output coverage results to CI artifacts.
 	$(call target)
 	@mkdir -p /tmp/ci/artifacts /tmp/ci/test-results
@@ -186,27 +188,18 @@ coverage/ci:  ## Takes packages test coverage, and output coverage results to CI
 ## lint
 
 .PHONY: lint
-lint: lint/vet lint/golangci-lint  ## Run all linters.
+lint: lint/golangci-lint  ## Run all linters.
 
-$(GO_PATH)/bin/vet:
-	@GO111MODULE=off go get -u golang.org/x/tools/go/analysis/cmd/vet golang.org/x/tools/go/analysis/passes/...
-
-.PHONY: cmd/vet
-cmd/vet: $(GO_PATH)/bin/vet  # go get 'vet' binary
-
-.PHONY: lint/vet
-lint/vet: cmd/vet
-	$(call target)
-	@GO111MODULE=on vet -asmdecl -assign -atomic -atomicalign -bools -buildtag -cgocall -compositewhitelist -copylocks -errorsas -httpresponse -loopclosure -lostcancel -methods -nilfunc -printfuncs -rangeloops -shift -source -stdmethods -structtag -tests -unmarshal -unreachable -unsafeptr $(GO_PKGS)
-
-$(GO_PATH)/bin/golangci-lint:
-	@GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
-
-.PHONY: cmd/golangci-lint
-cmd/golangci-lint: $(GO_PATH)/bin/golangci-lint  # go get 'golangci-lint' binary
+.PHONY: tools/golangci-lint
+tools/golangci-lint:  # go get 'golangci-lint' binary
+ifeq (, $(shell command -v golangci-lint))
+	@cd $(mktemp -d); \
+		go mod init tmp > /dev/null 2>&1; \
+		go get -u github.com/golangci/golangci-lint/cmd/golangci-lint@master
+endif
 
 .PHONY: lint/golangci-lint
-lint/golangci-lint: cmd/golangci-lint .golangci.yml  ## Run golangci-lint.
+lint/golangci-lint: tools/golangci-lint .golangci.yml  ## Run golangci-lint.
 	$(call target)
 	@GO111MODULE=on GOGC=off golangci-lint run ./...
 
