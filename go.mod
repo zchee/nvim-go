@@ -12,7 +12,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/derekparker/delve v0.12.3-0.20170419170936-92dad944d7e0
 	github.com/fatih/color v1.7.0
-	github.com/google/go-cmp v0.3.0
+	github.com/google/go-cmp v0.3.1
 	github.com/google/pprof v0.0.0-20190404155422-f8f10df84213 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/haya14busa/errorformat v0.0.0-20180607161917-689b7d67b7a8
