@@ -10,7 +10,7 @@ GO_ARCH ?= $(shell go env GOARCH)
 
 ifneq ($(wildcard vendor),)  # exist vendor directory
 PKG := $(subst $(GO_PATH)/src/,,$(CURDIR))
-GO_PKGS := $(shell go list ./... | grep -v -e '.pb.go')
+GO_PKGS := $(shell go list ./... | grep -v -e 'cmd' -e '.pb.go')
 GO_APP_PKGS := $(shell go list -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}{{.ImportPath}}{{end}}' ${PKG}/...)
 GO_TEST_PKGS := $(shell go list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./...)
 GO_VENDOR_PKGS=
