@@ -16,6 +16,25 @@ darwin: &darwin
   working_directory: ~/go/src/github.com/zchee/nvim-go
 
 jobs:
+  build:
+    <<: *linux
+    steps:
+      - run:
+          name: Show versions
+          command: |
+            uname -a
+            echo
+            cat /etc/os-release
+            echo
+            go version
+      - checkout
+      - golang/gomod-download:
+          key: "gomod-linux"
+      - run:
+          name: Run build
+          command: |
+            make static
+
   linux:
     <<: *linux
     steps:
@@ -120,6 +139,8 @@ workflows:
   version: 2
   workflows:
     jobs:
+      - build:
+          context: org-global
       - linux:
           context: org-global
       - darwin:
