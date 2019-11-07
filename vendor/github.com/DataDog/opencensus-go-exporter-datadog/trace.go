@@ -84,11 +84,15 @@ func (e *traceExporter) exportSpan(s *trace.SpanData) {
 	}
 }
 
+// loop consumes the input channel and also listens on exit channel
+// to cleanly stop the exporter, flushing any remaining spans to the transport
+// and reporting any errors.
 func (e *traceExporter) loop() {
 	defer close(e.exit)
 	tick := time.NewTicker(flushInterval)
 	defer tick.Stop()
 
+loop:
 	for {
 		select {
 		case span := <-e.in:
@@ -98,12 +102,23 @@ func (e *traceExporter) loop() {
 			e.flush()
 
 		case <-e.exit:
-			e.flush()
-			e.wg.Wait() // wait for uploads to finish
-			e.errors.flush()
-			return
+			break loop
 		}
 	}
+
+	// drain the input channel to catch anything the loop might not process
+	drained := false
+	for !drained {
+		select {
+		case span := <-e.in:
+			e.receiveSpan(span)
+		default:
+			drained = true
+		}
+	}
+	e.flush()
+	e.wg.Wait() // wait for uploads to finish
+	e.errors.flush()
 }
 
 func (e *traceExporter) receiveSpan(span *ddSpan) {
@@ -137,21 +152,9 @@ func (e *traceExporter) flush() {
 	e.payload.reset()
 }
 
-// stop cleanly stops the exporter, flushing any remaining spans to the transport and
-// reporting any errors. Make sure to always call Stop at the end of your program in
-// order to not lose any tracing data. Only call Stop once per exporter. Repeated calls
-// will cause panic.
+// stop signals the loop goroutine to finish.
+// This blocks until the loop goroutine closes the exit channel.
 func (e *traceExporter) stop() {
-loop:
-	// drain the input channel to catch anything the loop might not
-	for {
-		select {
-		case span := <-e.in:
-			e.receiveSpan(span)
-		default:
-			break loop
-		}
-	}
 	e.exit <- struct{}{}
 	<-e.exit
 }
