@@ -3,7 +3,7 @@ module github.com/zchee/nvim-go
 go 1.13
 
 require (
-	cloud.google.com/go v0.39.0
+	cloud.google.com/go v0.48.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.11.1
 	github.com/DataDog/datadog-go v2.2.1-0.20190425163447-40bafcb5f6c1+incompatible // indirect
 	github.com/DataDog/opencensus-go-exporter-datadog v0.0.0-20190503082300-0f32ad59ab08
