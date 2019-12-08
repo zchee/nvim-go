@@ -41,3 +41,6 @@ pkg/testdata/gb/gsftp/pkg
 
 # habit
 _*
+
+# vendor
+vendor/
