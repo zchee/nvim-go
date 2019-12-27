@@ -31,7 +31,7 @@ require (
 	github.com/zchee/go-xdgbasedir v1.0.3
 	go.opencensus.io v0.22.1
 	go.uber.org/multierr v1.4.0
-	go.uber.org/zap v1.12.0
+	go.uber.org/zap v1.13.0
 	golang.org/x/arch v0.0.0-20170711125641-f40095975f84 // indirect
 	golang.org/x/debug v0.0.0-20160621010512-fb508927b491 // indirect
 	golang.org/x/exp/errors v0.0.0-20191030013958-a1ab85dbe136
