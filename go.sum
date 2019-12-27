@@ -119,6 +119,8 @@ github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153 h1:oExFz18mz6S
 github.com/motemen/go-astmanip v0.0.0-20160104081417-d6ad31f02153/go.mod h1:8vSfxXOEJk8FwCYu/TGd0GwcApDFnt6VuG7iVx4CIms=
 github.com/neovim/go-client v1.0.0 h1:fborvig+qN5QP20XAARJZH4hqyMUHaZ70b7nFOb/RAA=
 github.com/neovim/go-client v1.0.0/go.mod h1:cHx8fl6EhCgSA/pyKeVtyl3o6UzgE31ADtc+bx3JpKg=
+github.com/neovim/go-client v1.0.1 h1:HbR4QQLDLjktkNOp1VEHGkHI7fccRqiy23JdnSp9U8E=
+github.com/neovim/go-client v1.0.1/go.mod h1:l1OzxMpaDaUXpuZAgklQwRB2ha7LLlR+4Z6O7zoF3kI=
 github.com/peterh/liner v1.1.0 h1:f+aAedNJA6uk7+6rXsYBnhdo4Xux7ESLe+kcuVUF5os=
 github.com/peterh/liner v1.1.0/go.mod h1:CRroGNssyjTd/qIG2FyxByd2S8JEAZXBl4qUrZf8GS0=
 github.com/philhofer/fwd v1.0.0 h1:UbZqGr5Y38ApvM/V/jEljVxwocdweyH+vmYvRPBnbqQ=
