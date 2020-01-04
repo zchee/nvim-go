@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/pkg/errors"
@@ -123,6 +124,11 @@ func (c *Command) compileCmd(pctx context.Context, args []string, bang bool, dir
 		if !bang || !matchSlice("-o", args) {
 			args = append(args, "-o", os.DevNull)
 		}
+
+		if isEnableModule() {
+			args = append(args, "-mod=vendor")
+		}
+
 		// add "app" suffix to binary name if enable app-engine build
 		if config.BuildAppengine {
 			cmd.Args[0] += "app"
@@ -147,6 +153,16 @@ func (c *Command) compileCmd(pctx context.Context, args []string, bang bool, dir
 	cmd.Args = append(cmd.Args, args...)
 
 	return cmd, nil
+}
+
+func isEnableModule() bool {
+	cmd := exec.Command("go", "env", "GOMOD")
+	out, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+
+	return strings.TrimSpace(string(out)) != ""
 }
 
 func matchSlice(s string, ss []string) bool {
