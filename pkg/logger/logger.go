@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fatih/color"
+	color "github.com/zchee/color/v2"
 	prettyjson "github.com/hokaccha/go-prettyjson"
 	"go.uber.org/zap"
 	"go.uber.org/zap/buffer"
