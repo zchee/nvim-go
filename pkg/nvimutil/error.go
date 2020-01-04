@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/haya14busa/errorformat"
+	"github.com/reviewdog/errorformat"
 	"github.com/neovim/go-client/nvim"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
