@@ -59,5 +59,5 @@ func (c *Command) cmdByteOffset(ctx context.Context) error {
 }
 
 func (c *Command) cmdNotify(ctx context.Context, args []string) error {
-	return nvimutil.Notify(c.Nvim, args...)
+	return nvimutil.Notify(c.Nvim, "NvimGo", args...)
 }
