@@ -94,46 +94,55 @@ func (c *Command) cover(pctx context.Context, eval *cmdCoverEval) interface{} {
 	}
 	delete(c.buildContext.Errlist, "Cover")
 
-	profile, err := cover.ParseProfiles(coverFile.Name())
+	profiles, err := cover.ParseProfiles(coverFile.Name())
 	if err != nil {
 		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return errors.WithStack(err)
 	}
 
-	b, err := c.Nvim.CurrentBuffer()
+	buffer, err := c.Nvim.CurrentBuffer()
 	if err != nil {
 		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
 		return errors.WithStack(err)
 	}
+	nsID, err := c.Nvim.CreateNamespace("nvim-go")
+	if err != nil {
+		span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
+		return errors.WithStack(err)
+	}
+	c.namespaceID = nsID
 
-	highlighted := make(map[int]bool)
-	var res int // for ignore the msgpack decode errror. not used
 	batch := c.Nvim.NewBatch()
-	for _, prof := range profile {
-		if filepath.Base(prof.FileName) != filepath.Base(eval.File) {
+	var res int
+	highlighted := make(map[int]bool)
+
+	for _, profile := range profiles {
+		if filepath.Base(profile.FileName) != filepath.Base(eval.File) {
 			continue
 		}
 
-		for _, block := range prof.Blocks {
-			for line := block.StartLine - 1; line <= block.EndLine-1; line++ { // nvim_buf_add_highlight line started by 0
-				// not highlighting the last RBRACE of the function
+		for _, block := range profile.Blocks {
+			for line := block.StartLine - 1; line <= block.EndLine-1; line++ { // nvim_buf_add_highlight line is started by 0
 				if line == block.EndLine-1 && block.EndCol == 2 {
-					break
+					break // not highlighting the last RBRACE of the function
+				}
+
+				if highlighted[line] {
+					continue
 				}
 
 				var hl string
 				switch {
 				case block.Count == 0:
 					hl = "GoCoverMiss"
-				case block.Count-block.NumStmt == 0:
+				case block.Count-block.NumStmt == 0: // TODO(zchee): handle GoCoverPartial
 					hl = "GoCoverPartial"
 				default:
 					hl = "GoCoverHit"
 				}
-				if !highlighted[line] {
-					batch.AddBufferHighlight(b, 0, hl, line, 0, -1, &res)
-					highlighted[line] = true
-				}
+
+				batch.AddBufferHighlight(buffer, nsID, hl, line, 0, -1, &res)
+				highlighted[line] = true
 			}
 		}
 	}
@@ -148,4 +157,19 @@ func (c *Command) cover(pctx context.Context, eval *cmdCoverEval) interface{} {
 	}
 
 	return nil
+}
+
+func (c *Command) cmdClearCover(ctx context.Context) (err error) {
+	if c.namespaceID == 0 {
+		return
+	}
+
+	buffer, err := c.Nvim.CurrentBuffer()
+	if err != nil {
+		return err
+	}
+
+	err = c.Nvim.ClearBufferHighlight(buffer, c.namespaceID, 0, -1)
+
+	return
 }
