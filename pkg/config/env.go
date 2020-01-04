@@ -14,13 +14,20 @@ import (
 
 // Env represents a environment variabels for nvim-go.
 type Env struct {
-	GCPProjectID string `envconfig:"GOOGLE_CLOUD_PROJECT"`
-	Debug        bool   `envconfig:"DEBUG"`
-	LogLevel     string `envconfig:"LOG_LEVEL"`
+	EnabledStackdriverProfiler   bool   `envconfig:"ENABLED_STACKDRIVER_PROFILER" default:"false"`
+	EnabledStackdriverExporter   bool   `envconfig:"ENABLED_STACKDRIVER_EXPORTER" default:"false"`
+	GCPProjectID                 string `envconfig:"GOOGLE_CLOUD_PROJECT"`
+	GoogleApplicationCredentials string `envconfig:"GOOGLE_APPLICATION_CREDENTIALS"`
+	EnabledDatadogExporter       bool   `envconfig:"ENABLED_DATADOG_EXPORTER" default:"false"`
+	DatadogAgentHostname         string `envconfig:"DATADOG_AGENT_HOSTNAME" default:"127.0.0.1"`
+	Debug                        bool   `envconfig:"DEBUG" default:"false"`
+	LogLevel                     string `envconfig:"LOG_LEVEL" default:"info"`
 }
 
 func (e Env) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("gcp_project_id", e.GCPProjectID)
+	enc.AddString("google_application_credentials", e.GoogleApplicationCredentials)
+	enc.AddString("datadog_agent_hostname", e.DatadogAgentHostname)
 	enc.AddBool("debug", e.Debug)
 	enc.AddString("log_level", e.LogLevel)
 
