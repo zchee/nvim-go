@@ -77,11 +77,6 @@ func (c *Command) Guru(pctx context.Context, args []string, eval *funcGuruEval) 
 
 	log := logger.FromContext(ctx).Named("Guru").With(zap.Any("funcGuruEval", eval))
 
-	mode := args[0]
-	if len(args) > 1 {
-		return guruHelp(c.Nvim, mode)
-	}
-
 	defer func() (err error) {
 		switch r := recover(); r.(type) {
 		case error:
@@ -125,6 +120,8 @@ func (c *Command) Guru(pctx context.Context, args []string, eval *funcGuruEval) 
 	}
 	log.Info("", zap.String("query.Pos", query.Pos), zap.Bool("query.Reflection", query.Reflection))
 
+	mode := args[0]
+
 	if mode == "definition" {
 		obj, err := Definition(&query)
 		if err != nil {
@@ -136,9 +133,27 @@ func (c *Command) Guru(pctx context.Context, args []string, eval *funcGuruEval) 
 		batch.Command("normal! m'")
 		// TODO(zchee): should change nvimutil.SplitPos behavior
 		filename := strings.Split(obj.ObjPos, ":")
-		if filename[0] != eval.File {
-			batch.Command(fmt.Sprintf("keepjumps edit %s", fs.Rel(eval.Cwd, fname)))
+
+		bufCmd := args[1]
+		if bufCmd == "" {
+			bufCmd = "edit" // use same buffer
 		}
+		switch bufCmd {
+		case "edit":
+			if filename[0] == eval.File {
+				// noting to do
+			}
+		case "split", "vsplit", "tabnew":
+			cmd := fmt.Sprintf("keepjumps %s %s", bufCmd, fs.Rel(eval.Cwd, fname))
+			log.Debug("Guru", zap.String("cmd", cmd))
+			batch.Command(cmd)
+		default:
+			nvimutil.Echoerr(c.Nvim, "unknown buffer command: %s\n", bufCmd)
+			return errors.WithStack(err)
+		}
+
+		w = nvim.Window(0)
+		batch.CurrentWindow(&w)
 		batch.SetWindowCursor(w, [2]int{line, col - 1})
 		if err := batch.Execute(); err != nil {
 			span.SetStatus(trace.Status{Code: trace.StatusCodeInternal, Message: err.Error()})
