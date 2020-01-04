@@ -97,3 +97,29 @@ func (s *Server) Serve() error {
 func (s *Server) Close() error {
 	return s.Nvim.Close()
 }
+
+type Subscribe struct {
+	Server   *Server
+	EventMap EventMap
+}
+
+type EventMap map[string]func(...interface{})
+
+func NewSubscriber(ctx context.Context, eventmap EventMap) (*Subscribe, error) {
+	s, err := NewServer(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sb := &Subscribe{
+		Server:   s,
+		EventMap: eventmap,
+	}
+
+	for ev, fn := range sb.EventMap {
+		sb.Server.Nvim.RegisterHandler(ev, fn)
+		sb.Server.Nvim.Subscribe(ev)
+	}
+
+	return sb, nil
+}
