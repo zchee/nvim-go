@@ -18,6 +18,7 @@ type Command struct {
 	Nvim         *nvim.Nvim
 	buildContext *buildctxt.Context
 	errs         *sync.Map
+	namespaceID  int
 }
 
 // NewCommand return the new Command type with initialize some variables.
