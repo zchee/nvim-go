@@ -9,13 +9,10 @@ import (
 	"sync"
 
 	"github.com/neovim/go-client/nvim/plugin"
-	"go.uber.org/zap"
-	"golang.org/x/exp/errors/fmt"
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
 	"github.com/zchee/nvim-go/pkg/command"
 	"github.com/zchee/nvim-go/pkg/logger"
-	"github.com/zchee/nvim-go/pkg/nctx"
 )
 
 // Register registers autocmd to Neovim.
@@ -39,10 +36,6 @@ func Register(ctx context.Context, p *plugin.Plugin, buildContext *buildctxt.Con
 	// Note that does not run the 'VimEnter' handler if open the *not* go file. Because 'VimEnter' handler already run the other file or directory.
 	// TODO(zchee): consider Pattern to '*' instead of '*.go' with get '&filetype' and early return
 	// p.HandleAutocmd(&plugin.AutocmdOptions{Event: "VimEnter", Pattern: "*", Group: "nvim-go", Eval: "*"}, autocmd.VimEnter)
-
-	p.Handle(nctx.Method, func(event ...interface{}) {
-		log.Debug(fmt.Sprintf("handles %s", nctx.Method), zap.Any("event", event))
-	})
 
 	// Handle the open the file.
 	// If open the file at first, run the 'BufEnter' -> 'VimEnter'.
