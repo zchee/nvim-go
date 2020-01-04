@@ -6,6 +6,8 @@ package nvimutil
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/neovim/go-client/nvim"
@@ -104,6 +106,9 @@ func (t *Terminal) Run(cmd []string) error {
 		t.Nvim.SetBufferOption(t.buffer, BufOptionModified, false)
 		t.Nvim.Call("termopen", nil, cmd)
 		t.Nvim.SetBufferName(t.buffer, t.Buffer.Name)
+		if fs.IsExist(filepath.Join(fs.FindVCSRoot(t.Dir), "go.mod")) {
+			os.Setenv("GO111MODULE", "on")
+		}
 	} else {
 		t.Create()
 	}
