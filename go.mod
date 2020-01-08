@@ -13,7 +13,7 @@ require (
 	github.com/derekparker/delve v0.12.3-0.20170419170936-92dad944d7e0
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
-	github.com/google/go-cmp v0.3.1
+	github.com/google/go-cmp v0.4.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mattn/go-colorable v0.1.4 // indirect
