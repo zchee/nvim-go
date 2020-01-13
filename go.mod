@@ -23,7 +23,7 @@ require (
 	github.com/neovim/go-client v1.0.0
 	github.com/peterh/liner v1.1.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.0
 	github.com/pkg/profile v1.3.0 // indirect
 	github.com/reviewdog/errorformat v0.0.0-20190922193611-a885a245ae0b
 	github.com/tinylib/msgp v1.1.1-0.20191014034648-490d90d0e691 // indirect
