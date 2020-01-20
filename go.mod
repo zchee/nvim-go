@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	cloud.google.com/go v0.47.0
-	contrib.go.opencensus.io/exporter/stackdriver v0.12.8
+	contrib.go.opencensus.io/exporter/stackdriver v0.12.9
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/opencensus-go-exporter-datadog v0.0.0-20191104151809-4edbf97b176f
 	github.com/aws/aws-sdk-go v1.25.29 // indirect
