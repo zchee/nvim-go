@@ -8,18 +8,23 @@
 " - function invocations split across lines
 " - general line splits (line ends in an operator)
 
+if exists("b:did_indent")
+  finish
+endif
+let b:did_indent = 1
+
 " C indentation is too far off useful, mainly due to Go's := operator.
 " Let's just define our own.
 setlocal nolisp
 setlocal autoindent
-setlocal indentexpr=GoIndent(v:lnum)
+setlocal indentexpr=s:GoIndent(v:lnum)
 setlocal indentkeys+=<:>,0=},0=)
 
 if exists("*GoIndent")
   finish
 endif
 
-function! GoIndent(lnum) abort
+function! s:GoIndent(lnum) abort
   let l:prevlnum = prevnonblank(a:lnum-1)
   if l:prevlnum == 0
     " top of file
@@ -31,7 +36,7 @@ function! GoIndent(lnum) abort
   let l:thisl = substitute(getline(a:lnum), '//.*$', '', '')
   let l:previ = indent(l:prevlnum)
 
-  let l:ind = previ
+  let l:ind = l:previ
 
   for l:synid in synstack(a:lnum, 1)
     if synIDattr(l:synid, 'name') == 'goRawString'
