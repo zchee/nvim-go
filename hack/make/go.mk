@@ -3,6 +3,11 @@
 
 SHELL = /usr/bin/env bash
 
+# hack for replace all whitespace to comma
+comma := ,
+empty :=
+space := $(empty) $(empty)
+
 ifneq ($(shell command -v go),)
 GO_PATH ?= $(shell go env GOPATH)
 GO_OS ?= $(shell go env GOOS)
@@ -15,7 +20,7 @@ GO_APP_PKGS := $(shell go list -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "m
 GO_TEST_PKGS := $(shell go list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./...)
 GO_VENDOR_PKGS=
 ifneq ($(wildcard ./vendor),)
-	GO_VENDOR_PKGS = $(shell go list -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}./vendor/{{.ImportPath}}{{end}}' ./vendor/...)
+	GO_VENDOR_PKGS = $(shell go list -mod=vendor -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}./vendor/{{.ImportPath}}{{end}}' ./vendor/...)
 endif
 endif
 
@@ -42,19 +47,13 @@ CGO_ENABLED ?= 0
 GO_GCFLAGS=
 GO_LDFLAGS=-s -w $(CTIMEVAR)
 ifneq ($(GO_OS),darwin)
-GO_LDFLAGS+='-extldflags=-static'
-ifeq ($(CI),)
-	GO_LDFLAGS+=-d
-endif
+GO_LDFLAGS+=-d '-extldflags=-static'
 endif
 
-GO_BUILDTAGS=osusergo
-ifneq ($(GO_OS),darwin)
-	GO_BUILDTAGS+=netgo
-endif
+GO_BUILDTAGS=osusergo netgo
 GO_BUILDTAGS_STATIC=static static_build
 GO_INSTALLSUFFIX_STATIC=netgo
-GO_FLAGS ?= -tags='$(GO_BUILDTAGS)' -gcflags="${GO_GCFLAGS}" -ldflags="${GO_LDFLAGS}"
+GO_FLAGS ?= -tags='$(subst $(space),$(comma),${GO_BUILDTAGS})' -gcflags="${GO_GCFLAGS}" -ldflags="${GO_LDFLAGS}"
 
 GO_MOD_FLAGS =
 ifneq ($(wildcard go.mod),)  # exist go.mod
@@ -84,9 +83,9 @@ CONTAINER_RUN_ARGS ?= --rm --interactive --tty
 # ----------------------------------------------------------------------------
 # defines
 
-GOPHER = ""
+GOPHER = ""
 define target
-@printf "$(GOPHER)  \\x1b[1;32m$(patsubst ,$@,$(1))\\x1b[0m\\n"
+@printf "\\x1b[1;38m$(GOPHER)\\x1b[0m  \\x1b[1;32m$(patsubst ,$@,$(1))\\x1b[0m\\n"
 endef
 
 # ----------------------------------------------------------------------------
@@ -101,13 +100,9 @@ bin/$(APP): VERSION.txt
 
 .PHONY: build
 build: GO_FLAGS+=${GO_MOD_FLAGS}
+build: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
+build: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 build: bin/$(APP)  ## Builds a dynamic executable or package.
-
-.PHONY: static
-static: GO_FLAGS+=${GO_MOD_FLAGS}
-static: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
-static: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
-static: bin/$(APP)  ## Builds a static executable or package.
 
 .PHONY: install
 install: GO_FLAGS+=${GO_MOD_FLAGS}
@@ -233,9 +228,12 @@ mod/graph:  ## Prints the module requirement graph with replacements applied.
 
 .PHONY: mod/install
 mod/install: mod/tidy mod/vendor
+mod/install: GO_FLAGS+=${GO_MOD_FLAGS}
+mod/install: GO_LDFLAGS=
+mod/install: GO_BUILDTAGS=
 mod/install:  ## Install the module vendor package as an object file.
 	$(call target)
-	@GO111MODULE=off go install -v $(strip $(GO_FLAGS)) $(GO_VENDOR_PKGS) || GO111MODULE=on go install -mod=vendor -v $(strip $(GO_FLAGS)) $(GO_VENDOR_PKGS)
+	@GO111MODULE=on go install -mod=vendor -v $(strip $(GO_FLAGS)) $(GO_VENDOR_PKGS)
 
 .PHONY: mod/update
 mod/update: mod/get mod/tidy mod/vendor mod/install  ## Updates all of vendor packages.
