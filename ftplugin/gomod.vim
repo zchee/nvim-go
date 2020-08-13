@@ -1,3 +1,7 @@
+" Copyright 2019 The nvim-go Authors. All rights reserved.
+" Use of this source code is governed by a BSD-style
+" license that can be found in the LICENSE file.
+
 " gomod.vim: Vim filetype plugin for Go module file.
 "
 " based by from https://github.com/fatih/vim-go/blob/79ea9ef26807eda0b55809d0521993bcecfa09e5/ftplugin/gomod.vim
