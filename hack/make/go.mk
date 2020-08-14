@@ -47,7 +47,7 @@ CGO_ENABLED ?= 0
 GO_GCFLAGS=
 GO_LDFLAGS=-s -w $(CTIMEVAR)
 ifneq ($(GO_OS),darwin)
-GO_LDFLAGS+=-d '-extldflags=-static'
+GO_LDFLAGS+='-extldflags=-static'
 endif
 
 GO_BUILDTAGS=osusergo netgo
@@ -167,6 +167,8 @@ ifeq (, $(shell command -v go-junit-report))
 		go get -u github.com/jstemmer/go-junit-report@master
 endif
 
+COVERAGE_OUT = /tmp/test-results/coverage.out
+
 .PHONY: coverage/ci
 coverage/ci: CGO_ENABLED=1
 coverage/ci: GO_FLAGS+=-mod=readonly
@@ -175,9 +177,9 @@ coverage/ci: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 coverage/ci: tools/go-junit-report
 coverage/ci:  ## Takes packages test coverage, and output coverage results to CI artifacts.
 	$(call target)
-	@mkdir -p /tmp/ci/artifacts /tmp/ci/test-results
-	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) $(GO_TEST) -a -v -race $(strip $(GO_FLAGS)) -covermode=atomic -coverpkg=$(PKG)/... -coverprofile=/tmp/ci/artifacts/coverage.out $(GO_PKGS) 2>&1 | tee /dev/stderr | go-junit-report -set-exit-code > /tmp/ci/test-results/junit.xml
-	@if [[ -f '/tmp/ci/artifacts/coverage.out' ]]; then go tool cover -html=/tmp/ci/artifacts/coverage.out -o /tmp/ci/artifacts/coverage.html; fi
+	@mkdir -p $(shell dirname ${COVERAGE_OUT}) /tmp/artifacts
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) $(GO_TEST) -a -v -race $(strip $(GO_FLAGS)) -covermode=atomic -coverpkg=$(PKG)/... -coverprofile=${COVERAGE_OUT} $(GO_PKGS) 2>&1 | tee /dev/stderr | go-junit-report -set-exit-code > /tmp/test-results/junit.xml
+	@if [[ -f ${COVERAGE_OUT} ]]; then go tool cover -html=${COVERAGE_OUT} -o /tmp/artifacts/coverage.html; fi
 
 
 ## lint
