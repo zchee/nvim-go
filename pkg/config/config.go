@@ -58,10 +58,13 @@ type fmt struct {
 
 // generate represents a GoGenerate command config variables.
 type generate struct {
-	TestAllFuncs      bool   `eval:"get(g:, 'go#generate#test#allfuncs', v:true)"`
-	TestExclFuncs     string `eval:"get(g:, 'go#generate#test#exclude', '')"`
-	TestExportedFuncs bool   `eval:"get(g:, 'go#generate#test#exportedfuncs', v:false)"`
-	TestSubTest       bool   `eval:"get(g:, 'go#generate#test#subtest', v:true)"`
+	TestAllFuncs       bool   `eval:"get(g:, 'go#generate#test#allfuncs', v:true)"`
+	TestExclFuncs      string `eval:"get(g:, 'go#generate#test#exclude', '')"`
+	TestExportedFuncs  bool   `eval:"get(g:, 'go#generate#test#exportedfuncs', v:false)"`
+	TestSubTest        bool   `eval:"get(g:, 'go#generate#test#subtest', v:true)"`
+	TestParallel       bool   `eval:"get(g:, 'go#generate#test#parallel', v:true)"`
+	TestTemplateDir    string `eval:"get(g:, 'go#generate#test#template_dir', '')"`
+	TemplateParamsPath string `eval:"get(g:, 'go#generate#test#template_params_path', '')"`
 }
 
 // guru represents a GoGuru command config variable.
@@ -159,6 +162,12 @@ var (
 	GenerateTestExportedFuncs bool
 	// GenerateTestSubTest whether the use Go subtest idiom or not.
 	GenerateTestSubTest bool
+	// GenerateTestParallel print tests that runs the subtests in parallel.
+	GenerateTestParallel bool
+	// GenerateTestTemplateDir path to custom template set.
+	GenerateTestTemplateDir string
+	// GenerateTestTemplateParamsPath path to custom paramters json file(s).
+	GenerateTestTemplateParamsPath string
 
 	// GuruReflection use the type reflection on GoGuru commmands.
 	GuruReflection bool
@@ -250,6 +259,9 @@ func Get(v *nvim.Nvim, cfg *Config) {
 	GenerateTestExclFuncs = cfg.Generate.TestExclFuncs
 	GenerateTestExportedFuncs = cfg.Generate.TestExportedFuncs
 	GenerateTestSubTest = cfg.Generate.TestSubTest
+	GenerateTestParallel = cfg.Generate.TestSubTest
+	GenerateTestTemplateDir = cfg.Generate.TestTemplateDir
+	GenerateTestTemplateParamsPath = cfg.Generate.TemplateParamsPath
 
 	// Guru
 	GuruReflection = cfg.Guru.Reflection

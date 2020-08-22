@@ -62,12 +62,15 @@ func (c *Command) GenerateTest(ctx context.Context, args []string, ranges [2]int
 	}
 
 	opt := &process.Options{
-		WriteOutput:   true,
-		PrintInputs:   true,
-		AllFuncs:      config.GenerateTestAllFuncs,
-		ExclFuncs:     config.GenerateTestExclFuncs,
-		ExportedFuncs: config.GenerateTestExportedFuncs,
-		Subtests:      config.GenerateTestSubTest,
+		ExclFuncs:          config.GenerateTestExclFuncs,
+		ExportedFuncs:      config.GenerateTestExportedFuncs,
+		AllFuncs:           config.GenerateTestAllFuncs,
+		PrintInputs:        true,
+		Subtests:           config.GenerateTestSubTest,
+		Parallel:           config.GenerateTestParallel,
+		WriteOutput:        true,
+		TemplateDir:        config.GenerateTestTemplateDir,
+		TemplateParamsPath: config.GenerateTestTemplateParamsPath,
 	}
 
 	// Check users used range. range return variable: (1,$)
