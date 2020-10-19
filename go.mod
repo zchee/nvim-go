@@ -27,9 +27,9 @@ require (
 	golang.org/x/arch v0.0.0-20170711125641-f40095975f84 // indirect
 	golang.org/x/debug v0.0.0-20160621010512-fb508927b491 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b
-	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
+	golang.org/x/sync v0.0.0-20201008141435-b3e1573b7520
 	golang.org/x/sys v0.0.0-20200819141100-7c7a22168250
-	golang.org/x/tools v0.0.0-20200819140908-cf83efe03cf8
+	golang.org/x/tools v0.0.0-20201017001424-6003fad69a88
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 )
 
@@ -38,4 +38,5 @@ replace (
 	github.com/go-delve/delve v1.2.0 => github.com/derekparker/delve v0.12.3-0.20170419170936-92dad944d7e0
 	golang.org/x/arch => golang.org/x/arch v0.0.0-20170711125641-f40095975f84
 	golang.org/x/debug => golang.org/x/debug v0.0.0-20160621010512-fb508927b491
+	golang.org/x/sys => golang.org/x/sys v0.0.0-20200819141100-7c7a22168250
 )
