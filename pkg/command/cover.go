@@ -32,10 +32,10 @@ type cmdCoverEval struct {
 	File string `msgpack:",array"`
 }
 
-func (c *Command) cmdCover(ctx context.Context, eval *cmdCoverEval) {
+func (c *Command) cmdCover(ctx context.Context, args []string, eval *cmdCoverEval) {
 	errch := make(chan interface{}, 1)
 	go func() {
-		errch <- c.cover(ctx, eval)
+		errch <- c.cover(ctx, args, eval)
 	}()
 
 	select {
@@ -62,7 +62,7 @@ func (c *Command) cmdCover(ctx context.Context, eval *cmdCoverEval) {
 
 // cover run the go tool cover command and highlight current buffer based cover
 // profile result.
-func (c *Command) cover(pctx context.Context, eval *cmdCoverEval) interface{} {
+func (c *Command) cover(pctx context.Context, args []string, eval *cmdCoverEval) interface{} {
 	ctx, span := monitoring.StartSpan(pctx, "Cover")
 	defer span.End()
 
@@ -76,6 +76,9 @@ func (c *Command) cover(pctx context.Context, eval *cmdCoverEval) interface{} {
 	cmd := exec.CommandContext(ctx, "go", strings.Fields(fmt.Sprintf("test -cover -covermode=atomic -coverpkg=./... -coverprofile=%s .", coverFile.Name()))...)
 	if len(config.CoverFlags) > 0 {
 		cmd.Args = append(cmd.Args, config.CoverFlags...)
+	}
+	if len(args) > 0 {
+		cmd.Args = append(cmd.Args, args...)
 	}
 	cmd.Dir = filepath.Dir(eval.File)
 	logger.FromContext(ctx).Debug("cover", zap.Any("cmd", cmd))
