@@ -109,7 +109,8 @@ hi def link     goBoolean                  Boolean
 hi def link     goPredefinedIdentifiers    goBoolean
 
 " Comments; their contents
-syn keyword     goTodo              contained TODO FIXME XXX BUG Deprecated
+syn keyword     goTodo              contained TODO FIXME XXX BUG
+syn match       goTodo              display contained "Deprecated:"
 syn cluster     goCommentGroup      contains=goTodo
 
 syn region      goComment           start="//" end="$" contains=goGenerate,@goCommentGroup,@Spell
@@ -215,20 +216,20 @@ syn match       goSingleDecl        /\%(import\|var\|const\) [^(]\@=/ contains=g
 
 " Integers
 syn match       goDecimalInt        "\<-\=\(0\|[1-9]_\?\(\d\|\d\+_\?\d\+\)*\)\%([Ee][-+]\=\d\+\)\=\>"
-syn match       goDecimalError      "\<-\=\(_\(\d\+_*\)\+\|\([1-9]\d*_*\)\+__\(\d\+_*\)\+\|\([1-9]\d*_*\)\+_\+\)\%([Ee][-+]\=\d\+\)\=\>"
+" syn match       goDecimalError      "\<-\=\(_\(\d\+_*\)\+\|\([1-9]\d*_*\)\+__\(\d\+_*\)\+\|\([1-9]\d*_*\)\+_\+\)\%([Ee][-+]\=\d\+\)\=\>"
 syn match       goHexadecimalInt    "\<-\=0[xX]_\?\(\x\+_\?\)\+\>"
-syn match       goHexadecimalError  "\<-\=0[xX]_\?\(\x\+_\?\)*\(\([^ \t0-9A-Fa-f_]\|__\)\S*\|_\)\>"
+" syn match       goHexadecimalError  "\<-\=0[xX]_\?\(\x\+_\?\)*\(\([^ \t0-9A-Fa-f_]\|__\)\S*\|_\)\>"
 syn match       goOctalInt          "\<-\=0[oO]\?_\?\(\o\+_\?\)\+\>"
-syn match       goOctalError        "\<-\=0[0-7oO_]*\(\([^ \t0-7oOxX_/)\]\}\:]\|[oO]\{2,\}\|__\)\S*\|_\|[oOxX]\)\>"
+" syn match       goOctalError        "\<-\=0[0-7oO_]*\(\([^ \t0-7oOxX_/)\]\}\:]\|[oO]\{2,\}\|__\)\S*\|_\|[oOxX]\)\>"
 syn match       goBinaryInt         "\<-\=0[bB]_\?\([01]\+_\?\)\+\>"
 syn match       goBinaryError       "\<-\=0[bB]_\?[01_]*\([^ \t01_]\S*\|__\S*\|_\)\>"
 
 hi def link     goDecimalInt        Integer
-hi def link     goDecimalError      Error
+" hi def link     goDecimalError      Error
 hi def link     goHexadecimalInt    Integer
-hi def link     goHexadecimalError  Error
+" hi def link     goHexadecimalError  Error
 hi def link     goOctalInt          Integer
-hi def link     goOctalError        Error
+" hi def link     goOctalError        Error
 hi def link     goBinaryInt         Integer
 hi def link     goBinaryError       Error
 hi def link     Integer             Number
