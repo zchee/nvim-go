@@ -110,98 +110,93 @@ func (c *Command) Vet(pctx context.Context, args []string, eval *CmdVetEval) int
 	return nil
 }
 
+// Core flags:
+//
+//   -asmdecl
+//     	enable asmdecl analysis
+//   -assign
+//     	enable assign analysis
+//   -atomic
+//     	enable atomic analysis
+//   -bools
+//     	enable bools analysis
+//   -buildtag
+//     	enable buildtag analysis
+//   -cgocall
+//     	enable cgocall analysis
+//   -composites
+//     	enable composites analysis
+//   -copylocks
+//     	enable copylocks analysis
+//   -errorsas
+//     	enable errorsas analysis
+//   -flags
+//     	print analyzer flags in JSON
+//   -httpresponse
+//     	enable httpresponse analysis
+//   -ifaceassert
+//     	enable ifaceassert analysis
+//   -json
+//     	emit JSON output
+//   -loopclosure
+//     	enable loopclosure analysis
+//   -lostcancel
+//     	enable lostcancel analysis
+//   -nilfunc
+//     	enable nilfunc analysis
+//   -printf
+//     	enable printf analysis
+//   -shift
+//     	enable shift analysis
+//   -stdmethods
+//     	enable stdmethods analysis
+//   -stringintconv
+//     	enable stringintconv analysis
+//   -structtag
+//     	enable structtag analysis
+//   -tests
+//     	enable tests analysis
+//   -unmarshal
+//     	enable unmarshal analysis
+//   -unreachable
+//     	enable unreachable analysis
+//   -unsafeptr
+//     	enable unsafeptr analysis
+//   -unusedresult
+//     	enable unusedresult analysis
 func (c *Command) cmdVetComplete(ctx context.Context, a *nvim.CommandCompletionArgs, dir string) ([]string, error) {
-	// Flags:
-	//  -all
-	//        enable all non-experimental checks
-	//  -asmdecl
-	//        check assembly against Go declarations
-	//  -assign
-	//        check for useless assignments
-	//  -atomic
-	//        check for common mistaken usages of the sync/atomic package
-	//  -bool
-	//        check for mistakes involving boolean operators
-	//  -buildtags
-	//        check that +build tags are valid
-	//  -cgocall
-	//        check for types that may not be passed to cgo calls
-	//  -composites
-	//        check that composite literals used field-keyed elements
-	//  -compositewhitelist
-	//        use composite white list; for testing only (default true)
-	//  -copylocks
-	//        check that locks are not passed by value
-	//  -lostcancel
-	//        check for failure to call cancelation function returned by context.WithCancel
-	//  -methods
-	//        check that canonically named methods are canonically defined
-	//  -nilfunc
-	//        check for comparisons between functions and nil
-	//  -printf
-	//        check printf-like invocations
-	//  -printfuncs string
-	//        comma-separated list of print function names to check
-	//  -rangeloops
-	//        check that range loop variables are used correctly
-	//  -shadow
-	//        check for shadowed variables (experimental; must be set explicitly)
-	//  -shadowstrict
-	//        whether to be strict about shadowing; can be noisy
-	//  -shift
-	//        check for useless shifts
-	//  -structtags
-	//        check that struct field tags have canonical format and apply to exported fields as needed
-	//  -tags string
-	//        comma-separated list of build tags to apply when parsing
-	//  -tests
-	//        check for common mistaken usages of tests/documentation examples
-	//  -unreachable
-	//        check for unreachable code
-	//  -unsafeptr
-	//        check for misuse of unsafe.Pointer
-	//  -unusedfuncs string
-	//        comma-separated list of functions whose results must be used (default "errors.New,fmt.Errorf,fmt.Sprintf,fmt.Sprint,sort.Reverse")
-	//  -unusedresult
-	//        check for unused result of calls to functions in -unusedfuncs list and methods in -unusedstringmethods list
-	//  -unusedstringmethods string
-	//        comma-separated list of names of methods of type func() string whose results must be used (default "Error,String")
-	//  -v
-	//        verbose
 	complete, err := nvimutil.CompleteFiles(c.Nvim, a, dir)
 	if err != nil {
 		return nil, err
 	}
 
 	complete = append(complete, []string{
-		"-all",
 		"-asmdecl",
 		"-assign",
 		"-atomic",
-		"-bool",
-		"-buildtags",
+		"-bools",
+		"-buildtag",
 		"-cgocall",
 		"-composites",
-		"-compositewhitelist",
 		"-copylocks",
+		"-copylocks",
+		"-errorsas",
+		"-flags",
+		"-httpresponse",
+		"-ifaceassert",
+		"-loopclosure",
 		"-lostcancel",
-		"-methods",
 		"-nilfunc",
 		"-printf",
-		"-printfuncs", // arg: string
-		"-rangeloops",
-		"-shadow",
-		"-shadowstrict",
 		"-shift",
-		"-structtags",
-		"-tags", // arg: string
+		"-stdmethods",
+		"-stringintconv",
+		"-structtag",
 		"-tests",
+		"-unmarshal",
 		"-unreachable",
 		"-unsafeptr",
-		"-unusedfuncs", // arg: string
 		"-unusedresult",
-		"-unusedstringmethods", // arg: string
-		"-v",
 	}...)
 	return complete, nil
 }
