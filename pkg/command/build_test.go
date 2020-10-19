@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -123,6 +124,12 @@ func TestCommand_Build(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
+			if tt.fields.bctxt.Tool == "gb" {
+				if _, err := exec.LookPath("gb"); err != nil {
+					t.Skipf("not fonud gb binary, skip %s testcase", tt.name)
+				}
+			}
 
 			ctx := tt.fields.ctx
 
