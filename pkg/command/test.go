@@ -129,9 +129,9 @@ var (
 )
 
 type cmdTestSwitchEval struct {
-	Cwd    string `msgpack:",array"`
-	File   string
-	Offset int
+	Cwd    string `eval:"getcwd()"`
+	File   string `eval:"expand('%:p')"`
+	Offset int    `eval:"line2byte(line('.')) + (col('.')-2)"`
 }
 
 // SwitchTest switch to the corresponds current cursor (Test)function.
