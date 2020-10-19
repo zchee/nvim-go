@@ -4,51 +4,28 @@ orbs:
   golang: cci-orb/golang@volatile
   codecov: codecov/codecov@volatile
 
-linux: &linux
-  executor: golang/stretch
-  environment:
-    GO111MODULE: "on"
-    GOPROXY: "https://proxy.golang.org"
-    GOSUMDB: "sum.golang.org"
-  working_directory: /go/src/github.com/zchee/nvim-go
-darwin: &darwin
-  executor: golang/macos
-  working_directory: ~/go/src/github.com/zchee/nvim-go
-
 jobs:
   build:
-    <<: *linux
+    executor: golang/linux
+    working_directory: /go/src/github.com/zchee/nvim-go
     steps:
-      - run:
-          name: Show versions
-          command: |
-            uname -a
-            echo
-            cat /etc/os-release
-            echo
-            go version
       - checkout
-      - golang/gomod-download:
+      - golang/gomod:
           key: "gomod-linux"
+          paths: "/go/pkg/mod/cache"
       - run:
           name: Run build
           command: |
-            make static
+            make build
 
   linux:
-    <<: *linux
+    executor: golang/linux
+    working_directory: /go/src/github.com/zchee/nvim-go
     steps:
-      - run:
-          name: Show versions
-          command: |
-            uname -a
-            echo
-            cat /etc/os-release
-            echo
-            go version
       - checkout
-      - golang/gomod-download:
+      - golang/gomod:
           key: "gomod-linux"
+          paths: "/go/pkg/mod/cache"
       - run:
           name: Install nvim binary
           command: |
@@ -63,37 +40,26 @@ jobs:
       - run:
           name: Test and collect coverages
           command: |
-            make coverage/ci
+            make coverage/ci COVERAGE_OUT="/tmp/test-results/$(uname -s | tr '[:upper:]' '[:lower:]')/coverage.out"
       - codecov/upload:
-          file: "/tmp/ci/artifacts/coverage.out"
+          file: "/tmp/test-results/$(uname -s | tr '[:upper:]' '[:lower:]')/coverage.out"
           flags: linux
       - store_artifacts:
-          path: /tmp/ci/artifacts
-      - store_artifacts:
-          path: /tmp/ci/artifacts
+          path: /tmp/artifacts
       - store_test_results:
-          path: /tmp/ci/test-results
+          path: /tmp/test-results
 
   darwin:
-    <<: *darwin
+    executor: golang/macos
+    working_directory: ~/go/src/github.com/zchee/nvim-go
+    resource_class: medium
     steps:
       - checkout
-      - golang/homebrew
-      - run:
-          name: Show versions
-          command: |
-            uname -a
-            echo
-            sw_vers
-            echo
-            xcodebuild -version
-            echo
-            system_profiler SPHardwareDataType
-            echo
-            go version
-      - golang/gomod-download:
-          key: "gomod-darwin"
-          paths: "~/go/pkg/mod"
+      - golang/install:
+          version: "1.15.3"
+      - golang/gomod:
+          key: "gomod-macos"
+          paths: "~/go/pkg/mod/cache"
       - run:
           name: Install nvim binary
           command: |
@@ -108,28 +74,24 @@ jobs:
             go get -u github.com/constabulary/gb/cmd/...
       - run:
           name: Test and collect coverages
-          environment:
-            GO111MODULE: "on"
-            GOPROXY: "https://proxy.golang.org"
-            GOSUMDB: "sum.golang.org"
           command: |
-            make coverage/ci
+            make coverage/ci COVERAGE_OUT="/tmp/test-results/$(uname -s | tr '[:upper:]' '[:lower:]')/coverage.out"
       - codecov/upload:
-          file: "/tmp/ci/artifacts/coverage.out"
+          file: "/tmp/test-results/$(uname -s | tr '[:upper:]' '[:lower:]')/coverage.out"
           flags: darwin
       - store_artifacts:
-          path: /tmp/ci/artifacts
-      - store_artifacts:
-          path: /tmp/ci/artifacts
+          path: /tmp/artifacts
       - store_test_results:
-          path: /tmp/ci/test-results
+          path: /tmp/test-results
 
   lint:
-    <<: *linux
+    executor: golang/linux
+    working_directory: /go/src/github.com/zchee/nvim-go
     steps:
       - checkout
-      - golang/gomod-download:
+      - golang/gomod:
           key: "gomod-linux"
+          paths: "/go/pkg/mod/cache"
       - run:
           name: Run lint for sources
           command: |
