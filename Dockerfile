@@ -1,4 +1,4 @@
-FROM golang:1.10.2-stretch
+FROM golang:1.15-buster AS nvim-go
 LABEL maintainer "Koichi Shiraishi <zchee.io@gmail.com>"
 
 RUN set -ux \
