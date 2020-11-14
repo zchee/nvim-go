@@ -1,3 +1,15 @@
+project: *project
+  target: auto
+  threshold: 10%
+  if_not_found: error
+  if_ci_failed: error
+patch: *patch
+  only_pulls: true
+  target: 50%
+  threshold: 10%
+  if_not_found: error
+  if_ci_failed: error
+
 coverage:
   precision: 1
   round: down
@@ -8,36 +20,19 @@ coverage:
       default: off
       linux:
         flags: linux
-        target: auto
-        threshold: 10%
-        if_not_found: success
-        if_ci_failed: error
+        <<: *projects
       darwin:
         flags: darwin
-        target: auto
-        threshold: 10%
-        if_not_found: success
-        if_ci_failed: error
+        <<: *projects
     patch:
       default: off
       linux:
         flags: linux
-        only_pulls: true
-        target: 50%
-        threshold: 10%
+        <<: *projects
       darwin:
         flags: darwin
-        only_pulls: true
-        target: 50%
-        threshold: 10%
-    changes: false
-  ignore:
-    - "cmd"
-    - "vendor"
-    - "pkg/internal/fastwalk"
-    - "pkg/internal/gopathwalk"
-    - "pkg/internal/guru"
-    - "pkg/internal/pool"
+        <<: *projects
+    changes: true
 
 flags:
   linux:
@@ -46,6 +41,14 @@ flags:
   darwin:
     paths:
       - /
+
+ignore:
+  - "cmd"
+  - "vendor"
+  - "pkg/internal/fastwalk"
+  - "pkg/internal/gopathwalk"
+  - "pkg/internal/guru"
+  - "pkg/internal/pool"
 
 comment:
   behavior: default
