@@ -1,8 +1,8 @@
 run:
-  concurrency: 12
-  deadline: 5m
+  timeout: 1m
   issues-exit-code: 1
   tests: true
+  skip-dirs-use-default: true
   skip-dirs:
     - "pkg/internal/fastwalk"
     - "pkg/internal/gopathwalk"
@@ -11,30 +11,30 @@ run:
   skip-files:
     - ".*\\.pb\\.go"
     - ".*(.|_)gen\\.go"
-  modules-download-mode: readonly
+  modules-download-mode: vendor
+  allow-parallel-runners: true
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
 
 linters-settings:
   dupl:
-    #threshold: 400
+    threshold: 100
   errcheck:
     check-type-assertions: true
     check-blank: true
-    # exclude: .errcheckignore
+    exclude: .errcheckignore
   funlen:
     lines: 60
     statements: 40
+  gocognit:
+    min-complexity: 10
   goconst:
     min-len: 3
     min-occurrences: 3
-  gofmt:
-    simplify: true
-  goimports:
-    local-prefixes: github.com/zchee/nvim-go
-  golint:
-    min-confidence: 0.3
-  govet:
-    enable-all: true
-    check-shadowing: false
   gocritic:
     enabled-tags:
       - diagnostic
@@ -49,6 +49,26 @@ linters-settings:
         sizeThreshold: 512
       rangeValCopy:
         sizeThreshold: 128
+  gocyclo:
+    min-complexity: 15
+  gofmt:
+    simplify: true
+  gofumpt:
+    extra-rules: true
+  goimports:
+    local-prefixes: github.com/zchee/nvim-go
+  golint:
+    min-confidence: 0.3
+  govet:
+    enable-all: true
+    disable:
+      - shadow
+  depguard:
+    list-type: blacklist
+    include-go-root: false
+  lll:
+    line-length: 120
+    tab-width: 1
   maligned:
     suggest-new: true
   misspell:
@@ -58,54 +78,75 @@ linters-settings:
   prealloc:
     simple: true
     range-loops: true
-    for-loops: false
+    for-loops: true  # default: false
   unparam:
+    check-exported: true
     algo: cha
-    check-exported: true
   unused:
-    check-exported: true
+    check-exported: false
+  whitespace:
+    multi-if: true
+    multi-func: true
 
 linters:
+  fast: false
+  disable-all: true
   enable:
+    - bodyclose
     - deadcode
     - depguard
+    - dogsled
     - dupl
     - errcheck
+    - exhaustive
+    - funlen
+    - gocognit
     - goconst
     - gocritic
+    - gocyclo
+    - godot
     - gofmt
+    - gofumpt
     - goimports
     - golint
+    - goprintffuncname
     - gosimple
     - govet
     - ineffassign
     - interfacer
-    - maligned
     - misspell
+    - nakedret
+    - nestif
+    - noctx
+    - nolintlint
     - prealloc
+    - rowserrcheck
     - staticcheck
     - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
-    - varcheck
-  disable:
-    - funlen
-    - gochecknoglobals
-    - gochecknoinits
-    - gocyclo
-    - gosec
-    - lll
-    - nakedret
-    - scopelint
     - unused
-  fast: false
+    - varcheck
+    - whitespace
+  disabled:
+    # - asciicheck
+    # - gochecknoglobals
+    # - gochecknoinits
+    # - godox
+    # - goerr113
+    # - gomnd
+    # - gosec
+    # - maligned
+    # - scopelint
+    # - testpackage
+    # - wsl
 
 issues:
   exclude-use-default: true
-
-output:
-  format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - funlen
+        - lll
