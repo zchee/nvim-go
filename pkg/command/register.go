@@ -27,9 +27,13 @@ func Register(ctx context.Context, p *plugin.Plugin, bctxt *buildctxt.Context) *
 		func(args []string, bang bool, eval *CmdBuildEval) {
 			c.cmdBuild(ctx, args, bang, eval)
 		})
-	p.HandleCommand(&plugin.CommandOptions{Name: "GoCover", Eval: "[getcwd(), expand('%:p')]"},
-		func(eval *cmdCoverEval) {
-			c.cmdCover(ctx, eval)
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoCover", NArgs: "?", Eval: "[getcwd(), expand('%:p')]"},
+		func(args []string, eval *cmdCoverEval) {
+			c.cmdCover(ctx, args, eval)
+		})
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoCoverClear"},
+		func() {
+			c.cmdClearCover(ctx)
 		})
 	p.HandleCommand(&plugin.CommandOptions{Name: "GoFmt", Eval: "expand('%:p:h')"},
 		func(dir string) {
@@ -71,7 +75,7 @@ func Register(ctx context.Context, p *plugin.Plugin, bctxt *buildctxt.Context) *
 		func(args []string, dir string) {
 			c.cmdTest(ctx, args, dir)
 		})
-	p.HandleCommand(&plugin.CommandOptions{Name: "GoSwitchTest", Eval: "[getcwd(), expand('%:p'), line2byte(line('.')) + (col('.')-2)]"},
+	p.HandleCommand(&plugin.CommandOptions{Name: "GoSwitchTest", Eval: "*"},
 		func(eval *cmdTestSwitchEval) {
 			c.SwitchTest(ctx, eval)
 		})
