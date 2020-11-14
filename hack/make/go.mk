@@ -8,6 +8,12 @@ comma := ,
 empty :=
 space := $(empty) $(empty)
 
+JOBS := $(shell getconf _NPROCESSORS_CONF)
+# if $CI is not empty, assume linux environment. parse actual shares CPU count.
+ifneq (${CI},)
+JOBS=$(shell echo $$(($$(cat /sys/fs/cgroup/cpu/cpu.shares) / 1024)))
+endif
+
 ifneq ($(shell command -v go),)
 GO_PATH ?= $(shell go env GOPATH)
 GO_OS ?= $(shell go env GOOS)
@@ -20,14 +26,11 @@ GO_APP_PKGS := $(shell go list -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "m
 GO_TEST_PKGS := $(shell go list -f='{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./...)
 GO_VENDOR_PKGS=
 ifneq ($(wildcard ./vendor),)
-	GO_VENDOR_PKGS = $(shell go list -mod=vendor -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}./vendor/{{.ImportPath}}{{end}}' ./vendor/...)
+	GO_VENDOR_PKGS = $(shell go list -f '{{if and (or .GoFiles .CgoFiles) (ne .Name "main")}}./vendor/{{.ImportPath}}{{end}}' ./vendor/...)
 endif
 endif
 
 GO_TEST ?= go test
-ifneq ($(shell command -v gotest),)
-	GO_TEST=gotest
-endif
 GO_TEST_FUNC ?= .
 GO_TEST_FLAGS ?=
 GO_BENCH_FUNC ?= .
@@ -54,13 +57,6 @@ GO_BUILDTAGS=osusergo netgo
 GO_BUILDTAGS_STATIC=static static_build
 GO_INSTALLSUFFIX_STATIC=netgo
 GO_FLAGS ?= -tags='$(subst $(space),$(comma),${GO_BUILDTAGS})' -gcflags="${GO_GCFLAGS}" -ldflags="${GO_LDFLAGS}"
-
-GO_MOD_FLAGS =
-ifneq ($(wildcard go.mod),)  # exist go.mod
-ifneq ($(GO111MODULE),off)
-	GO_MOD_FLAGS=-mod=vendor
-endif
-endif
 endif
 
 CONTAINER_REGISTRY := gcr.io/containerz
@@ -99,13 +95,11 @@ bin/$(APP): VERSION.txt
 	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GO_OS) GOARCH=$(GO_ARCH) go build -v $(strip $(GO_FLAGS)) -o $@ $(CMD)
 
 .PHONY: build
-build: GO_FLAGS+=${GO_MOD_FLAGS}
 build: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 build: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 build: bin/$(APP)  ## Builds a dynamic executable or package.
 
 .PHONY: install
-install: GO_FLAGS+=${GO_MOD_FLAGS}
 install: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 install: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 install:  ## Installs the executable or package.
@@ -113,7 +107,6 @@ install:  ## Installs the executable or package.
 	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GO_OS) GOARCH=$(GO_ARCH) go install -v $(strip $(GO_FLAGS)) $(CMD)
 
 .PHONY: pkg/install
-pkg/install: GO_FLAGS+=${GO_MOD_FLAGS}
 pkg/install: GO_LDFLAGS=
 pkg/install: GO_BUILDTAGS=
 pkg/install:
@@ -124,7 +117,6 @@ pkg/install:
 
 .PHONY: test
 test: CGO_ENABLED=1
-test: GO_FLAGS+=${GO_MOD_FLAGS}
 test: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 test: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 test:  ## Runs package test including race condition.
@@ -132,7 +124,6 @@ test:  ## Runs package test including race condition.
 	@GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) $(GO_TEST) -v -race $(strip $(GO_FLAGS)) -run=$(GO_TEST_FUNC) $(GO_TEST_PKGS)
 
 .PHONY: bench
-bench: GO_FLAGS+=${GO_MOD_FLAGS}
 bench: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 bench: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 bench:  ## Take a package benchmark.
@@ -152,7 +143,6 @@ bench/trace:  ## Take a package benchmark with take a trace profiling.
 
 .PHONY: coverage
 coverage: CGO_ENABLED=1
-coverage: GO_FLAGS+=${GO_MOD_FLAGS}
 coverage: GO_BUILDTAGS+=${GO_BUILDTAGS_STATIC}
 coverage: GO_FLAGS+=-installsuffix ${GO_INSTALLSUFFIX_STATIC}
 coverage:  ## Takes packages test coverage.
@@ -190,15 +180,13 @@ lint: lint/golangci-lint  ## Run all linters.
 .PHONY: tools/golangci-lint
 tools/golangci-lint:  # go get 'golangci-lint' binary
 ifeq (, $(shell command -v golangci-lint))
-	@cd $(mktemp -d); \
-		go mod init tmp > /dev/null 2>&1; \
-		go get -u github.com/golangci/golangci-lint/cmd/golangci-lint@master
+	wget -O- -qnv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(shell go list -m -versions -mod=mod github.com/golangci/golangci-lint | awk -F' ' '{print $$NF}')
 endif
 
 .PHONY: lint/golangci-lint
 lint/golangci-lint: tools/golangci-lint .golangci.yml  ## Run golangci-lint.
 	$(call target)
-	@GO111MODULE=on GOGC=off golangci-lint run ./...
+	golangci-lint run -j ${JOBS} ./...
 
 
 ## mod
@@ -230,12 +218,11 @@ mod/graph:  ## Prints the module requirement graph with replacements applied.
 
 .PHONY: mod/install
 mod/install: mod/tidy mod/vendor
-mod/install: GO_FLAGS+=${GO_MOD_FLAGS}
 mod/install: GO_LDFLAGS=
 mod/install: GO_BUILDTAGS=
 mod/install:  ## Install the module vendor package as an object file.
 	$(call target)
-	@GO111MODULE=on go install -mod=vendor -v $(strip $(GO_FLAGS)) $(GO_VENDOR_PKGS)
+	@GO111MODULE=on go install -v $(strip $(GO_FLAGS)) $(GO_VENDOR_PKGS)
 
 .PHONY: mod/update
 mod/update: mod/get mod/tidy mod/vendor mod/install  ## Updates all of vendor packages.
@@ -257,7 +244,7 @@ clean:  ## Cleanups binaries and extra files in the package.
 
 .PHONY: container/build
 container/build:  ## Creates the container image.
-	docker image build ${CONTAINER_BUILD_ARGS} --target ${CONTAINER_BUILD_TARGET} -t $(CONTAINER_REGISTRY)/$(APP):${CONTAINER_BUILD_TAG} .
+	docker image build ${CONTAINER_BUILD_ARGS} --target ${CONTAINER_BUILD_TARGET}-t $(CONTAINER_REGISTRY)/$(APP):${CONTAINER_BUILD_TAG} .
 
 .PHONY: container/push
 container/push:  ## Pushes the container image to $CONTAINER_REGISTRY.

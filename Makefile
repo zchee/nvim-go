@@ -109,12 +109,12 @@ vendor/bytebufferpool:  ## Update vendoring valyala/bytebufferpool package into 
 .PHONY: container/test
 container/test: container/build  ## Runs package test into Linux container.
 	$(call target)
-	docker container run ${CONTAINER_RUN_ARGS} $(IMAGE_REGISTRY)/$(APP):$(VERSION:v%=%) $(GO_TEST) -v -race $(strip $(GO_FLAGS)) -run=$(GO_TEST_FUNC) $(GO_TEST_PKGS)
+	docker container run ${CONTAINER_RUN_ARGS} $(CONTAINER_REGISTRY)/$(APP):${CONTAINER_BUILD_TAG} $(GO_TEST) -v -race $(strip $(GO_FLAGS)) -run=$(GO_TEST_FUNC) $(GO_TEST_PKGS)
 
 .PHONY: container/bench
 container/bench: container/build  ## Runs package benchmarks into Linux container.
 	$(call target)
-	docker container run ${CONTAINER_RUN_ARGS} $(IMAGE_REGISTRY)/$(APP):$(VERSION:v%=%) $(GO_TEST) -v $(strip $(GO_FLAGS)) -run='^$$' -bench=$(GO_BENCH_FUNC) -benchmem $(GO_TEST_PKGS)
+	docker container run ${CONTAINER_RUN_ARGS} $(CONTAINER_REGISTRY)/$(APP):${CONTAINER_BUILD_TAG} $(GO_TEST) -v $(strip $(GO_FLAGS)) -run='^$$' -bench=$(GO_BENCH_FUNC) -benchmem $(GO_TEST_PKGS)
 
 # ----------------------------------------------------------------------------
 # include
