@@ -68,7 +68,7 @@ nvim-go is released under the BSD 3-Clause License.
 
 
 <!-- badge links -->
-[circleci]: https://app.circleci.com/github/zchee/nvim-go/pipelines
+[circleci]: https://app.circleci.com/pipelines/github/zchee/nvim-go
 [codecov]: https://codecov.io/gh/zchee/nvim-go/branch/master
 [godoc]: https://godoc.org/github.com/zchee/nvim-go
 [release]: https://github.com/zchee/nvim-go/releases
