@@ -6,7 +6,10 @@ orbs:
 
 jobs:
   build:
-    executor: golang/linux
+    executor:
+      name: golang/linux
+      version: "1.15-buster"
+    resource_class: large
     working_directory: /go/src/github.com/zchee/nvim-go
     steps:
       - checkout
@@ -19,7 +22,10 @@ jobs:
             make build
 
   linux:
-    executor: golang/linux
+    executor:
+      name: golang/linux
+      version: "1.15-buster"
+    resource_class: large
     working_directory: /go/src/github.com/zchee/nvim-go
     steps:
       - checkout
@@ -50,13 +56,14 @@ jobs:
           path: /tmp/test-results
 
   darwin:
-    executor: golang/macos
+    executor:
+      name: golang/macos
     working_directory: ~/go/src/github.com/zchee/nvim-go
-    resource_class: medium
+    resource_class: large
     steps:
       - checkout
       - golang/install:
-          version: "1.15.3"
+          version: "1.15.5"
       - golang/gomod:
           key: "gomod-macos"
           paths: "~/go/pkg/mod/cache"
@@ -85,7 +92,10 @@ jobs:
           path: /tmp/test-results
 
   lint:
-    executor: golang/linux
+    executor:
+      name: golang/linux
+      version: "1.15-buster"
+    resource_class: large
     working_directory: /go/src/github.com/zchee/nvim-go
     steps:
       - checkout
