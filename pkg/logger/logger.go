@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	color "github.com/zchee/color/v2"
 	prettyjson "github.com/hokaccha/go-prettyjson"
+	color "github.com/zchee/color/v2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
@@ -37,7 +37,6 @@ func NewZapLogger(l zapcore.Level, opts ...zap.Option) *zap.Logger {
 	}
 
 	cfg.DisableStacktrace = true
-	cfg.EncoderConfig.EncodeTime = nil
 	cfg.Level.SetLevel(zapcore.DPanicLevel) // not show logs normally
 
 	if level := os.Getenv("NVIM_GO_LOG_LEVEL"); level != "" {
