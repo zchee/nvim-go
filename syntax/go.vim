@@ -443,7 +443,7 @@ endif
 
 " There's a bug in the implementation of grouphere. For now, use the
 " following as a more expensive/less precise workaround.
-syn sync minlines=500
+" syn sync minlines=500
 
 let b:current_syntax = "go"
 
