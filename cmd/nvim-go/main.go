@@ -7,22 +7,18 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	logpkg "log"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"cloud.google.com/go/profiler"
-	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/neovim/go-client/nvim/plugin"
 	"github.com/pkg/errors"
-	"go.opencensus.io/stats/view"
-	"go.opencensus.io/trace"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"golang.org/x/exp/errors/fmt"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zchee/nvim-go/pkg/autocmd"
@@ -126,43 +122,6 @@ func startServer(ctx context.Context) (errs error) {
 	defer undo()
 	ctx = logger.NewContext(ctx, log)
 
-	if gcpProjectID, ok := config.HasGCPProjectID(); ok {
-		// OpenCensus tracing with Stackdriver exporter
-		sdOpts := stackdriver.Options{
-			ProjectID: gcpProjectID,
-			OnError: func(err error) {
-				errs = multierr.Append(errs, fmt.Errorf("stackdriver.Exporter: %v", err))
-			},
-			MetricPrefix: nctx.AppName,
-			Context:      ctx,
-		}
-		sd, err := stackdriver.NewExporter(sdOpts)
-		if err != nil {
-			logpkg.Fatalf("failed to create stackdriver exporter: %v", err)
-		}
-		defer sd.Flush()
-		trace.RegisterExporter(sd)
-		view.RegisterExporter(sd)
-		log.Info("opencensus", zap.String("trace", "enabled Stackdriver exporter"))
-
-		// Stackdriver Profiler
-		profConf := profiler.Config{
-			Service:        nctx.AppName,
-			ServiceVersion: version.Tag,
-			MutexProfiling: true,
-			ProjectID:      gcpProjectID,
-		}
-		if err := profiler.Start(profConf); err != nil {
-			logpkg.Fatalf("failed to start stackdriver profiler: %v", err)
-		}
-		log.Info("stackdriver", zap.String("profiler", "enabled Stackdriver profiler"))
-
-		trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
-		var span *trace.Span
-		ctx, span = trace.StartSpan(ctx, "main") // start root span
-		defer span.End()
-	}
-
 	fn := func(p *plugin.Plugin) error {
 		return func(ctx context.Context, p *plugin.Plugin) error {
 			log := logger.FromContext(ctx).Named("main")
@@ -198,7 +157,7 @@ func startServer(ctx context.Context) (errs error) {
 }
 
 func subscribeServer(ctx context.Context) error {
-	log := logger.FromContext(ctx).Named("child")
+	log := logger.FromContext(ctx).Named("subscribeServer")
 	ctx = logger.NewContext(ctx, log)
 
 	s, err := server.NewServer(ctx)
@@ -207,12 +166,29 @@ func subscribeServer(ctx context.Context) error {
 	}
 	go s.Serve()
 
-	s.Nvim.Subscribe(nctx.Method)
+	nctx.RegisterBufLinesEvent(s.Nvim, func(linesEvent ...interface{}) {
+		log.Debug(fmt.Sprintf("handles %s", nctx.EventBufLines), zap.Any("linesEvent", linesEvent))
+	})
+	nctx.RegisterBufChangedtickEvent(s.Nvim, func(changedtickEvent ...interface{}) {
+		log.Debug(fmt.Sprintf("handles %s", nctx.EventBufChangedtick), zap.Any("changedtickEvent", changedtickEvent))
+	})
+
+	buf := nctx.RegisterBufAttachEvent(s.Nvim, func(attach_event ...interface{}) {
+		log.Debug(fmt.Sprintf("handles %s", nctx.EventBufAttach), zap.Any("attach_event", attach_event))
+	})
+	nctx.RegisterBufDetachEvent(s.Nvim, func(detach_event ...interface{}) {
+		log.Debug(fmt.Sprintf("handles %s", nctx.EventBufDetach), zap.Any("detach_event", detach_event))
+	})
 
 	select {
 	case <-ctx.Done():
+		log.Info("Close server")
+
 		if err := s.Close(); err != nil {
-			log.Fatal("Close", zap.Error(err))
+			if _, dbErr := s.Nvim.DetachBuffer(buf); dbErr != nil {
+				err = multierr.Append(err, dbErr)
+			}
+			log.Fatal("s.Close", zap.Error(err))
 		}
 		return nil
 	}
