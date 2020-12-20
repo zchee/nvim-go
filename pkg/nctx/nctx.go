@@ -5,8 +5,6 @@
 package nctx
 
 const (
-	Method = "NvimGo"
-
 	AppName = "nvim-go"
 	PkgName = "github.com/zchee/nvim-go"
 
