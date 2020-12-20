@@ -11,7 +11,6 @@ import (
 	"github.com/neovim/go-client/nvim/plugin"
 
 	"github.com/zchee/nvim-go/pkg/buildctxt"
-	"github.com/zchee/nvim-go/pkg/command/delve"
 	"github.com/zchee/nvim-go/pkg/logger"
 )
 
@@ -115,8 +114,6 @@ func Register(ctx context.Context, p *plugin.Plugin, bctxt *buildctxt.Context) *
 		func(args []string) {
 			c.cmdNotify(ctx, args)
 		})
-
-	delve.Register(ctx, p, bctxt)
 
 	return c
 }
