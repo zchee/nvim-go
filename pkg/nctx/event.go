@@ -5,28 +5,63 @@
 package nctx
 
 import (
-	"context"
-	"fmt"
+	"errors"
 
 	"github.com/neovim/go-client/nvim"
-	"go.uber.org/zap"
-
-	"github.com/zchee/nvim-go/pkg/logger"
 )
 
 const (
 	EventBufLines       = "nvim_buf_lines_event"
 	EventBufChangedtick = "nvim_buf_changedtick_event"
+	EventBufAttach      = "nvim_buf_attach_event"
+	EventBufDetach      = "nvim_buf_detach_event"
 )
 
-func RegisterBufLinesEvent(ctx context.Context, n *nvim.Nvim) {
-	n.RegisterHandler(EventBufLines, func(linesEvent ...interface{}) {
-		logger.FromContext(ctx).Debug(fmt.Sprintf("handles %s", EventBufLines), zap.Any("linesEvent", linesEvent))
-	})
+func RegisterEvent(n *nvim.Nvim, event string, fn func(...interface{})) {
+	n.RegisterHandler(event, fn)
 }
 
-func RegisterBufChangedtickEvent(ctx context.Context, n *nvim.Nvim) {
-	n.RegisterHandler(EventBufChangedtick, func(changedtickEvent ...interface{}) {
-		logger.FromContext(ctx).Debug(fmt.Sprintf("handles %s", EventBufChangedtick), zap.Any("changedtickEvent", changedtickEvent))
-	})
+func RegisterBufLinesEvent(n *nvim.Nvim, fn func(...interface{})) {
+	RegisterEvent(n, EventBufLines, fn)
+}
+
+func RegisterBufChangedtickEvent(n *nvim.Nvim, fn func(...interface{})) {
+	RegisterEvent(n, EventBufChangedtick, fn)
+}
+
+func reAttachFunc(n *nvim.Nvim) (nvim.Buffer, error) {
+	buf, err := n.CurrentBuffer()
+	if err != nil {
+		return 0, errors.New("failed to gets current buffer")
+	}
+
+	if _, err := n.AttachBuffer(buf, false, make(map[string]interface{})); err != nil {
+		return 0, errors.New("failed to attach buffer")
+	}
+
+	return buf, nil
+}
+
+func RegisterBufAttachEvent(n *nvim.Nvim, fn func(...interface{})) nvim.Buffer {
+	buf, err := reAttachFunc(n)
+	if err != nil {
+		n.WritelnErr("failed to gets current buffer")
+	}
+
+	fn()
+
+	return buf
+}
+
+func RegisterBufDetachEvent(n *nvim.Nvim, fn func(...interface{})) {
+	detachFn := func(...interface{}) {
+		_, err := reAttachFunc(n)
+		if err != nil {
+			n.WritelnErr("failed to gets current buffer")
+		}
+
+		fn()
+	}
+
+	RegisterEvent(n, EventBufDetach, detachFn)
 }
