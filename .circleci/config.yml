@@ -63,7 +63,7 @@ jobs:
     steps:
       - checkout
       - golang/install:
-          version: "1.15.5"
+          version: "1.15.6"
       - golang/gomod:
           key: "gomod-macos"
           paths: "~/go/pkg/mod/cache"
